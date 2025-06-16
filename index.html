@@ -23,7 +23,7 @@
       display: block;
       width: 200px;
       margin: 15px auto;
-      padding: 20px 0;
+      padding: 10px 0;
       background-color: #555656;
       border: none;
       text-decoration: none;
@@ -36,6 +36,13 @@
     .button:hover {
       background-color: #3b3b3b;
     }
+    .small-text {
+      font-size: 15px;
+      color: #ccc;
+      display: block;
+      margin-top: 9px;
+      font-weight: normal;
+    }
   </style>
 </head>
 <body>
@@ -43,17 +50,27 @@
   <h1>Välkommen till Olles Skattjakt</h1>
   <h2>Välj ditt lag för att börja</h2>
 
-  <a href="https://stekbring.github.io/ledtrad1" class="button">Lag 1</a>
-  <a href="https://stekbring.github.io/ledtrad1" class="button">Lag 2</a>
-  <a href="https://stekbring.github.io/ledtrad1" class="button">Lag 3</a>
-  <a href="https://stekbring.github.io/ledtrad1" class="button">Lag 4</a>
+  <button class="button" onclick="väljLag('lag1'); window.location.href='https://stekbring.github.io/ledtrad1'">
+    Lag 1<br>
+    <span class="small-text">Vestman, Malou, Felicia</span>
+  </button>
+  <button class="button" onclick="väljLag('lag2'); window.location.href='https://stekbring.github.io/ledtrad2'">
+    Lag 2<br>
+    <span class="small-text">Olle A, Malte, Alexander</span>
+  </button>
+  <button class="button" onclick="väljLag('lag3'); window.location.href='https://stekbring.github.io/ledtrad3'">
+    Lag 3<br>
+    <span class="small-text">Lukas, Mira, Nathalie</span>
+  </button>
+  <button class="button" onclick="väljLag('lag4'); window.location.href='https://stekbring.github.io/ledtrad4'">
+    Lag 4<br>
+    <span class="small-text">Emma, Thelma, Signe</span>
+  </button>
 
   <script>
     function väljLag(lag) {
       localStorage.setItem('valdtLag', lag);
-      //alert('Du valde ' + lag + '. Nu sparas valet och du kan gå vidare.');
-      // Här kan du omdirigera till ledtrådsidan om du vill, t.ex:
-      // window.location.href = 'ledtrad.html';
+      // Här sparas laget i localStorage utan popup
     }
   </script>
 
