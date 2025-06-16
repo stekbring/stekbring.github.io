@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <title>Olles Skattjakt</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin-top: 150px;
+      background-color: #343541;
+      color: white;
+    }
+    h1 {
+      font-size: 48px;
+      margin-bottom: 50px;
+    }
+    h2 {
+      font-size: 35px;
+      margin-bottom: 50px;
+    }
+    .button {
+      display: block;
+      width: 200px;
+      margin: 15px auto;
+      padding: 20px 0;
+      background-color: #555656;
+      border: none;
+      text-decoration: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .button:hover {
+      background-color: #3b3b3b;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Välkommen till Olles Skattjakt</h1>
+  <h2>Välj ditt lag för att börja</h2>
+
+  <a href="https://stekbring.github.io/ledtrad1" class="button">Lag 1</a>
+  <a href="https://stekbring.github.io/ledtrad1" class="button">Lag 2</a>
+  <a href="https://stekbring.github.io/ledtrad1" class="button">Lag 3</a>
+  <a href="https://stekbring.github.io/ledtrad1" class="button">Lag 4</a>
+
+  <script>
+    function väljLag(lag) {
+      localStorage.setItem('valdtLag', lag);
+      //alert('Du valde ' + lag + '. Nu sparas valet och du kan gå vidare.');
+      // Här kan du omdirigera till ledtrådsidan om du vill, t.ex:
+      // window.location.href = 'ledtrad.html';
+    }
+  </script>
+
+</body>
+</html>
