@@ -13,11 +13,11 @@
     }
     h1 {
       font-size: 55px;
-      margin-bottom: 200px;
+      margin-bottom: 100px;
     }
     h2 {
       font-size: 40px;
-      margin-bottom: 200px;
+      margin-bottom: 20px;
     }
     .button {
       display: block;
@@ -46,16 +46,23 @@
     #content {
       display: none;
     }
+    #countdown-label {
+      font-size: 40px;
+      margin-bottom: 40px;
+      color: white;
+    }
     #countdown {
-      font-size: 36px;
+      font-size: 100px;
       color: #ccc;
+      margin-bottom: 150px;
     }
   </style>
 </head>
 <body>
 
   <h1>Välkommen till Olles Skattjakt</h1>
-  <h2 id="countdown">Nedräkning...</h2>
+  <h2 id="countdown-label">Startar om:</h2>
+  <div id="countdown">Laddar...</div>
 
   <div id="content">
     <h2>Välj ditt lag för att börja</h2>
@@ -83,17 +90,18 @@
       localStorage.setItem('valdtLag', lag);
     }
 
-    // Ange datum och klockslag för upplåsning
-    const unlockTime = new Date("2025-06-17T20:00:00"); // Ändra här
+    const unlockTime = new Date("2025-06-20T15:00:00");
 
     const countdownEl = document.getElementById("countdown");
     const contentEl = document.getElementById("content");
+    const labelEl = document.getElementById("countdown-label");
 
     function updateCountdown() {
       const now = new Date();
       const diff = unlockTime - now;
 
       if (diff <= 0) {
+        labelEl.style.display = "none";
         countdownEl.style.display = "none";
         contentEl.style.display = "block";
         clearInterval(interval);
@@ -105,7 +113,7 @@
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
 
-      countdownEl.textContent = `Startar om ${days}d ${hours}h ${minutes}m ${seconds}s`;
+      countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
     }
 
     updateCountdown();
