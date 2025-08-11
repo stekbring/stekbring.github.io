@@ -60,29 +60,12 @@
 </head>
 <body>
 
-  <h1>Välkommen till Olles Skattjakt</h1>
-  <h2 id="countdown-label">Startar om:</h2>
+  <h1>Välkommen till Olles 100års dag</h1>
+  <h2 id="countdown-label">Börjar om:</h2>
   <div id="countdown">Laddar...</div>
 
   <div id="content">
     <h2>Välj ditt lag för att börja</h2>
-
-    <button class="button" onclick="väljLag('lag1'); window.location.href='https://stekbring.github.io/lag1'">
-      Lag 1<br>
-      <span class="small-text">Vestman  -  Malou  -  Felicia</span>
-    </button>
-    <button class="button" onclick="väljLag('lag2'); window.location.href='https://stekbring.github.io/lag2'">
-      Lag 2<br>
-      <span class="small-text">Olle A - Malte - Alexander</span>
-    </button>
-    <button class="button" onclick="väljLag('lag3'); window.location.href='https://stekbring.github.io/lag3'">
-      Lag 3<br>
-      <span class="small-text">Lukas - Mira - Nathalie</span>
-    </button>
-    <button class="button" onclick="väljLag('lag4'); window.location.href='https://stekbring.github.io/lag4'">
-      Lag 4<br>
-      <span class="small-text">Emma - Thelma - Signe</span>
-    </button>
   </div>
 
   <script>
@@ -90,7 +73,7 @@
       localStorage.setItem('valdtLag', lag);
     }
 
-    const unlockTime = new Date("2025-06-20T17:45:00");
+    const unlockTime = new Date("2103-06-25T00:00:00");
 
     const countdownEl = document.getElementById("countdown");
     const contentEl = document.getElementById("content");
@@ -108,12 +91,14 @@
         return;
       }
 
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365));
+      const days = Math.floor((diff / (1000 * 60 * 60 * 24)) % 365);
       const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
 
-      countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+      countdownEl.textContent = `${years}y ${days}d ${hours}h ${minutes}m ${seconds}s`;
     }
 
     updateCountdown();
