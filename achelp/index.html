@@ -3,8 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ac help Download</title>
+  <title>Ac Help Download</title>
   <meta name="description" content="Ladda ner programmet och läs instruktionerna (PDF)." />
+  <link rel="icon" type="image/x-icon" href="filer/fjader.ico">
+
   <style>
     :root {
       --bg: #0f172a;      /* slate-900 */
@@ -91,17 +93,14 @@
     <p class="center">Ladda ner programmet och läs instruktionerna nedan.</p>
 
     <div class="download" aria-label="Nedladdning">
-      <!-- ÄNDRA href till din riktiga fil, t.ex. program.zip eller .exe -->
       <a class="btn" href="filer/AcHelpv2.2.zip" download>
         ⬇️ Ladda ner
       </a>
-      <!-- ÄNDRA namnet här så det matchar din fil -->
       <span class="filename" id="program-namn">AcHelpv2.2.zip</span>
     </div>
 
     <section class="pdf" aria-labelledby="instruktioner-titel">
       <header id="instruktioner-titel">📄 Instruktioner (PDF)</header>
-      <!-- ÄNDRA src till din riktiga PDF-bana, t.ex. /filer/instruktioner.pdf -->
       <object class="frame" data="filer\achelpsetup.pdf" type="application/pdf">
         <div class="fallback">
           Din webbläsare kunde inte visa PDF:en. <a href="filer/achelpsetup.pdf">Öppna eller ladda ner PDF här.</a>
@@ -115,7 +114,6 @@
   </main>
 
   <script>
-    // Sätt aktuellt år automatiskt
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
 </body>
