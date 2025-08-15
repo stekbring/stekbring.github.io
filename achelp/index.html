@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ac help Download</title>
+  <meta name="description" content="Ladda ner programmet och läs instruktionerna (PDF)." />
+  <style>
+    :root {
+      --bg: #0f172a;      /* slate-900 */
+      --fg: #e2e8f0;      /* slate-200 */
+      --muted: #94a3b8;   /* slate-400 */
+      --card: #111827;    /* gray-900 */
+      --btn: #3b82f6;     /* blue-500 */
+      --btn-hover: #2563eb; /* blue-600 */
+      --ring: #60a5fa;    /* blue-400 */
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 50% -200px, #111827, var(--bg));
+      color: var(--fg);
+      display: grid;
+      place-items: center;
+      padding: 2rem;
+    }
+    .wrap {
+      width: 100%;
+      max-width: 720px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 1.25rem;
+      padding: 2rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    h1 {
+      margin: 0 0 1rem;
+      font-size: clamp(1.75rem, 3.5vw, 3rem);
+      text-align: center;
+      letter-spacing: 0.2px;
+    }
+    p.center { text-align: center; margin: 0 0 1.25rem; color: var(--muted); }
+
+    .download {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .75rem;
+      flex-wrap: wrap;
+      margin: 1.25rem auto 1.5rem;
+    }
+    .btn {
+      appearance: none;
+      border: 0;
+      background: var(--btn);
+      color: white;
+      padding: .9rem 1.2rem;
+      font-weight: 600;
+      border-radius: .9rem;
+      cursor: pointer;
+      text-decoration: none;
+      line-height: 1;
+      box-shadow: 0 8px 20px rgba(59,130,246,.35);
+      transition: transform .06s ease, background-color .15s ease, box-shadow .15s ease;
+    }
+    .btn:hover { background: var(--btn-hover); box-shadow: 0 8px 24px rgba(37,99,235,.38); }
+    .btn:active { transform: translateY(1px) scale(.99); }
+    .btn:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+
+    .filename { color: var(--muted); font-size: .95rem; }
+
+    .pdf {
+      margin-top: 1.5rem;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: .9rem;
+      overflow: hidden;
+      background: #0b1220;
+    }
+    .pdf header { padding: .75rem 1rem; font-weight: 600; border-bottom: 1px solid rgba(148,163,184,.2); }
+    .pdf .frame { width: 100%; height: min(75vh, 900px); border: 0; display: block; }
+    .pdf .fallback { padding: 1rem; color: var(--muted); font-size: .95rem; }
+
+    footer { margin-top: 1.25rem; text-align: center; color: var(--muted); font-size: .85rem; }
+  </style>
+</head>
+<body>
+  <main class="wrap" role="main">
+    <h1>Ac Help</h1>
+    <p class="center">Ladda ner programmet och läs instruktionerna nedan.</p>
+
+    <div class="download" aria-label="Nedladdning">
+      <!-- ÄNDRA href till din riktiga fil, t.ex. program.zip eller .exe -->
+      <a class="btn" href="filer/AcHelpv2.2.zip" download>
+        ⬇️ Ladda ner
+      </a>
+      <!-- ÄNDRA namnet här så det matchar din fil -->
+      <span class="filename" id="program-namn">AcHelpv2.2.zip</span>
+    </div>
+
+    <section class="pdf" aria-labelledby="instruktioner-titel">
+      <header id="instruktioner-titel">📄 Instruktioner (PDF)</header>
+      <!-- ÄNDRA src till din riktiga PDF-bana, t.ex. /filer/instruktioner.pdf -->
+      <object class="frame" data="filer\achelpsetup.pdf" type="application/pdf">
+        <div class="fallback">
+          Din webbläsare kunde inte visa PDF:en. <a href="filer/achelpsetup.pdf">Öppna eller ladda ner PDF här.</a>
+        </div>
+      </object>
+    </section>
+
+    <footer>
+      <span>© <span id="year"></span> Olle Ekbring</span>
+    </footer>
+  </main>
+
+  <script>
+    // Sätt aktuellt år automatiskt
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
