@@ -27,7 +27,19 @@
       display: grid;
       place-items: center;
       padding: 2rem;
+      position: relative; /* viktigt för absolut positionering */
     }
+
+    /* Sidans ikon */
+    .side-icon {
+      position: absolute;
+      left: 23rem;                  /* avstånd från vänsterkanten */
+      top: 17%;                    /* mitten av sidan */
+      transform: translateY(-50%); /* justera så den hamnar centrerat */
+      width: 120px;                /* storlek */
+      height: 120px;
+    }
+
     .wrap {
       width: 100%;
       max-width: 1000px;
@@ -88,20 +100,23 @@
   </style>
 </head>
 <body>
+  <!-- Ikonen till vänster -->
+  <img src="filer/achelp.ico" alt="Programikon" class="side-icon">
+
   <main class="wrap" role="main">
     <h1>Active Care Help v2.2</h1>
     <p class="center">Ladda ner programmet och läs instruktionerna nedan.</p>
 
     <div class="download" aria-label="Nedladdning">
       <a class="btn" href="filer/AcHelpv2.2.zip" download>
-      Ladda ner
+        Ladda ner
       </a>
       <span class="filename" id="program-namn">AcHelpv2.2.zip</span>
     </div>
 
     <section class="pdf" aria-labelledby="instruktioner-titel">
       <header id="instruktioner-titel">📄 Instruktioner (PDF)</header>
-      <object class="frame" data="filer\achelpsetup.pdf" type="application/pdf">
+      <object class="frame" data="filer/achelpsetup.pdf" type="application/pdf">
         <div class="fallback">
           Din webbläsare kunde inte visa PDF:en. <a href="filer/achelpsetup.pdf">Öppna eller ladda ner PDF här.</a>
         </div>
@@ -109,13 +124,10 @@
     </section>
 
     <footer>
-    
-    <span>Frågor? skicka ett mail till <a href="mailto:oekbring@gmail.com">oekbring@gmail.com</a></span>
-    <br>
-    <br>
-    <span>© <span id="year"></span> Olle Ekbring</span>
+      <span>Frågor? skicka ett mail till <a href="mailto:oekbring@gmail.com">oekbring@gmail.com</a></span>
+      <br><br>
+      <span>© <span id="year"></span> Olle Ekbring</span>
     </footer>
-
   </main>
 
   <script>
