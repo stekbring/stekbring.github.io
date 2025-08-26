@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ac Help Download</title>
   <meta name="description" content="Ladda ner programmet och läs instruktionerna (PDF)." />
-  <link rel="icon" type="image/x-icon" href="filer/achelp.ico">
+  <link rel="icon" type="image/x-icon" href="filer/achelp.png">
 
   <style>
     :root {
@@ -27,19 +27,7 @@
       display: grid;
       place-items: center;
       padding: 2rem;
-      position: relative; /* viktigt för absolut positionering */
     }
-
-    /* Sidans ikon */
-    .side-icon {
-      position: absolute;
-      left: 23rem;                  /* avstånd från vänsterkanten */
-      top: 17%;                    /* mitten av sidan */
-      transform: translateY(-50%); /* justera så den hamnar centrerat */
-      width: 120px;                /* storlek */
-      height: 120px;
-    }
-
     .wrap {
       width: 100%;
       max-width: 1000px;
@@ -49,13 +37,33 @@
       padding: 2rem;
       box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     }
-    h1 {
+
+    /* Ny layout för ikon + textblock */
+    .top-section {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+    .program-icon {
+      width: clamp(120px, 9vw, 150px);  /* min 50px, max 100px, annars 8% av viewportens bredd */
+      height: auto; /* håller proportioner */
+      transform: translateX(clamp(-60px, -8vw, -100px));
+    }
+      
+    .text-content {
+      text-align: center;
+    }
+    .text-content h1 {
       margin: 0 0 1rem;
       font-size: clamp(1.75rem, 3.5vw, 3rem);
-      text-align: center;
       letter-spacing: 0.2px;
     }
-    p.center { text-align: center; margin: 0 0 1.25rem; color: var(--muted); }
+    .text-content p {
+      margin: 0 0 1.25rem;
+      color: var(--muted);
+    }
 
     .download {
       display: flex;
@@ -65,6 +73,7 @@
       flex-wrap: wrap;
       margin: 1.25rem auto 1.5rem;
     }
+
     .btn {
       appearance: none;
       border: 0;
@@ -100,18 +109,20 @@
   </style>
 </head>
 <body>
-  <!-- Ikonen till vänster -->
-  <img src="filer/achelp.ico" alt="Programikon" class="side-icon">
-
   <main class="wrap" role="main">
-    <h1>Active Care Help v2.2</h1>
-    <p class="center">Ladda ner programmet och läs instruktionerna nedan.</p>
 
-    <div class="download" aria-label="Nedladdning">
-      <a class="btn" href="filer/AcHelpv2.2.zip" download>
-        Ladda ner
-      </a>
-      <span class="filename" id="program-namn">AcHelpv2.2.zip</span>
+    <div class="top-section">
+      <img src="filer/achelp.ico" alt="Programikon" class="program-icon">
+
+      <div class="text-content">
+        <h1>Active Care Help v2.2</h1>
+        <p>Ladda ner programmet och läs instruktionerna nedan.</p>
+
+        <div class="download" aria-label="Nedladdning">
+          <a class="btn" href="filer/AcHelpv2.2.zip" download>Ladda ner</a>
+          <span class="filename" id="program-namn">AcHelpv2.2.zip</span>
+        </div>
+      </div>
     </div>
 
     <section class="pdf" aria-labelledby="instruktioner-titel">
@@ -128,6 +139,7 @@
       <br><br>
       <span>© <span id="year"></span> Olle Ekbring</span>
     </footer>
+
   </main>
 
   <script>
