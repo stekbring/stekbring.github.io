@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <title>Min sida med tabell och karta</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    table {
+      width: 60%;
+      margin: 20px auto;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid #333;
+    }
+    th, td {
+      padding: 10px;
+      text-align: center;
+    }
+    .map-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Min rubrik</h1>
+
+  <table>
+    <tr>
+      <th>Namn</th>
+      <th>Ålder</th>
+      <th>Stad</th>
+    </tr>
+    <tr>
+      <td>Anna</td>
+      <td>25</td>
+      <td>Stockholm</td>
+    </tr>
+    <tr>
+      <td>Erik</td>
+      <td>30</td>
+      <td>Göteborg</td>
+    </tr>
+    <tr>
+      <td>Karin</td>
+      <td>28</td>
+      <td>Malmö</td>
+    </tr>
+  </table>
+
+  <div class="map-container">
+    <iframe src="https://www.google.com/maps/d/u/0/embed?mid=1Z2V7ipj-p1nvkp1a98wvcoIv44nU7Ik&ehbc=2E312F&noprof=1" width="1000" height="600"></iframe>
+  </div>
+</body>
+</html>
