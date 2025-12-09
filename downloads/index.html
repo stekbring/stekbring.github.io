@@ -42,7 +42,7 @@
       const apiUrl = `https://api.github.com/repos/${ghUser}/${ghRepo}/contents/${ghFolder}`;
 
       try {
-        const res = await fetch(apiUrl);
+        const res = await fetch(apiUrl + '?t=' + new Date().getTime());
         
         if (res.status === 404) throw new Error('Hittade inte mappen eller repot. Kolla inställningarna.');
         if (res.status === 403) throw new Error('API-gräns nådd (vänta en stund) eller privat repo.');
