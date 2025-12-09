@@ -5,123 +5,88 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Nedladdningar</title>
   <style>
-    :root{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;}
+    :root{font-family:Inter, system-ui, -apple-system, sans-serif;}
     body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f6f7fb;margin:0}
     .wrapper{width:min(640px,95vw);background:#fff;padding:28px;border-radius:12px;box-shadow:0 8px 30px rgba(20,20,40,0.06);text-align:center}
     h1{margin:0 0 18px;font-size:24px}
-    ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;align-items:center}
-    li{width:100%;display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid #e9e9ef;border-radius:8px}
+    ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;}
+    li{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid #e9e9ef;border-radius:8px}
     .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:12px;flex:1;text-align:left}
-    .btn{appearance:none;border:0;padding:8px 12px;border-radius:8px;background:#1f6feb;color:#fff;font-weight:600;cursor:pointer}
-    .muted{color:#666;font-size:14px;margin-top:10px}
-    .controls{margin-top:16px;display:flex;gap:10px;justify-content:center}
-    input[type=file]{display:none}
-    .note{font-size:13px;color:#444;margin-top:8px}
-    .btn {
-        text-decoration: none;
-    }
+    .btn{text-decoration:none;padding:8px 12px;border-radius:8px;background:#1f6feb;color:#fff;font-weight:600;font-size:14px;border:0;cursor:pointer}
+    .btn:hover{background:#1158c7}
+    .status{color:#666;font-size:14px;margin-top:16px}
   </style>
 </head>
 <body>
   <main class="wrapper">
     <h1>Nedladdningar</h1>
-    
-    <ul id="list" aria-live="polite"></ul>
-
-    <div class="controls">
-      <label class="btn" id="refresh">Uppdatera lista</label>
-      <label for="dirPicker" class="btn">Välj mapp</label>
-      <input id="dirPicker" type="file" webkitdirectory directory multiple />
-    </div>
-
-    <p class="muted" id="status"></p>
+    <ul id="list"></ul>
+    <p class="status" id="status">Laddar...</p>
   </main>
 
   <script>
+    // --- KONFIGURATION ---
+    const ghUser = 'stekbring';  // Ändra till ditt GitHub-namn
+    const ghRepo = 'stekbring.github.io';     // Ändra till namnet på ditt repository
+    const ghFolder = 'downloads/filer';            // Mappen där dina zip-filer ligger
+    // ---------------------
+
     const listEl = document.getElementById('list');
     const statusEl = document.getElementById('status');
-    const refreshBtn = document.getElementById('refresh');
-    const dirPicker = document.getElementById('dirPicker');
 
-    // Försök hämta serverns katalog (funkar om du kör en enkel webbserver som visar indexering)
-    async function fetchFolder() {
-      status('Försöker lista filer i ./filer/ ...');
+    async function fetchFromGitHubAPI() {
+      statusEl.textContent = 'Hämtar fil-lista från GitHub...';
+      listEl.innerHTML = '';
+
+      // URL till GitHubs API för innehåll
+      const apiUrl = `https://api.github.com/repos/${ghUser}/${ghRepo}/contents/${ghFolder}`;
+
       try {
-        const res = await fetch('./filer/');
-        if (!res.ok) throw new Error('Ingen kataloglistning från server');
-        const text = await res.text();
-        // Parsar enkla HTML-listor (vanliga webservrar visar länkar till filerna)
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(text, 'text/html');
-        const anchors = Array.from(doc.querySelectorAll('a'));
-        const zips = anchors.map(a => a.getAttribute('href')).filter(h => h && h.toLowerCase().endsWith('.zip'));
-        if (zips.length === 0) throw new Error('Inga .zip-filer hittades via servern');
-        renderFromServer(zips);
+        const res = await fetch(apiUrl);
+        
+        if (res.status === 404) throw new Error('Hittade inte mappen eller repot. Kolla inställningarna.');
+        if (res.status === 403) throw new Error('API-gräns nådd (vänta en stund) eller privat repo.');
+        if (!res.ok) throw new Error('Kunde inte kontakta GitHub.');
+
+        const data = await res.json();
+        
+        // Filtrera ut bara .zip-filer
+        const zips = data.filter(item => item.name.toLowerCase().endsWith('.zip'));
+
+        if (zips.length === 0) {
+           statusEl.textContent = 'Inga .zip-filer hittades i mappen.';
+           return;
+        }
+
+        renderList(zips);
       } catch (err) {
-        status('Kunde inte läsa ./filer/ via fetch — körs du utan webbserver? Använd "Välj mapp" som fallback. (' + err.message + ')');
+        console.error(err);
+        statusEl.textContent = 'Fel: ' + err.message;
       }
     }
 
-    // Rendera från en serverlista (relative paths)
-    function renderFromServer(zips) {
-      listEl.innerHTML = '';
-      zips.forEach(href => {
-        const name = decodeURIComponent(href.split('/').filter(Boolean).pop());
+    function renderList(files) {
+      files.forEach(file => {
         const li = document.createElement('li');
-        const span = document.createElement('div'); span.className = 'name'; span.textContent = name;
+        
+        const nameSpan = document.createElement('div'); 
+        nameSpan.className = 'name'; 
+        nameSpan.textContent = file.name;
+
         const a = document.createElement('a');
-        a.href = './filer/' + href.replace(/.*\//, '');
-        a.setAttribute('download', name);
-        a.textContent = 'ladda ner';
+        // download_url är länken direkt till råfilen
+        a.href = file.download_url; 
+        a.textContent = 'Ladda ner';
         a.className = 'btn';
-        li.appendChild(span);
+
+        li.appendChild(nameSpan);
         li.appendChild(a);
         listEl.appendChild(li);
       });
-      status(zips.length + ' fil(er) hittade i ./filer/ via server.');
+      statusEl.textContent = `${files.length} fil(er) hittade.`;
     }
 
-    // Rendera från en lokal mapp som användaren valt (File objects)
-    function renderFromFiles(fileList) {
-      const zips = Array.from(fileList).filter(f => f.name.toLowerCase().endsWith('.zip'));
-      listEl.innerHTML = '';
-      if (zips.length === 0) {
-        status('Inga .zip-filer valda i mappen.');
-        return;
-      }
-      zips.forEach(file => {
-        const li = document.createElement('li');
-        const span = document.createElement('div'); span.className = 'name'; span.textContent = file.name;
-
-        const a = document.createElement('a');
-        // Skapa en temporär URL för nedladdning
-        const url = URL.createObjectURL(file);
-        a.href = url;
-        a.setAttribute('download', file.name);
-        a.textContent = 'ladda ner';
-        a.className = 'btn';
-        // Frigör blob URL efter användning
-        a.addEventListener('click', () => setTimeout(() => URL.revokeObjectURL(url), 15000));
-
-        li.appendChild(span);
-        li.appendChild(a);
-        listEl.appendChild(li);
-      });
-      status(zips.length + ' fil(er) listade från vald mapp.');
-    }
-
-    function status(text) { statusEl.textContent = text; }
-
-    // Event handlers
-    refreshBtn.addEventListener('click', () => { fetchFolder(); });
-
-    dirPicker.addEventListener('change', (e) => {
-      const files = e.target.files;
-      renderFromFiles(files);
-    });
-
-    // Init: försök automatiskt
-    fetchFolder();
+    fetchFromGitHubAPI();
   </script>
 </body>
 </html>
