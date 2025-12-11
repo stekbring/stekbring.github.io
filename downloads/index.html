@@ -13,8 +13,19 @@
     ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;}
     li{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid #e9e9ef;border-radius:8px}
     .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:12px;flex:1;text-align:left}
+    
+    /* Knapp-design */
     .btn{text-decoration:none;padding:8px 12px;border-radius:8px;background:#1f6feb;color:#fff;font-weight:600;font-size:14px;border:0;cursor:pointer}
     .btn:hover{background:#1158c7}
+    
+    /* Specifik stil för kart-knappen */
+    .map-btn {
+        display: inline-block;
+        margin-top: 20px; /* Avstånd från listan */
+        background: #2ea44f; /* Grön färg för att skilja från nedladdningar (valfritt) */
+    }
+    .map-btn:hover { background: #2c974b; }
+
     .status{color:#666;font-size:14px;margin-top:16px}
   </style>
 </head>
@@ -22,6 +33,9 @@
   <main class="wrapper">
     <h1>Valheim nedladdningar</h1>
     <ul id="list"></ul>
+    
+    <a href="https://valheim-map.world/index.html?seed=NNdFDDi2sg&offset=-3625%2C-1605&zoom=1.000&view=0&ver=0.221.4" target="_blank" class="btn map-btn">Länk till karta</a>
+    
     <p class="status" id="status">Laddar...</p>
   </main>
 
@@ -39,7 +53,6 @@
       statusEl.textContent = 'Hämtar fil-lista från GitHub...';
       listEl.innerHTML = '';
 
-      // URL till GitHubs API för innehåll
       const apiUrl = `https://api.github.com/repos/${ghUser}/${ghRepo}/contents/${ghFolder}`;
 
       try {
@@ -50,8 +63,6 @@
         if (!res.ok) throw new Error('Kunde inte kontakta GitHub.');
 
         const data = await res.json();
-        
-        // Filtrera ut bara .zip-filer
         const zips = data.filter(item => item.name.toLowerCase().endsWith('.zip'));
 
         if (zips.length === 0) {
@@ -75,7 +86,6 @@
         nameSpan.textContent = file.name;
 
         const a = document.createElement('a');
-        // download_url är länken direkt till råfilen
         a.href = file.download_url; 
         a.textContent = 'Ladda ner';
         a.className = 'btn';
