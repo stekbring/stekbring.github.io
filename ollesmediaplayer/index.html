@@ -7,23 +7,54 @@
     
     <link rel="icon" type="image/x-icon" href="filer/mp3logo3.ico">
 
+    <link rel="stylesheet" href="https://use.typekit.net/ycu1oeu.css">
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    </style>
+    /* 1. Sätt grundtypsnittet för allt */
+    body { 
+        font-family: "industry", sans-serif;
+        font-weight: 400; 
+        font-style: normal;
+    }
+
+    /* 2. Definiera .font-heading till att BARA byta typsnittsfamilj (om det behövs) 
+       eller använd den för att styra den tunga stilen specifikt */
+    .font-heading {
+        font-family: "industry", sans-serif;
+        font-weight: 800;
+        font-style: italic;
+    }
+
+    /* 3. Rubriker får den tunga stilen automatiskt */
+    h1, h2 {
+        font-weight: 800;
+        font-style: italic;
+    }
+
+    /* 4. Tailwind-fix: Ibland skriver Tailwind över font-weight på th, 
+       så vi tvingar den till 400 om det är önskat */
+    th.font-normal {
+        font-weight: 400 !important;
+        font-style: normal !important;
+    }
+</style>
 </head>
 <body class="bg-slate-900 text-white min-h-screen flex flex-col">
 
     <header class="bg-slate-800 border-b border-slate-700 pt-16 pb-12 text-center">
         <div class="max-w-4xl mx-auto px-4">
             <img src="filer/mp3logo3.png" alt="Olles Media Player Logo" class="mx-auto w-40 h-40 mb-6 rounded-2xl">
-            <h1 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Olles Media Player</h1>
+            
+            <h1 class="text-4xl md:text-5xl text-white mb-4">Olles Media Player</h1>
+            
             <p class="text-xl text-slate-400 mb-8 max-w-2xl mx-auto">
-                Ladda ner musik från Spotify och YouTube direkt till MP3. 
+                Konverterar hela spellistor eller enskilda låtar från Spotify och YouTube till MP3-filer. 
                 Fullt automatiserad taggning av ID3-data och skivomslag.
             </p>
             
-            <a id="latest-download-btn" href="#" class="inline-flex items-center bg-[#288958] hover:bg-[#206a45] text-white font-bold py-2 px-6 rounded-full text-sm transition">
+            <a id="latest-download-btn" href="#" class="font-heading inline-flex items-center bg-[#288958] hover:bg-[#206a45] text-white py-2 px-6 rounded-full text-sm transition">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                 <span id="latest-btn-text">Laddar senaste versionen...</span>
             </a>
@@ -34,20 +65,22 @@
     <main class="flex-grow max-w-4xl mx-auto px-4 py-12 w-full">
         
         <section id="versions">
-            <h2 class="text-xl font-bold text-white mb-6 border-b border-slate-700 pb-2">Alla tillgängliga versioner</h2>
+            <h2 class="text-xl text-white mb-6 border-b border-slate-700 pb-2">Alla tillgängliga versioner</h2>
+            
             <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
-                <table class="w-full text-left">
+                <table class="w-full text-left border-collapse">
                     <thead class="bg-slate-700 text-slate-300">
                         <tr>
-                            <th class="py-3 px-6 font-semibold text-sm">Version</th>
-                            <th class="py-3 px-6 font-semibold text-sm">Datum</th>
-                            <th class="py-3 px-6 font-semibold text-sm">Storlek</th>
-                            <th class="py-3 px-6 font-semibold text-sm text-right">Länk</th>
+                            <th class="py-3 px-6 font-heading text-sm font-normal">Version</th>
+                            <th class="py-3 px-6 font-heading text-sm font-normal">Datum</th>
+                            <th class="py-3 px-6 font-heading text-sm font-normal">Storlek</th>
+                            <th class="py-3 px-6 font-heading text-sm font-normal w-40">Info</th>
+                            <th class="py-3 px-6 font-heading text-sm font-normal text-right">Länk</th>
                         </tr>
                     </thead>
                     <tbody id="versions-list" class="divide-y divide-slate-700">
                         <tr>
-                            <td colspan="4" class="py-6 text-center text-slate-500">Hämtar versioner från GitHub...</td>
+                            <td colspan="5" class="py-6 text-center text-slate-500">Hämtar versioner från GitHub...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -64,6 +97,21 @@
         document.getElementById('current-year').textContent = new Date().getFullYear();
 
         const GITHUB_API_URL = "https://api.github.com/repos/stekbring/stekbring.github.io/releases";
+
+        function toggleNotes(id) {
+            const row = document.getElementById('notes-' + id);
+            const btn = document.getElementById('btn-' + id);
+            
+            if (row.classList.contains('hidden')) {
+                row.classList.remove('hidden');
+                btn.textContent = "Dölj";
+                btn.classList.add('text-slate-200');
+            } else {
+                row.classList.add('hidden');
+                btn.textContent = "Release notes";
+                btn.classList.remove('text-slate-200');
+            }
+        }
 
         async function fetchReleases() {
             try {
@@ -90,14 +138,28 @@
                         if (asset) {
                             const date = new Date(release.published_at).toLocaleDateString('sv-SE');
                             const sizeMb = (asset.size / (1024 * 1024)).toFixed(1);
+                            const notes = release.body || "Inga release notes tillgängliga.";
                             
                             tableRows += `
-                                <tr class="hover:bg-slate-700/50 transition">
-                                    <td class="py-4 px-6 font-medium text-white">${release.tag_name} ${release === releases[0] ? '<span class="bg-[#288958] text-xs px-2 py-0.5 rounded-full ml-2">Senaste</span>' : ''}</td>
-                                    <td class="py-4 px-6 text-slate-400">${date}</td>
-                                    <td class="py-4 px-6 text-slate-400">${sizeMb} MB</td>
-                                    <td class="py-4 px-6 text-right">
+                                <tr class="hover:bg-slate-700/50 transition border-b border-slate-700/50">
+                                    <td class="py-4 px-6 text-white align-top font-medium">
+                                        ${release.tag_name} 
+                                        ${release === releases[0] ? '<span class="bg-[#288958] font-heading text-xs px-2 py-0.5 rounded-full ml-2 align-middle">Senaste</span>' : ''}
+                                    </td>
+                                    <td class="py-4 px-6 text-slate-400 align-top">${date}</td>
+                                    <td class="py-4 px-6 text-slate-400 align-top">${sizeMb} MB</td>
+                                    <td class="py-4 px-6 align-top">
+                                        <button id="btn-${release.id}" onclick="toggleNotes('${release.id}')" class="text-sm text-slate-400 hover:text-white underline decoration-dotted underline-offset-4 focus:outline-none whitespace-nowrap">
+                                            Release notes
+                                        </button>
+                                    </td>
+                                    <td class="py-4 px-6 text-right align-top">
                                         <a href="${asset.browser_download_url}" class="text-blue-400 hover:text-blue-300 font-medium">Ladda ner</a>
+                                    </td>
+                                </tr>
+                                <tr id="notes-${release.id}" class="hidden bg-slate-900/50">
+                                    <td colspan="5" class="py-4 px-8 text-slate-300 border-b border-slate-700">
+                                        <div class="whitespace-pre-wrap text-sm leading-relaxed max-w-3xl">${notes}</div>
                                     </td>
                                 </tr>
                             `;
