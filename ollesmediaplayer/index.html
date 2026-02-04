@@ -12,34 +12,34 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-    /* 1. Sätt grundtypsnittet för allt */
-    body { 
-        font-family: "industry", sans-serif;
-        font-weight: 400; 
-        font-style: normal;
-    }
+        /* 1. Sätt grundtypsnittet för allt */
+        body { 
+            font-family: "industry", sans-serif;
+            font-weight: 400; 
+            font-style: normal;
+        }
 
-    /* 2. Definiera .font-heading till att BARA byta typsnittsfamilj (om det behövs) 
-       eller använd den för att styra den tunga stilen specifikt */
-    .font-heading {
-        font-family: "industry", sans-serif;
-        font-weight: 800;
-        font-style: italic;
-    }
+        /* 2. Definiera .font-heading till att BARA byta typsnittsfamilj (om det behövs) 
+              eller använd den för att styra den tunga stilen specifikt */
+        .font-heading {
+            font-family: "industry", sans-serif;
+            font-weight: 800;
+            font-style: italic;
+        }
 
-    /* 3. Rubriker får den tunga stilen automatiskt */
-    h1, h2 {
-        font-weight: 800;
-        font-style: italic;
-    }
+        /* 3. Rubriker får den tunga stilen automatiskt */
+        h1, h2 {
+            font-weight: 800;
+            font-style: italic;
+        }
 
-    /* 4. Tailwind-fix: Ibland skriver Tailwind över font-weight på th, 
-       så vi tvingar den till 400 om det är önskat */
-    th.font-normal {
-        font-weight: 400 !important;
-        font-style: normal !important;
-    }
-</style>
+        /* 4. Tailwind-fix: Ibland skriver Tailwind över font-weight på th, 
+              så vi tvingar den till 400 om det är önskat */
+        th.font-normal {
+            font-weight: 400 !important;
+            font-style: normal !important;
+        }
+    </style>
 </head>
 <body class="bg-slate-900 text-white min-h-screen flex flex-col">
 
@@ -56,7 +56,7 @@
             
             <a id="latest-download-btn" href="#" class="font-heading inline-flex items-center bg-[#288958] hover:bg-[#206a45] text-white py-2 px-6 rounded-full text-sm transition">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                <span id="latest-btn-text">Laddar senaste versionen...</span>
+                <span id="latest-btn-text" class="leading-none pt-[3px]">Laddar senaste versionen...</span>
             </a>
             <p id="latest-info" class="text-slate-500 text-sm mt-3">Söker efter uppdateringar...</p>
         </div>
