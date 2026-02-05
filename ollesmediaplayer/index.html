@@ -11,14 +11,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        /* Grundinställningar - Industry Book 400 */
         body { 
             font-family: "industry", sans-serif;
             font-weight: 400; 
             font-style: normal;
         }
 
-        /* Specifik klass för tung/kursiv stil (Rubriker/Logotyp) */
         .font-heading-heavy {
             font-family: "industry", sans-serif;
             font-weight: 800;
@@ -81,7 +79,7 @@
                         </tr>
                     </thead>
                     <tbody id="versions-list" class="divide-y divide-[#4d5158]">
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
         </section>
@@ -108,16 +106,20 @@
                 const releases = await response.json();
 
                 if (releases.length > 0) {
-                    const latest = releases[0];
-                    const latestAsset = latest.assets.find(a => a.name.endsWith('.exe'));
+                    // Hitta den senaste versionen som INTE är en beta
+                    const latestStable = releases.find(r => !r.tag_name.toLowerCase().includes('-beta'));
+                    
+                    // Om det mot förmodan bara finns betor, ta den första, annars använd den stabila
+                    const displayLatest = latestStable || releases[0];
+                    const latestAsset = displayLatest.assets.find(a => a.name.endsWith('.exe'));
                     
                     if (latestAsset) {
                         document.getElementById('latest-download-btn').href = latestAsset.browser_download_url;
-                        document.getElementById('latest-btn-text').innerText = `Ladda ner för Windows (${latest.tag_name})`;
+                        document.getElementById('latest-btn-text').innerText = `Ladda ner för Windows (${displayLatest.tag_name})`;
                         
-                        const date = new Date(latest.published_at).toLocaleDateString('sv-SE');
+                        const date = new Date(displayLatest.published_at).toLocaleDateString('sv-SE');
                         const sizeMb = (latestAsset.size / (1024 * 1024)).toFixed(1);
-                        document.getElementById('latest-info').innerText = `Senaste: ${latest.tag_name} • Släppt: ${date} • Storlek: ${sizeMb} MB`;
+                        document.getElementById('latest-info').innerText = `Senaste: ${displayLatest.tag_name} • Släppt: ${date} • Storlek: ${sizeMb} MB`;
                     }
 
                     let tableRows = '';
@@ -127,12 +129,16 @@
                             const date = new Date(release.published_at).toLocaleDateString('sv-SE');
                             const sizeMb = (asset.size / (1024 * 1024)).toFixed(1);
                             
-                            // HÄR ÄR ÄNDRINGEN: hover:bg-[#3e4451] istället för slate-700/50
+                            // Markera som "Senaste" endast om det är den vi valt som stabilast/nyast (ej beta)
+                            const isLatest = release.id === displayLatest.id;
+                            const isBeta = release.tag_name.toLowerCase().includes('-beta');
+
                             tableRows += `
                                 <tr class="hover:bg-[#3b3d41] transition border-b border-[#4d5158]">
                                     <td class="py-4 px-6 text-[#fbf9d8] align-top">
                                         ${release.tag_name} 
-                                        ${release === releases[0] ? '<span class="bg-[#288958] font-heading-heavy text-[10px] px-2 py-0.5 rounded-full ml-2 align-middle uppercase tracking-wider">Senaste</span>' : ''}
+                                        ${isLatest ? '<span class="bg-[#288958] font-heading-heavy text-[10px] px-2 py-0.5 rounded-full ml-2 align-middle uppercase tracking-wider text-[#fbf9d8]">Senaste</span>' : ''}
+                                        ${isBeta ? '<span class="bg-[#896b28] font-heading-heavy text-[10px] px-2 py-0.5 rounded-full ml-2 align-middle uppercase tracking-wider text-[#fbf9d8]">Beta</span>' : ''}
                                     </td>
                                     <td class="py-4 px-6 text-[#919191] align-top">${date}</td>
                                     <td class="py-4 px-6 text-[#919191] align-top">${sizeMb} MB</td>
