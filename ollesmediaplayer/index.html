@@ -127,9 +127,9 @@
                             const date = new Date(release.published_at).toLocaleDateString('sv-SE');
                             const sizeMb = (asset.size / (1024 * 1024)).toFixed(1);
                             
-                            // Javascript: Här ändras textfärgerna till #919191 och borders till #4d5158
+                            // HÄR ÄR ÄNDRINGEN: hover:bg-[#3e4451] istället för slate-700/50
                             tableRows += `
-                                <tr class="hover:bg-slate-700/50 transition border-b border-[#4d5158]">
+                                <tr class="hover:bg-[#3b3d41] transition border-b border-[#4d5158]">
                                     <td class="py-4 px-6 text-[#fbf9d8] align-top">
                                         ${release.tag_name} 
                                         ${release === releases[0] ? '<span class="bg-[#288958] font-heading-heavy text-[10px] px-2 py-0.5 rounded-full ml-2 align-middle uppercase tracking-wider">Senaste</span>' : ''}
