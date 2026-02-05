@@ -11,12 +11,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
+        /* Grundinställningar - Industry Book 400 */
         body { 
             font-family: "industry", sans-serif;
             font-weight: 400; 
             font-style: normal;
         }
 
+        /* Specifik klass för tung/kursiv stil (Rubriker/Logotyp) */
         .font-heading-heavy {
             font-family: "industry", sans-serif;
             font-weight: 800;
@@ -106,10 +108,8 @@
                 const releases = await response.json();
 
                 if (releases.length > 0) {
-                    // Hitta den senaste versionen som INTE är en beta
+                    // Hitta senaste stabila (ej beta)
                     const latestStable = releases.find(r => !r.tag_name.toLowerCase().includes('-beta'));
-                    
-                    // Om det mot förmodan bara finns betor, ta den första, annars använd den stabila
                     const displayLatest = latestStable || releases[0];
                     const latestAsset = displayLatest.assets.find(a => a.name.endsWith('.exe'));
                     
@@ -129,14 +129,16 @@
                             const date = new Date(release.published_at).toLocaleDateString('sv-SE');
                             const sizeMb = (asset.size / (1024 * 1024)).toFixed(1);
                             
-                            // Markera som "Senaste" endast om det är den vi valt som stabilast/nyast (ej beta)
-                            const isLatest = release.id === displayLatest.id;
                             const isBeta = release.tag_name.toLowerCase().includes('-beta');
+                            const isLatest = release.id === displayLatest.id;
+                            
+                            // Tar bort -beta från texten som visas i tabellen
+                            const cleanTagName = release.tag_name.split('-')[0];
 
                             tableRows += `
                                 <tr class="hover:bg-[#3b3d41] transition border-b border-[#4d5158]">
                                     <td class="py-4 px-6 text-[#fbf9d8] align-top">
-                                        ${release.tag_name} 
+                                        ${cleanTagName} 
                                         ${isLatest ? '<span class="bg-[#288958] font-heading-heavy text-[10px] px-2 py-0.5 rounded-full ml-2 align-middle uppercase tracking-wider text-[#fbf9d8]">Senaste</span>' : ''}
                                         ${isBeta ? '<span class="bg-[#896b28] font-heading-heavy text-[10px] px-2 py-0.5 rounded-full ml-2 align-middle uppercase tracking-wider text-[#fbf9d8]">Beta</span>' : ''}
                                     </td>
