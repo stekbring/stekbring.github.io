@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tvättstugebokning</title>
+    <style>
+        /* Retro/Old-school brutalist design */
+        :root {
+            --bg: #e5e5e5;
+            --text: #000;
+            --border: 3px solid #000;
+            --shadow: 4px 4px 0px #000;
+            --free: #4ade80;
+            --booked: #f87171;
+            --mine: #fcd34d;
+            --action: #3b82f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: var(--border);
+            padding: 15px;
+            background: #fff;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        h1 { margin: 0; font-size: 1.5rem; text-transform: uppercase; }
+
+        .status-badge {
+            padding: 5px 15px;
+            border: 2px solid #000;
+            font-weight: bold;
+            background: #fff;
+        }
+        .status-badge.ledig { background: var(--free); }
+        .status-badge.upptagen { background: var(--booked); }
+
+        .auth-section {
+            background: #fff;
+            border: var(--border);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            border: 2px solid #000;
+            font-size: 1rem;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: 2px solid #000;
+            background: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 2px 2px 0px #000;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        button:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px #000;
+        }
+
+        .calendar {
+            display: grid;
+            gap: 20px;
+        }
+
+        .day-card {
+            background: #fff;
+            border: var(--border);
+            box-shadow: var(--shadow);
+            padding: 15px;
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .day-header h2 { margin: 0; font-size: 1.2rem; }
+
+        .slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .slot {
+            border: 2px solid #000;
+            padding: 15px;
+            text-align: center;
+            background: var(--free);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            transition: opacity 0.2s;
+        }
+        
+        .slot.booked { background: var(--booked); cursor: not-allowed; }
+        .slot.mine { background: var(--mine); cursor: pointer; }
+        .slot.loading { opacity: 0.7; pointer-events: none; background: #fff !important; }
+
+        .slot-time { font-weight: bold; font-size: 1.1rem; }
+        .slot-owner { font-size: 0.9rem; }
+
+        .btn-heldag {
+            background: var(--action);
+            color: #fff;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn-cancel {
+            background: #000;
+            color: #fff;
+            padding: 5px;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        /* Ny modal-styling */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: var(--bg);
+            border: var(--border);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .btn-action {
+            background: var(--action);
+            color: #fff;
+        }
+
+        @media (max-width: 600px) {
+            .day-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+            input[type="text"] { width: 100%; max-width: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Tvättstugan</h1>
+        <div id="live-status" class="status-badge">Laddar status...</div>
+    </header>
+
+    <div class="auth-section">
+        <div id="login-form">
+            <label for="username"><strong>Vem är du? (Namn / Lgh nr)</strong></label><br><br>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="username" placeholder="T.ex. Kalle Lgh 12">
+                <button onclick="saveName()">Spara Namn</button>
+            </div>
+        </div>
+        <div id="logged-in-info" style="display: none; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <span style="font-weight: bold; font-size: 1.1rem;">Inloggad som: <span id="display-username"></span></span>
+            <button onclick="logout()" style="padding: 5px 10px; font-size: 0.9rem; background: #000; color: #fff;">Byt användare</button>
+        </div>
+    </div>
+
+    <div class="calendar" id="calendar">
+        <!-- Genereras via JS -->
+    </div>
+</div>
+
+<!-- Modal för bekräftelse -->
+<div id="action-modal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-top:0; text-transform: uppercase;">Bekräfta</h3>
+        <p id="action-modal-text" style="font-weight: bold; font-size: 1.1rem;"></p>
+        <div style="display:flex; gap:15px; justify-content:center; margin-top: 25px;">
+            <button id="btn-modal-yes" class="btn-action">Ja</button>
+            <button class="btn-cancel" style="background:#000; color:#fff;" onclick="closeModal()">Avbryt</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ========================================================
+    // VIKTIGT: Klistra in din Web App URL från Apps Script här!
+    // ========================================================
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzWo6ix1wVnsQuoAfO9N36qQJ-nxsVSv__F4pJXfSsc5gijZE7zjxLZM7kTwXuzjqjamQ/exec';
+    
+    const SLOTS = ["07-12", "12-17", "17-22"];
+    let bookingsData = [];
+    let userName = localStorage.getItem('tvatt_namn') || '';
+    let pendingAction = null;
+
+    // Initiering
+    document.getElementById('username').value = userName;
+    if (userName) {
+        updateAuthUI();
+        initApp();
+    } else {
+        document.getElementById('calendar').innerHTML = '<div style="background:#fff; padding:20px; border:3px solid #000;">Vänligen spara ditt namn för att se och boka tider.</div>';
+    }
+
+    function saveName() {
+        const input = document.getElementById('username').value.trim();
+        if (input === '') return alert('Du måste ange ett namn.');
+        userName = input;
+        localStorage.setItem('tvatt_namn', userName);
+        updateAuthUI();
+        initApp();
+    }
+
+    function logout() {
+        localStorage.removeItem('tvatt_namn');
+        userName = '';
+        updateAuthUI();
+        document.getElementById('calendar').innerHTML = '<div style="background:#fff; padding:20px; border:3px solid #000;">Vänligen spara ditt namn för att se och boka tider.</div>';
+        document.getElementById('live-status').textContent = 'Laddar status...';
+        document.getElementById('live-status').className = 'status-badge';
+    }
+
+    function updateAuthUI() {
+        if (userName) {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('logged-in-info').style.display = 'flex';
+            document.getElementById('display-username').textContent = userName;
+        } else {
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('logged-in-info').style.display = 'none';
+            document.getElementById('username').value = '';
+        }
+    }
+
+    async function initApp() {
+        if (!API_URL || API_URL === 'KLISTRA_IN_DIN_WEB_APP_URL_HÄR') {
+            alert("Backend-URL saknas. Systemet kommer inte fungera förrän API_URL är ifylld i koden.");
+            return;
+        }
+        await fetchBookings();
+        renderCalendar();
+        updateLiveStatus();
+        setInterval(updateLiveStatus, 60000);
+    }
+
+    // --- Modal Logic ---
+    function askConfirm(actionType, date, slotStr, elId) {
+        if (!userName) return alert('Spara ditt namn först.');
+        
+        pendingAction = { type: actionType, date: date, slots: slotStr.split(','), elId: elId };
+        const textEl = document.getElementById('action-modal-text');
+
+        if (actionType === 'book') {
+            textEl.innerText = `Vill du boka tvättstugan den ${date} kl ${slotStr}?`;
+        } else {
+            textEl.innerText = `Vill du avboka din tid den ${date} kl ${slotStr}?`;
+        }
+
+        document.getElementById('action-modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('action-modal').style.display = 'none';
+        pendingAction = null;
+    }
+
+    document.getElementById('btn-modal-yes').onclick = () => {
+        if (!pendingAction) return;
+        
+        const { type, date, slots, elId } = pendingAction;
+        closeModal();
+
+        if (type === 'book') {
+            bookSlot(date, slots, elId);
+        } else {
+            cancelSlot(date, slots[0], elId);
+        }
+    };
+
+    // --- API Anrop ---
+
+    async function fetchBookings() {
+        try {
+            // Tvinga webbläsaren att kringgå cachen med en unik tidsstämpel
+            const url = new URL(API_URL);
+            url.searchParams.append('t', new Date().getTime());
+            
+            const response = await fetch(url.toString());
+            bookingsData = await response.json();
+        } catch (error) {
+            console.error('Kunde inte hämta bokningar.', error);
+        }
+    }
+
+    async function bookSlot(date, slotsArray, elId) {
+        const targetEl = document.getElementById(elId);
+        if (targetEl) {
+            targetEl.classList.add('loading');
+            targetEl.innerHTML = '<div class="slot-time" style="margin:auto;">BOKAR...</div>';
+        }
+        
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Förhindrar CORS-blockering
+                body: JSON.stringify({ action: 'book', date: date, slots: slotsArray, name: userName })
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                await fetchBookings();
+                renderCalendar();
+                // Generera kalenderfil i bakgrunden för att inte störa gränssnittet
+                setTimeout(() => generateICS(date, slotsArray), 500);
+            } else {
+                alert(result.message || 'Ett fel uppstod vid bokning.');
+                renderCalendar(); // Återställ UI
+            }
+        } catch (error) {
+            alert('Nätverksfel vid bokning.');
+            renderCalendar();
+        }
+    }
+
+    async function cancelSlot(date, slot, elId) {
+        const targetEl = document.getElementById(elId);
+        if (targetEl) {
+            targetEl.classList.add('loading');
+            targetEl.innerHTML = '<div class="slot-time" style="margin:auto;">AVBOKAR...</div>';
+        }
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'cancel', date: date, slot: slot, name: userName })
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                await fetchBookings();
+                renderCalendar();
+            } else {
+                alert('Kunde inte avboka.');
+                renderCalendar();
+            }
+        } catch (error) {
+            alert('Nätverksfel vid avbokning.');
+            renderCalendar();
+        }
+    }
+
+    // --- UI Rendering ---
+
+    function renderCalendar() {
+        const calendarEl = document.getElementById('calendar');
+        calendarEl.innerHTML = '';
+        
+        const today = new Date();
+        
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(today);
+            d.setDate(d.getDate() + i);
+            const dateStr = d.toISOString().split('T')[0];
+            
+            const dayBookings = bookingsData.filter(b => b.date === dateStr);
+
+            const dayCard = document.createElement('div');
+            dayCard.className = 'day-card';
+            
+            let slotsHtml = '';
+            let freeSlots = [];
+
+            SLOTS.forEach(slotTime => {
+                const booking = dayBookings.find(b => b.slot === slotTime);
+                const elId = `slot-${dateStr}-${slotTime}`;
+                let classes = 'slot';
+                let content = `<div class="slot-time">${slotTime}</div>`;
+                let onclick = '';
+
+                if (booking) {
+                    if (booking.name === userName) {
+                        classes += ' mine';
+                        content += `<div class="slot-owner">Bokad av dig</div>`;
+                        onclick = `onclick="askConfirm('cancel', '${dateStr}', '${slotTime}', '${elId}')"`;
+                    } else {
+                        classes += ' booked';
+                        content += `<div class="slot-owner">${booking.name}</div>`;
+                    }
+                } else {
+                    freeSlots.push(slotTime);
+                    content += `<div class="slot-owner">Ledig (Klicka)</div>`;
+                    onclick = `onclick="askConfirm('book', '${dateStr}', '${slotTime}', '${elId}')"`;
+                }
+
+                slotsHtml += `<div id="${elId}" class="${classes}" ${onclick}>${content}</div>`;
+            });
+
+            const heldagId = `btn-heldag-${dateStr}`;
+            const heldagBtn = (freeSlots.length === 3) 
+                ? `<button id="${heldagId}" class="btn-heldag" onclick="askConfirm('book', '${dateStr}', '07-12,12-17,17-22', '${heldagId}')">Boka Heldag (07-22)</button>` 
+                : '';
+
+            dayCard.innerHTML = `
+                <div class="day-header">
+                    <h2>${d.toLocaleDateString('sv-SE', { weekday: 'long', month: 'short', day: 'numeric' })}</h2>
+                    <span>${dateStr}</span>
+                </div>
+                <div class="slots">${slotsHtml}</div>
+                ${heldagBtn}
+            `;
+            calendarEl.appendChild(dayCard);
+        }
+    }
+
+    function updateLiveStatus() {
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0];
+        const currentHour = now.getHours();
+        
+        const dayBookings = bookingsData.filter(b => b.date === dateStr);
+        let isOccupied = false;
+
+        for (let b of dayBookings) {
+            const [start, end] = b.slot.split('-').map(Number);
+            if (currentHour >= start && currentHour < end) {
+                isOccupied = true;
+                break;
+            }
+        }
+
+        const statusEl = document.getElementById('live-status');
+        if (isOccupied) {
+            statusEl.textContent = 'UPPTAGEN NU';
+            statusEl.className = 'status-badge upptagen';
+        } else {
+            statusEl.textContent = 'LEDIG NU';
+            statusEl.className = 'status-badge ledig';
+        }
+    }
+
+    // --- Export (ICS) ---
+    function generateICS(date, slots) {
+        slots.forEach(slot => {
+            try {
+                const [startHr, endHr] = slot.split('-');
+                const dateFormatted = date.replace(/-/g, '');
+                const startTime = `${dateFormatted}T${startHr.padStart(2, '0')}0000`;
+                const endTime = `${dateFormatted}T${endHr.padStart(2, '0')}0000`;
+
+                const icsData = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Tvättstuga//Bokning//SV\nBEGIN:VEVENT\nDTSTART;TZID=Europe/Stockholm:${startTime}\nDTEND;TZID=Europe/Stockholm:${endTime}\nSUMMARY:Tvättstuga\nDESCRIPTION:Din bokade tvättid.\nEND:VEVENT\nEND:VCALENDAR`;
+
+                const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.setAttribute('download', `tvatt_${date}_${slot}.ics`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch(e) {
+                console.warn('Kunde inte ladda ner kalenderfil', e);
+            }
+        });
+    }
+</script>
+</body>
+</html>
