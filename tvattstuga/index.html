@@ -13,7 +13,6 @@
             --shadow: 4px 4px 0px #000;
             --free: #4ade80;
             --booked: #f87171;
-            --mine: #fcd34d;
             --action: #3b82f6;
         }
 
@@ -132,12 +131,10 @@
             transition: opacity 0.2s;
         }
         
-        .slot.booked { background: var(--booked); cursor: not-allowed; }
-        .slot.mine { background: var(--mine); cursor: pointer; }
-        .slot.loading { opacity: 0.7; pointer-events: none; background: #fff !important; }
-
+        .slot.booked, .slot.mine { background: var(--booked); cursor: default; }
+        
         .slot-time { font-weight: bold; font-size: 1.1rem; }
-        .slot-owner { font-size: 0.9rem; }
+        .slot-owner { font-size: 0.9rem; font-weight: bold; }
 
         .btn-heldag {
             background: var(--action);
@@ -152,9 +149,10 @@
             padding: 5px;
             font-size: 0.8rem;
             margin-top: 5px;
+            width: 100%;
         }
 
-        /* Ny modal-styling */
+        /* Modal-styling */
         .modal {
             display: none;
             position: fixed;
@@ -176,6 +174,14 @@
         .btn-action {
             background: var(--action);
             color: #fff;
+        }
+        .btn-calendar {
+            background: #fff;
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         @media (max-width: 600px) {
@@ -211,15 +217,36 @@
     </div>
 </div>
 
-<!-- Modal för bekräftelse -->
+<!-- Modal för bekräftelse & status -->
 <div id="action-modal" class="modal">
     <div class="modal-content">
-        <h3 style="margin-top:0; text-transform: uppercase;">Bekräfta</h3>
-        <p id="action-modal-text" style="font-weight: bold; font-size: 1.1rem;"></p>
-        <div style="display:flex; gap:15px; justify-content:center; margin-top: 25px;">
-            <button id="btn-modal-yes" class="btn-action">Ja</button>
-            <button class="btn-cancel" style="background:#000; color:#fff;" onclick="closeModal()">Avbryt</button>
+        
+        <!-- Vy 1: Fråga om bekräftelse -->
+        <div id="modal-view-confirm">
+            <h3 style="margin-top:0; text-transform: uppercase;">Bekräfta</h3>
+            <p id="action-modal-text" style="font-weight: bold; font-size: 1.1rem;"></p>
+            <div style="display:flex; gap:15px; justify-content:center; margin-top: 25px;">
+                <button id="btn-modal-yes" class="btn-action">Ja</button>
+                <button class="btn-cancel" style="background:#000; color:#fff; width:auto;" onclick="closeModal()">Avbryt</button>
+            </div>
         </div>
+
+        <!-- Vy 2: Laddar (Bokar/Avbokar...) -->
+        <div id="modal-view-loading" style="display:none;">
+            <h3 style="margin-top:0; text-transform: uppercase;">Vänligen vänta</h3>
+            <p id="loading-modal-text" style="font-weight: bold; font-size: 1.1rem;">Arbetar...</p>
+        </div>
+
+        <!-- Vy 3: Resultat (Lyckades) -->
+        <div id="modal-view-success" style="display:none;">
+            <h3 style="margin-top:0; text-transform: uppercase;">Klart!</h3>
+            <p id="success-modal-text" style="font-weight: bold; font-size: 1.1rem;">Åtgärden lyckades.</p>
+            <div style="display:flex; flex-direction:column; gap:10px; margin-top: 25px;">
+                <button id="btn-modal-add-calendar" class="btn-calendar" style="display:none;" onclick="downloadPendingICS()">📅 Lägg till i kalendern</button>
+                <button class="btn-cancel" style="background:#000; color:#fff;" onclick="closeModal()">Stäng</button>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -227,12 +254,13 @@
     // ========================================================
     // VIKTIGT: Klistra in din Web App URL från Apps Script här!
     // ========================================================
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzWo6ix1wVnsQuoAfO9N36qQJ-nxsVSv__F4pJXfSsc5gijZE7zjxLZM7kTwXuzjqjamQ/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyFxPtd88S4MnLGyZ79uhMFbZ6Ksm6PN2nTMYxHuxegqhCicZb-BkjPGjiB61CIVj_Spg/exec';
     
     const SLOTS = ["07-12", "12-17", "17-22"];
     let bookingsData = [];
     let userName = localStorage.getItem('tvatt_namn') || '';
     let pendingAction = null;
+    let pendingIcsData = null; // Sparar data för kalenderknappen
 
     // Initiering
     document.getElementById('username').value = userName;
@@ -285,10 +313,17 @@
     }
 
     // --- Modal Logic ---
-    function askConfirm(actionType, date, slotStr, elId) {
+    function setModalView(view) {
+        document.getElementById('modal-view-confirm').style.display = 'none';
+        document.getElementById('modal-view-loading').style.display = 'none';
+        document.getElementById('modal-view-success').style.display = 'none';
+        document.getElementById(`modal-view-${view}`).style.display = 'block';
+    }
+
+    function askConfirm(actionType, date, slotStr) {
         if (!userName) return alert('Spara ditt namn först.');
         
-        pendingAction = { type: actionType, date: date, slots: slotStr.split(','), elId: elId };
+        pendingAction = { type: actionType, date: date, slots: slotStr.split(',') };
         const textEl = document.getElementById('action-modal-text');
 
         if (actionType === 'book') {
@@ -297,24 +332,24 @@
             textEl.innerText = `Vill du avboka din tid den ${date} kl ${slotStr}?`;
         }
 
+        setModalView('confirm');
         document.getElementById('action-modal').style.display = 'flex';
     }
 
     function closeModal() {
         document.getElementById('action-modal').style.display = 'none';
         pendingAction = null;
+        pendingIcsData = null;
     }
 
     document.getElementById('btn-modal-yes').onclick = () => {
         if (!pendingAction) return;
-        
-        const { type, date, slots, elId } = pendingAction;
-        closeModal();
+        const { type, date, slots } = pendingAction;
 
         if (type === 'book') {
-            bookSlot(date, slots, elId);
+            bookSlot(date, slots);
         } else {
-            cancelSlot(date, slots[0], elId);
+            cancelSlot(date, slots[0]);
         }
     };
 
@@ -322,10 +357,8 @@
 
     async function fetchBookings() {
         try {
-            // Tvinga webbläsaren att kringgå cachen med en unik tidsstämpel
             const url = new URL(API_URL);
             url.searchParams.append('t', new Date().getTime());
-            
             const response = await fetch(url.toString());
             bookingsData = await response.json();
         } catch (error) {
@@ -333,42 +366,43 @@
         }
     }
 
-    async function bookSlot(date, slotsArray, elId) {
-        const targetEl = document.getElementById(elId);
-        if (targetEl) {
-            targetEl.classList.add('loading');
-            targetEl.innerHTML = '<div class="slot-time" style="margin:auto;">BOKAR...</div>';
-        }
+    async function bookSlot(date, slotsArray) {
+        document.getElementById('loading-modal-text').innerText = 'Bokar...';
+        setModalView('loading');
         
         try {
             const response = await fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // Förhindrar CORS-blockering
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: 'book', date: date, slots: slotsArray, name: userName })
             });
             const result = await response.json();
             
             if (result.success) {
-                await fetchBookings();
+                // Optimistisk uppdatering: Skriv in bokningen lokalt direkt
+                slotsArray.forEach(slot => {
+                    bookingsData.push({ id: 'temp-' + Date.now(), date: date, slot: slot, name: userName });
+                });
                 renderCalendar();
-                // Generera kalenderfil i bakgrunden för att inte störa gränssnittet
-                setTimeout(() => generateICS(date, slotsArray), 500);
+                
+                // Visa success i modalen
+                document.getElementById('success-modal-text').innerText = 'Bokning lyckades!';
+                document.getElementById('btn-modal-add-calendar').style.display = 'flex'; // Visa kalenderknappen
+                pendingIcsData = { date: date, slots: slotsArray };
+                setModalView('success');
             } else {
                 alert(result.message || 'Ett fel uppstod vid bokning.');
-                renderCalendar(); // Återställ UI
+                closeModal();
             }
         } catch (error) {
             alert('Nätverksfel vid bokning.');
-            renderCalendar();
+            closeModal();
         }
     }
 
-    async function cancelSlot(date, slot, elId) {
-        const targetEl = document.getElementById(elId);
-        if (targetEl) {
-            targetEl.classList.add('loading');
-            targetEl.innerHTML = '<div class="slot-time" style="margin:auto;">AVBOKAR...</div>';
-        }
+    async function cancelSlot(date, slot) {
+        document.getElementById('loading-modal-text').innerText = 'Avbokar...';
+        setModalView('loading');
 
         try {
             const response = await fetch(API_URL, {
@@ -379,15 +413,21 @@
             const result = await response.json();
             
             if (result.success) {
-                await fetchBookings();
+                // Optimistisk uppdatering: Ta bort bokningen lokalt direkt
+                bookingsData = bookingsData.filter(b => !(b.date === date && b.slot === slot && b.name === userName));
                 renderCalendar();
+                
+                // Visa success i modalen
+                document.getElementById('success-modal-text').innerText = 'Avbokning lyckades!';
+                document.getElementById('btn-modal-add-calendar').style.display = 'none'; // Dölj kalenderknappen
+                setModalView('success');
             } else {
                 alert('Kunde inte avboka.');
-                renderCalendar();
+                closeModal();
             }
         } catch (error) {
             alert('Nätverksfel vid avbokning.');
-            renderCalendar();
+            closeModal();
         }
     }
 
@@ -414,7 +454,6 @@
 
             SLOTS.forEach(slotTime => {
                 const booking = dayBookings.find(b => b.slot === slotTime);
-                const elId = `slot-${dateStr}-${slotTime}`;
                 let classes = 'slot';
                 let content = `<div class="slot-time">${slotTime}</div>`;
                 let onclick = '';
@@ -422,24 +461,25 @@
                 if (booking) {
                     if (booking.name === userName) {
                         classes += ' mine';
-                        content += `<div class="slot-owner">Bokad av dig</div>`;
-                        onclick = `onclick="askConfirm('cancel', '${dateStr}', '${slotTime}', '${elId}')"`;
+                        content += `<div class="slot-owner">BOKAD AV DIG</div>`;
+                        content += `<button class="btn-cancel" onclick="event.stopPropagation(); askConfirm('cancel', '${dateStr}', '${slotTime}')">Avboka</button>`;
+                        onclick = ''; // Knappen hanterar klicket
                     } else {
                         classes += ' booked';
-                        content += `<div class="slot-owner">${booking.name}</div>`;
+                        content += `<div class="slot-owner">BOKAD AV<br>${booking.name}</div>`;
+                        onclick = '';
                     }
                 } else {
                     freeSlots.push(slotTime);
                     content += `<div class="slot-owner">Ledig (Klicka)</div>`;
-                    onclick = `onclick="askConfirm('book', '${dateStr}', '${slotTime}', '${elId}')"`;
+                    onclick = `onclick="askConfirm('book', '${dateStr}', '${slotTime}')"`;
                 }
 
-                slotsHtml += `<div id="${elId}" class="${classes}" ${onclick}>${content}</div>`;
+                slotsHtml += `<div class="${classes}" ${onclick}>${content}</div>`;
             });
 
-            const heldagId = `btn-heldag-${dateStr}`;
             const heldagBtn = (freeSlots.length === 3) 
-                ? `<button id="${heldagId}" class="btn-heldag" onclick="askConfirm('book', '${dateStr}', '07-12,12-17,17-22', '${heldagId}')">Boka Heldag (07-22)</button>` 
+                ? `<button class="btn-heldag" onclick="askConfirm('book', '${dateStr}', '07-12,12-17,17-22')">Boka Heldag (07-22)</button>` 
                 : '';
 
             dayCard.innerHTML = `
@@ -481,6 +521,11 @@
     }
 
     // --- Export (ICS) ---
+    function downloadPendingICS() {
+        if (!pendingIcsData) return;
+        generateICS(pendingIcsData.date, pendingIcsData.slots);
+    }
+
     function generateICS(date, slots) {
         slots.forEach(slot => {
             try {
