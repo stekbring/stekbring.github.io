@@ -254,7 +254,7 @@
     // ========================================================
     // VIKTIGT: Klistra in din Web App URL från Apps Script här!
     // ========================================================
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyFxPtd88S4MnLGyZ79uhMFbZ6Ksm6PN2nTMYxHuxegqhCicZb-BkjPGjiB61CIVj_Spg/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbw-zNFXevClpJYcDyxqFIfVqgh_356vkyjXUgBBitYxG5OLP-8YVNIVjtRTFtbOV81sqQ/exec';
     
     const SLOTS = ["07-12", "12-17", "17-22"];
     let bookingsData = [];
@@ -299,6 +299,14 @@
             document.getElementById('logged-in-info').style.display = 'none';
             document.getElementById('username').value = '';
         }
+    }
+
+    // Funktion för att extrahera exakt ÅÅÅÅ-MM-DD från ett datumobjekt
+    function getLocalDateString(dateObj) {
+        const y = dateObj.getFullYear();
+        const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
     }
 
     async function initApp() {
@@ -360,7 +368,50 @@
             const url = new URL(API_URL);
             url.searchParams.append('t', new Date().getTime());
             const response = await fetch(url.toString());
-            bookingsData = await response.json();
+            const textResponse = await response.text();
+            
+            let rawData;
+            try {
+                rawData = JSON.parse(textResponse);
+            } catch (err) {
+                console.error("Ogiltigt JSON. Säkerställ att du angett 'Alla' på Vem har åtkomst i Apps Script.");
+                return;
+            }
+            
+            bookingsData = rawData.map(b => {
+                // Hantera datumet
+                if (b.date) {
+                    let dStr = String(b.date);
+                    if (dStr.includes('T')) {
+                        const d = new Date(dStr);
+                        d.setUTCHours(d.getUTCHours() + 12);
+                        b.date = d.toISOString().split('T')[0];
+                    } else if (dStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+                        b.date = dStr.substring(0, 10);
+                    } else {
+                        const d = new Date(dStr);
+                        if (!isNaN(d.getTime())) b.date = getLocalDateString(d);
+                    }
+                }
+
+                // ÅTGÄRD: Omvandla tillbaka formaterade datum till "07-12" / "12-17"
+                if (b.slot) {
+                    let sStr = String(b.slot).trim();
+                    if (sStr.includes('T') || sStr.match(/^\d{4}-\d{2}-\d{2}/)) {
+                        const d = new Date(sStr);
+                        d.setUTCHours(d.getUTCHours() + 12);
+                        const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+                        const day = String(d.getUTCDate()).padStart(2, '0');
+                        b.slot = `${month}-${day}`;
+                    } else {
+                        b.slot = sStr;
+                    }
+                }
+
+                if (b.name) b.name = String(b.name).trim();
+                return b;
+            });
+
         } catch (error) {
             console.error('Kunde inte hämta bokningar.', error);
         }
@@ -379,15 +430,14 @@
             const result = await response.json();
             
             if (result.success) {
-                // Optimistisk uppdatering: Skriv in bokningen lokalt direkt
+                // Optimistisk uppdatering
                 slotsArray.forEach(slot => {
                     bookingsData.push({ id: 'temp-' + Date.now(), date: date, slot: slot, name: userName });
                 });
                 renderCalendar();
                 
-                // Visa success i modalen
                 document.getElementById('success-modal-text').innerText = 'Bokning lyckades!';
-                document.getElementById('btn-modal-add-calendar').style.display = 'flex'; // Visa kalenderknappen
+                document.getElementById('btn-modal-add-calendar').style.display = 'flex';
                 pendingIcsData = { date: date, slots: slotsArray };
                 setModalView('success');
             } else {
@@ -413,13 +463,12 @@
             const result = await response.json();
             
             if (result.success) {
-                // Optimistisk uppdatering: Ta bort bokningen lokalt direkt
+                // Optimistisk uppdatering
                 bookingsData = bookingsData.filter(b => !(b.date === date && b.slot === slot && b.name === userName));
                 renderCalendar();
                 
-                // Visa success i modalen
                 document.getElementById('success-modal-text').innerText = 'Avbokning lyckades!';
-                document.getElementById('btn-modal-add-calendar').style.display = 'none'; // Dölj kalenderknappen
+                document.getElementById('btn-modal-add-calendar').style.display = 'none';
                 setModalView('success');
             } else {
                 alert('Kunde inte avboka.');
@@ -442,7 +491,7 @@
         for (let i = 0; i < 7; i++) {
             const d = new Date(today);
             d.setDate(d.getDate() + i);
-            const dateStr = d.toISOString().split('T')[0];
+            const dateStr = getLocalDateString(d);
             
             const dayBookings = bookingsData.filter(b => b.date === dateStr);
 
@@ -496,7 +545,7 @@
 
     function updateLiveStatus() {
         const now = new Date();
-        const dateStr = now.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(now);
         const currentHour = now.getHours();
         
         const dayBookings = bookingsData.filter(b => b.date === dateStr);
