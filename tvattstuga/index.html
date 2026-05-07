@@ -67,6 +67,10 @@
             box-shadow: var(--shadow);
             margin-bottom: 20px;
         }
+        .auth-section.compact {
+            padding: 10px 15px;
+            margin-bottom: 15px;
+        }
 
         input[type="text"] {
             padding: 10px;
@@ -341,7 +345,7 @@
         <div id="live-status" class="status-badge">Laddar status...</div>
     </header>
 
-    <div class="auth-section">
+    <div class="auth-section" id="auth-section">
         <div id="login-form">
             <label for="username"><strong>Vem är du? (Namn / Lgh nr)</strong></label><br><br>
             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -350,8 +354,8 @@
             </div>
         </div>
         <div id="logged-in-info" style="display: none; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-            <span style="font-weight: bold; font-size: 1.1rem;">Inloggad som: <span id="display-username"></span></span>
-            <button onclick="logout()" style="padding: 5px 10px; font-size: 0.9rem; background: #000; color: #fff;">Byt användare</button>
+            <span style="font-weight: bold; font-size: 0.95rem;">Inloggad som: <span id="display-username"></span></span>
+            <button onclick="logout()" style="padding: 4px 8px; font-size: 0.8rem; background: #000; color: #fff;">Byt användare</button>
         </div>
     </div>
 
@@ -450,12 +454,23 @@
     }
 
     function updateAuthUI() {
+        const authSec = document.getElementById('auth-section');
         if (userName) {
             document.getElementById('login-form').style.display = 'none';
-            document.getElementById('logged-in-info').style.display = 'flex';
             document.getElementById('display-username').textContent = userName;
             document.getElementById('view-controls').style.display = 'flex';
+            authSec.classList.add('compact');
+            
+            // Döljer Inloggad-som vid 1V, 2V och 1M vyerna
+            if (currentView === '1D') {
+                authSec.style.display = 'block';
+                document.getElementById('logged-in-info').style.display = 'flex';
+            } else {
+                authSec.style.display = 'none';
+            }
         } else {
+            authSec.style.display = 'block';
+            authSec.classList.remove('compact');
             document.getElementById('login-form').style.display = 'block';
             document.getElementById('logged-in-info').style.display = 'none';
             document.getElementById('username').value = '';
@@ -611,6 +626,7 @@
                 targetDateStr = getLocalDateString(new Date());
             }
             
+            updateAuthUI();
             renderCalendar(); 
             updatePaginationButtons();
 
