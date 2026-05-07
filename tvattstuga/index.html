@@ -28,6 +28,7 @@
             padding: 0 20px 20px 20px;
             display: flex;
             justify-content: center;
+            align-items: flex-start; /* Fixar Chrome Mobile Sticky Bug */
         }
 
         .container {
@@ -105,7 +106,7 @@
             justify-content: center;
             flex-wrap: wrap;
             position: sticky;
-            top: 0;
+            top: -1px; /* -1px förhindrar Chrome glapp */
             background-color: var(--bg);
             padding: 15px 0;
             z-index: 100;
@@ -558,8 +559,9 @@
     function scrollToDate(dateStr, smooth = false) {
         const el = document.getElementById('day-' + dateStr);
         if (el) {
-            // Minskad offset för att flytta upp elementet på skärmen
-            const headerOffset = document.getElementById('view-controls').offsetHeight + 40;
+            // Ändra siffervärdet här under för att justera marginalen!
+            // Mindre siffra = datumet hamnar högre upp på skärmen.
+            const headerOffset = document.getElementById('view-controls').offsetHeight + -200;
             window.scrollTo({
                 top: el.offsetTop - headerOffset,
                 behavior: smooth ? 'smooth' : 'instant'
