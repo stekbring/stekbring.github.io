@@ -13,6 +13,7 @@
             --shadow: 4px 4px 0px #000;
             --free: #4ade80;
             --booked: #f87171;
+            --mine: #fcd34d;
             --action: #3b82f6;
         }
 
@@ -90,18 +91,41 @@
             box-shadow: 0px 0px 0px #000;
         }
 
-        .calendar {
+        /* View Controls */
+        .view-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .view-btn {
+            box-shadow: 2px 2px 0px #000;
+        }
+        .view-btn.active {
+            background: #000;
+            color: #fff;
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px #000;
+        }
+
+        /* Calendar Wrapper (Animering) */
+        #calendar-wrapper {
+            transition: transform 0.25s ease, opacity 0.25s ease;
+            transform-origin: center top;
+        }
+
+        /* 1D View (Lista) */
+        .view-1d {
             display: grid;
             gap: 20px;
         }
-
         .day-card {
             background: #fff;
             border: var(--border);
             box-shadow: var(--shadow);
             padding: 15px;
         }
-
         .day-header {
             display: flex;
             justify-content: space-between;
@@ -110,15 +134,12 @@
             padding-bottom: 10px;
             margin-bottom: 15px;
         }
-        
         .day-header h2 { margin: 0; font-size: 1.2rem; }
-
         .slots {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 10px;
         }
-
         .slot {
             border: 2px solid #000;
             padding: 15px;
@@ -128,21 +149,16 @@
             display: flex;
             flex-direction: column;
             gap: 5px;
-            transition: opacity 0.2s;
         }
-        
         .slot.booked, .slot.mine { background: var(--booked); cursor: default; }
-        
         .slot-time { font-weight: bold; font-size: 1.1rem; }
         .slot-owner { font-size: 0.9rem; font-weight: bold; }
-
         .btn-heldag {
             background: var(--action);
             color: #fff;
             width: 100%;
             margin-top: 10px;
         }
-
         .btn-cancel {
             background: #000;
             color: #fff;
@@ -151,6 +167,85 @@
             margin-top: 5px;
             width: 100%;
         }
+
+        /* Generell Kompakt-box (Används i 1V och 2V) */
+        .day-compact {
+            background: #fff;
+            border: 2px solid #000;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px #000;
+            transition: transform 0.1s, background-color 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .day-compact:hover { background: #f0f0f0; }
+        .day-compact:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px #000; }
+        
+        .indicator { width: 100%; border: 1px solid #000; }
+        .indicator.green { background: var(--free); }
+        .indicator.red { background: var(--booked); }
+        .indicator.mine { background: var(--mine); }
+
+        /* 1V View */
+        .view-1v {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+        .view-1v .day-compact { padding: 15px 5px; }
+        .view-1v .day-compact h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
+        .view-1v .day-compact span { font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
+        .view-1v .indicators { display: flex; flex-direction: column; gap: 4px; margin-top: 15px; }
+        .view-1v .indicator { height: 10px; }
+
+        /* 2V View (Lite mer utzoomad) */
+        .view-2v {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+        .view-2v .day-compact { padding: 8px 4px; border-width: 1.5px; box-shadow: 1.5px 1.5px 0px #000;}
+        .view-2v .day-compact h3 { margin: 0 0 2px 0; font-size: 0.9rem; }
+        .view-2v .day-compact span { font-size: 0.7rem; font-weight: bold; }
+        .view-2v .indicators { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; }
+        .view-2v .indicator { height: 6px; }
+
+        /* 1M View (Kalender Grid) */
+        .view-1m { display: grid; gap: 5px; }
+        .month-header { 
+            display: grid; 
+            grid-template-columns: 35px repeat(7, 1fr); 
+            gap: 5px; 
+            font-weight: bold; 
+            text-align: center; 
+            font-size: 0.85rem; 
+            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
+        .month-row { 
+            display: grid; 
+            grid-template-columns: 35px repeat(7, 1fr); 
+            gap: 5px; 
+            align-items: stretch;
+            min-height: 60px;
+        }
+        .week-num { 
+            background: #ccc; 
+            border: 2px solid #000; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 0.8rem; 
+            font-weight: bold; 
+        }
+        .view-1m .day-compact { padding: 4px; border-width: 1.5px; box-shadow: 1.5px 1.5px 0px #000; justify-content: flex-start;}
+        .view-1m .day-compact h3 { margin: 0; font-size: 0.9rem; text-align: left; }
+        .view-1m .indicators { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+        .view-1m .indicator { height: 4px; }
+        
+        .day-today { background: #e0f2fe; } /* Markera dagens datum i 1M */
 
         /* Modal-styling */
         .modal {
@@ -171,10 +266,7 @@
             max-width: 400px;
             width: 90%;
         }
-        .btn-action {
-            background: var(--action);
-            color: #fff;
-        }
+        .btn-action { background: var(--action); color: #fff; }
         .btn-calendar {
             background: #fff;
             color: #000;
@@ -184,7 +276,13 @@
             gap: 10px;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
+            .view-1v, .view-2v { grid-template-columns: repeat(4, 1fr); }
+            .month-header { font-size: 0.7rem; grid-template-columns: 25px repeat(7, 1fr); gap: 3px; }
+            .month-row { grid-template-columns: 25px repeat(7, 1fr); gap: 3px; min-height: 45px;}
+        }
+        @media (max-width: 480px) {
+            .view-1v, .view-2v { grid-template-columns: repeat(3, 1fr); }
             .day-header { flex-direction: column; align-items: flex-start; gap: 10px; }
             input[type="text"] { width: 100%; max-width: none; }
         }
@@ -212,16 +310,24 @@
         </div>
     </div>
 
-    <div class="calendar" id="calendar">
-        <!-- Genereras via JS -->
+    <!-- Vy-kontroller -->
+    <div class="view-controls" id="view-controls" style="display:none;">
+        <button id="btn-1D" class="view-btn active" onclick="changeView('1D')">1D</button>
+        <button id="btn-1V" class="view-btn" onclick="changeView('1V')">1V</button>
+        <button id="btn-2V" class="view-btn" onclick="changeView('2V')">2V</button>
+        <button id="btn-1M" class="view-btn" onclick="changeView('1M')">1M</button>
+    </div>
+
+    <div id="calendar-wrapper">
+        <div class="view-1d" id="calendar">
+            <!-- Genereras via JS -->
+        </div>
     </div>
 </div>
 
 <!-- Modal för bekräftelse & status -->
 <div id="action-modal" class="modal">
     <div class="modal-content">
-        
-        <!-- Vy 1: Fråga om bekräftelse -->
         <div id="modal-view-confirm">
             <h3 style="margin-top:0; text-transform: uppercase;">Bekräfta</h3>
             <p id="action-modal-text" style="font-weight: bold; font-size: 1.1rem;"></p>
@@ -230,14 +336,10 @@
                 <button class="btn-cancel" style="background:#000; color:#fff; width:auto;" onclick="closeModal()">Avbryt</button>
             </div>
         </div>
-
-        <!-- Vy 2: Laddar (Bokar/Avbokar...) -->
         <div id="modal-view-loading" style="display:none;">
             <h3 style="margin-top:0; text-transform: uppercase;">Vänligen vänta</h3>
             <p id="loading-modal-text" style="font-weight: bold; font-size: 1.1rem;">Arbetar...</p>
         </div>
-
-        <!-- Vy 3: Resultat (Lyckades) -->
         <div id="modal-view-success" style="display:none;">
             <h3 style="margin-top:0; text-transform: uppercase;">Klart!</h3>
             <p id="success-modal-text" style="font-weight: bold; font-size: 1.1rem;">Åtgärden lyckades.</p>
@@ -246,7 +348,6 @@
                 <button class="btn-cancel" style="background:#000; color:#fff;" onclick="closeModal()">Stäng</button>
             </div>
         </div>
-
     </div>
 </div>
 
@@ -254,13 +355,17 @@
     // ========================================================
     // VIKTIGT: Klistra in din Web App URL från Apps Script här!
     // ========================================================
-    const API_URL = 'https://script.google.com/macros/s/AKfycbw-zNFXevClpJYcDyxqFIfVqgh_356vkyjXUgBBitYxG5OLP-8YVNIVjtRTFtbOV81sqQ/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbw3USHYUypYJPWsqXAUQxoF8andoegbAEo_k0qN7IX6C-G53qER-JCSuHkayRpkQpqrtg/exec';
     
-    const SLOTS = ["07-12", "12-17", "17-22"];
+    // Tidsblock
+    const SLOTS = ["00-08", "08-16", "16-24"];
+    const DAYS_NAMES = ['Sön', 'Mån', 'Tis', 'Ons', 'Tors', 'Fre', 'Lör'];
+    
     let bookingsData = [];
     let userName = localStorage.getItem('tvatt_namn') || '';
     let pendingAction = null;
-    let pendingIcsData = null; // Sparar data för kalenderknappen
+    let pendingIcsData = null;
+    let currentView = '1D';
 
     // Initiering
     document.getElementById('username').value = userName;
@@ -287,6 +392,7 @@
         document.getElementById('calendar').innerHTML = '<div style="background:#fff; padding:20px; border:3px solid #000;">Vänligen spara ditt namn för att se och boka tider.</div>';
         document.getElementById('live-status').textContent = 'Laddar status...';
         document.getElementById('live-status').className = 'status-badge';
+        document.getElementById('view-controls').style.display = 'none';
     }
 
     function updateAuthUI() {
@@ -294,19 +400,28 @@
             document.getElementById('login-form').style.display = 'none';
             document.getElementById('logged-in-info').style.display = 'flex';
             document.getElementById('display-username').textContent = userName;
+            document.getElementById('view-controls').style.display = 'flex';
         } else {
             document.getElementById('login-form').style.display = 'block';
             document.getElementById('logged-in-info').style.display = 'none';
             document.getElementById('username').value = '';
+            document.getElementById('view-controls').style.display = 'none';
         }
     }
 
-    // Funktion för att extrahera exakt ÅÅÅÅ-MM-DD från ett datumobjekt
     function getLocalDateString(dateObj) {
         const y = dateObj.getFullYear();
         const m = String(dateObj.getMonth() + 1).padStart(2, '0');
         const day = String(dateObj.getDate()).padStart(2, '0');
         return `${y}-${m}-${day}`;
+    }
+
+    // Beräkna ISO-veckonummer
+    function getWeekNumber(d) {
+        const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay()||7));
+        const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+        return Math.ceil(( ( (date - yearStart) / 86400000) + 1)/7);
     }
 
     async function initApp() {
@@ -318,6 +433,56 @@
         renderCalendar();
         updateLiveStatus();
         setInterval(updateLiveStatus, 60000);
+    }
+
+    // --- View Logic (Zooma in/ut animering löst utan buggig scroll) ---
+    function changeView(newView, targetDateStr = null) {
+        if (currentView === newView && !targetDateStr) return;
+
+        const wrapper = document.getElementById('calendar-wrapper');
+        const views = ['1D', '1V', '2V', '1M'];
+        const oldIdx = views.indexOf(currentView);
+        const newIdx = views.indexOf(newView);
+        
+        // Bestäm animation beroende på om vi klickar en specifik dag (Zooma IN) eller använder knapparna
+        const isZoomingOut = targetDateStr ? false : newIdx > oldIdx;
+
+        // Starta fade ut och scale
+        wrapper.style.transform = isZoomingOut ? 'scale(0.8)' : 'scale(1.2)';
+        wrapper.style.opacity = '0';
+
+        document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('btn-' + newView).classList.add('active');
+
+        setTimeout(() => {
+            currentView = newView;
+            renderCalendar(); // Ritar upp den nya vyn i bakgrunden (osynligt pga opacity 0)
+
+            // Fixa skroll-positionen blixtsnabbt innan vi tonar in
+            if (targetDateStr) {
+                const targetEl = document.getElementById('day-' + targetDateStr);
+                if (targetEl) {
+                    window.scrollTo({ top: targetEl.offsetTop - 20, behavior: 'instant' });
+                }
+            } else {
+                window.scrollTo({ top: 0, behavior: 'instant' });
+            }
+
+            // Återställ transition och starta in-animationen
+            wrapper.style.transition = 'none';
+            wrapper.style.transform = isZoomingOut ? 'scale(1.2)' : 'scale(0.8)';
+            
+            void wrapper.offsetWidth; // Tvinga webbläsaren att applicera css-ändringar (reflow)
+
+            wrapper.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+            wrapper.style.transform = 'scale(1)';
+            wrapper.style.opacity = '1';
+        }, 250);
+    }
+
+    function zoomToDay(dateStr) {
+        // Kör changeView till 1D och skicka med exakt datum att zooma in på
+        changeView('1D', dateStr);
     }
 
     // --- Modal Logic ---
@@ -353,16 +518,11 @@
     document.getElementById('btn-modal-yes').onclick = () => {
         if (!pendingAction) return;
         const { type, date, slots } = pendingAction;
-
-        if (type === 'book') {
-            bookSlot(date, slots);
-        } else {
-            cancelSlot(date, slots[0]);
-        }
+        if (type === 'book') bookSlot(date, slots);
+        else cancelSlot(date, slots[0]);
     };
 
     // --- API Anrop ---
-
     async function fetchBookings() {
         try {
             const url = new URL(API_URL);
@@ -371,15 +531,10 @@
             const textResponse = await response.text();
             
             let rawData;
-            try {
-                rawData = JSON.parse(textResponse);
-            } catch (err) {
-                console.error("Ogiltigt JSON. Säkerställ att du angett 'Alla' på Vem har åtkomst i Apps Script.");
-                return;
-            }
+            try { rawData = JSON.parse(textResponse); } 
+            catch (err) { return; }
             
             bookingsData = rawData.map(b => {
-                // Hantera datumet
                 if (b.date) {
                     let dStr = String(b.date);
                     if (dStr.includes('T')) {
@@ -393,8 +548,6 @@
                         if (!isNaN(d.getTime())) b.date = getLocalDateString(d);
                     }
                 }
-
-                // ÅTGÄRD: Omvandla tillbaka formaterade datum till "07-12" / "12-17"
                 if (b.slot) {
                     let sStr = String(b.slot).trim();
                     if (sStr.includes('T') || sStr.match(/^\d{4}-\d{2}-\d{2}/)) {
@@ -407,14 +560,10 @@
                         b.slot = sStr;
                     }
                 }
-
                 if (b.name) b.name = String(b.name).trim();
                 return b;
             });
-
-        } catch (error) {
-            console.error('Kunde inte hämta bokningar.', error);
-        }
+        } catch (error) { console.error('Kunde inte hämta bokningar.', error); }
     }
 
     async function bookSlot(date, slotsArray) {
@@ -430,12 +579,8 @@
             const result = await response.json();
             
             if (result.success) {
-                // Optimistisk uppdatering
-                slotsArray.forEach(slot => {
-                    bookingsData.push({ id: 'temp-' + Date.now(), date: date, slot: slot, name: userName });
-                });
+                slotsArray.forEach(slot => bookingsData.push({ id: 'temp-' + Date.now(), date: date, slot: slot, name: userName }));
                 renderCalendar();
-                
                 document.getElementById('success-modal-text').innerText = 'Bokning lyckades!';
                 document.getElementById('btn-modal-add-calendar').style.display = 'flex';
                 pendingIcsData = { date: date, slots: slotsArray };
@@ -463,10 +608,8 @@
             const result = await response.json();
             
             if (result.success) {
-                // Optimistisk uppdatering
                 bookingsData = bookingsData.filter(b => !(b.date === date && b.slot === slot && b.name === userName));
                 renderCalendar();
-                
                 document.getElementById('success-modal-text').innerText = 'Avbokning lyckades!';
                 document.getElementById('btn-modal-add-calendar').style.display = 'none';
                 setModalView('success');
@@ -481,65 +624,152 @@
     }
 
     // --- UI Rendering ---
-
     function renderCalendar() {
         const calendarEl = document.getElementById('calendar');
         calendarEl.innerHTML = '';
         
-        const today = new Date();
-        
-        for (let i = 0; i < 7; i++) {
-            const d = new Date(today);
-            d.setDate(d.getDate() + i);
-            const dateStr = getLocalDateString(d);
+        calendarEl.className = 'view-' + currentView.toLowerCase();
+        const todayStr = getLocalDateString(new Date());
+
+        if (currentView === '1M') {
+            // -- MÅNADSVY (Kalender Rutnät) --
             
-            const dayBookings = bookingsData.filter(b => b.date === dateStr);
+            // Kolumn-rubriker
+            let headerHtml = '<div class="month-header"><div>V.</div>';
+            ['Mån', 'Tis', 'Ons', 'Tors', 'Fre', 'Lör', 'Sön'].forEach(d => { headerHtml += `<div>${d}</div>`; });
+            headerHtml += '</div>';
+            calendarEl.innerHTML = headerHtml;
 
-            const dayCard = document.createElement('div');
-            dayCard.className = 'day-card';
-            
-            let slotsHtml = '';
-            let freeSlots = [];
+            // Beräkna vilken dag vi ska starta på (Måndagen i aktuell vecka)
+            let startDate = new Date();
+            let dayOfWeek = startDate.getDay(); // Sön=0, Mån=1 osv.
+            let diff = startDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+            startDate.setDate(diff);
 
-            SLOTS.forEach(slotTime => {
-                const booking = dayBookings.find(b => b.slot === slotTime);
-                let classes = 'slot';
-                let content = `<div class="slot-time">${slotTime}</div>`;
-                let onclick = '';
+            // Rita upp 4 veckor
+            for (let week = 0; week < 4; week++) {
+                let row = document.createElement('div');
+                row.className = 'month-row';
+                
+                // Veckonummer för raden
+                let monDate = new Date(startDate);
+                monDate.setDate(startDate.getDate() + (week * 7));
+                row.innerHTML = `<div class="week-num">${getWeekNumber(monDate)}</div>`;
 
-                if (booking) {
-                    if (booking.name === userName) {
-                        classes += ' mine';
-                        content += `<div class="slot-owner">BOKAD AV DIG</div>`;
-                        content += `<button class="btn-cancel" onclick="event.stopPropagation(); askConfirm('cancel', '${dateStr}', '${slotTime}')">Avboka</button>`;
-                        onclick = ''; // Knappen hanterar klicket
-                    } else {
-                        classes += ' booked';
-                        content += `<div class="slot-owner">BOKAD AV<br>${booking.name}</div>`;
-                        onclick = '';
-                    }
-                } else {
-                    freeSlots.push(slotTime);
-                    content += `<div class="slot-owner">Ledig (Klicka)</div>`;
-                    onclick = `onclick="askConfirm('book', '${dateStr}', '${slotTime}')"`;
+                for (let day = 0; day < 7; day++) {
+                    let d = new Date(startDate);
+                    d.setDate(startDate.getDate() + (week * 7) + day);
+                    let dateStr = getLocalDateString(d);
+                    const dayBookings = bookingsData.filter(b => b.date === dateStr);
+
+                    const compactBox = document.createElement('div');
+                    compactBox.className = 'day-compact';
+                    if (dateStr === todayStr) compactBox.classList.add('day-today');
+                    
+                    compactBox.onclick = () => zoomToDay(dateStr);
+
+                    let indHtml = '';
+                    SLOTS.forEach(slotTime => {
+                        const booking = dayBookings.find(b => b.slot === slotTime);
+                        let cName = 'indicator green';
+                        if (booking) cName = booking.name === userName ? 'indicator mine' : 'indicator red';
+                        indHtml += `<div class="${cName}" title="${slotTime}"></div>`;
+                    });
+
+                    compactBox.innerHTML = `<h3>${d.getDate()}</h3><div class="indicators">${indHtml}</div>`;
+                    row.appendChild(compactBox);
                 }
+                calendarEl.appendChild(row);
+            }
 
-                slotsHtml += `<div class="${classes}" ${onclick}>${content}</div>`;
-            });
+        } else {
+            // -- 1D, 1V, 2V Vyer --
+            let daysToRender = 30; // 1D visar 30 dagar nedåt
+            if (currentView === '1V') daysToRender = 7;
+            if (currentView === '2V') daysToRender = 14;
 
-            const heldagBtn = (freeSlots.length === 3) 
-                ? `<button class="btn-heldag" onclick="askConfirm('book', '${dateStr}', '07-12,12-17,17-22')">Boka Heldag (07-22)</button>` 
-                : '';
+            const today = new Date();
+            
+            for (let i = 0; i < daysToRender; i++) {
+                const d = new Date(today);
+                d.setDate(d.getDate() + i);
+                const dateStr = getLocalDateString(d);
+                const dayBookings = bookingsData.filter(b => b.date === dateStr);
 
-            dayCard.innerHTML = `
-                <div class="day-header">
-                    <h2>${d.toLocaleDateString('sv-SE', { weekday: 'long', month: 'short', day: 'numeric' })}</h2>
-                    <span>${dateStr}</span>
-                </div>
-                <div class="slots">${slotsHtml}</div>
-                ${heldagBtn}
-            `;
-            calendarEl.appendChild(dayCard);
+                if (currentView === '1D') {
+                    // Detaljerad Lista
+                    const dayCard = document.createElement('div');
+                    dayCard.className = 'day-card';
+                    dayCard.id = `day-${dateStr}`;
+                    
+                    let slotsHtml = '';
+                    let freeSlots = [];
+
+                    SLOTS.forEach(slotTime => {
+                        const booking = dayBookings.find(b => b.slot === slotTime);
+                        let classes = 'slot';
+                        let content = `<div class="slot-time">${slotTime}</div>`;
+                        let onclick = '';
+
+                        if (booking) {
+                            if (booking.name === userName) {
+                                classes += ' mine';
+                                content += `<div class="slot-owner">BOKAD AV DIG</div>`;
+                                content += `<button class="btn-cancel" onclick="event.stopPropagation(); askConfirm('cancel', '${dateStr}', '${slotTime}')">Avboka</button>`;
+                            } else {
+                                classes += ' booked';
+                                content += `<div class="slot-owner">BOKAD AV<br>${booking.name}</div>`;
+                            }
+                        } else {
+                            freeSlots.push(slotTime);
+                            content += `<div class="slot-owner">Ledig (Klicka)</div>`;
+                            onclick = `onclick="askConfirm('book', '${dateStr}', '${slotTime}')"`;
+                        }
+                        slotsHtml += `<div class="${classes}" ${onclick}>${content}</div>`;
+                    });
+
+                    const heldagBtn = (freeSlots.length === 3) 
+                        ? `<button class="btn-heldag" onclick="askConfirm('book', '${dateStr}', '00-08,08-16,16-24')">Boka Heldag (00-24)</button>` 
+                        : '';
+
+                    dayCard.innerHTML = `
+                        <div class="day-header">
+                            <h2>${d.toLocaleDateString('sv-SE', { weekday: 'long', month: 'short', day: 'numeric' })}</h2>
+                            <span>${dateStr}</span>
+                        </div>
+                        <div class="slots">${slotsHtml}</div>
+                        ${heldagBtn}
+                    `;
+                    calendarEl.appendChild(dayCard);
+
+                } else {
+                    // Kompakt Rutnät för 1V / 2V
+                    const compactBox = document.createElement('div');
+                    compactBox.className = 'day-compact';
+                    compactBox.onclick = () => zoomToDay(dateStr);
+
+                    let indHtml = '';
+                    SLOTS.forEach(slotTime => {
+                        const booking = dayBookings.find(b => b.slot === slotTime);
+                        let cName = 'indicator green';
+                        if (booking) {
+                            cName = booking.name === userName ? 'indicator mine' : 'indicator red';
+                        }
+                        indHtml += `<div class="${cName}" title="${slotTime}"></div>`;
+                    });
+
+                    compactBox.innerHTML = `
+                        <div>
+                            <h3>${d.getDate()}/${d.getMonth()+1}</h3>
+                            <span>${DAYS_NAMES[d.getDay()]}</span>
+                        </div>
+                        <div class="indicators">
+                            ${indHtml}
+                        </div>
+                    `;
+                    calendarEl.appendChild(compactBox);
+                }
+            }
         }
     }
 
@@ -581,7 +811,10 @@
                 const [startHr, endHr] = slot.split('-');
                 const dateFormatted = date.replace(/-/g, '');
                 const startTime = `${dateFormatted}T${startHr.padStart(2, '0')}0000`;
-                const endTime = `${dateFormatted}T${endHr.padStart(2, '0')}0000`;
+                
+                let endTime = '';
+                if (endHr === '24') endTime = `${dateFormatted}T235900`;
+                else endTime = `${dateFormatted}T${endHr.padStart(2, '0')}0000`;
 
                 const icsData = `BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//Tvättstuga//Bokning//SV\nBEGIN:VEVENT\nDTSTART;TZID=Europe/Stockholm:${startTime}\nDTEND;TZID=Europe/Stockholm:${endTime}\nSUMMARY:Tvättstuga\nDESCRIPTION:Din bokade tvättid.\nEND:VEVENT\nEND:VCALENDAR`;
 
