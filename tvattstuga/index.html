@@ -97,6 +97,7 @@
             padding: 10px 20px;
             border: 2px solid #000;
             background: #fff;
+            color: #000; /* Säkerställ svart text på alla knappar */
             cursor: pointer;
             font-size: 1rem;
             font-weight: bold;
@@ -118,7 +119,7 @@
         .view-controls {
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             justify-content: center;
             flex-wrap: wrap;
             position: sticky;
@@ -147,11 +148,23 @@
             justify-content: space-between;
             margin-top: 15px;
         }
+        .pagination-controls button {
+            color: #000 !important; /* Fix för iOS Safari Chrome */
+            -webkit-text-fill-color: #000;
+        }
 
         /* Calendar Wrapper (Animering) */
         #calendar-wrapper {
             transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease-out;
             transform-origin: center top;
+        }
+        
+        .view-title {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin: 0 0 5px 0;
+            font-size: 1.05rem;
+            text-transform: uppercase;
         }
 
         /* 1D View (Lista) */
@@ -425,9 +438,10 @@
     // ========================================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbw3USHYUypYJPWsqXAUQxoF8andoegbAEo_k0qN7IX6C-G53qER-JCSuHkayRpkQpqrtg/exec';
     
-    // Tidsblock
+    // Tidsblock & Konstater
     const SLOTS = ["00-08", "08-16", "16-24"];
     const DAYS_NAMES = ['Mån', 'Tis', 'Ons', 'Tors', 'Fre', 'Lör', 'Sön'];
+    const MONTHS_NAMES = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'];
     
     let bookingsData = [];
     let userName = localStorage.getItem('tvatt_namn') || '';
@@ -825,13 +839,19 @@
 
         if (currentView === '1M') {
             // -- MÅNADSVY (Kalender Rutnät 5 veckor) --
-            let headerHtml = '<div class="month-header"><div>V.</div>';
+            let startDate = new Date(baseStartDate);
+            startDate.setDate(startDate.getDate() + (currentOffsetWeeks * 7));
+
+            // Räkna ut relevant månad för rubriken (läser av från mitten av första veckan)
+            let targetMonthDate = new Date(startDate);
+            targetMonthDate.setDate(startDate.getDate() + 7); 
+            let monthName = MONTHS_NAMES[targetMonthDate.getMonth()];
+            let titleHtml = `<h2 class="view-title">${monthName} ${targetMonthDate.getFullYear()}</h2>`;
+
+            let headerHtml = titleHtml + '<div class="month-header"><div>V.</div>';
             DAYS_NAMES.forEach(d => { headerHtml += `<div>${d}</div>`; });
             headerHtml += '</div>';
             calendarEl.innerHTML = headerHtml;
-
-            let startDate = new Date(baseStartDate);
-            startDate.setDate(startDate.getDate() + (currentOffsetWeeks * 7));
 
             for (let week = 0; week < 5; week++) {
                 let row = document.createElement('div');
@@ -937,11 +957,25 @@
                 calendarEl.appendChild(dayCard);
             }
         } else {
-            // -- 1V och 2V Vyer (Kompakt Rutnät 3x3 och 5x3) --
+            // -- 1V och 2V Vyer (Kompakt Rutnät) --
             let daysToRender = currentView === '1V' ? 9 : 15;
 
             let startDate = new Date(baseStartDate);
             startDate.setDate(startDate.getDate() + (currentOffsetWeeks * 7));
+            
+            let w1 = getWeekNumber(startDate);
+            let titleStr = `Vecka ${w1}`;
+            
+            if (currentView === '2V') {
+                let dateW2 = new Date(startDate);
+                dateW2.setDate(startDate.getDate() + 7);
+                let w2 = getWeekNumber(dateW2);
+                if (w1 !== w2) {
+                    titleStr = `Vecka ${w1} - ${w2}`;
+                }
+            }
+            
+            calendarEl.innerHTML = `<h2 class="view-title">${titleStr}</h2>`;
             
             for (let i = 0; i < daysToRender; i++) {
                 const d = new Date(startDate);
