@@ -13,7 +13,6 @@
             --shadow: 4px 4px 0px #000;
             --free: #4ade80;
             --booked: #f87171;
-            --mine: #fcd34d;
             --action: #3b82f6;
         }
 
@@ -26,7 +25,7 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 20px;
+            padding: 0 20px 20px 20px;
             display: flex;
             justify-content: center;
         }
@@ -44,6 +43,7 @@
             padding: 15px;
             background: #fff;
             box-shadow: var(--shadow);
+            margin-top: 20px;
             margin-bottom: 20px;
             flex-wrap: wrap;
             gap: 10px;
@@ -90,14 +90,28 @@
             transform: translate(2px, 2px);
             box-shadow: 0px 0px 0px #000;
         }
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
 
-        /* View Controls */
+        /* Sticky View Controls */
         .view-controls {
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
             justify-content: center;
             flex-wrap: wrap;
+            position: sticky;
+            top: 0;
+            background-color: var(--bg);
+            padding: 15px 0;
+            z-index: 100;
+            border-bottom: 2px solid #000;
+            margin-left: -20px;
+            margin-right: -20px;
         }
         .view-btn {
             box-shadow: 2px 2px 0px #000;
@@ -107,6 +121,13 @@
             color: #fff;
             transform: translate(2px, 2px);
             box-shadow: 0px 0px 0px #000;
+        }
+
+        /* Pagination Controls */
+        .pagination-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
         }
 
         /* Calendar Wrapper (Animering) */
@@ -125,6 +146,11 @@
             border: var(--border);
             box-shadow: var(--shadow);
             padding: 15px;
+        }
+        .day-card.is-disabled {
+            opacity: 0.5;
+            background-color: #f3f3f3;
+            pointer-events: none;
         }
         .day-header {
             display: flex;
@@ -168,7 +194,7 @@
             width: 100%;
         }
 
-        /* Generell Kompakt-box (Används i 1V och 2V) */
+        /* Generell Kompakt-box (Används i 1V, 2V, 1M) */
         .day-compact {
             background: #fff;
             border: 2px solid #000;
@@ -180,13 +206,34 @@
             flex-direction: column;
             justify-content: space-between;
         }
-        .day-compact:hover { background: #f0f0f0; }
+        .day-compact:hover { background: #e0e0e0; }
         .day-compact:active { transform: translate(2px, 2px); box-shadow: 0px 0px 0px #000; }
         
+        .day-compact.is-disabled, .day-compact.is-past {
+            opacity: 0.4;
+            background-color: #f3f3f3;
+            pointer-events: none;
+        }
+        
+        .date-num {
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 0 auto 2px auto;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .day-compact.is-today .date-num {
+            background-color: #000;
+            color: #fff;
+        }
+
         .indicator { width: 100%; border: 1px solid #000; }
         .indicator.green { background: var(--free); }
         .indicator.red { background: var(--booked); }
-        .indicator.mine { background: var(--mine); }
 
         /* 1V View */
         .view-1v {
@@ -195,24 +242,23 @@
             gap: 10px;
         }
         .view-1v .day-compact { padding: 15px 5px; }
-        .view-1v .day-compact h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
         .view-1v .day-compact span { font-size: 0.8rem; font-weight: bold; text-transform: uppercase; }
         .view-1v .indicators { display: flex; flex-direction: column; gap: 4px; margin-top: 15px; }
         .view-1v .indicator { height: 10px; }
 
-        /* 2V View (Lite mer utzoomad) */
+        /* 2V View */
         .view-2v {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 8px;
         }
         .view-2v .day-compact { padding: 8px 4px; border-width: 1.5px; box-shadow: 1.5px 1.5px 0px #000;}
-        .view-2v .day-compact h3 { margin: 0 0 2px 0; font-size: 0.9rem; }
+        .view-2v .date-num { width: 24px; height: 24px; font-size: 0.9rem; margin-bottom: 0px; }
         .view-2v .day-compact span { font-size: 0.7rem; font-weight: bold; }
         .view-2v .indicators { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; }
         .view-2v .indicator { height: 6px; }
 
-        /* 1M View (Kalender Grid) */
+        /* 1M View */
         .view-1m { display: grid; gap: 5px; }
         .month-header { 
             display: grid; 
@@ -241,11 +287,9 @@
             font-weight: bold; 
         }
         .view-1m .day-compact { padding: 4px; border-width: 1.5px; box-shadow: 1.5px 1.5px 0px #000; justify-content: flex-start;}
-        .view-1m .day-compact h3 { margin: 0; font-size: 0.9rem; text-align: left; }
+        .view-1m .date-num { width: 20px; height: 20px; font-size: 0.8rem; margin: 0; }
         .view-1m .indicators { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
         .view-1m .indicator { height: 4px; }
-        
-        .day-today { background: #e0f2fe; } /* Markera dagens datum i 1M */
 
         /* Modal-styling */
         .modal {
@@ -323,6 +367,12 @@
             <!-- Genereras via JS -->
         </div>
     </div>
+
+    <!-- Paginering för Grid-vyerna -->
+    <div class="pagination-controls" id="pagination-controls" style="display:none;">
+        <button id="btn-prev" onclick="changeOffset(-1)">&lt; Föregående</button>
+        <button id="btn-next" onclick="changeOffset(1)">Nästa &gt;</button>
+    </div>
 </div>
 
 <!-- Modal för bekräftelse & status -->
@@ -359,13 +409,14 @@
     
     // Tidsblock
     const SLOTS = ["00-08", "08-16", "16-24"];
-    const DAYS_NAMES = ['Sön', 'Mån', 'Tis', 'Ons', 'Tors', 'Fre', 'Lör'];
+    const DAYS_NAMES = ['Mån', 'Tis', 'Ons', 'Tors', 'Fre', 'Lör', 'Sön'];
     
     let bookingsData = [];
     let userName = localStorage.getItem('tvatt_namn') || '';
     let pendingAction = null;
     let pendingIcsData = null;
     let currentView = '1D';
+    let currentOffsetWeeks = 0;
 
     // Initiering
     document.getElementById('username').value = userName;
@@ -388,11 +439,13 @@
     function logout() {
         localStorage.removeItem('tvatt_namn');
         userName = '';
+        currentOffsetWeeks = 0;
         updateAuthUI();
         document.getElementById('calendar').innerHTML = '<div style="background:#fff; padding:20px; border:3px solid #000;">Vänligen spara ditt namn för att se och boka tider.</div>';
         document.getElementById('live-status').textContent = 'Laddar status...';
         document.getElementById('live-status').className = 'status-badge';
         document.getElementById('view-controls').style.display = 'none';
+        document.getElementById('pagination-controls').style.display = 'none';
     }
 
     function updateAuthUI() {
@@ -416,12 +469,39 @@
         return `${y}-${m}-${day}`;
     }
 
-    // Beräkna ISO-veckonummer
     function getWeekNumber(d) {
         const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
         date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay()||7));
         const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
         return Math.ceil(( ( (date - yearStart) / 86400000) + 1)/7);
+    }
+
+    // Ta reda på vilket datum som syns mest på skärmen just nu i 1D-vyn
+    function getVisibleDateStrIn1D() {
+        const cards = document.querySelectorAll('.view-1d .day-card');
+        const headerOffset = document.getElementById('view-controls').offsetHeight + 100;
+        for (let card of cards) {
+            const rect = card.getBoundingClientRect();
+            if (rect.bottom > headerOffset) {
+                return card.id.replace('day-', '');
+            }
+        }
+        return getLocalDateString(new Date());
+    }
+
+    // Beräkna veckoskillnad för synkroniserad scroll
+    function calculateOffsetFromDate(dateStr) {
+        let baseStartDate = new Date();
+        let dayOfWeek = baseStartDate.getDay();
+        let diff = baseStartDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+        baseStartDate.setDate(diff);
+        baseStartDate.setHours(0,0,0,0);
+        
+        let targetDate = new Date(dateStr);
+        targetDate.setHours(0,0,0,0);
+        
+        let msDiff = targetDate.getTime() - baseStartDate.getTime();
+        return Math.floor(msDiff / (7 * 24 * 60 * 60 * 1000));
     }
 
     async function initApp() {
@@ -431,23 +511,91 @@
         }
         await fetchBookings();
         renderCalendar();
+        updatePaginationButtons();
         updateLiveStatus();
+        
+        if (currentView === '1D') {
+            setTimeout(() => window.scrollTo(0, 0), 50);
+        }
+
         setInterval(updateLiveStatus, 60000);
     }
 
-    // --- View Logic (Zooma in/ut animering löst utan buggig scroll) ---
+    // --- Paginering Logic ---
+    function changeOffset(dir) {
+        let step = 1;
+        if (currentView === '2V') step = 2;
+        if (currentView === '1M') step = 4;
+        
+        currentOffsetWeeks += (dir * step);
+        renderCalendar();
+        updatePaginationButtons();
+    }
+
+    function updatePaginationButtons() {
+        const pagContainer = document.getElementById('pagination-controls');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+
+        if (currentView === '1D') {
+            pagContainer.style.display = 'none';
+            return;
+        }
+        pagContainer.style.display = 'flex';
+
+        btnPrev.disabled = currentOffsetWeeks <= -4;
+        
+        if (currentView === '1M') {
+            btnNext.disabled = currentOffsetWeeks >= 0; 
+        } else if (currentView === '2V') {
+            btnNext.disabled = currentOffsetWeeks >= 2; 
+        } else {
+            btnNext.disabled = currentOffsetWeeks >= 4; 
+        }
+    }
+
+    // --- Scroll Helper ---
+    function scrollToDate(dateStr, smooth = false) {
+        const el = document.getElementById('day-' + dateStr);
+        if (el) {
+            // Minskad offset för att flytta upp elementet på skärmen
+            const headerOffset = document.getElementById('view-controls').offsetHeight + 40;
+            window.scrollTo({
+                top: el.offsetTop - headerOffset,
+                behavior: smooth ? 'smooth' : 'instant'
+            });
+        } else {
+            window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'instant' });
+        }
+    }
+
+    // --- View Logic (Zooma in/ut animering) ---
     function changeView(newView, targetDateStr = null) {
-        if (currentView === newView && !targetDateStr) return;
+        if (currentView === newView && !targetDateStr) {
+            if (currentView === '1D') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            return;
+        }
+
+        if (currentView === '1D' && newView !== '1D') {
+            const visDate = getVisibleDateStrIn1D();
+            currentOffsetWeeks = calculateOffsetFromDate(visDate);
+            
+            if (currentOffsetWeeks < -4) currentOffsetWeeks = -4;
+            if (newView === '1M' && currentOffsetWeeks > 0) currentOffsetWeeks = 0;
+            if (newView === '2V' && currentOffsetWeeks > 2) currentOffsetWeeks = 2;
+            if (newView === '1V' && currentOffsetWeeks > 4) currentOffsetWeeks = 4;
+        }
 
         const wrapper = document.getElementById('calendar-wrapper');
         const views = ['1D', '1V', '2V', '1M'];
         const oldIdx = views.indexOf(currentView);
         const newIdx = views.indexOf(newView);
         
-        // Bestäm animation beroende på om vi klickar en specifik dag (Zooma IN) eller använder knapparna
         const isZoomingOut = targetDateStr ? false : newIdx > oldIdx;
 
-        // Starta fade ut och scale
+        wrapper.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
         wrapper.style.transform = isZoomingOut ? 'scale(0.8)' : 'scale(1.2)';
         wrapper.style.opacity = '0';
 
@@ -455,33 +603,35 @@
         document.getElementById('btn-' + newView).classList.add('active');
 
         setTimeout(() => {
+            wrapper.style.visibility = 'hidden'; 
+            
             currentView = newView;
-            renderCalendar(); // Ritar upp den nya vyn i bakgrunden (osynligt pga opacity 0)
+            if (!targetDateStr && newView === '1D') {
+                targetDateStr = getLocalDateString(new Date());
+            }
+            
+            renderCalendar(); 
+            updatePaginationButtons();
 
-            // Fixa skroll-positionen blixtsnabbt innan vi tonar in
             if (targetDateStr) {
-                const targetEl = document.getElementById('day-' + targetDateStr);
-                if (targetEl) {
-                    window.scrollTo({ top: targetEl.offsetTop - 20, behavior: 'instant' });
-                }
+                scrollToDate(targetDateStr, false);
             } else {
-                window.scrollTo({ top: 0, behavior: 'instant' });
+                window.scrollTo(0, 0);
             }
 
-            // Återställ transition och starta in-animationen
             wrapper.style.transition = 'none';
             wrapper.style.transform = isZoomingOut ? 'scale(1.2)' : 'scale(0.8)';
             
-            void wrapper.offsetWidth; // Tvinga webbläsaren att applicera css-ändringar (reflow)
+            void wrapper.offsetWidth; 
+            wrapper.style.visibility = 'visible';
 
-            wrapper.style.transition = 'transform 0.25s ease, opacity 0.25s ease';
+            wrapper.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease';
             wrapper.style.transform = 'scale(1)';
             wrapper.style.opacity = '1';
-        }, 250);
+        }, 200);
     }
 
     function zoomToDay(dateStr) {
-        // Kör changeView till 1D och skicka med exakt datum att zooma in på
         changeView('1D', dateStr);
     }
 
@@ -629,29 +779,35 @@
         calendarEl.innerHTML = '';
         
         calendarEl.className = 'view-' + currentView.toLowerCase();
-        const todayStr = getLocalDateString(new Date());
+        
+        const today = new Date();
+        const todayStr = getLocalDateString(today);
+        
+        // Maxdatum för bokning: 28 dagar framåt från idag
+        const maxDate = new Date(today);
+        maxDate.setDate(today.getDate() + 28);
+        const maxDateStr = getLocalDateString(maxDate);
+
+        // Hitta nuvarande veckans Måndag
+        let baseStartDate = new Date();
+        let dayOfWeek = baseStartDate.getDay();
+        let diff = baseStartDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+        baseStartDate.setDate(diff);
 
         if (currentView === '1M') {
-            // -- MÅNADSVY (Kalender Rutnät) --
-            
-            // Kolumn-rubriker
+            // -- MÅNADSVY (Kalender Rutnät 5 veckor) --
             let headerHtml = '<div class="month-header"><div>V.</div>';
-            ['Mån', 'Tis', 'Ons', 'Tors', 'Fre', 'Lör', 'Sön'].forEach(d => { headerHtml += `<div>${d}</div>`; });
+            DAYS_NAMES.forEach(d => { headerHtml += `<div>${d}</div>`; });
             headerHtml += '</div>';
             calendarEl.innerHTML = headerHtml;
 
-            // Beräkna vilken dag vi ska starta på (Måndagen i aktuell vecka)
-            let startDate = new Date();
-            let dayOfWeek = startDate.getDay(); // Sön=0, Mån=1 osv.
-            let diff = startDate.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-            startDate.setDate(diff);
+            let startDate = new Date(baseStartDate);
+            startDate.setDate(startDate.getDate() + (currentOffsetWeeks * 7));
 
-            // Rita upp 4 veckor
-            for (let week = 0; week < 4; week++) {
+            for (let week = 0; week < 5; week++) {
                 let row = document.createElement('div');
                 row.className = 'month-row';
                 
-                // Veckonummer för raden
                 let monDate = new Date(startDate);
                 monDate.setDate(startDate.getDate() + (week * 7));
                 row.innerHTML = `<div class="week-num">${getWeekNumber(monDate)}</div>`;
@@ -664,111 +820,138 @@
 
                     const compactBox = document.createElement('div');
                     compactBox.className = 'day-compact';
-                    if (dateStr === todayStr) compactBox.classList.add('day-today');
+                    if (dateStr === todayStr) compactBox.classList.add('is-today');
                     
-                    compactBox.onclick = () => zoomToDay(dateStr);
+                    if (dateStr < todayStr) compactBox.classList.add('is-past');
+                    if (dateStr > maxDateStr) compactBox.classList.add('is-disabled');
+                    
+                    if (dateStr >= todayStr && dateStr <= maxDateStr) {
+                        compactBox.onclick = () => zoomToDay(dateStr);
+                    }
 
                     let indHtml = '';
                     SLOTS.forEach(slotTime => {
                         const booking = dayBookings.find(b => b.slot === slotTime);
                         let cName = 'indicator green';
-                        if (booking) cName = booking.name === userName ? 'indicator mine' : 'indicator red';
+                        if (booking) cName = 'indicator red'; 
                         indHtml += `<div class="${cName}" title="${slotTime}"></div>`;
                     });
 
-                    compactBox.innerHTML = `<h3>${d.getDate()}</h3><div class="indicators">${indHtml}</div>`;
+                    compactBox.innerHTML = `<div class="date-num">${d.getDate()}</div><div class="indicators">${indHtml}</div>`;
                     row.appendChild(compactBox);
                 }
                 calendarEl.appendChild(row);
             }
 
-        } else {
-            // -- 1D, 1V, 2V Vyer --
-            let daysToRender = 30; // 1D visar 30 dagar nedåt
-            if (currentView === '1V') daysToRender = 7;
-            if (currentView === '2V') daysToRender = 14;
+        } else if (currentView === '1D') {
+            // -- 1D VY (Kontinuerlig lista BARA FRÅN IDAG) --
+            let dListStart = new Date(); // Startar alltid från idag
 
-            const today = new Date();
-            
-            for (let i = 0; i < daysToRender; i++) {
-                const d = new Date(today);
+            for (let i = 0; i <= 28; i++) { // Loopar 28 dagar (4 veckor)
+                const d = new Date(dListStart);
                 d.setDate(d.getDate() + i);
                 const dateStr = getLocalDateString(d);
                 const dayBookings = bookingsData.filter(b => b.date === dateStr);
 
-                if (currentView === '1D') {
-                    // Detaljerad Lista
-                    const dayCard = document.createElement('div');
-                    dayCard.className = 'day-card';
-                    dayCard.id = `day-${dateStr}`;
-                    
-                    let slotsHtml = '';
-                    let freeSlots = [];
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                dayCard.id = `day-${dateStr}`;
+                
+                if (dateStr > maxDateStr) dayCard.classList.add('is-disabled');
+                
+                let slotsHtml = '';
+                let freeSlots = [];
 
-                    SLOTS.forEach(slotTime => {
-                        const booking = dayBookings.find(b => b.slot === slotTime);
-                        let classes = 'slot';
-                        let content = `<div class="slot-time">${slotTime}</div>`;
-                        let onclick = '';
+                SLOTS.forEach(slotTime => {
+                    const booking = dayBookings.find(b => b.slot === slotTime);
+                    let classes = 'slot';
+                    let content = `<div class="slot-time">${slotTime}</div>`;
+                    let onclick = '';
 
-                        if (booking) {
-                            if (booking.name === userName) {
-                                classes += ' mine';
-                                content += `<div class="slot-owner">BOKAD AV DIG</div>`;
+                    if (booking) {
+                        if (booking.name === userName) {
+                            classes += ' mine';
+                            content += `<div class="slot-owner">BOKAD AV DIG</div>`;
+                            if (dateStr >= todayStr) {
                                 content += `<button class="btn-cancel" onclick="event.stopPropagation(); askConfirm('cancel', '${dateStr}', '${slotTime}')">Avboka</button>`;
-                            } else {
-                                classes += ' booked';
-                                content += `<div class="slot-owner">BOKAD AV<br>${booking.name}</div>`;
                             }
+                        } else {
+                            classes += ' booked';
+                            content += `<div class="slot-owner">BOKAD AV<br>${booking.name}</div>`;
+                        }
+                    } else {
+                        if (dateStr < todayStr || dateStr > maxDateStr) {
+                            freeSlots.push(slotTime);
+                            content += `<div class="slot-owner" style="color:#666;">Ej bokningsbar</div>`;
                         } else {
                             freeSlots.push(slotTime);
                             content += `<div class="slot-owner">Ledig (Klicka)</div>`;
                             onclick = `onclick="askConfirm('book', '${dateStr}', '${slotTime}')"`;
                         }
-                        slotsHtml += `<div class="${classes}" ${onclick}>${content}</div>`;
-                    });
+                    }
+                    slotsHtml += `<div class="${classes}" ${onclick}>${content}</div>`;
+                });
 
-                    const heldagBtn = (freeSlots.length === 3) 
-                        ? `<button class="btn-heldag" onclick="askConfirm('book', '${dateStr}', '00-08,08-16,16-24')">Boka Heldag (00-24)</button>` 
-                        : '';
-
-                    dayCard.innerHTML = `
-                        <div class="day-header">
-                            <h2>${d.toLocaleDateString('sv-SE', { weekday: 'long', month: 'short', day: 'numeric' })}</h2>
-                            <span>${dateStr}</span>
-                        </div>
-                        <div class="slots">${slotsHtml}</div>
-                        ${heldagBtn}
-                    `;
-                    calendarEl.appendChild(dayCard);
-
-                } else {
-                    // Kompakt Rutnät för 1V / 2V
-                    const compactBox = document.createElement('div');
-                    compactBox.className = 'day-compact';
-                    compactBox.onclick = () => zoomToDay(dateStr);
-
-                    let indHtml = '';
-                    SLOTS.forEach(slotTime => {
-                        const booking = dayBookings.find(b => b.slot === slotTime);
-                        let cName = 'indicator green';
-                        if (booking) {
-                            cName = booking.name === userName ? 'indicator mine' : 'indicator red';
-                        }
-                        indHtml += `<div class="${cName}" title="${slotTime}"></div>`;
-                    });
-
-                    compactBox.innerHTML = `
-                        <div>
-                            <h3>${d.getDate()}/${d.getMonth()+1}</h3>
-                            <span>${DAYS_NAMES[d.getDay()]}</span>
-                        </div>
-                        <div class="indicators">
-                            ${indHtml}
-                        </div>
-                    `;
-                    calendarEl.appendChild(compactBox);
+                let heldagBtn = '';
+                if (freeSlots.length === 3 && dateStr >= todayStr && dateStr <= maxDateStr) {
+                    heldagBtn = `<button class="btn-heldag" onclick="askConfirm('book', '${dateStr}', '00-08,08-16,16-24')">Boka Heldag (00-24)</button>`;
                 }
+
+                dayCard.innerHTML = `
+                    <div class="day-header">
+                        <h2>${d.toLocaleDateString('sv-SE', { weekday: 'long', month: 'short', day: 'numeric' })}</h2>
+                        <span>${dateStr}</span>
+                    </div>
+                    <div class="slots">${slotsHtml}</div>
+                    ${heldagBtn}
+                `;
+                calendarEl.appendChild(dayCard);
+            }
+        } else {
+            // -- 1V och 2V Vyer (Kompakt Rutnät) --
+            let daysToRender = currentView === '1V' ? 7 : 14;
+
+            let startDate = new Date(baseStartDate);
+            startDate.setDate(startDate.getDate() + (currentOffsetWeeks * 7));
+            
+            for (let i = 0; i < daysToRender; i++) {
+                const d = new Date(startDate);
+                d.setDate(d.getDate() + i);
+                const dateStr = getLocalDateString(d);
+                const dayBookings = bookingsData.filter(b => b.date === dateStr);
+
+                const compactBox = document.createElement('div');
+                compactBox.className = 'day-compact';
+                
+                if (dateStr === todayStr) compactBox.classList.add('is-today');
+                if (dateStr < todayStr) compactBox.classList.add('is-past');
+                if (dateStr > maxDateStr) compactBox.classList.add('is-disabled');
+                
+                if (dateStr >= todayStr && dateStr <= maxDateStr) {
+                    compactBox.onclick = () => zoomToDay(dateStr);
+                }
+
+                let indHtml = '';
+                SLOTS.forEach(slotTime => {
+                    const booking = dayBookings.find(b => b.slot === slotTime);
+                    let cName = 'indicator green';
+                    if (booking) cName = 'indicator red';
+                    indHtml += `<div class="${cName}" title="${slotTime}"></div>`;
+                });
+
+                let dayIdx = d.getDay() - 1;
+                if (dayIdx === -1) dayIdx = 6;
+
+                compactBox.innerHTML = `
+                    <div>
+                        <div class="date-num">${d.getDate()}/${d.getMonth()+1}</div>
+                        <span>${DAYS_NAMES[dayIdx]}</span>
+                    </div>
+                    <div class="indicators">
+                        ${indHtml}
+                    </div>
+                `;
+                calendarEl.appendChild(compactBox);
             }
         }
     }
