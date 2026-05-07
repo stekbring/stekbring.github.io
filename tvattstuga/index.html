@@ -26,13 +26,12 @@
             color: var(--text);
             margin: 0;
             padding: 0 20px 20px 20px;
-            /* Flexbox borttaget. Orsakar rendering-buggar för sticky-element i Chrome Mobile */
         }
 
         .container {
             max-width: 900px;
             width: 100%;
-            margin: 0 auto; /* Standard-centrering istället, mycket stabilare för scroll/sticky */
+            margin: 0 auto; 
         }
 
         header {
@@ -60,16 +59,30 @@
         .status-badge.ledig { background: var(--free); }
         .status-badge.upptagen { background: var(--booked); }
 
+        /* Auth-section med animations-klasser */
         .auth-section {
             background: #fff;
             border: var(--border);
             padding: 20px;
             box-shadow: var(--shadow);
             margin-bottom: 20px;
+            overflow: hidden;
+            max-height: 300px;
+            opacity: 1;
+            transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease, margin 0.3s ease, border-width 0.3s ease, box-shadow 0.3s ease;
         }
         .auth-section.compact {
             padding: 10px 15px;
             margin-bottom: 15px;
+        }
+        .auth-section.auth-collapse {
+            max-height: 0;
+            opacity: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-bottom: 0;
+            border-width: 0;
+            box-shadow: 0px 0px 0px rgba(0,0,0,0);
         }
 
         input[type="text"] {
@@ -109,14 +122,14 @@
             justify-content: center;
             flex-wrap: wrap;
             position: sticky;
-            top: 0;
+            top: -1px; 
             background-color: var(--bg);
             padding: 15px 0;
             z-index: 100;
             border-bottom: 2px solid #000;
             margin-left: -20px;
             margin-right: -20px;
-            transform: translateZ(0); /* Tvingar hårdvaruacceleration, förhindrar att den försvinner i Chrome */
+            transform: translateZ(0); 
         }
         .view-btn {
             box-shadow: 2px 2px 0px #000;
@@ -137,7 +150,7 @@
 
         /* Calendar Wrapper (Animering) */
         #calendar-wrapper {
-            transition: transform 0.25s ease, opacity 0.25s ease;
+            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease-out;
             transform-origin: center top;
         }
 
@@ -243,7 +256,7 @@
         /* 1V View */
         .view-1v {
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
+            grid-template-columns: repeat(3, 1fr); /* 3x3 rutnät för 9 dagar */
             gap: 10px;
         }
         .view-1v .day-compact { padding: 15px 5px; }
@@ -254,7 +267,7 @@
         /* 2V View */
         .view-2v {
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
+            grid-template-columns: repeat(5, 1fr); /* 5x3 rutnät för 15 dagar */
             gap: 8px;
         }
         .view-2v .day-compact { padding: 8px 4px; border-width: 1.5px; box-shadow: 1.5px 1.5px 0px #000;}
@@ -326,7 +339,7 @@
         }
 
         @media (max-width: 768px) {
-            .view-1v, .view-2v { grid-template-columns: repeat(4, 1fr); }
+            .view-2v { grid-template-columns: repeat(3, 1fr); }
             .month-header { font-size: 0.7rem; grid-template-columns: 25px repeat(7, 1fr); gap: 3px; }
             .month-row { grid-template-columns: 25px repeat(7, 1fr); gap: 3px; min-height: 45px;}
         }
@@ -461,15 +474,15 @@
             document.getElementById('view-controls').style.display = 'flex';
             authSec.classList.add('compact');
             
-            // Döljer Inloggad-som vid 1V, 2V och 1M vyerna
+            // Hanterar visning/döljning med CSS animationer
             if (currentView === '1D') {
-                authSec.style.display = 'block';
+                authSec.classList.remove('auth-collapse');
                 document.getElementById('logged-in-info').style.display = 'flex';
             } else {
-                authSec.style.display = 'none';
+                authSec.classList.add('auth-collapse');
             }
         } else {
-            authSec.style.display = 'block';
+            authSec.classList.remove('auth-collapse');
             authSec.classList.remove('compact');
             document.getElementById('login-form').style.display = 'block';
             document.getElementById('logged-in-info').style.display = 'none';
@@ -574,7 +587,6 @@
     function scrollToDate(dateStr, smooth = false) {
         const el = document.getElementById('day-' + dateStr);
         if (el) {
-            // Här är offset-justeringen -250 (ändra denna om det behövs finliras mer)
             const headerOffset = document.getElementById('view-controls').offsetHeight - 250;
             window.scrollTo({
                 top: el.offsetTop - headerOffset,
@@ -585,7 +597,7 @@
         }
     }
 
-    // --- View Logic (Zooma in/ut animering) ---
+    // --- View Logic (Snabbare & Smoothare Animering) ---
     function changeView(newView, targetDateStr = null) {
         if (currentView === newView && !targetDateStr) {
             if (currentView === '1D') {
@@ -611,20 +623,19 @@
         
         const isZoomingOut = targetDateStr ? false : newIdx > oldIdx;
 
-        wrapper.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
-        wrapper.style.transform = isZoomingOut ? 'scale(0.8)' : 'scale(1.2)';
+        // Snabbare ut-toning
+        wrapper.style.transition = 'transform 0.15s ease-out, opacity 0.15s ease-out';
+        wrapper.style.transform = isZoomingOut ? 'scale(0.95)' : 'scale(1.05)';
         wrapper.style.opacity = '0';
 
         document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById('btn-' + newView).classList.add('active');
 
+        // Kortare dröjsmål för rendering
         setTimeout(() => {
             wrapper.style.visibility = 'hidden'; 
             
             currentView = newView;
-            if (!targetDateStr && newView === '1D') {
-                targetDateStr = getLocalDateString(new Date());
-            }
             
             updateAuthUI();
             renderCalendar(); 
@@ -637,15 +648,16 @@
             }
 
             wrapper.style.transition = 'none';
-            wrapper.style.transform = isZoomingOut ? 'scale(1.2)' : 'scale(0.8)';
+            wrapper.style.transform = isZoomingOut ? 'scale(1.05)' : 'scale(0.95)';
             
             void wrapper.offsetWidth; 
             wrapper.style.visibility = 'visible';
 
-            wrapper.style.transition = 'transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease';
+            // Snabb och följsam in-toning
+            wrapper.style.transition = 'transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease-out';
             wrapper.style.transform = 'scale(1)';
             wrapper.style.opacity = '1';
-        }, 200);
+        }, 150);
     }
 
     function zoomToDay(dateStr) {
@@ -925,8 +937,8 @@
                 calendarEl.appendChild(dayCard);
             }
         } else {
-            // -- 1V och 2V Vyer (Kompakt Rutnät) --
-            let daysToRender = currentView === '1V' ? 7 : 14;
+            // -- 1V och 2V Vyer (Kompakt Rutnät 3x3 och 5x3) --
+            let daysToRender = currentView === '1V' ? 9 : 15;
 
             let startDate = new Date(baseStartDate);
             startDate.setDate(startDate.getDate() + (currentOffsetWeeks * 7));
