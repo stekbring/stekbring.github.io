@@ -3,391 +3,489 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NKSE Flashcards</title>
+    <title>Interaktiva Flashcards i Canvas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* Color Palette */
-        :root {
-            --color-1: #B86A90; /* Pinkish */
-            --color-2: #945674; /* Darker Pinkish */
-            --color-3: #6B3E54; /* Plum */
-            --color-4: #422634; /* Dark Plum */
-            --color-5: #E585B4; /* Light Pink */
-            --text-light: #F8F0F4;
-            --text-dark: #2D1A24;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--color-4);
-            color: var(--text-light);
+            font-family: 'Inter', sans-serif;
+            background-color: #422634; /* Färg från palett */
+            margin: 0;
+            overflow: hidden; /* Förhindrar scroll då vi använder canvas för allt */
+            color: #E585B4;
+        }
+        #canvas-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
+        }
+        canvas {
+            display: block;
+            flex-grow: 1;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Låter klick gå igenom till canvas om de inte träffar knappar */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 1.5rem;
             box-sizing: border-box;
         }
-
-        h1 {
-            color: var(--color-5);
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            text-align: center;
-        }
-
         .controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            justify-content: center;
-            background-color: var(--color-3);
-            padding: 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            pointer-events: auto; /* Aktiverar klick för UI-elementen */
         }
-
-        button, select {
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            border-radius: 8px;
-            background-color: var(--color-1);
-            color: var(--text-light);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            outline: none;
+        
+        /* Styling för knappar baserat på färgpaletten */
+        .btn {
+            background-color: #945674;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
         }
-
-        button:hover, select:hover {
-            background-color: var(--color-5);
-            color: var(--text-dark);
+        .btn:hover {
+            background-color: #B86A90;
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         }
-
-        button:active {
+        .btn:active {
             transform: translateY(0);
         }
-
-        select {
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            padding-right: 35px;
-        }
-
-        .flashcard-container {
-            perspective: 1000px;
-            width: 100%;
-            max-width: 600px;
-            height: 400px;
-            margin-bottom: 30px;
-            cursor: pointer;
-        }
-
-        .flashcard {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
-            transform-style: preserve-3d;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            border-radius: 16px;
-        }
-
-        .flashcard.flipped {
-            transform: rotateY(180deg);
-        }
-
-        .card-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 30px;
-            box-sizing: border-box;
-            border-radius: 16px;
-            text-align: center;
-            border: 2px solid var(--color-2);
-        }
-
-        .card-front {
-            background: linear-gradient(135deg, var(--color-2), var(--color-3));
-            color: var(--text-light);
-        }
-
-        .card-back {
-            background: linear-gradient(135deg, var(--color-1), var(--color-5));
-            color: var(--text-dark);
-            transform: rotateY(180deg);
-            overflow-y: auto; /* Allow scrolling for long answers */
-            align-items: flex-start; /* Align text to top when scrolling */
-            justify-content: flex-start;
-        }
-        
-        /* Custom scrollbar for back card */
-        .card-back::-webkit-scrollbar {
-            width: 8px;
-        }
-        .card-back::-webkit-scrollbar-track {
-            background: transparent; 
-        }
-        .card-back::-webkit-scrollbar-thumb {
-            background: var(--color-3); 
-            border-radius: 4px;
-        }
-        .card-back::-webkit-scrollbar-thumb:hover {
-            background: var(--color-4); 
-        }
-
-        .question-number {
-            position: absolute;
-            top: 15px;
-            left: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            opacity: 0.8;
-            background-color: rgba(0,0,0,0.2);
-            padding: 5px 10px;
-            border-radius: 20px;
-        }
-
-        .card-text {
-            font-size: 22px;
-            line-height: 1.5;
-            width: 100%;
-            margin-top: 20px;
-        }
-        
-        .card-back .card-text {
-            margin-top: 40px; /* Space for question number */
-            font-size: 18px; /* Slightly smaller for answers which are often longer */
-            text-align: left;
-            padding-bottom: 20px;
-        }
-
-        .hint {
-            position: absolute;
-            bottom: 15px;
-            font-size: 12px;
-            opacity: 0.6;
-            font-style: italic;
-        }
-
-        /* Loading state */
-        .loading {
-            font-size: 24px;
-            color: var(--color-5);
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
-        }
-
-        @media (max-width: 600px) {
-            .flashcard-container {
-                height: 350px;
-            }
-            .card-text {
-                font-size: 18px;
-            }
-            .card-back .card-text {
-                font-size: 16px;
-            }
-            .controls {
-                flex-direction: column;
-                width: 100%;
-                max-width: 300px;
-            }
+        .btn.active-mode {
+            background-color: #E585B4;
+            color: #422634;
+            border-color: #fff;
         }
     </style>
 </head>
 <body>
 
-    <h1>NKSE Flashcards</h1>
+    <div id="canvas-container">
+        <!-- Canvas elementet där själva korten och animationen ritas -->
+        <canvas id="flashcardCanvas"></canvas>
 
-    <div class="controls">
-        <select id="modeSelect">
-            <option value="sequential">Ordning (Sequential)</option>
-            <option value="random">Slumpmässig (Random)</option>
-        </select>
-        <button id="prevBtn">Föregående (Prev)</button>
-        <button id="nextBtn">Nästa (Next)</button>
-    </div>
-
-    <div id="loading" class="loading">Laddar frågor... (Loading...)</div>
-
-    <div id="flashcardContainer" class="flashcard-container" style="display: none;">
-        <div class="flashcard" id="flashcard">
-            <!-- Front of card (Question) -->
-            <div class="card-face card-front">
-                <div class="question-number" id="qNumFront">Fråga X</div>
-                <div class="card-text" id="questionText">Fråga laddas...</div>
-                <div class="hint">Klicka för att vända</div>
+        <!-- UI överlägg för knappar och kontroller -->
+        <div class="ui-layer">
+            
+            <!-- Toppmeny med inställningar -->
+            <div class="controls flex flex-col sm:flex-row justify-between items-center gap-4">
+                <h1 class="text-3xl font-extrabold text-[#E585B4] drop-shadow-md tracking-tight">Flashcards</h1>
+                
+                <div class="flex bg-[#6B3E54] p-1 rounded-full shadow-inner">
+                    <button id="btnOrder" class="btn active-mode !py-2 !px-4 !text-sm">I ordning</button>
+                    <button id="btnRandom" class="btn !bg-transparent !py-2 !px-4 !text-sm hover:!bg-[#945674]">Slumpmässigt</button>
+                </div>
             </div>
-            <!-- Back of card (Answer) -->
-            <div class="card-face card-back">
-                <div class="question-number" id="qNumBack" style="background-color: rgba(255,255,255,0.4);">Fråga X</div>
-                <div class="card-text" id="answerText">Svar laddas...</div>
+
+            <!-- Bottenmeny med navigering -->
+            <div class="controls flex justify-center gap-6 pb-4">
+                <button id="btnPrev" class="btn flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    Föregående
+                </button>
+                <button id="btnNext" class="btn flex items-center gap-2">
+                    Nästa
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        const flashcard = document.getElementById('flashcard');
-        const flashcardContainer = document.getElementById('flashcardContainer');
-        const questionText = document.getElementById('questionText');
-        const answerText = document.getElementById('answerText');
-        const qNumFront = document.getElementById('qNumFront');
-        const qNumBack = document.getElementById('qNumBack');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const modeSelect = document.getElementById('modeSelect');
-        const loadingDiv = document.getElementById('loading');
+        // Färgpalett från bilden
+        const colors = {
+            c1: '#B86A90', // Ljuslila/rosa
+            c2: '#945674', // Mellanlila
+            c3: '#6B3E54', // Mörklila
+            c4: '#422634', // Mörk bakgrund
+            c5: '#E585B4'  // Ljusrosa (accent)
+        };
 
+        // Canvas setup
+        const canvas = document.getElementById('flashcardCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Tillstånds-variabler
         let questions = [];
+        let shuffledIndices = [];
         let currentIndex = 0;
-        let isRandom = false;
-        let isFlipped = false;
-        // Keep track of visited random indices to allow 'prev' functionality in random mode
-        let randomHistory = []; 
+        let isRandomMode = false;
+        
+        // Animations-variabler för kortet
+        let cardState = 'front'; // 'front' eller 'back'
+        let flipAngle = 0;
+        let targetFlipAngle = 0;
+        let isAnimating = false;
 
-        // Flip card on click
-        flashcardContainer.addEventListener('click', () => {
-            isFlipped = !isFlipped;
-            flashcard.classList.toggle('flipped', isFlipped);
-        });
-
-        // Navigation buttons
-        nextBtn.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent flipping when clicking buttons
-            goToNextQuestion();
-        });
-
-        prevBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            goToPrevQuestion();
-        });
-
-        // Mode selection
-        modeSelect.addEventListener('change', (e) => {
-            isRandom = e.target.value === 'random';
-            randomHistory = []; // Reset history when changing modes
-            if (isRandom) {
-                currentIndex = getRandomIndex();
-                randomHistory.push(currentIndex);
-            } else {
-                currentIndex = 0;
+        // Reservdata ifall questions.json inte kan laddas pga CORS/lokal fil
+        const fallbackData = [
+            {
+                "q": "Välkommen! Detta är ett exempelflashcard.\nEftersom filen körs lokalt kunde inte questions.json läsas automatiskt pga webbläsarens säkerhetsregler (CORS).\n\nFör att läsa in din egen fil, kör sidan via en lokal webbserver (t.ex. Live Server i VSCode).",
+                "a": "Klicka 'Nästa' för att se ett riktigt exempel från din lista som jag har lagt in manuellt i koden som reserv!"
+            },
+            {
+                "q": "Vad är definitionen på takykardi och bradykardi?",
+                "a": "- Takykardi = puls >100/min.\n- Bradykardi = puls <50 slag/min (Internetmedicin, 2020 & janusinfo, 2019)"
+            },
+            {
+                "q": "I vilken riktning påverkas TSH och tyroxin (T4) om en patient är drabbad av hypotyreos?",
+                "a": "TSH förhöjt. T4 och T3 är sänkta (internetmedicin, 2020)"
             }
-            displayQuestion();
-        });
+        ];
 
-        // Keyboard navigation
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.code === 'Enter') {
-                e.preventDefault(); // Prevent page scroll
-                isFlipped = !isFlipped;
-                flashcard.classList.toggle('flipped', isFlipped);
-            } else if (e.code === 'ArrowRight') {
-                goToNextQuestion();
-            } else if (e.code === 'ArrowLeft') {
-                goToPrevQuestion();
-            }
-        });
 
-        function getRandomIndex() {
-            if (questions.length === 0) return 0;
-            let newIndex = Math.floor(Math.random() * questions.length);
-            // Try not to show the exact same question twice in a row if possible
-            if (questions.length > 1 && newIndex === currentIndex) {
-                newIndex = (newIndex + 1) % questions.length;
+        // Hantera fönsterstorlek för skarp canvas (retina displays)
+        function resizeCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = window.innerWidth * dpr;
+            canvas.height = window.innerHeight * dpr;
+            ctx.scale(dpr, dpr);
+            draw();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // Hämta frågor från JSON
+        async function fetchQuestions() {
+            try {
+                const response = await fetch('questions.json');
+                if (!response.ok) throw new Error("Kunde inte hämta filen");
+                const data = await response.json();
+                questions = data;
+            } catch (error) {
+                console.warn("Kunde inte ladda questions.json. Använder reservdata. Fel: ", error);
+                questions = fallbackData;
             }
-            return newIndex;
+            initApp();
         }
 
-        function goToNextQuestion() {
-            if (questions.length === 0) return;
+        function initApp() {
+            // Skapa index-lista för slumpmässigt läge
+            shuffledIndices = Array.from({length: questions.length}, (_, i) => i);
+            shuffleArray(shuffledIndices);
             
-            if (isFlipped) {
-                // Flip back first, then change content
-                isFlipped = false;
-                flashcard.classList.remove('flipped');
-                setTimeout(() => {
-                    updateIndexNext();
-                    displayQuestion();
-                }, 300); // Wait half of flip animation time
-            } else {
-                updateIndexNext();
-                displayQuestion();
+            resizeCanvas();
+            requestAnimationFrame(animationLoop);
+        }
+
+
+        // Hjälpfunktion för att blanda array (Fisher-Yates)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
             }
         }
 
-        function updateIndexNext() {
-            if (isRandom) {
-                currentIndex = getRandomIndex();
-                randomHistory.push(currentIndex);
-            } else {
-                currentIndex = (currentIndex + 1) % questions.length;
+        // Returnerar det aktuella fråge-objektet baserat på läge
+        function getCurrentQuestion() {
+            if (questions.length === 0) return {q: "Laddar...", a: "Laddar..."};
+            if (isRandomMode) {
+                return questions[shuffledIndices[currentIndex]];
             }
+            return questions[currentIndex];
         }
 
-        function goToPrevQuestion() {
-            if (questions.length === 0) return;
-
-            if (isFlipped) {
-                isFlipped = false;
-                flashcard.classList.remove('flipped');
-                setTimeout(() => {
-                    updateIndexPrev();
-                    displayQuestion();
-                }, 300);
-            } else {
-                updateIndexPrev();
-                displayQuestion();
+        // Returnerar det aktuella numret för visning (ex: 5 av 20)
+        function getQuestionDisplayNumber() {
+            if (isRandomMode) {
+                return (shuffledIndices[currentIndex] + 1);
             }
+            return (currentIndex + 1);
         }
 
-        function updateIndexPrev() {
-            if (isRandom) {
-                if (randomHistory.length > 1) {
-                    randomHistory.pop(); // Remove current
-                    currentIndex = randomHistory[randomHistory.length - 1]; // Get previous
-                } else {
-                    // If at the start of random history, generate a new random one
-                    currentIndex = getRandomIndex();
-                    randomHistory.push(currentIndex);
+        // Funktion för att rita text som bryts över flera rader i Canvas
+        function getWrappedTextLines(ctx, text, maxWidth, fontSize) {
+            ctx.font = `${fontSize}px Inter`;
+            const paragraphs = text.split('\n');
+            const lines = [];
+
+            for (let p of paragraphs) {
+                if (p.trim() === '') {
+                    lines.push(''); // Bevara tomma rader
+                    continue;
                 }
+                const words = p.split(' ');
+                let currentLine = words[0];
+
+                for (let i = 1; i < words.length; i++) {
+                    const word = words[i];
+                    const width = ctx.measureText(currentLine + " " + word).width;
+                    if (width < maxWidth) {
+                        currentLine += " " + word;
+                    } else {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    }
+                }
+                lines.push(currentLine);
+            }
+            return lines;
+        }
+
+
+        // Ritar en rektangel med rundade hörn
+        function drawRoundRect(ctx, x, y, width, height, radius) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+        }
+
+        function draw() {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+
+            // 1. Rensa bakgrunden
+            ctx.fillStyle = colors.c4;
+            ctx.fillRect(0, 0, w, h);
+
+            // 2. Beräkna kortets storlek och position
+            // Gör kortet responsivt
+            let cardWidth = Math.min(w * 0.9, 800);
+            let padding = 40;
+            if (w < 600) padding = 20; // Mindre padding på mobiler
+
+            // För att anpassa kortets höjd dynamiskt baserat på texten,
+            // måste vi mäta texten för både fram och baksida först.
+            const qData = getCurrentQuestion();
+            
+            // Anpassa fontstorlek om texten är extremt lång (dynamisk typografi)
+            let baseFontSize = w < 600 ? 18 : 24;
+            let lineHeight = baseFontSize * 1.5;
+            
+            const maxTextWidth = cardWidth - (padding * 2);
+            
+            let frontLines = getWrappedTextLines(ctx, qData.q, maxTextWidth, baseFontSize);
+            let backLines = getWrappedTextLines(ctx, qData.a, maxTextWidth, baseFontSize - 2); // Något mindre text för svar då de är längre
+
+            // Minska fontstorlek om svaret tar för mycket plats
+            let backLineHeight = (baseFontSize - 2) * 1.5;
+            let maxAllowedLines = Math.floor((h * 0.6) / backLineHeight);
+            
+            if (backLines.length > maxAllowedLines) {
+                const reducedFontSize = w < 600 ? 14 : 16;
+                backLines = getWrappedTextLines(ctx, qData.a, maxTextWidth, reducedFontSize);
+                backLineHeight = reducedFontSize * 1.5;
+            }
+
+            const frontTextHeight = frontLines.length * lineHeight;
+            const backTextHeight = backLines.length * backLineHeight;
+            
+            // Kortets höjd blir den högsta av fram/baksida plus utrymme för nummer/padding
+            let cardHeight = Math.max(frontTextHeight, backTextHeight) + (padding * 3) + 40;
+            // Begränsa minsta höjd
+            cardHeight = Math.max(cardHeight, 300);
+
+            const cardX = (w - cardWidth) / 2;
+            const cardY = (h - cardHeight) / 2;
+
+            // 3. Utför 3D-snurr transformationen
+            ctx.save();
+            
+            // Flytta origo till kortets mitt för skalningen
+            ctx.translate(cardX + cardWidth / 2, cardY + cardHeight / 2);
+            
+            // Beräkna skalning (cosinus av vinkeln ger en 3D-flipp effekt)
+            // Använd Math.abs så att kortet inte ritas spegelvänt när vinkeln passerar 90 grader
+            const scaleX = Math.abs(Math.cos(flipAngle));
+            ctx.scale(scaleX, 1);
+            
+            // Flytta tillbaka origo
+            ctx.translate(-(cardX + cardWidth / 2), -(cardY + cardHeight / 2));
+
+            // Bestäm vilken sida som ska ritas (över 90 grader = baksidan)
+            const isShowingBack = flipAngle > Math.PI / 2;
+
+            // 4. Rita kortets bakgrund & skugga
+            ctx.shadowColor = "rgba(0,0,0,0.4)";
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 10;
+            
+            drawRoundRect(ctx, cardX, cardY, cardWidth, cardHeight, 20);
+            
+            // Färg baserad på fram/baksida
+            ctx.fillStyle = isShowingBack ? colors.c2 : colors.c3;
+            ctx.fill();
+            
+            // Stäng av skugga för texten
+            ctx.shadowColor = "transparent";
+
+            // 5. Rita innehållet
+            // Rita linje i toppen
+            ctx.fillStyle = colors.c1;
+            drawRoundRect(ctx, cardX, cardY, cardWidth, 10, 20);
+            // Fyll nedre hörnen på topplinjen för att göra den rak i botten
+            ctx.fillRect(cardX, cardY + 5, cardWidth, 5);
+
+            // Rita Frågans nummer i toppen
+            ctx.fillStyle = isShowingBack ? "#ffffff" : colors.c5;
+            ctx.font = `bold ${w < 600 ? 14 : 16}px Inter`;
+            ctx.textAlign = "center";
+            ctx.fillText(
+                `Fråga ${getQuestionDisplayNumber()} av ${questions.length}`, 
+                cardX + cardWidth / 2, 
+                cardY + 35
+            );
+
+            // Rita texten (Fråga eller Svar)
+            ctx.textAlign = "left";
+            ctx.textBaseline = "top";
+            
+            let currentLines = isShowingBack ? backLines : frontLines;
+            let currentLineHeight = isShowingBack ? backLineHeight : lineHeight;
+            let currentFontSize = isShowingBack ? (backLines === frontLines ? baseFontSize : (backLineHeight/1.5)) : baseFontSize;
+            
+            ctx.font = `${isShowingBack ? 'normal' : '600'} ${currentFontSize}px Inter`;
+            ctx.fillStyle = "#ffffff";
+
+            // Centrera texten vertikalt på kortet
+            let textStartY = cardY + (cardHeight - (currentLines.length * currentLineHeight)) / 2;
+            
+            // Om texten är väldigt lång, flytta upp den lite så den inte krockar med numret
+            if (textStartY < cardY + 60) {
+                textStartY = cardY + 60;
+            }
+
+            for (let i = 0; i < currentLines.length; i++) {
+                ctx.fillText(
+                    currentLines[i], 
+                    cardX + padding, 
+                    textStartY + (i * currentLineHeight)
+                );
+            }
+
+            ctx.restore(); // Återställ transformationer
+        }
+
+
+        // Huvudloop för animationer
+        function animationLoop() {
+            if (isAnimating) {
+                // Interpolera vinkeln mot målet för en mjuk (ease-out) snurr
+                flipAngle += (targetFlipAngle - flipAngle) * 0.1;
+                
+                // Om vi är nära målet, stanna animationen
+                if (Math.abs(targetFlipAngle - flipAngle) < 0.01) {
+                    flipAngle = targetFlipAngle;
+                    isAnimating = false;
+                }
+            }
+            
+            draw();
+            requestAnimationFrame(animationLoop);
+        }
+
+        // Trigga kortflipp
+        function flipCard() {
+            if (isAnimating) return; // Förhindra dubbelklick under animation
+            
+            isAnimating = true;
+            if (cardState === 'front') {
+                targetFlipAngle = Math.PI; // Snurra 180 grader till baksidan
+                cardState = 'back';
             } else {
-                currentIndex = (currentIndex - 1 + questions.length) % questions.length;
+                targetFlipAngle = 0; // Snurra tillbaka till framsidan
+                cardState = 'front';
             }
         }
 
-        function displayQuestion() {
+        // Klick på canvas = flippa kortet
+        canvas.addEventListener('click', () => {
+            flipCard();
+        });
+
+        // Byt fråga och återställ kortet
+        function changeQuestion(delta) {
             if (questions.length === 0) return;
             
-            const currentQ = questions[currentIndex];
-            // Since you have multiple sets (1-100, 101-200, etc), the actual index in the array 
-            // might not match the original question number if they are combined. 
-            // We'll display "Kort X av Y" to be safe and clear.
-            const displayNum = `Kort ${currentIndex + 1} / ${questions.length}`;
+            currentIndex += delta;
             
-            qNumFront.textContent = displayNum;
-            qNumBack.textContent = displayNum;
-            questionText.textContent = currentQ.q;
+            // Loopa runt om vi når slutet/början
+            if (currentIndex >= questions.length) currentIndex = 0;
+            if (currentIndex < 0) currentIndex = questions.length - 1;
+
+            // Återställ kortet till framsidan omedelbart utan animering
+            flipAngle = 0;
+            targetFlipAngle = 0;
+            cardState = 'front';
+            isAnimating = false;
             
-            // Format answer: Replace
+            draw();
+        }
+
+        // Lyssna på navigationsknapparna
+        document.getElementById('btnNext').addEventListener('click', (e) => {
+            e.stopPropagation(); // Förhindra att klicket går till canvas
+            changeQuestion(1);
+        });
+
+        document.getElementById('btnPrev').addEventListener('click', (e) => {
+            e.stopPropagation();
+            changeQuestion(-1);
+        });
+
+        // Lyssna på läges-knapparna (Ordning / Slumpmässigt)
+        const btnOrder = document.getElementById('btnOrder');
+        const btnRandom = document.getElementById('btnRandom');
+
+        btnOrder.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if(!isRandomMode) return;
+            
+            isRandomMode = false;
+            currentIndex = 0; // Börja från början
+            
+            // Uppdatera UI
+            btnOrder.classList.add('active-mode', '!text-sm', '!bg-[#E585B4]', '!text-[#422634]');
+            btnOrder.classList.remove('!bg-transparent');
+            
+            btnRandom.classList.remove('active-mode', '!bg-[#E585B4]', '!text-[#422634]');
+            btnRandom.classList.add('!bg-transparent');
+            
+            changeQuestion(0); // Tvinga uppdatering
+        });
+
+        btnRandom.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if(isRandomMode) return;
+            
+            isRandomMode = true;
+            currentIndex = 0;
+            shuffleArray(shuffledIndices); // Blanda om!
+            
+            // Uppdatera UI
+            btnRandom.classList.add('active-mode', '!text-sm', '!bg-[#E585B4]', '!text-[#422634]');
+            btnRandom.classList.remove('!bg-transparent');
+            
+            btnOrder.classList.remove('active-mode', '!bg-[#E585B4]', '!text-[#422634]');
+            btnOrder.classList.add('!bg-transparent');
+            
+            changeQuestion(0); // Tvinga uppdatering
+        });
+
+        // Starta appen
+        fetchQuestions();
+
+    </script>
+</body>
+</html>
