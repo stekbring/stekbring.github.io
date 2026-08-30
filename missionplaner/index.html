@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Mission Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-darkest': '#3E402F',
+                        'brand-dark': '#65694D',
+                        'brand-med': '#888C68',
+                        'brand-light': '#B5BA8A',
+                        'brand-lightest': '#DCE3A8',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/togeojson/0.16.0/togeojson.min.js"></script>
+    
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        #map { height: 100vh; width: 100%; z-index: 1; cursor: crosshair; }
+        .ui-panel { z-index: 1000; box-shadow: 4px 0 15px rgba(0,0,0,0.5); }
+        
+        input[type=range] {
+            -webkit-appearance: none; width: 100%; background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 18px; width: 18px;
+            border-radius: 50%; background: #DCE3A8; cursor: pointer;
+            margin-top: -6px; box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 6px; cursor: pointer;
+            background: #3E402F; border-radius: 3px;
+        }
+        input[type=range]:focus { outline: none; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #3E402F; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #888C68; border-radius: 3px; }
+
+        .home-icon {
+            background-color: #DCE3A8;
+            color: #3E402F;
+            border: 2px solid #3E402F;
+            border-radius: 50%;
+            font-weight: bold;
+            text-align: center;
+            line-height: 20px;
+            box-shadow: 0px 2px 5px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="font-sans bg-brand-darkest text-brand-lightest flex">
+
+    <div class="ui-panel w-96 bg-brand-dark p-6 flex flex-col h-screen overflow-y-auto custom-scrollbar border-r border-brand-darkest shrink-0">
+        <h1 class="text-3xl font-bold mb-1 text-brand-lightest drop-shadow-md">Kartering Pro</h1>
+        <p class="text-xs text-brand-light mb-4">Dynamisk Litchi Waypoint Generator</p>
+        
+        <div class="bg-brand-darkest p-3 rounded-lg border border-brand-med mb-5 text-sm text-brand-lightest">
+            <span class="font-bold">Tips:</span> Klicka var som helst på kartan för att sätta din Start/Hem-punkt (H). Rutten optimeras därefter.
+        </div>
+
+        <div class="mb-5 bg-brand-darkest p-4 rounded-lg shadow-inner">
+            <label class="block text-sm font-semibold mb-2 text-brand-lightest">1. Importera Yta (KML/GeoJSON)</label>
+            <input type="file" id="fileInput" accept=".geojson,.json,.kml" 
+                class="w-full text-sm text-brand-light file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-bold file:bg-brand-med file:text-brand-darkest hover:file:bg-brand-light cursor-pointer transition-colors"/>
+        </div>
+
+        <div class="mb-2">
+            <label class="block text-sm font-semibold mb-1">Flygläge</label>
+            <select id="flightMode" class="w-full p-2 bg-brand-darkest text-brand-lightest rounded-md border border-brand-med focus:outline-none mb-4">
+                <option value="linear">Linjärt (Sicksack Vinkel)</option>
+                <option value="contour">Kontur (Följ formen inåt)</option>
+            </select>
+        </div>
+
+        <!-- Sliders -->
+        <div class="mb-4">
+            <div class="flex justify-between mb-1">
+                <label class="text-sm font-semibold">Flyghöjd</label>
+                <span id="altVal" class="text-sm font-bold text-white">50 m</span>
+            </div>
+            <input type="range" id="altitude" min="20" max="120" value="50">
+        </div>
+
+        <div class="mb-4">
+            <div class="flex justify-between mb-1">
+                <label class="text-sm font-semibold">Sidoöverlappning</label>
+                <span id="overVal" class="text-sm font-bold text-white">70 %</span>
+            </div>
+            <input type="range" id="overlap" min="30" max="90" value="70">
+        </div>
+
+        <div class="mb-4">
+            <div class="flex justify-between mb-1">
+                <label class="text-sm font-semibold">Flyghastighet</label>
+                <span id="speedVal" class="text-sm font-bold text-white">6 m/s</span>
+            </div>
+            <input type="range" id="speed" min="1" max="15" step="0.5" value="6">
+        </div>
+
+        <div id="angleContainer" class="mb-4">
+            <div class="flex justify-between mb-1">
+                <label class="text-sm font-semibold">Rutnätsvinkel</label>
+                <span id="angVal" class="text-sm font-bold text-white">0°</span>
+            </div>
+            <input type="range" id="angle" min="0" max="360" value="0">
+        </div>
+
+        <div id="smoothContainer" class="mb-6 hidden">
+            <div class="flex justify-between mb-1">
+                <label class="text-sm font-semibold">Kurv-upplösning</label>
+                <span id="smoothVal" class="text-sm font-bold text-white">10 m</span>
+            </div>
+            <input type="range" id="smoothness" min="2" max="30" value="10">
+        </div>
+
+        <button id="generateBtn" disabled class="w-full bg-brand-lightest text-brand-darkest hover:bg-white font-bold py-3 px-4 rounded-md shadow-lg transition-colors mb-4 opacity-50 cursor-not-allowed">
+            Generera Rutt
+        </button>
+
+        <div id="stats" class="text-sm bg-brand-darkest p-4 rounded-lg shadow-inner mb-4 hidden border border-brand-med">
+            <!-- Statistik fylls i via JS -->
+        </div>
+
+        <button id="downloadBtn" class="w-full bg-brand-med hover:bg-brand-light text-brand-darkest font-bold py-3 px-4 rounded-md shadow-lg transition-colors hidden">
+            Ladda ner Litchi CSV
+        </button>
+    </div>
+
+    <div id="map" class="flex-grow"></div>
+
+    <script>
+        const map = L.map('map', {zoomControl: false}).setView([62.0, 15.0], 5);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        
+        L.tileLayer('http://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+            maxZoom: 21,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+        }).addTo(map);
+
+        let userPolygon = null;
+        let flightPathLayer = null;
+        let polygonLayer = null;
+        let waypointMarkersLayer = L.layerGroup().addTo(map); // Lager för de svaga punkterna
+        let homeMarker = null;
+        let homePoint = null;
+        let waypoints = []; 
+        let hasGeneratedBefore = false;
+
+        const fileInput = document.getElementById('fileInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const statsDiv = document.getElementById('stats');
+        
+        const modeSelect = document.getElementById('flightMode');
+        const altInput = document.getElementById('altitude');
+        const overInput = document.getElementById('overlap');
+        const angInput = document.getElementById('angle');
+        const smoothInput = document.getElementById('smoothness');
+        const speedInput = document.getElementById('speed');
+        
+        const altVal = document.getElementById('altVal');
+        const overVal = document.getElementById('overVal');
+        const angVal = document.getElementById('angVal');
+        const smoothVal = document.getElementById('smoothVal');
+        const speedVal = document.getElementById('speedVal');
+        const angleContainer = document.getElementById('angleContainer');
+        const smoothContainer = document.getElementById('smoothContainer');
+
+        map.on('click', function(e) {
+            homePoint = e.latlng;
+            if (homeMarker) {
+                homeMarker.setLatLng(homePoint);
+            } else {
+                let icon = L.divIcon({ className: 'home-icon', html: 'H', iconSize: [24, 24], iconAnchor: [12, 12] });
+                homeMarker = L.marker(homePoint, {icon: icon, zIndexOffset: 1000}).addTo(map);
+            }
+            if (hasGeneratedBefore && userPolygon) triggerReactivity();
+        });
+
+        function updateSliderLabels() {
+            altVal.innerText = `${altInput.value} m`;
+            overVal.innerText = `${overInput.value} %`;
+            angVal.innerText = `${angInput.value}°`;
+            smoothVal.innerText = `${smoothInput.value} m`;
+            speedVal.innerText = `${speedInput.value} m/s`;
+        }
+
+        modeSelect.addEventListener('change', () => {
+            if (modeSelect.value === 'linear') {
+                angleContainer.classList.remove('hidden');
+                smoothContainer.classList.add('hidden');
+            } else {
+                angleContainer.classList.add('hidden');
+                smoothContainer.classList.remove('hidden');
+            }
+            triggerReactivity();
+        });
+
+        [altInput, overInput, angInput, smoothInput, speedInput].forEach(input => {
+            input.addEventListener('input', () => {
+                updateSliderLabels();
+                triggerReactivity();
+            });
+        });
+
+        function triggerReactivity() {
+            if (hasGeneratedBefore && userPolygon) {
+                generateRoute();
+            }
+        }
+
+        // Felsäker funktion för att hitta polygoner oavsett hur QGIS sparade filen
+        function findPolygonFeature(data) {
+            if (data.type === 'FeatureCollection' && data.features) {
+                for (let f of data.features) {
+                    if (f.geometry && (f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')) return f;
+                }
+            } else if (data.type === 'Feature' && data.geometry && (data.geometry.type === 'Polygon' || data.geometry.type === 'MultiPolygon')) {
+                return data;
+            } else if (data.type === 'Polygon' || data.type === 'MultiPolygon') {
+                return turf.feature(data);
+            }
+            return null; // Fallback
+        }
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            const extension = file.name.split('.').pop().toLowerCase();
+
+            reader.onload = function(e) {
+                try {
+                    let geojson;
+                    if (extension === 'kml') {
+                        const dom = new DOMParser().parseFromString(e.target.result, 'text/xml');
+                        geojson = toGeoJSON.kml(dom);
+                    } else {
+                        geojson = JSON.parse(e.target.result);
+                    }
+                    
+                    let targetFeature = findPolygonFeature(geojson);
+
+                    // Skottsäker sökning om standardmetoden misslyckas
+                    if (!targetFeature) {
+                        try {
+                            turf.geomEach(geojson, function(geom) {
+                                if (!targetFeature && (geom.type === 'Polygon' || geom.type === 'MultiPolygon')) {
+                                    targetFeature = turf.feature(geom);
+                                }
+                            });
+                        } catch(err) {}
+                    }
+
+                    if (!targetFeature) {
+                        alert("Hittade ingen yta i filen. Se till att det är en sluten Polygon (KML eller ren GeoJSON utan attribut-fel).");
+                        return;
+                    }
+
+                    if (polygonLayer) map.removeLayer(polygonLayer);
+                    if (flightPathLayer) map.removeLayer(flightPathLayer);
+                    waypointMarkersLayer.clearLayers();
+                    
+                    statsDiv.classList.add('hidden');
+                    downloadBtn.classList.add('hidden');
+                    hasGeneratedBefore = false;
+
+                    userPolygon = targetFeature;
+
+                    polygonLayer = L.geoJSON(userPolygon, {
+                        style: { color: '#DCE3A8', weight: 2, fillOpacity: 0.1, dashArray: '5, 5' }
+                    }).addTo(map);
+
+                    map.fitBounds(polygonLayer.getBounds());
+                    
+                    generateBtn.disabled = false;
+                    generateBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    generateBtn.innerText = "Generera Rutt";
+
+                } catch (err) {
+                    console.error(err);
+                    alert("Kunde inte läsa filen ordentligt.");
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        generateBtn.addEventListener('click', () => {
+            if (!userPolygon) return;
+            hasGeneratedBefore = true;
+            generateBtn.innerText = "Rutt Genererad (Autouppdatering aktiv)";
+            generateBtn.classList.add('bg-brand-darkest', 'text-brand-lightest', 'border', 'border-brand-lightest');
+            generateBtn.classList.remove('bg-brand-lightest', 'text-brand-darkest');
+            generateRoute();
+        });
+
+        function generateRoute() {
+            if (!userPolygon) return;
+
+            const mode = modeSelect.value;
+            const altitude = parseFloat(altInput.value);
+            const overlapPercent = parseFloat(overInput.value);
+            const gridAngle = parseFloat(angInput.value);
+            const smoothness = parseFloat(smoothInput.value);
+            const speed = parseFloat(speedInput.value);
+
+            if (flightPathLayer) map.removeLayer(flightPathLayer);
+            waypointMarkersLayer.clearLayers();
+            waypoints = [];
+
+            const footprintWidthMeters = altitude * 1.5; 
+            const spacingMeters = footprintWidthMeters * (1 - (overlapPercent / 100));
+
+            let tempPoints = [];
+
+            if (mode === 'linear') {
+                // LINJÄRT LÄGE
+                const spacingDeg = spacingMeters / 111320; 
+                const center = turf.centerOfMass(userPolygon);
+                const rotatedPoly = turf.transformRotate(userPolygon, -gridAngle, { pivot: center });
+                const bbox = turf.bbox(rotatedPoly); 
+                
+                let leftToRight = true;
+                
+                for (let y = bbox[1]; y <= bbox[3]; y += spacingDeg) {
+                    let offset = (Math.random() - 0.5) * 0.000001;
+                    const sweepLine = turf.lineString([[bbox[0] - 0.1, y + offset], [bbox[2] + 0.1, y + offset]]);
+                    
+                    try {
+                        const sliced = turf.lineIntersect(sweepLine, rotatedPoly);
+                        if (sliced.features.length >= 2) {
+                            let pts = sliced.features.map(f => f.geometry.coordinates);
+                            pts.sort((a, b) => a[0] - b[0]);
+                            
+                            let segments = [];
+                            for (let i = 0; i < pts.length - 1; i += 2) {
+                                segments.push([pts[i], pts[i+1]]);
+                            }
+                            
+                            if (segments.length > 0) {
+                                if (!leftToRight) segments.reverse();
+                                segments.forEach(seg => {
+                                    if(leftToRight) { tempPoints.push(seg[0], seg[1]); } 
+                                    else { tempPoints.push(seg[1], seg[0]); }
+                                });
+                                leftToRight = !leftToRight;
+                            }
+                        }
+                    } catch(e) {}
+                }
+                
+                if (tempPoints.length > 1) {
+                    const zigzagLine = turf.lineString(tempPoints);
+                    const finalPath = turf.transformRotate(zigzagLine, gridAngle, { pivot: center });
+                    waypoints = finalPath.geometry.coordinates;
+                    
+                    // Optimera startpunkt mot Hempunkt om den är satt
+                    if (homePoint) {
+                        const distStart = turf.distance(turf.point([homePoint.lng, homePoint.lat]), turf.point(waypoints[0]));
+                        const distEnd = turf.distance(turf.point([homePoint.lng, homePoint.lat]), turf.point(waypoints[waypoints.length-1]));
+                        if (distEnd < distStart) waypoints.reverse();
+                    }
+                }
+
+            } else {
+                // KONTUR LÄGE (Smart Nearest-Neighbor för Ringar)
+                let distance = spacingMeters / 2; 
+                let allRings = [];
+                let safetyCounter = 0;
+                
+                // 1. Skapa alla inre ringar
+                while (safetyCounter < 100) {
+                    try {
+                        let buffered = turf.buffer(userPolygon, -distance, {units: 'meters'});
+                        if (!buffered) break; 
+                        
+                        let coordsList = [];
+                        
+                        // FIX: Använd geomEach för att säkert fånga upp alla bitar om polygonen klyvs
+                        turf.geomEach(buffered, function(geom) {
+                            if (geom.type === 'Polygon') {
+                                coordsList.push(geom.coordinates);
+                            } else if (geom.type === 'MultiPolygon') {
+                                geom.coordinates.forEach(polyCoords => {
+                                    coordsList.push(polyCoords);
+                                });
+                            }
+                        });
+
+                        if (coordsList.length === 0) break;
+
+                        let pointsAddedInThisRing = 0;
+                        coordsList.forEach(polyCoords => {
+                            let ring = turf.lineString(polyCoords[0]); 
+                            let ringLength = turf.length(ring, {units: 'meters'});
+                            let resampledRing = [];
+                            
+                            for(let d = 0; d <= ringLength; d += smoothness) {
+                                let pt = turf.along(ring, d, {units: 'meters'});
+                                resampledRing.push(pt.geometry.coordinates);
+                            }
+                            // Lägg till sista punkten för att stänga ringen
+                            resampledRing.push(ring.coordinates[ring.coordinates.length - 1]);
+                            
+                            if (resampledRing.length > 1) {
+                                allRings.push(resampledRing);
+                                pointsAddedInThisRing += resampledRing.length;
+                            }
+                        });
+
+                        if (pointsAddedInThisRing === 0) break; 
+                        distance += spacingMeters;
+                        safetyCounter++;
+                    } catch (e) { break; }
+                }
+
+                if (allRings.length > 0) {
+                    let unvisited = [...allRings];
+                    
+                    // Om vi har en hempunkt börjar vi beräkna från den, annars första punkten i ytans centrum eller kant
+                    let currentPos = homePoint ? [homePoint.lng, homePoint.lat] : allRings[0][0];
+
+                    while(unvisited.length > 0) {
+                        let bestRingIndex = -1;
+                        let bestPointIndex = -1;
+                        let minDistance = Infinity;
+
+                        // Hitta vilken av de återstående ringarna som är närmast drönarens nuvarande position
+                        for(let i=0; i<unvisited.length; i++) {
+                            let ring = unvisited[i];
+                            for(let j=0; j<ring.length; j++) {
+                                let dist = turf.distance(turf.point(currentPos), turf.point(ring[j]));
+                                if (dist < minDistance) {
+                                    minDistance = dist;
+                                    bestRingIndex = i;
+                                    bestPointIndex = j;
+                                }
+                            }
+                        }
+
+                        let chosenRing = unvisited.splice(bestRingIndex, 1)[0];
+                        
+                        // Rotera listan av punkter i ringen så drönaren åker in exakt där den är närmast, åker varvet runt och är redo för nästa hopp
+                        let reorderedRing = [];
+                        for(let j=0; j < chosenRing.length; j++) {
+                            // Vi hoppar över sista punkten om den är exakt samma som första för att undvika överlapp (förskjutning)
+                            reorderedRing.push(chosenRing[(bestPointIndex + j) % (chosenRing.length - 1)]);
+                        }
+                        
+                        waypoints.push(...reorderedRing);
+                        currentPos = reorderedRing[reorderedRing.length - 1]; // Uppdatera positionen
+                    }
+                }
+            }
+
+            if (waypoints.length > 1) {
+                let latLngs = waypoints.map(c => [c[1], c[0]]);
+                
+                flightPathLayer = L.polyline(latLngs, {
+                    color: '#B5BA8A',
+                    weight: 3,
+                    opacity: 0.9,
+                    lineJoin: 'round'
+                }).addTo(map);
+                
+                // Svaga markörer för varje waypoint
+                latLngs.forEach((ll, i) => {
+                    L.circleMarker(ll, {radius: 2, color: '#DCE3A8', weight: 1, opacity: 0.4, fillOpacity: 0.4}).addTo(waypointMarkersLayer);
+                });
+
+                // Start och Mål flaggor
+                L.circleMarker(latLngs[0], {color: '#DCE3A8', fillColor: '#3E402F', fillOpacity: 1, radius: 6}).bindTooltip("Start", {permanent: true, direction: 'right', className: 'text-xs font-bold'}).addTo(flightPathLayer);
+                L.circleMarker(latLngs[latLngs.length-1], {color: '#ef4444', fillColor: '#ef4444', fillOpacity: 1, radius: 5}).bindTooltip("Mål", {permanent: true, direction: 'right', className: 'text-xs font-bold text-red-500'}).addTo(flightPathLayer);
+
+                // Beräkna Total distans och Uppskattad tid
+                let routeLineString = turf.lineString(waypoints);
+                let totalDistanceMeters = turf.length(routeLineString, {units: 'meters'});
+                let totalTimeSeconds = totalDistanceMeters / speed;
+                let minutes = Math.floor(totalTimeSeconds / 60);
+                let seconds = Math.round(totalTimeSeconds % 60);
+                let timeStr = `${minutes}m ${seconds}s`;
+
+                statsDiv.innerHTML = `
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <div><span class="text-brand-light text-xs block">Waypoints</span><span class="font-bold text-white text-lg">${waypoints.length}</span></div>
+                        <div><span class="text-brand-light text-xs block">Sträcka</span><span class="font-bold text-white text-lg">${(totalDistanceMeters/1000).toFixed(2)} km</span></div>
+                        <div class="col-span-2 bg-brand-dark p-2 rounded"><span class="text-brand-lightest text-xs block">Uppskattad Tid (vid ${speed} m/s)</span><span class="font-bold text-white text-xl">${timeStr}</span></div>
+                    </div>
+                    <div class="text-xs text-brand-med mt-2 text-center">✓ Rutt anpassar sig i realtid</div>
+                `;
+                statsDiv.classList.remove('hidden');
+                downloadBtn.classList.remove('hidden');
+            } else {
+                statsDiv.innerHTML = `<span class="text-red-400 font-bold">Fel vid generering.</span><br><span class="text-xs">Området kan vara för litet för vald radie/höjd.</span>`;
+                statsDiv.classList.remove('hidden');
+                downloadBtn.classList.add('hidden');
+            }
+        }
+
+        downloadBtn.addEventListener('click', function() {
+            if (waypoints.length === 0) return;
+
+            const altitude = altInput.value;
+            let csvContent = "latitude,longitude,altitude(m),heading(deg),curvesize(m),rotationdir,gimbalmode,gimbalpitchangle,actiontype1,actionparam1,actiontype2,actionparam2,actiontype3,actionparam3,actiontype4,actionparam4,actiontype5,actionparam5,actiontype6,actionparam6,actiontype7,actionparam7,actiontype8,actionparam8,actiontype9,actionparam9,actiontype10,actionparam10,actiontype11,actionparam11,actiontype12,actionparam12,actiontype13,actionparam13,actiontype14,actionparam14,actiontype15,actionparam15\n";
+
+            waypoints.forEach((coord) => {
+                const lat = coord[1].toFixed(7);
+                const lng = coord[0].toFixed(7);
+                const gimbalPitch = -90; 
+                csvContent += `${lat},${lng},${altitude},0,0,0,0,${gimbalPitch},,,,,,,,,,,,,,,,,,,,,,,,,,,,\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "ProMission.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    </script>
+</body>
+</html>
