@@ -76,6 +76,28 @@
   .leaflet-container{font-family:Georgia,serif}
   .leaflet-popup-content button{margin-top:4px}
   .fb-tile img{position:absolute;max-width:none;user-select:none}
+  .dlg-back{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:5000;display:flex;align-items:center;justify-content:center}
+  .dlg-back[hidden]{display:none}
+  .dlg{background:#ececec;border:1px solid;border-color:#fff #555 #555 #fff;box-shadow:2px 3px 14px rgba(0,0,0,.5);width:min(1180px,97vw);height:min(940px,95vh);display:flex;flex-direction:column}
+  .dlg-title{background:#dcdcdc;padding:3px 4px 3px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #aaa;font-weight:bold}
+  .dlg-title button{height:20px;padding:0 7px}
+  .dlg-body{flex:1;display:flex;min-height:0}
+  .dlg-opts{width:360px;flex:none;overflow:auto;padding:8px;border-right:2px groove #fff;display:flex;flex-direction:column;gap:6px}
+  .dlg-prev{flex:1;display:flex;flex-direction:column;min-width:0;padding:8px;gap:4px}
+  #pdfPages{flex:1;overflow:auto;background:#8f8f8f;padding:14px;display:flex;flex-direction:column;align-items:center;gap:14px;border:1px solid;border-color:#808080 #fff #fff #808080}
+  .pdf-page{box-shadow:0 1px 6px rgba(0,0,0,.45);background:#fff;flex:none}
+  body.pdf-dragging, body.pdf-dragging *{cursor:grabbing !important;user-select:none}
+  .tree ul{list-style:none;margin:0;padding-left:18px}
+  .tree>ul{padding-left:0}
+  .tree li{margin:1px 0}
+  .tree label{white-space:normal}
+  .tree label.dis{color:#999}
+  .tree input.ren{width:190px;height:20px;font-weight:bold;margin-left:2px}
+  input[type=color]{width:34px;height:22px;padding:0 1px;border:1px solid;border-color:#808080 #fff #fff #808080;background:#fff}
+  .tree textarea{width:100%;font:inherit;border:1px solid;border-color:#808080 #fff #fff #808080;box-shadow:inset 1px 1px #404040;padding:3px}
+  .dlg-foot{display:flex;gap:6px;justify-content:flex-end;align-items:center;padding:6px 8px;border-top:1px solid #aaa}
+  .dlg-foot #pdfStatus{flex:1;color:#333}
+  .dlg-foot button{min-width:96px}
   .leaflet-div-icon.pp-vertex{background:radial-gradient(circle,#fff 0 2.6px,#1a1a1a 2.9px 4.6px,rgba(0,0,0,0) 5px) !important;border:0 !important;border-radius:50% !important;box-shadow:none !important;cursor:move}
   .leaflet-div-icon.pp-vertex:hover{background:radial-gradient(circle,#ffe27a 0 2.9px,#1a1a1a 3.2px 5px,rgba(0,0,0,0) 5.4px) !important}
 </style>
@@ -244,6 +266,9 @@
           <label class="machine-only"><input type="checkbox" id="showPasses" checked> Körspår</label>
           <label><input type="checkbox" id="showField" checked> Fält &amp; hinder</label>
         </div>
+        <div class="r"><label for="rowW" style="flex:none;width:92px">Radlinjer</label><input type="range" id="rowW" min="0.5" max="6" step="0.5"><span class="u" id="rowWv" style="width:40px"></span></div>
+        <div class="r"><label for="rowOp" style="flex:none;width:92px">Radfärg</label><input type="color" id="rowColor" title="Färg på radlinjerna"><input type="range" id="rowOp" min="10" max="100" step="5" title="Täckning"><span class="u" id="rowOpV" style="width:40px"></span></div>
+        <div class="r"><label for="ptScale" style="flex:none;width:92px">Sättpunkter</label><input type="range" id="ptScale" min="30" max="300" step="10"><span class="u" id="ptScaleV" style="width:40px"></span></div>
       </fieldset>
 
       <fieldset>
@@ -267,6 +292,40 @@
   </div></aside>
   <div id="split" title="Dra för att ändra panelens bredd. Dubbelklicka för att dölja eller visa."><button id="splitBtn" title="Dölj/visa panelen">◀</button></div>
   <div id="map"></div>
+</div>
+
+<div id="pdfDlg" class="dlg-back" hidden>
+  <div class="dlg" role="dialog" aria-label="PDF-rapport" tabindex="-1">
+    <div class="dlg-title"><span>PDF-rapport</span><button id="pdfClose" title="Stäng">✕</button></div>
+    <div class="dlg-body">
+      <div class="dlg-opts">
+        <fieldset>
+          <legend>Kartbild</legend>
+          <div class="r"><label for="pdfZoom" style="flex:none">Zoom</label><button id="pdfZout">−</button><input type="range" id="pdfZoom" min="-3" max="5" step="0.05" value="0"><button id="pdfZin">+</button><button id="pdfFit" title="Anpassa så att hela fältet syns">Anpassa</button></div>
+          <div class="hint" style="margin-top:0">Dra i kartbilden i förhandsvisningen för att flytta den. Scrolla på den för att zooma.</div>
+          <div class="r"><label for="pdfRowW" style="flex:none;width:86px">Radlinjer</label><input type="range" id="pdfRowW" min="0.5" max="6" step="0.5"><span class="u" id="pdfRowWv" style="width:40px"></span></div>
+          <div class="r"><label for="pdfRowOp" style="flex:none;width:86px">Radfärg</label><input type="color" id="pdfRowColor" title="Färg på radlinjerna"><input type="range" id="pdfRowOp" min="10" max="100" step="5" title="Täckning"><span class="u" id="pdfRowOpV" style="width:40px"></span></div>
+          <div class="r"><label for="pdfPtScale" style="flex:none;width:86px">Sättpunkter</label><input type="range" id="pdfPtScale" min="30" max="300" step="10"><span class="u" id="pdfPtScaleV" style="width:40px"></span></div>
+          <div class="r"><label for="pdfOrthoQ" style="flex:none;width:86px">Ortofoto</label>
+            <select id="pdfOrthoQ">
+              <option value="normal">Som i programmet (max 4000 px)</option>
+              <option value="high" data-orig>Hög (300 dpi)</option>
+              <option value="max" data-orig>Högsta (originalets upplösning)</option>
+            </select></div>
+          <div class="hint" id="pdfOrthoHint"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Innehåll</legend>
+          <div class="tree" id="pdfTree"></div>
+        </fieldset>
+      </div>
+      <div class="dlg-prev">
+        <div class="r" style="margin:0"><b style="flex:1">Förhandsvisning</b><span id="pdfPagesInfo" class="hint" style="margin:0"></span></div>
+        <div id="pdfPages"></div>
+      </div>
+    </div>
+    <div class="dlg-foot"><span id="pdfStatus"></span><button id="pdfSave">Spara PDF</button><button id="pdfCancel">Avbryt</button></div>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -304,7 +363,7 @@ function need(name){
 
 /* =================== Gränssnittsinställningar =================== */
 const UI_KEY = 'potatisplaneraren.ui';
-let ui = {sideW: 580, collapsed: false, base: 'hybrid'};
+let ui = {sideW: 580, collapsed: false, base: 'hybrid', rowW: 2, ptScale: 100, rowColor: '#e0a42b', rowOp: 90};
 try { ui = {...ui, ...JSON.parse(localStorage.getItem(UI_KEY) || '{}')}; } catch {}
 const saveUI = () => { try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch {} };
 
@@ -540,7 +599,7 @@ const PointsLayer = L.Layer.extend({
   setData(rows, ps){ this._rows = rows; this._ps = ps; if (this._map) this._redraw(); },
   onAdd(map){
     this._c = L.DomUtil.create('canvas', 'leaflet-zoom-hide');
-    this._c.style.pointerEvents = 'none';
+    this._c.style.pointerEvents = 'none'; this._c.style.zIndex = 5;   // alltid ovanför rader och körspår
     map.getPanes().overlayPane.appendChild(this._c);
     map.on('moveend zoomend resize', this._reset, this);
     this._reset();
@@ -562,7 +621,8 @@ const PointsLayer = L.Layer.extend({
 });
 function drawPoints(ctx, rows, spacingPx, proj, W, H){
   if (!rows || !rows.length || spacingPx < 3) return;
-  const r = Math.max(1, Math.min(6, spacingPx * 0.28));
+  const sc = (ui.ptScale || 100) / 100;
+  const r = Math.max(1, Math.min(7 * sc, spacingPx * 0.28 * sc));
   ctx.beginPath();
   for (const row of rows) {
     if (row.removed) continue;
@@ -576,8 +636,8 @@ function drawPoints(ctx, rows, spacingPx, proj, W, H){
       ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, 6.2832);
     }
   }
-  ctx.fillStyle = '#fff3b0'; ctx.fill();
-  if (r > 2.5) { ctx.strokeStyle = 'rgba(70,40,0,.85)'; ctx.lineWidth = 1; ctx.stroke(); }
+  ctx.fillStyle = '#ffffff'; ctx.fill();
+  if (r >= 1.6) { ctx.strokeStyle = '#111111'; ctx.lineWidth = Math.max(0.8, r * 0.35); ctx.stroke(); }
 }
 function metersPerPixel(){ return 40075016.686 * Math.cos(map.getCenter().lat * DEG) / Math.pow(2, map.getZoom() + 8); }
 
@@ -656,7 +716,7 @@ map.on('popupopen', e => { if (tool || drawing) map.closePopup(e.popup); });
 let importMode = 'field';
 $('btnImport').onclick = () => { importMode = 'field'; $('fileIn').accept = '.geojson,.json,.kml,.kmz'; $('fileIn').click(); };
 $('btnRestore').onclick = () => { importMode = 'backup'; $('fileIn').accept = '.json'; $('fileIn').click(); };
-$('btnOpenProj').onclick = () => { importMode = 'project'; $('fileIn').accept = '.potatisplan,.json'; $('fileIn').click(); };
+$('btnOpenProj').onclick = () => { importMode = 'project'; $('fileIn').accept = '.potatis,.potatisplan,.json'; $('fileIn').click(); };
 $('fileIn').onchange = async e => {
   const f = e.target.files[0]; e.target.value = '';
   if (!f) return;
@@ -752,8 +812,8 @@ async function importProject(d, source){
 }
 $('btnSaveProj').onclick = async () => {
   const d = {app: 'potatisplaneraren', type: 'projekt', version: 4, saved: new Date().toISOString(), plan: JSON.parse(JSON.stringify(plan))};
-  try { const rec = await idb.get(plan.id); if (rec && rec.blob) { d.ortho = {...rec, dataUrl: await blobToDataUrl(rec.blob)}; delete d.ortho.blob; } } catch {}
-  download(slug() + '.potatisplan', JSON.stringify(d), 'application/json');
+  try { const rec = await idb.get(plan.id); if (rec && rec.blob) { d.ortho = {...rec, dataUrl: await blobToDataUrl(rec.blob)}; delete d.ortho.blob; delete d.ortho.orig; } } catch {}
+  download(slug() + '.potatis', JSON.stringify(d), 'application/json');
   msg('Projektfilen är sparad. Mottagaren öppnar den med "Öppna projektfil…" eller genom att dra filen till sidan.' + (d.ortho ? ' Ortofotot följer med.' : ''), 12000);
 };
 const toB64url = buf => { const u8 = new Uint8Array(buf); let bin = ''; for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
@@ -950,7 +1010,20 @@ function updateCompass(){
   $('compassLine').setAttribute('transform', `rotate(${a} 50 50)`);
   $('angleText').textContent = `Raderna går ${compassWord(a)}–${compassWord(a + 180)}`;
 }
-['showRows', 'showPlants', 'showPasses', 'showField'].forEach(id => $(id).addEventListener('change', applyVisibility));
+['showRows', 'showPlants', 'showPasses', 'showField'].forEach(id => $(id).addEventListener('change', () => { applyVisibility(); updateStats(); }));
+function syncLookInputs(){
+  for (const id of ['rowW', 'pdfRowW']) if ($(id)) $(id).value = ui.rowW;
+  for (const id of ['ptScale', 'pdfPtScale']) if ($(id)) $(id).value = ui.ptScale;
+  $('rowWv').textContent = fmt(ui.rowW, 1) + ' px'; $('ptScaleV').textContent = ui.ptScale + ' %';
+  for (const id of ['rowColor', 'pdfRowColor']) if ($(id)) $(id).value = ui.rowColor;
+  for (const id of ['rowOp', 'pdfRowOp']) if ($(id)) $(id).value = ui.rowOp;
+  $('rowOpV').textContent = ui.rowOp + ' %';
+  if ($('pdfRowWv')) { $('pdfRowWv').textContent = $('rowWv').textContent; $('pdfPtScaleV').textContent = $('ptScaleV').textContent; $('pdfRowOpV').textContent = $('rowOpV').textContent; }
+}
+for (const [id, key, num] of [['rowColor', 'rowColor', false], ['pdfRowColor', 'rowColor', false], ['rowOp', 'rowOp', true], ['pdfRowOp', 'rowOp', true]])
+  $(id).addEventListener('input', () => { ui[key] = num ? +$(id).value : $(id).value; syncLookInputs(); saveUI(); render(); updateStats(); if (!$('pdfDlg').hidden) schedulePreview(); });
+$('rowW').oninput = () => { ui.rowW = +$('rowW').value; syncLookInputs(); saveUI(); render(); };
+$('ptScale').oninput = () => { ui.ptScale = +$('ptScale').value; syncLookInputs(); saveUI(); plantsLayer._redraw(); };
 function applyVisibility(){
   const t = (on, layer) => on ? map.addLayer(layer) : map.removeLayer(layer);
   t($('showRows').checked, rowsLayer); t($('showPlants').checked, plantsLayer);
@@ -1185,7 +1258,7 @@ function render(){
     const active = r.n - r.off.size;
     const line = L.polyline([r.ll0, r.ll1], r.removed
       ? {renderer: vecRenderer, color: '#9a9a9a', weight: 1.5, opacity: 0.8, dashArray: '4 4'}
-      : {renderer: vecRenderer, color: '#e0a42b', weight: 2, opacity: 0.9});
+      : {renderer: vecRenderer, color: ui.rowColor || '#e0a42b', weight: ui.rowW || 2, opacity: (ui.rowOp ?? 90) / 100});
     if (tips) line.bindTooltip(r.removed ? `Rad ${r.label} · borttagen`
       : `Rad ${r.label} · ${fmt(r.u1 - r.u0, 1)} m · ${fmt(active)} st${r.pass ? ' · drag ' + r.pass : ''}`, {sticky: true});
     rowsLayer.addLayer(line);
@@ -1293,9 +1366,11 @@ function updateStats(){
   box.innerHTML = `<table>${m.sections.map(sec => `<tr class="h"><td colspan="2">${esc(sec.title)}</td></tr>` +
       sec.rows.map(([a, b]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join('')).join('')}</table>
     ${m.warnings.map(w => `<div class="warn">${esc(w)}</div>`).join('')}${m.infos.map(w => `<div class="info">${esc(w)}</div>`).join('')}
-    <div class="lg"><span><i style="background:#e0a42b"></i>rad</span><span><i class="dot" style="background:#fff3b0;border:1px solid #7a5a00"></i>sättpunkt</span>
-    ${s.machine ? '<span><i style="background:#3fa9f5"></i>drag</span><span><i style="background:#6cc4ff"></i>vändning</span><span><i style="background:#ff5a4a"></i>snäv vändning</span>' : ''}
-    <span><i style="background:#9a9a9a"></i>borttagen</span></div>
+    <div class="lg">${legendItems(k => ({field: $('showField').checked, rows: $('showRows').checked, plants: $('showPlants').checked, passes: $('showPasses').checked})[k]).map(it =>
+      it.kind === 'dot' ? `<span><i class="dot" style="background:#fff;border:1.5px solid #111"></i>${it.label}</span>`
+      : it.kind === 'field' ? `<span><i style="background:repeating-linear-gradient(90deg,#666 0 3px,#bbb 3px 5px)"></i>${it.label}</span>`
+      : it.kind === 'fill' ? `<span><i style="background:${it.color};opacity:.6;height:8px"></i>${it.label}</span>`
+      : `<span><i style="opacity:${it.alpha ?? 1};background:${it.dash ? `repeating-linear-gradient(90deg,${it.color} 0 4px,transparent 4px 6px)` : it.color}"></i>${it.label}</span>`).join('')}</div>
     ${geo.ps && geo.ps / metersPerPixel() < 3 ? '<div class="hint">Zooma in för att se de enskilda sättpunkterna.</div>' : ''}`;
 }
 map.on('zoomend', () => { if (geo) updateStats(); });
@@ -1450,13 +1525,15 @@ $('orthoIn').onchange = async e => {
   } finally { $('btnOrtho').disabled = false; }
 };
 const MAXPX = 4000;
+const W0 = ll => L.CRS.EPSG3857.latLngToPoint(L.latLng(ll[0], ll[1]), 0);   // världspixlar vid zoom 0
+const W2LL = (x, y) => L.CRS.EPSG3857.pointToLatLng(L.point(x, y), 0);
 async function buildOrtho(files){
   const tif = files.find(f => /\.tiff?$/i.test(f.name));
   const pic = files.find(f => /\.(jpe?g|png)$/i.test(f.name));
   const wld = files.find(f => /\.(jgw|pgw|tfw|wld|jpgw|pngw)$/i.test(f.name));
-  let src;
+  let src, world = null;
   if (tif) src = await readGeoTiff(tif);
-  else if (pic && wld) src = await readWorldImage(pic, wld);
+  else if (pic && wld) { world = await readWorldFile(wld); src = await readWorldImage(pic, world); }
   else if (pic) throw new Error('bilden saknar world-fil (.jgw/.pgw). Markera båda filerna samtidigt.');
   else throw new Error('välj en GeoTIFF (.tif) eller en JPG/PNG med world-fil');
   const code = $('orthoCrs').value ? +$('orthoCrs').value : src.epsg;
@@ -1466,8 +1543,11 @@ async function buildOrtho(files){
   const out = reproject(src, def);
   let blob = await new Promise(res => out.canvas.toBlob(res, 'image/webp', 0.9));
   if (!blob || blob.type !== 'image/webp') blob = await new Promise(res => out.canvas.toBlob(res, 'image/png'));
-  return {blob, bounds: out.bounds, name: (tif || pic).name, w: src.w, h: src.h, opacity: 100,
-    crsName: CRS_DEFS[code] ? CRS_DEFS[code][0] : 'EPSG:' + code};
+  const file = tif || pic;
+  // Originalfilen sparas också, så att PDF:en kan få full upplösning
+  const orig = file.size <= 1.5e9 ? file : null;
+  return {blob, bounds: out.bounds, name: file.name, w: src.w, h: src.h, fullW: src.fullW, fullH: src.fullH, opacity: 100,
+    crs: code, crsName: CRS_DEFS[code] ? CRS_DEFS[code][0] : 'EPSG:' + code, kind: tif ? 'tif' : 'img', world, orig};
 }
 async function crsDef(code){
   if (code === 4326) return 'EPSG:4326';
@@ -1480,73 +1560,77 @@ async function crsDef(code){
   } catch {}
   throw new Error(`okänt koordinatsystem EPSG:${code}. Välj koordinatsystem i listan.`);
 }
-async function readGeoTiff(file){
-  await need('geotiff');
-  const tiff = await GeoTIFF.fromBlob(file);
-  const main = await tiff.getImage(0);
-  const bbox = main.getBoundingBox();
-  const keys = main.getGeoKeys() || {};
-  const valid = c => c && c !== 32767 ? c : null;
-  const epsg = valid(keys.ProjectedCSTypeGeoKey) || valid(keys.GeographicTypeGeoKey);
-  const nImg = await tiff.getImageCount();
-  const spp = main.getSamplesPerPixel();
-  let pick = main;
-  for (let i = 1; i < nImg; i++) {
-    const im = await tiff.getImage(i);
-    if (im.getSamplesPerPixel() !== spp) continue;
-    const big = Math.max(im.getWidth(), im.getHeight());
-    if (big >= MAXPX * 0.7 && big < Math.max(pick.getWidth(), pick.getHeight())) pick = im;
-  }
-  const sc = Math.min(1, MAXPX / Math.max(pick.getWidth(), pick.getHeight()));
-  const w = Math.max(1, Math.round(pick.getWidth() * sc)), h = Math.max(1, Math.round(pick.getHeight() * sc));
-  let data;
-  try { data = await pick.readRGB({width: w, height: h, interleave: true, enableAlpha: true, resampleMethod: 'bilinear'}); }
-  catch { data = await pick.readRasters({width: w, height: h, interleave: true, resampleMethod: 'bilinear'}); }
+function toRGBA(data, w, h, nodata){
   const ch = Math.max(1, Math.round(data.length / (w * h)));
-  const nodata = main.getGDALNoData();
   let maxv = 0; for (let i = 0; i < data.length; i += 97) if (data[i] > maxv) maxv = data[i];
   const scale = maxv > 255 ? 255 / maxv : 1;
   const rgba = new Uint8ClampedArray(w * h * 4);
   for (let i = 0, j = 0; i < w * h; i++, j += ch) {
     const r = data[j], g = ch >= 3 ? data[j + 1] : r, b = ch >= 3 ? data[j + 2] : r;
     let a = ch === 4 ? data[j + 3] * scale : ch === 2 ? data[j + 1] * scale : 255;
-    if (nodata !== null && r === nodata && g === nodata && b === nodata) a = 0;
-    if (ch === 3 && nodata === null && r === 0 && g === 0 && b === 0) a = 0;
+    if (nodata !== null && nodata !== undefined && r === nodata && g === nodata && b === nodata) a = 0;
+    if (ch === 3 && (nodata === null || nodata === undefined) && r === 0 && g === 0 && b === 0) a = 0;
     rgba[i * 4] = r * scale; rgba[i * 4 + 1] = g * scale; rgba[i * 4 + 2] = b * scale; rgba[i * 4 + 3] = a;
   }
-  return {w, h, rgba, bbox, epsg};
+  return rgba;
 }
-async function readWorldImage(pic, wld){
+async function tiffInfo(file){
+  await need('geotiff');
+  const tiff = await GeoTIFF.fromBlob(file);
+  const main = await tiff.getImage(0);
+  const n = await tiff.getImageCount(), spp = main.getSamplesPerPixel();
+  const levels = [{im: main, f: 1}];
+  for (let i = 1; i < n; i++) {
+    const im = await tiff.getImage(i);
+    if (im.getSamplesPerPixel() !== spp || im.getWidth() >= main.getWidth()) continue;
+    levels.push({im, f: main.getWidth() / im.getWidth()});
+  }
+  levels.sort((a, b) => a.f - b.f);
+  return {main, levels, nodata: main.getGDALNoData()};
+}
+async function readLevel(level, win, w, h){
+  const opts = {width: w, height: h, interleave: true, resampleMethod: 'bilinear'};
+  if (win) opts.window = win;
+  try { return await level.im.readRGB({...opts, enableAlpha: true}); }
+  catch { return await level.im.readRasters(opts); }
+}
+async function readGeoTiff(file){
+  const {main, levels, nodata} = await tiffInfo(file);
+  const bbox = main.getBoundingBox();
+  const keys = main.getGeoKeys() || {};
+  const valid = c => c && c !== 32767 ? c : null;
+  const epsg = valid(keys.ProjectedCSTypeGeoKey) || valid(keys.GeographicTypeGeoKey);
+  const MW = main.getWidth(), MH = main.getHeight();
+  // grövsta nivån som fortfarande har minst ~70 % av MAXPX
+  let pick = levels[0];
+  for (const lv of levels) if (Math.max(MW, MH) / lv.f >= MAXPX * 0.7) pick = lv;
+  const sc = Math.min(1, MAXPX / (Math.max(MW, MH) / pick.f));
+  const w = Math.max(1, Math.round(pick.im.getWidth() * sc)), h = Math.max(1, Math.round(pick.im.getHeight() * sc));
+  const data = await readLevel(pick, null, w, h);
+  return {w, h, rgba: toRGBA(data, w, h, nodata), bbox, epsg, fullW: MW, fullH: MH};
+}
+async function readWorldFile(wld){
   const vals = (await wld.text()).trim().split(/\s+/).map(Number);
   if (vals.length < 6 || vals.some(v => !isFinite(v))) throw new Error('world-filen går inte att läsa');
-  const [A, D, B, E, C, F] = vals;
-  if (Math.abs(D) > 1e-9 || Math.abs(B) > 1e-9) throw new Error('roterade bilder stöds inte');
+  if (Math.abs(vals[1]) > 1e-9 || Math.abs(vals[2]) > 1e-9) throw new Error('roterade bilder stöds inte');
+  return vals;
+}
+async function readWorldImage(pic, world){
+  const [A, , , E, C, F] = world;
   const bmp = await createImageBitmap(pic);
   const sc = Math.min(1, MAXPX / Math.max(bmp.width, bmp.height));
   const w = Math.round(bmp.width * sc), h = Math.round(bmp.height * sc);
   const c = document.createElement('canvas'); c.width = w; c.height = h;
   const ctx = c.getContext('2d'); ctx.drawImage(bmp, 0, 0, w, h);
   const minX = C - A / 2, maxY = F - E / 2, maxX = minX + A * bmp.width, minY = maxY + E * bmp.height;
-  return {w, h, rgba: ctx.getImageData(0, 0, w, h).data, bbox: [minX, minY, maxX, maxY], epsg: null};
+  return {w, h, rgba: ctx.getImageData(0, 0, w, h).data, bbox: [minX, minY, maxX, maxY], epsg: null, fullW: bmp.width, fullH: bmp.height};
 }
-/* Räknar om bilden till Web Mercator så att den ligger rätt på kartan */
-function reproject(src, def){
-  const tr = proj4(def, 'EPSG:4326');
+/* Ritar källbilden (i sitt eget koordinatsystem) till ett område i Web Mercator (världspixlar vid zoom 0) */
+function reprojectTo(src, tr, wx0, wy0, wx1, wy1, ow, oh){
   const [bx0, by0, bx1, by1] = src.bbox;
-  const merc = (lon, lat) => L.CRS.EPSG3857.project(L.latLng(lat, lon));
-  let mx0 = Infinity, my0 = Infinity, mx1 = -Infinity, my1 = -Infinity;
-  for (let i = 0; i <= 20; i++) for (const [x, y] of [[bx0 + (bx1 - bx0) * i / 20, by0], [bx0 + (bx1 - bx0) * i / 20, by1], [bx0, by0 + (by1 - by0) * i / 20], [bx1, by0 + (by1 - by0) * i / 20]]) {
-    const [lon, lat] = tr.forward([x, y]);
-    if (!isFinite(lat) || Math.abs(lat) > 85) continue;
-    const p = merc(lon, lat);
-    mx0 = Math.min(mx0, p.x); mx1 = Math.max(mx1, p.x); my0 = Math.min(my0, p.y); my1 = Math.max(my1, p.y);
-  }
-  if (!isFinite(mx0) || mx1 - mx0 <= 0) throw new Error('koordinaterna passar inte med valt koordinatsystem');
-  let ow = src.w, oh = Math.round(ow * (my1 - my0) / (mx1 - mx0));
-  if (oh > MAXPX) { ow = Math.round(ow * MAXPX / oh); oh = MAXPX; }
   const G = 32, gx = new Float64Array((G + 1) * (G + 1)), gy = new Float64Array((G + 1) * (G + 1));
   for (let j = 0; j <= G; j++) for (let i = 0; i <= G; i++) {
-    const ll = L.CRS.EPSG3857.unproject(L.point(mx0 + (mx1 - mx0) * i / G, my1 - (my1 - my0) * j / G));
+    const ll = W2LL(wx0 + (wx1 - wx0) * i / G, wy0 + (wy1 - wy0) * j / G);
     const [X, Y] = tr.inverse([ll.lng, ll.lat]);
     gx[j * (G + 1) + i] = (X - bx0) / (bx1 - bx0) * src.w;
     gy[j * (G + 1) + i] = (by1 - Y) / (by1 - by0) * src.h;
@@ -1554,9 +1638,9 @@ function reproject(src, def){
   const c = document.createElement('canvas'); c.width = ow; c.height = oh;
   const ctx = c.getContext('2d'); const out = ctx.createImageData(ow, oh); const od = out.data, sd = src.rgba, sw = src.w, sh = src.h;
   for (let y = 0; y < oh; y++) {
-    const fy = y / oh * G, j0 = Math.min(G - 1, Math.floor(fy)), ty = fy - j0;
+    const fy = (y + 0.5) / oh * G, j0 = Math.min(G - 1, Math.floor(fy)), ty = fy - j0;
     for (let x = 0; x < ow; x++) {
-      const fx = x / ow * G, i0 = Math.min(G - 1, Math.floor(fx)), tx = fx - i0;
+      const fx = (x + 0.5) / ow * G, i0 = Math.min(G - 1, Math.floor(fx)), tx = fx - i0;
       const a = j0 * (G + 1) + i0, b = a + 1, c2 = a + G + 1, d = c2 + 1;
       const sx = (gx[a] * (1 - tx) + gx[b] * tx) * (1 - ty) + (gx[c2] * (1 - tx) + gx[d] * tx) * ty;
       const sy = (gy[a] * (1 - tx) + gy[b] * tx) * (1 - ty) + (gy[c2] * (1 - tx) + gy[d] * tx) * ty;
@@ -1566,9 +1650,79 @@ function reproject(src, def){
     }
   }
   ctx.putImageData(out, 0, 0);
-  const swc = L.CRS.EPSG3857.unproject(L.point(mx0, my0)), nec = L.CRS.EPSG3857.unproject(L.point(mx1, my1));
-  return {canvas: c, bounds: [[swc.lat, swc.lng], [nec.lat, nec.lng]]};
+  return c;
 }
+function srcWorldBox(src, tr){
+  const [bx0, by0, bx1, by1] = src.bbox;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let i = 0; i <= 20; i++) for (const [x, y] of [[bx0 + (bx1 - bx0) * i / 20, by0], [bx0 + (bx1 - bx0) * i / 20, by1], [bx0, by0 + (by1 - by0) * i / 20], [bx1, by0 + (by1 - by0) * i / 20]]) {
+    const [lon, lat] = tr.forward([x, y]);
+    if (!isFinite(lat) || Math.abs(lat) > 85) continue;
+    const p = W0([lat, lon]);
+    x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y);
+  }
+  if (!isFinite(x0) || x1 - x0 <= 0) throw new Error('koordinaterna passar inte med valt koordinatsystem');
+  return [x0, y0, x1, y1];
+}
+/* Räknar om bilden till Web Mercator så att den ligger rätt på kartan */
+function reproject(src, def){
+  const tr = proj4(def, 'EPSG:4326');
+  const [x0, y0, x1, y1] = srcWorldBox(src, tr);
+  let ow = src.w, oh = Math.round(ow * (y1 - y0) / (x1 - x0));
+  if (oh > MAXPX) { ow = Math.round(ow * MAXPX / oh); oh = MAXPX; }
+  const canvas = reprojectTo(src, tr, x0, y0, x1, y1, ow, oh);
+  const sw = W2LL(x0, y1), ne = W2LL(x1, y0);
+  return {canvas, bounds: [[sw.lat, sw.lng], [ne.lat, ne.lng]]};
+}
+/* Läser ett utsnitt ur originalfilen med önskad upplösning och ritar det till ett Mercator-område (för PDF) */
+async function orthoRegionFromOriginal(rec, wx0, wy0, wx1, wy1, needW){
+  await need('proj4');
+  const tr = proj4(await crsDef(rec.crs), 'EPSG:4326');
+  // områdets gränser i bildens koordinatsystem
+  let cx0 = Infinity, cy0 = Infinity, cx1 = -Infinity, cy1 = -Infinity;
+  for (let i = 0; i <= 12; i++) for (const [x, y] of [[wx0 + (wx1 - wx0) * i / 12, wy0], [wx0 + (wx1 - wx0) * i / 12, wy1], [wx0, wy0 + (wy1 - wy0) * i / 12], [wx1, wy0 + (wy1 - wy0) * i / 12]]) {
+    const ll = W2LL(x, y); const [X, Y] = tr.inverse([ll.lng, ll.lat]);
+    cx0 = Math.min(cx0, X); cx1 = Math.max(cx1, X); cy0 = Math.min(cy0, Y); cy1 = Math.max(cy1, Y);
+  }
+  let src;
+  const CAP = 8000;
+  if (rec.kind === 'tif') {
+    const {main, levels, nodata} = await tiffInfo(rec.orig);
+    const [ox, oy] = main.getOrigin(), [rx, ry] = main.getResolution();
+    const MW = main.getWidth(), MH = main.getHeight();
+    let px0 = Math.floor((cx0 - ox) / rx), px1 = Math.ceil((cx1 - ox) / rx);
+    let py0 = Math.floor((cy1 - oy) / ry), py1 = Math.ceil((cy0 - oy) / ry);
+    px0 = Math.max(0, px0 - 2); py0 = Math.max(0, py0 - 2); px1 = Math.min(MW, px1 + 2); py1 = Math.min(MH, py1 + 2);
+    if (px1 <= px0 || py1 <= py0) return null;
+    const winW = px1 - px0, winH = py1 - py0;
+    let lv = levels[0];
+    for (const l of levels) if (winW / l.f >= Math.min(needW, winW)) lv = l;   // grövsta nivå som räcker
+    const f = lv.f, lw = lv.im.getWidth(), lh = lv.im.getHeight();
+    const lx0 = Math.max(0, Math.floor(px0 / f)), ly0 = Math.max(0, Math.floor(py0 / f));
+    const lx1 = Math.min(lw, Math.ceil(px1 / f)), ly1 = Math.min(lh, Math.ceil(py1 / f));
+    const nat = lx1 - lx0, sc = Math.min(1, CAP / Math.max(nat, ly1 - ly0), needW === Infinity ? 1 : needW * 1.15 / nat);
+    const w = Math.max(1, Math.round(nat * sc)), h = Math.max(1, Math.round((ly1 - ly0) * sc));
+    const data = await readLevel(lv, [lx0, ly0, lx1, ly1], w, h);
+    src = {w, h, rgba: toRGBA(data, w, h, nodata), bbox: [ox + lx0 * f * rx, oy + ly1 * f * ry, ox + lx1 * f * rx, oy + ly0 * f * ry]};
+  } else {
+    const [A, , , E, C, F] = rec.world;
+    const X0 = C - A / 2, Y0 = F - E / 2;
+    const bmpFull = await createImageBitmap(rec.orig);
+    let px0 = Math.max(0, Math.floor((cx0 - X0) / A) - 2), px1 = Math.min(bmpFull.width, Math.ceil((cx1 - X0) / A) + 2);
+    let py0 = Math.max(0, Math.floor((cy1 - Y0) / E) - 2), py1 = Math.min(bmpFull.height, Math.ceil((cy0 - Y0) / E) + 2);
+    if (px1 <= px0 || py1 <= py0) return null;
+    const nat = px1 - px0, sc = Math.min(1, CAP / Math.max(nat, py1 - py0), needW === Infinity ? 1 : needW * 1.15 / nat);
+    const w = Math.max(1, Math.round(nat * sc)), h = Math.max(1, Math.round((py1 - py0) * sc));
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const ctx = c.getContext('2d'); ctx.drawImage(bmpFull, px0, py0, nat, py1 - py0, 0, 0, w, h);
+    src = {w, h, rgba: ctx.getImageData(0, 0, w, h).data, bbox: [X0 + px0 * A, Y0 + py1 * E, X0 + px1 * A, Y0 + py0 * E]};
+  }
+  const ow = Math.max(1, Math.min(CAP, needW === Infinity ? Math.round(src.w * (wx1 - wx0) / Math.max(1e-12, srcWorldWidth(src, tr))) : needW));
+  const oh = Math.max(1, Math.round(ow * (wy1 - wy0) / (wx1 - wx0)));
+  return reprojectTo(src, tr, wx0, wy0, wx1, wy1, Math.min(ow, CAP), Math.min(oh, CAP));
+}
+function srcWorldWidth(src, tr){ const b = srcWorldBox(src, tr); return b[2] - b[0]; }
+
 
 /* =================== Export =================== */
 const slug = () => (plan.name || 'potatisplan').trim().replace(/[åäÅÄ]/g, c => /[ÅÄ]/.test(c) ? 'A' : 'a').replace(/[öÖ]/g, c => c === 'Ö' ? 'O' : 'o')
@@ -1690,24 +1844,171 @@ $('btnBackup').onclick = () => {
 };
 
 /* =================== PDF-rapport =================== */
-/* Ritar en egen kartbild av fältet i vald bakgrund, med zoom och position anpassade så att allt får plats */
-async function snapshot(W, H){
+const PG = {W: 210, H: 297, M: 14};
+const MAP_W = PG.W - 2 * PG.M, MAP_H = Math.round(MAP_W * 0.68 * 10) / 10;
+const pdfName = t => ((ui.pdfNames || {})[t] || '').trim() || t;
+const keyOf = (sec, label) => 'sec:' + sec + '|' + String(label).replace(/[\d\s,.]+/g, ' ').trim();
+
+/* Två ritytor med samma gränssnitt: förhandsvisning på canvas och riktig PDF (vektorer) */
+class CanvasPainter {
+  constructor(container, k){ this.container = container; this.k = k; this.pages = []; this.addPage(); }
+  addPage(){
+    const d = window.devicePixelRatio || 1, c = document.createElement('canvas');
+    c.width = Math.round(PG.W * this.k * d); c.height = Math.round(PG.H * this.k * d);
+    c.style.width = PG.W * this.k + 'px'; c.style.height = PG.H * this.k + 'px'; c.className = 'pdf-page';
+    const ctx = c.getContext('2d'); ctx.scale(this.k * d, this.k * d); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, PG.W, PG.H);
+    this.pages.push({c, ctx}); this.ctx = ctx; this.container.appendChild(c);
+    this._fill = '#000000'; this._stroke = '#000000'; this._text = '#000000'; this._lw = 0.2; this._dash = []; this._alpha = 1;
+    if (this._font) this.font(this._font[0], this._font[1]);
+  }
+  pageCount(){ return this.pages.length; }
+  setPage(i){ this.ctx = this.pages[i - 1].ctx; if (this._font) this.font(this._font[0], this._font[1]); }
+  font(style, size){ this._font = [style, size]; this.ctx.font = `${style === 'bold' ? 'bold ' : ''}${size * 0.3528}px "Times New Roman", Times, serif`; }
+  textColor(c){ this._text = c; } fillColor(c){ this._fill = c; } strokeColor(c){ this._stroke = c; }
+  lineWidth(w){ this._lw = w; } dash(a){ this._dash = a || []; } alpha(a){ this._alpha = a; }
+  textWidth(s){ return this.ctx.measureText(s).width; }
+  text(s, x, y, align){ const c = this.ctx; c.save(); c.fillStyle = this._text; c.textAlign = align || 'left'; c.textBaseline = 'alphabetic'; c.fillText(s, x, y); c.restore(); }
+  _paint(mode){
+    const c = this.ctx; c.save(); c.globalAlpha = this._alpha;
+    if (mode.includes('F')) { c.fillStyle = this._fill; c.fill(); }
+    if (mode.includes('S') || mode === 'D') { c.strokeStyle = this._stroke; c.lineWidth = this._lw; c.setLineDash(this._dash); c.stroke(); }
+    c.restore();
+  }
+  rect(x, y, w, h, mode){ this.ctx.beginPath(); this.ctx.rect(x, y, w, h); this._paint(mode); }
+  poly(pts, close, mode){ const c = this.ctx; c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); if (close) c.closePath(); this._paint(mode); }
+  segs(list){ const c = this.ctx; c.beginPath(); for (const s of list) { c.moveTo(s[0], s[1]); c.lineTo(s[2], s[3]); } this._paint('S'); }
+  circles(pts, r, mode){ const c = this.ctx; c.beginPath(); for (const p of pts) { c.moveTo(p[0] + r, p[1]); c.arc(p[0], p[1], r, 0, 6.2832); } this._paint(mode); }
+  image(img, x, y, w, h){ const c = this.ctx; c.save(); c.globalAlpha = this._alpha; c.drawImage(img.el, x, y, w, h); c.restore(); }
+  clip(x, y, w, h){ this.ctx.save(); this.ctx.beginPath(); this.ctx.rect(x, y, w, h); this.ctx.clip(); }
+  unclip(){ this.ctx.restore(); }
+}
+class PdfPainter {
+  constructor(doc){ this.doc = doc; this.gs = {}; }
+  addPage(){ this.doc.addPage(); }
+  pageCount(){ return this.doc.getNumberOfPages(); }
+  setPage(i){ this.doc.setPage(i); }
+  font(style, size){ this.doc.setFont('times', style); this.doc.setFontSize(size); }
+  textColor(c){ this.doc.setTextColor(c); } fillColor(c){ this.doc.setFillColor(c); } strokeColor(c){ this.doc.setDrawColor(c); }
+  lineWidth(w){ this.doc.setLineWidth(w); }
+  dash(a){ this.doc.setLineDashPattern(a || [], 0); }
+  alpha(a){ const k = a.toFixed(2); if (!this.gs[k]) this.gs[k] = new this.doc.GState({opacity: a, 'stroke-opacity': a}); this.doc.setGState(this.gs[k]); }
+  textWidth(s){ return this.doc.getTextWidth(s); }
+  text(s, x, y, align){ if (align && align !== 'left') this.doc.text(s, x, y, {align}); else this.doc.text(s, x, y); }
+  rect(x, y, w, h, mode){ this.doc.rect(x, y, w, h, mode); }
+  poly(pts, close, mode){
+    if (pts.length < 2) return;
+    const d = []; for (let i = 1; i < pts.length; i++) d.push([pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]]);
+    this.doc.lines(d, pts[0][0], pts[0][1], [1, 1], mode, close);
+  }
+  segs(list){ for (const s of list) this.doc.line(s[0], s[1], s[2], s[3], 'S'); }
+  circles(pts, r, mode){ for (const p of pts) this.doc.circle(p[0], p[1], r, mode); }
+  image(img, x, y, w, h){ this.doc.addImage(img.dataUrl, img.fmt, x, y, w, h, img.alias, 'FAST'); }
+  clip(x, y, w, h){ this.doc.saveGraphicsState(); this.doc.rect(x, y, w, h, null); this.doc.clip(); this.doc.discardPath(); }
+  unclip(){ this.doc.restoreGraphicsState(); }
+}
+function wrapText(P, s, w){
+  const out = []; let line = '';
+  for (const word of String(s).split(/\s+/)) {
+    const t = line ? line + ' ' + word : word;
+    if (P.textWidth(t) > w && line) { out.push(line); line = word; } else line = t;
+  }
+  if (line) out.push(line);
+  return out;
+}
+
+/* Färgförklaring: bara det som faktiskt syns */
+function legendItems(on){
+  const items = [];
+  if (!geo || geo.tooMany) return items;
+  const s = S();
+  if (on('field') && plan.field) items.push({label: 'fältgräns', kind: 'field'});
+  if (on('field') && plan.excl.length) items.push({label: 'hinderzon', kind: 'fill', color: '#ff4040'});
+  if (on('rows') && geo.rows.some(r => !r.removed)) items.push({label: 'rad', kind: 'line', color: ui.rowColor || '#e0a42b', alpha: (ui.rowOp ?? 90) / 100});
+  if (on('rows') && geo.rows.some(r => r.removed)) items.push({label: 'borttagen rad', kind: 'line', color: '#9a9a9a', dash: true});
+  if (on('plants') && geo.rows.some(r => !r.removed && r.off.size < r.n)) items.push({label: 'sättpunkt', kind: 'dot'});
+  if (s.machine && passInfo && passInfo.passes.length && on('passes')) {
+    items.push({label: 'drag', kind: 'line', color: '#3fa9f5'});
+    if (passInfo.turns.some(t => !t.omega)) items.push({label: 'vändning', kind: 'line', color: '#6cc4ff', dash: true});
+    if (passInfo.omegas) items.push({label: 'snäv vändning', kind: 'line', color: '#ff5a4a', dash: true});
+  }
+  return items;
+}
+
+/* ---------- Val i dialogen ---------- */
+function pdfTree(){
+  const m = statsModel(), st = settingsModel();
+  const sec = s => ({key: 'sec:' + s.title, label: s.title, rename: s.title, children: s.rows.map(([a, b]) => ({key: keyOf(s.title, a), label: `${a}: ${b}`}))});
+  const mapKids = [];
+  if (plan.field) mapKids.push({key: 'map.field', label: 'Fältgräns och hinder'});
+  mapKids.push({key: 'map.rows', label: 'Rader'}, {key: 'map.plants', label: 'Sättpunkter'});
+  if (S().machine && passInfo && passInfo.passes.length) mapKids.push({key: 'map.passes', label: 'Körspår och START/SLUT'});
+  if (ortho) mapKids.push({key: 'map.ortho', label: 'Eget ortofoto'});
+  mapKids.push({key: 'map.legend', label: 'Teckenförklaring'}, {key: 'map.north', label: 'Norrpil'}, {key: 'map.scale', label: 'Skalstock'}, {key: 'map.attr', label: 'Källa för bakgrundskarta'});
+  const notes = [...m.warnings, ...m.infos];
+  return [
+    {key: 'head', label: 'Sidhuvud', children: [{key: 'head.title', label: 'Rubrik', input: 'title'}, {key: 'head.date', label: 'Datum'}, {key: 'head.base', label: 'Bakgrundskarta'}]},
+    {key: 'map', label: 'Kartbild', children: mapKids},
+    sec(st), ...m.sections.map(sec),
+    ...(notes.length ? [{key: 'notes', label: 'Att tänka på', rename: 'Att tänka på', children: notes.map(n => ({key: 'note|' + n.replace(/[\d\s,.]+/g, ' ').trim(), label: n}))}] : []),
+    {key: 'memo', label: 'Egen anteckning', rename: 'Anteckning', input: 'memo', children: []},
+    {key: 'foot', label: 'Sidnummer', children: []}
+  ];
+}
+const pdfOff = () => new Set(ui.pdfOff || ['memo']);
+function pdfOn(key){
+  const off = pdfOff();
+  if (off.has(key)) return false;
+  const dot = key.indexOf('.');
+  if (dot > 0 && !key.startsWith('sec:') && off.has(key.slice(0, dot))) return false;
+  if (key.startsWith('sec:') && key.includes('|') && off.has(key.split('|')[0])) return false;
+  if (key.startsWith('note|') && off.has('notes')) return false;
+  return true;
+}
+function renderPdfTree(){
+  const tree = pdfTree(), off = pdfOff(), box = $('pdfTree');
+  const li = (n, parentOn) => {
+    const on = !off.has(n.key), dis = parentOn === false;
+    let h = n.rename
+      ? `<li><label><input type="checkbox" data-k="${esc(n.key)}" ${on ? 'checked' : ''} title="${esc(n.label)}"></label><input type="text" class="ren" data-ren="${esc(n.rename)}" value="${esc(pdfName(n.rename))}" title="Rubrikens namn i PDF:en (töm fältet för att återställa)" ${on ? '' : 'disabled'}>`
+      : `<li><label class="${dis ? 'dis' : ''}"><input type="checkbox" data-k="${esc(n.key)}" ${on ? 'checked' : ''} ${dis ? 'disabled' : ''}> ${esc(n.label)}</label>`;
+    if (n.input === 'title') h += `<div class="r" style="margin:2px 0 4px 20px"><input type="text" id="pdfTitle" value="${esc(plan.pdfTitle ?? ('Potatisplan: ' + plan.name))}" ${dis || !on ? 'disabled' : ''}></div>`;
+    if (n.input === 'memo') h += `<div style="margin:2px 0 4px 20px"><textarea id="pdfMemo" rows="3" placeholder="Skriv en anteckning som ska stå i rapporten" ${on ? '' : 'disabled'}>${esc(plan.pdfMemo || '')}</textarea></div>`;
+    if (n.children && n.children.length) h += `<ul>${n.children.map(c => li(c, on && !dis)).join('')}</ul>`;
+    return h + '</li>';
+  };
+  box.innerHTML = `<ul>${tree.map(n => li(n, true)).join('')}</ul>`;
+  box.querySelectorAll('input[type=checkbox]').forEach(cb => cb.onchange = () => {
+    const s = pdfOff(); if (cb.checked) s.delete(cb.dataset.k); else s.add(cb.dataset.k);
+    ui.pdfOff = [...s]; saveUI(); renderPdfTree(); schedulePreview();
+  });
+  box.querySelectorAll('input.ren').forEach(inp => inp.oninput = () => {
+    ui.pdfNames = {...(ui.pdfNames || {}), [inp.dataset.ren]: inp.value}; saveUI(); schedulePreview();
+  });
+  const t = $('pdfTitle'); if (t) t.oninput = () => { plan.pdfTitle = t.value; save(); schedulePreview(); };
+  const mm = $('pdfMemo'); if (mm) mm.oninput = () => { plan.pdfMemo = mm.value; save(); schedulePreview(); };
+}
+
+/* ---------- Kartbildens vy och bakgrund ---------- */
+let pv = null, pvFit = null, pdfBg = null, bgTimer = null, pdfFrame = null, pdfK = 2.4;
+function fitPdfView(){
+  const pts = [...plan.field[0]];
+  if (passInfo && pdfOn('map.passes')) for (const t of passInfo.turns) for (const p of t.pts) pts.push(geo.toLL(p[0], p[1]));
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of pts) { const q = W0(p); x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); }
+  const s = Math.min(MAP_W / Math.max(x1 - x0, 1e-12), MAP_H / Math.max(y1 - y0, 1e-12)) * 0.88;
+  pvFit = {cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, s};
+  pv = {...pvFit};
+  $('pdfZoom').value = 0;
+}
+const frameWorld = v => ({x0: v.cx - MAP_W / 2 / v.s, y0: v.cy - MAP_H / 2 / v.s, x1: v.cx + MAP_W / 2 / v.s, y1: v.cy + MAP_H / 2 / v.s});
+async function fetchBg(view, margin, pxW){
+  const fw = frameWorld(view), mw = (fw.x1 - fw.x0) * margin, mh = (fw.y1 - fw.y0) * margin;
+  const wx0 = fw.x0 - mw, wy0 = fw.y0 - mh, wx1 = fw.x1 + mw, wy1 = fw.y1 + mh;
+  const scale = pxW / (fw.x1 - fw.x0);          // bildpixlar per världspixel
+  const W = Math.round((wx1 - wx0) * scale), H = Math.round((wy1 - wy0) * scale);
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const ctx = c.getContext('2d');
-  ctx.fillStyle = currentBase === 'osm' ? '#f2efe9' : '#2b2b2b'; ctx.fillRect(0, 0, W, H);
-  const s = S();
-  const pts = [...plan.field[0]];
-  if (passInfo && $('showPasses').checked) for (const t of passInfo.turns) for (const p of t.pts) pts.push(geo.toLL(p[0], p[1]));
-  const P0 = ll => L.CRS.EPSG3857.latLngToPoint(L.latLng(ll[0], ll[1]), 0);
-  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  for (const p of pts) { const q = P0(p); x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); }
-  const zf = Math.min(21.5, Math.log2(Math.min(W * 0.88 / Math.max(x1 - x0, 1e-12), H * 0.88 / Math.max(y1 - y0, 1e-12))));
-  const scale = Math.pow(2, zf);
-  const ox = (x0 + x1) / 2 * scale - W / 2, oy = (y0 + y1) / 2 * scale - H / 2;
-  const PP = ll => { const q = P0(ll); return {x: q.x * scale - ox, y: q.y * scale - oy}; };
-  const centerLat = L.CRS.EPSG3857.pointToLatLng(L.point((x0 + x1) / 2, (y0 + y1) / 2), 0).lat;
-  const mpp = 40075016.686 * Math.cos(centerLat * DEG) / (256 * scale);
-  // bakgrund
+  const zf = Math.log2(scale), ox = wx0 * scale, oy = wy0 * scale;
   let loaded = 0, wanted = 0;
   for (const key of BASES[currentBase].defs) {
     const def = TILE_DEFS[key];
@@ -1720,129 +2021,404 @@ async function snapshot(W, H){
       jobs.push(loadTile(def, tz, tx, ty, true).then(r => {
         if (!r || !r.cors) return;
         const sz = 256 / r.f;
-        try { ctx.drawImage(r.img, r.ox * sz, r.oy * sz, sz, sz, tx * ts - ox, ty * ts - oy, ts + 0.5, ts + 0.5); loaded++; } catch {}
+        try { ctx.drawImage(r.img, r.ox * sz, r.oy * sz, sz, sz, tx * ts - ox, ty * ts - oy, ts + 0.6, ts + 0.6); loaded++; } catch {}
       }));
     }
     await Promise.all(jobs);
   }
-  if (ortho && $('orthoShow').checked) {
-    const [[south, west], [north, east]] = ortho.bounds;
-    const a = PP([north, west]), b = PP([south, east]);
-    ctx.globalAlpha = ortho.opacity / 100; ctx.drawImage(ortho.img, a.x, a.y, b.x - a.x, b.y - a.y); ctx.globalAlpha = 1;
-  }
-  const path = (ring, close) => { ctx.beginPath(); ring.forEach((p, i) => { const q = PP(p); i ? ctx.lineTo(q.x, q.y) : ctx.moveTo(q.x, q.y); }); if (close) ctx.closePath(); };
-  if ($('showField').checked) {
-    ctx.save(); ctx.setLineDash([10, 6]); ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.fillStyle = 'rgba(255,255,255,.06)';
-    for (const r of plan.field) { path(r, true); ctx.fill(); ctx.stroke(); }
-    ctx.setLineDash([]); ctx.strokeStyle = '#ff4040'; ctx.fillStyle = 'rgba(255,64,64,.28)';
-    for (const r of plan.excl) { path(r, true); ctx.fill(); ctx.stroke(); }
-    ctx.restore();
-  }
-  if ($('showRows').checked) {
-    ctx.lineWidth = Math.max(0.6, Math.min(3, s.rs / mpp * 0.3));
-    for (const r of geo.rows) {
-      const a = PP(r.ll0), b = PP(r.ll1);
-      ctx.strokeStyle = r.removed ? 'rgba(160,160,160,.8)' : '#e0a42b';
-      ctx.setLineDash(r.removed ? [4, 4] : []);
-      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  return {el: c, wx0, wy0, wx1, wy1, scale, base: currentBase, ok: wanted === 0 || loaded > 0};
+}
+function bgFits(bg, view, strict){
+  if (!bg || bg.base !== currentBase) return false;
+  const fw = frameWorld(view), ratio = bg.scale * (fw.x1 - fw.x0) / 2000;
+  const covers = fw.x0 >= bg.wx0 && fw.y0 >= bg.wy0 && fw.x1 <= bg.wx1 && fw.y1 <= bg.wy1;
+  return covers && (strict ? ratio >= 0.85 && ratio <= 1.3 : ratio >= 0.6 && ratio <= 1.6);
+}
+function scheduleBg(){
+  clearTimeout(bgTimer);
+  if (bgFits(pdfBg, pv, false)) return;
+  bgTimer = setTimeout(async () => {
+    const v = {...pv};
+    $('pdfStatus').textContent = 'Hämtar kartbild…';
+    const bg = await fetchBg(v, 0.3, 2000);
+    if (!$('pdfDlg').hidden) { pdfBg = bg; $('pdfStatus').textContent = ''; schedulePreview(); }
+  }, 350);
+}
+
+/* ---------- Själva kartbilden ---------- */
+function drawMap(P, f, o){
+  const v = o.view;
+  const toMM = (x, y) => [f.x + f.w / 2 + (x - v.cx) * v.s, f.y + f.h / 2 + (y - v.cy) * v.s];
+  const llMM = ll => { const q = W0(ll); return toMM(q.x, q.y); };
+  const s = S();
+  const centerLat = W2LL(v.cx, v.cy).lat;
+  const mPerMM = 40075016.686 * Math.cos(centerLat * DEG) / 256 / v.s;
+  const inside = (p, m) => p[0] > f.x - m && p[0] < f.x + f.w + m && p[1] > f.y - m && p[1] < f.y + f.h + m;
+  P.clip(f.x, f.y, f.w, f.h);
+  P.alpha(1); P.dash(null);
+  P.fillColor(currentBase === 'osm' ? '#f2efe9' : '#2b2b2b'); P.rect(f.x, f.y, f.w, f.h, 'F');
+  const placeImg = (img) => { const a = toMM(img.wx0, img.wy0), b = toMM(img.wx1, img.wy1); P.image(img, a[0], a[1], b[0] - a[0], b[1] - a[1]); };
+  if (o.bg) placeImg(o.bg);
+  if (o.ortho) { P.alpha(o.ortho.alpha ?? 1); placeImg(o.ortho); P.alpha(1); }
+  if (pdfOn('map.field') && plan.field) {
+    P.fillColor('#ffffff'); P.alpha(0.07);
+    for (const r of plan.field) P.poly(r.map(llMM), true, 'F');
+    P.alpha(1); P.strokeColor('#ffffff'); P.lineWidth(0.45); P.dash([1.6, 1]);
+    for (const r of plan.field) P.poly(r.map(llMM), true, 'S');
+    P.dash(null);
+    for (const r of plan.excl) {
+      const pts = r.map(llMM);
+      P.fillColor('#ff4040'); P.alpha(0.3); P.poly(pts, true, 'F'); P.alpha(1);
+      P.strokeColor('#ff4040'); P.lineWidth(0.35); P.poly(pts, true, 'S');
     }
-    ctx.setLineDash([]);
   }
-  if ($('showPlants').checked) drawPoints(ctx, geo.rows, s.ps / mpp, PP, W, H);
-  if (passInfo && passInfo.passes.length && $('showPasses').checked) {
+  const rsMM = s.rs / mPerMM, psMM = s.ps / mPerMM;
+  if (pdfOn('map.rows')) {
+    const lw = Math.max(0.03, Math.min(ui.rowW * 0.11, rsMM * 0.45));
+    const act = [], rem = [];
+    for (const r of geo.rows) {
+      const a = llMM(r.ll0), b = llMM(r.ll1);
+      if (Math.max(a[0], b[0]) < f.x || Math.min(a[0], b[0]) > f.x + f.w || Math.max(a[1], b[1]) < f.y || Math.min(a[1], b[1]) > f.y + f.h) continue;
+      (r.removed ? rem : act).push([a[0], a[1], b[0], b[1]]);
+    }
+    P.lineWidth(lw); P.strokeColor(ui.rowColor || '#e0a42b'); P.alpha((ui.rowOp ?? 90) / 100); P.segs(act); P.alpha(1);
+    if (rem.length) { P.strokeColor('#9a9a9a'); P.dash([lw * 3, lw * 3]); P.segs(rem); P.dash(null); }
+  }
+  if (passInfo && passInfo.passes.length && pdfOn('map.passes') && s.machine) {
     const ll = p => geo.toLL(p[0], p[1]);
-    ctx.setLineDash([7, 5]); ctx.lineWidth = 2;
-    for (const t of passInfo.turns) { ctx.strokeStyle = t.omega ? '#ff5a4a' : '#6cc4ff'; path(t.pts.map(ll), false); ctx.stroke(); }
-    ctx.setLineDash([]); ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(63,169,245,.8)';
-    for (const p of passInfo.passes) { path([ll(p.start), ll(p.end)], false); ctx.stroke(); }
-    const lbl = (p, t) => { const q = PP(ll(p)); ctx.font = 'bold 20px Georgia, serif'; const w = ctx.measureText(t).width + 12;
-      ctx.fillStyle = '#fff'; ctx.fillRect(q.x - w / 2, q.y - 13, w, 26); ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.strokeRect(q.x - w / 2, q.y - 13, w, 26);
-      ctx.fillStyle = '#000'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, q.x, q.y + 1); };
+    const pw = passInfo.passW / mPerMM;   // dragets bredd i mm
+    const tl = Math.max(0.06, Math.min(0.3, pw * 0.12));
+    P.lineWidth(tl); P.dash([tl * 3, tl * 2]);
+    for (const t of passInfo.turns) { P.strokeColor(t.omega ? '#ff5a4a' : '#6cc4ff'); P.poly(t.pts.map(q => llMM(ll(q))), false, 'S'); }
+    P.dash(null); P.strokeColor('#3fa9f5'); P.lineWidth(Math.max(0.08, Math.min(0.5, pw * 0.15))); P.alpha(0.7);
+    P.segs(passInfo.passes.map(p => { const a = llMM(ll(p.start)), b = llMM(ll(p.end)); return [a[0], a[1], b[0], b[1]]; }));
+    P.alpha(1);
+  }
+  if (pdfOn('map.plants')) {
+    const r = Math.min(1.2, Math.min(psMM, rsMM) * 0.3 * ui.ptScale / 100);
+    if (r >= 0.012) {
+      const pts = [];
+      for (const row of geo.rows) {
+        if (row.removed) continue;
+        const a = llMM(row.ll0), b = llMM(row.ll1), n = row.n;
+        if (Math.max(a[0], b[0]) < f.x - r || Math.min(a[0], b[0]) > f.x + f.w + r || Math.max(a[1], b[1]) < f.y - r || Math.min(a[1], b[1]) > f.y + f.h + r) continue;
+        const dx = n > 1 ? (b[0] - a[0]) / (n - 1) : 0, dy = n > 1 ? (b[1] - a[1]) / (n - 1) : 0;
+        for (let k = 0; k < n; k++) {
+          if (row.off.size && row.off.has(k)) continue;
+          const p = [a[0] + dx * k, a[1] + dy * k];
+          if (inside(p, r)) pts.push(p);
+        }
+      }
+      P.fillColor('#ffffff'); P.strokeColor('#111111'); P.lineWidth(r * 0.35);
+      P.circles(pts, r, 'FD');
+    }
+  }
+  if (passInfo && passInfo.passes.length && pdfOn('map.passes') && s.machine) {
+    const ll = p => geo.toLL(p[0], p[1]);
+    const lbl = (pt, t) => {
+      const q = llMM(ll(pt)); P.font('bold', 7); const w = P.textWidth(t) + 2.4;
+      P.fillColor('#ffffff'); P.strokeColor('#000000'); P.lineWidth(0.25); P.rect(q[0] - w / 2, q[1] - 2.2, w, 4.2, 'FD');
+      P.textColor('#000000'); P.text(t, q[0], q[1] + 0.9, 'center');
+    };
     lbl(passInfo.passes[0].start, 'START'); lbl(passInfo.passes[passInfo.passes.length - 1].end, 'SLUT');
   }
-  // norrpil
-  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-  ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillRect(W - 78, 18, 60, 84); ctx.strokeStyle = '#000'; ctx.lineWidth = 1.5; ctx.strokeRect(W - 78, 18, 60, 84);
-  ctx.fillStyle = '#000'; ctx.beginPath(); ctx.moveTo(W - 48, 30); ctx.lineTo(W - 62, 76); ctx.lineTo(W - 48, 66); ctx.lineTo(W - 34, 76); ctx.closePath(); ctx.fill();
-  ctx.font = 'bold 20px Georgia, serif'; ctx.fillText('N', W - 48, 96);
-  // skalstock
-  const nice = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 5000];
-  const target = W * 0.18 * mpp; const len = nice.reduce((b, n) => n <= target ? n : b, 1); const px = len / mpp;
-  ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillRect(18, H - 62, px + 36, 44); ctx.strokeRect(18, H - 62, px + 36, 44);
-  ctx.fillStyle = '#000'; ctx.fillRect(36, H - 30, px, 6); ctx.fillRect(36, H - 38, 2, 14); ctx.fillRect(36 + px - 2, H - 38, 2, 14);
-  ctx.font = '16px Georgia, serif'; ctx.fillText(`${len} m`, 36 + px / 2, H - 40);
-  const attr = BASES[currentBase].attr + (ortho && $('orthoShow').checked ? ' · eget ortofoto' : '');
-  ctx.font = '13px Georgia, serif'; const aw = ctx.measureText(attr).width + 16;
-  ctx.textAlign = 'right'; ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillRect(W - aw, H - 22, aw, 22);
-  ctx.fillStyle = '#333'; ctx.fillText(attr, W - 8, H - 7);
-  return {url: c.toDataURL('image/jpeg', 0.9), bgOk: wanted === 0 || loaded > 0};
+  P.unclip();
+  P.alpha(1); P.dash(null);
+  if (pdfOn('map.north')) {
+    const x = f.x + f.w - 11, y = f.y + 3;
+    P.fillColor('#ffffff'); P.strokeColor('#000000'); P.lineWidth(0.25); P.rect(x, y, 8, 11.5, 'FD');
+    P.fillColor('#000000'); P.poly([[x + 4, y + 1.3], [x + 1.8, y + 7.4], [x + 4, y + 6], [x + 6.2, y + 7.4]], true, 'F');
+    P.font('bold', 8); P.textColor('#000000'); P.text('N', x + 4, y + 10.6, 'center');
+  }
+  if (pdfOn('map.scale')) {
+    const nice = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 5000];
+    const target = f.w * 0.2 * mPerMM, len = nice.reduce((b, n) => n <= target ? n : b, 1), w = len / mPerMM;
+    const x = f.x + 3, y = f.y + f.h - 3;
+    P.fillColor('#ffffff'); P.strokeColor('#000000'); P.lineWidth(0.25); P.rect(x, y - 7.5, w + 6, 7.5, 'FD');
+    P.fillColor('#000000'); P.rect(x + 3, y - 2.6, w, 1, 'F'); P.rect(x + 3, y - 3.8, 0.3, 2.2, 'F'); P.rect(x + 3 + w - 0.3, y - 3.8, 0.3, 2.2, 'F');
+    P.font('normal', 7); P.textColor('#000000'); P.text(`${len} m`, x + 3 + w / 2, y - 4.3, 'center');
+  }
+  if (pdfOn('map.attr')) {
+    const t = BASES[currentBase].attr + (o.ortho ? ' · eget ortofoto' : '');
+    P.font('normal', 5.5); const w = P.textWidth(t) + 2;
+    P.fillColor('#ffffff'); P.alpha(0.85); P.rect(f.x + f.w - w, f.y + f.h - 3, w, 3, 'F'); P.alpha(1);
+    P.textColor('#333333'); P.text(t, f.x + f.w - 1, f.y + f.h - 0.9, 'right');
+  }
+  P.strokeColor('#000000'); P.lineWidth(0.3); P.rect(f.x, f.y, f.w, f.h, 'S');
 }
-async function exportPDF(){
-  if (!ready()) return;
-  $('btnPdf').disabled = true; $('statsPdf').disabled = true;
-  msg('Skapar PDF… hämtar kartbild.', 0);
-  try {
-    await need('jspdf');
-    const IW = 2000, IH = 1360;
-    const snap = await snapshot(IW, IH);
-    const {jsPDF} = window.jspdf;
-    const doc = new jsPDF({unit: 'mm', format: 'a4'});
-    const PW = 210, M = 14;
-    doc.setFont('times', 'bold'); doc.setFontSize(17); doc.text(`Potatisplan: ${plan.name}`, M, 17);
-    doc.setFont('times', 'normal'); doc.setFontSize(9.5); doc.setTextColor(90);
-    doc.text(`Skapad ${new Date().toLocaleString('sv-SE', {dateStyle: 'long', timeStyle: 'short'})} med Potatisplaneraren · bakgrund: ${BASES[currentBase].name.toLowerCase()}`, M, 22.5);
-    doc.setTextColor(0);
-    const iw = PW - 2 * M, ih = iw * IH / IW;
-    doc.addImage(snap.url, 'JPEG', M, 26, iw, ih); doc.setLineWidth(0.3); doc.setDrawColor(0); doc.rect(M, 26, iw, ih);
-    let y = 26 + ih + 4.5;
-    const s = S();
-    const lg = [['#e0a42b', 'rad'], ['#fff3b0', 'sättpunkt'], ...(s.machine ? [['#3fa9f5', 'drag'], ['#6cc4ff', 'vändning'], ['#ff5a4a', 'snäv vändning']] : []), ['#ff4040', 'hinder'], ['#9a9a9a', 'borttagen rad']];
-    let lx = M; doc.setFontSize(9);
-    for (const [col, t] of lg) { doc.setFillColor(col); doc.setDrawColor(120); doc.rect(lx, y - 2.6, 5, 2.6, 'FD'); doc.text(t, lx + 6.5, y); lx += 8 + doc.getTextWidth(t) + 4; }
-    y += 6;
-    const m = statsModel();
-    const sections = [settingsModel(), ...m.sections];
-    const colW = (iw - 8) / 2, xs = [M, M + colW + 8];
-    let col = 0, top = y;
-    const LH = 4.6;
-    const room = h => { if (y + h > 285) { if (col === 0) { col = 1; y = top; } else { doc.addPage(); col = 0; top = y = 18; } } };
-    for (const sec of sections) {
-      room(LH * 2.2);
-      doc.setFont('times', 'bold'); doc.setFontSize(11); doc.text(sec.title, xs[col], y); y += 1.4;
-      doc.setDrawColor(150); doc.setLineWidth(0.25); doc.line(xs[col], y, xs[col] + colW, y); y += LH;
-      doc.setFont('times', 'normal'); doc.setFontSize(10);
-      for (const [a, b] of sec.rows) {
-        room(LH);
-        doc.text(String(a), xs[col], y); doc.text(String(b), xs[col] + colW, y, {align: 'right'}); y += LH;
-      }
+function drawSwatch(P, it, lx, ly){
+  if (it.kind === 'field') { P.fillColor('#6b6b6b'); P.rect(lx, ly - 2.9, 5.5, 3.2, 'F'); P.strokeColor('#ffffff'); P.lineWidth(0.4); P.dash([0.9, 0.6]); P.rect(lx + 0.7, ly - 2.3, 4.1, 2, 'S'); P.dash(null); }
+  else if (it.kind === 'fill') { P.fillColor(it.color); P.alpha(0.35); P.rect(lx, ly - 2.9, 5.5, 3.2, 'F'); P.alpha(1); P.strokeColor(it.color); P.lineWidth(0.35); P.rect(lx, ly - 2.9, 5.5, 3.2, 'S'); }
+  else if (it.kind === 'dot') { P.fillColor('#ffffff'); P.strokeColor('#111111'); P.lineWidth(0.3); P.circles([[lx + 2.75, ly - 1.3]], 1.1, 'FD'); }
+  else { P.strokeColor(it.color); P.lineWidth(0.7); P.alpha(it.alpha ?? 1); if (it.dash) P.dash([1, 0.7]); P.segs([[lx, ly - 1.3, lx + 5.5, ly - 1.3]]); P.dash(null); P.alpha(1); }
+}
+/* Delar upp posterna på så få rader som möjligt, med lika bredd per rad, och centrerar varje rad */
+function drawLegend(P, x, y, maxW){
+  const items = legendItems(k => pdfOn('map.' + k));
+  if (!items.length) return 0;
+  P.font('normal', 8.5);
+  const ws = items.map(it => 7 + P.textWidth(it.label)), n = ws.length, MIN = 4, MAX = 14;
+  const width = (i, j) => { let t = 0; for (let k = i; k < j; k++) t += ws[k]; return t + MIN * (j - i - 1); };
+  const split = L => {   // delning i L sammanhängande rader som minimerar den bredaste raden
+    const best = Array.from({length: L + 1}, () => new Array(n + 1).fill(Infinity)), cut = Array.from({length: L + 1}, () => new Array(n + 1).fill(0));
+    best[0][0] = 0;
+    for (let l = 1; l <= L; l++) for (let j = 1; j <= n; j++) for (let i = l - 1; i < j; i++) {
+      const v = Math.max(best[l - 1][i], width(i, j)); if (v < best[l][j]) { best[l][j] = v; cut[l][j] = i; }
+    }
+    const lines = []; let j = n; for (let l = L; l >= 1; l--) { const i = cut[l][j]; lines.unshift([i, j]); j = i; }
+    return {lines, w: best[L][n]};
+  };
+  let L = 1, res = split(1);
+  while (res.w > maxW && L < n) { L++; res = split(L); }
+  let gap = MAX;
+  for (const [i, j] of res.lines) if (j - i > 1) gap = Math.min(gap, (maxW - (width(i, j) - MIN * (j - i - 1))) / (j - i - 1));
+  gap = Math.max(MIN, Math.min(MAX, gap));
+  res.lines.forEach(([i, j], li) => {
+    let lw = 0; for (let k = i; k < j; k++) lw += ws[k]; lw += gap * (j - i - 1);
+    let lx = x + (maxW - lw) / 2; const ly = y + li * 4.6;
+    for (let k = i; k < j; k++) { drawSwatch(P, items[k], lx, ly); P.textColor('#000000'); P.text(items[k].label, lx + 7, ly); lx += ws[k] + gap; }
+  });
+  return res.lines.length * 4.6 + 1;
+}
+
+/* ---------- Sidlayout (samma kod för förhandsvisning och PDF) ---------- */
+function layoutReport(P, o){
+  const M = PG.M, colW = (MAP_W - 8) / 2, xs = [M, M + colW + 8], LH = 4.6;
+  let y = M + 3;
+  if (pdfOn('head.title')) { P.font('bold', 17); P.textColor('#000000'); P.text(plan.pdfTitle ?? ('Potatisplan: ' + plan.name), M, y + 1); y += 6; }
+  const meta = [];
+  if (pdfOn('head.date')) meta.push(`Skapad ${new Date().toLocaleString('sv-SE', {dateStyle: 'long', timeStyle: 'short'})} med Potatisplaneraren`);
+  if (pdfOn('head.base')) meta.push(`bakgrund: ${BASES[currentBase].name.toLowerCase()}${o.ortho ? ' och eget ortofoto' : ''}`);
+  if (meta.length) { P.font('normal', 9.5); P.textColor('#5a5a5a'); P.text(meta.join(' · '), M, y); y += 4; }
+  if (y > M + 3) y += 1.5;
+  let frame = null;
+  if (pdfOn('map')) {
+    frame = {x: M, y, w: MAP_W, h: MAP_H};
+    drawMap(P, frame, o);
+    y += MAP_H + 4.5;
+    if (pdfOn('map.legend')) y += drawLegend(P, M, y, MAP_W);
+    y += 1;
+  }
+  const m = statsModel();
+  const sections = [settingsModel(), ...m.sections];
+  const blocks = [];
+  for (const sec of sections) {
+    if (!pdfOn('sec:' + sec.title)) continue;
+    const rows = sec.rows.filter(([a]) => pdfOn(keyOf(sec.title, a)));
+    if (rows.length) blocks.push({kind: 'table', title: pdfName(sec.title), rows});
+  }
+  const notes = [...m.warnings.map(t => [t, true]), ...m.infos.map(t => [t, false])]
+    .filter(([t]) => pdfOn('notes') && pdfOn('note|' + t.replace(/[\d\s,.]+/g, ' ').trim()));
+  if (o.bgFail) notes.push(['Bakgrundskartan kunde inte hämtas till bilden.', false]);
+  if (notes.length) blocks.push({kind: 'text', title: pdfName('Att tänka på'), items: notes});
+  if (pdfOn('memo') && (plan.pdfMemo || '').trim()) blocks.push({kind: 'text', title: pdfName('Anteckning'), items: plan.pdfMemo.trim().split(/\n+/).map(t => [t, false, true])});
+  P.font('normal', 9.5);
+  for (const b of blocks) {
+    if (b.kind === 'table') b.h = 1.4 + LH + b.rows.length * LH + 2.5;
+    else { b.wrapped = b.items.map(([t, w, raw]) => [wrapText(P, raw ? t : '– ' + t, colW), w]); b.h = LH + 0.5 + b.wrapped.reduce((a, [l]) => a + l.length * 4.2 + 1, 0) + 2; }
+  }
+  const bottom = PG.H - 12;
+  let col = 0, top = y, flow = true;
+  const room = h => { if (!flow) return; if (y + h > bottom) { if (col === 0) { col = 1; y = top; } else { P.addPage(); col = 0; top = y = M + 4; } } };
+  const drawBlock = b => {
+    room(LH * 2.2);
+    P.font('bold', 11); P.textColor('#000000'); P.text(b.title, xs[col], y);
+    if (b.kind === 'table') {
+      y += 1.4; P.strokeColor('#969696'); P.lineWidth(0.25); P.segs([[xs[col], y, xs[col] + colW, y]]); y += LH;
+      P.font('normal', 10);
+      for (const [a, v] of b.rows) { room(LH); P.textColor('#000000'); P.text(String(a), xs[col], y); P.text(String(v), xs[col] + colW, y, 'right'); y += LH; }
       y += 2.5;
-    }
-    const notes = [...m.warnings.map(t => [t, true]), ...m.infos.map(t => [t, false])];
-    if (!snap.bgOk) notes.push(['Bakgrundskartan kunde inte hämtas till bilden.', false]);
-    if (notes.length) {
-      room(LH * 2);
-      doc.setFont('times', 'bold'); doc.setFontSize(11); doc.text('Att tänka på', xs[col], y); y += LH + 0.5;
-      doc.setFont('times', 'normal'); doc.setFontSize(9.5);
-      for (const [n, isWarn] of notes) {
-        const lines = doc.splitTextToSize('– ' + n, colW);
+    } else {
+      y += LH + 0.5; P.font('normal', 9.5);
+      for (const [lines, warn] of b.wrapped) {
         room(lines.length * 4.2);
-        if (isWarn) doc.setTextColor(140, 28, 0); else doc.setTextColor(60);
-        doc.text(lines, xs[col], y); y += lines.length * 4.2 + 1;
+        P.textColor(warn ? '#8c1c00' : '#3c3c3c');
+        lines.forEach((ln, i) => P.text(ln, xs[col], y + i * 4.2));
+        y += lines.length * 4.2 + 1;
       }
-      doc.setTextColor(0);
+      y += 2;
     }
-    const pages = doc.getNumberOfPages();
-    for (let i = 1; i <= pages; i++) { doc.setPage(i); doc.setFontSize(8); doc.setTextColor(120); doc.text(`Sida ${i} av ${pages}`, PW - M, 292, {align: 'right'}); }
+  };
+  // Får allt plats på sidan fördelas blocken så att spalterna blir ungefär lika långa
+  const avail = bottom - top, total = blocks.reduce((a, b) => a + b.h, 0);
+  let bestK = -1, bestMax = Infinity;
+  if (blocks.length >= 2 && blocks.every(b => b.h <= avail)) {
+    for (let k = 1; k < blocks.length; k++) {
+      const left = blocks.slice(0, k).reduce((a, b) => a + b.h, 0), right = total - left;
+      if (left <= avail && right <= avail && Math.max(left, right) < bestMax) { bestMax = Math.max(left, right); bestK = k; }
+    }
+  }
+  if (bestK > 0) {
+    flow = false;
+    blocks.forEach((b, i) => { if (i === bestK) { col = 1; y = top; } drawBlock(b); });
+  } else blocks.forEach(drawBlock);
+  if (pdfOn('foot')) {
+    const n = P.pageCount();
+    for (let i = 1; i <= n; i++) { P.setPage(i); P.font('normal', 8); P.textColor('#787878'); P.text(`Sida ${i} av ${n}`, PG.W - M, PG.H - 5, 'right'); }
+    P.setPage(1);
+  }
+  return frame;
+}
+
+/* ---------- Dialogen ---------- */
+let prevRaf = 0;
+function schedulePreview(){ cancelAnimationFrame(prevRaf); prevRaf = requestAnimationFrame(renderPreview); }
+function renderPreview(){
+  if ($('pdfDlg').hidden) return;
+  const box = $('pdfPages'), keep = box.scrollTop;
+  pdfK = Math.max(1.4, Math.min(3.2, (box.clientWidth - 30) / PG.W));
+  box.innerHTML = '';
+  const P = new CanvasPainter(box, pdfK);
+  const oimg = ortho && pdfOn('map.ortho') ? orthoWorldImg() : null;
+  pdfFrame = layoutReport(P, {view: pv, bg: pdfBg, ortho: oimg ? {...oimg, alpha: ortho.opacity / 100} : null});
+  box.scrollTop = keep;
+  const first = P.pages[0].c;
+  first.style.cursor = pdfFrame ? 'grab' : 'default';
+  first.addEventListener('pointerdown', pdfPointerDown);
+  first.addEventListener('wheel', pdfWheel, {passive: false});
+  const n = P.pageCount();
+  $('pdfPagesInfo').textContent = n > 1 ? `${n} sidor` : '1 sida';
+}
+function orthoWorldImg(){
+  const [[s_, w_], [n_, e_]] = ortho.bounds, a = W0([n_, w_]), b = W0([s_, e_]);
+  return {el: ortho.img, wx0: a.x, wy0: a.y, wx1: b.x, wy1: b.y};
+}
+function inFrame(e){
+  if (!pdfFrame) return false;
+  const r = e.currentTarget.getBoundingClientRect(), x = (e.clientX - r.left) / pdfK, y = (e.clientY - r.top) / pdfK;
+  return x >= pdfFrame.x && x <= pdfFrame.x + pdfFrame.w && y >= pdfFrame.y && y <= pdfFrame.y + pdfFrame.h ? [x, y] : false;
+}
+let pdfDrag = null;
+function pdfPointerDown(e){
+  if (!inFrame(e)) return;
+  e.preventDefault();
+  pdfDrag = {x: e.clientX, y: e.clientY, cx: pv.cx, cy: pv.cy};
+  document.body.classList.add('pdf-dragging');
+}
+window.addEventListener('pointermove', e => {
+  if (!pdfDrag) return;
+  pv.cx = pdfDrag.cx - (e.clientX - pdfDrag.x) / pdfK / pv.s;
+  pv.cy = pdfDrag.cy - (e.clientY - pdfDrag.y) / pdfK / pv.s;
+  schedulePreview();
+});
+window.addEventListener('pointerup', () => { if (!pdfDrag) return; pdfDrag = null; document.body.classList.remove('pdf-dragging'); scheduleBg(); });
+function setPdfZoom(z, anchor){
+  z = Math.max(-3, Math.min(5, z));
+  const s2 = pvFit.s * Math.pow(2, z);
+  if (anchor) { // håll punkten under muspekaren still
+    const wx = pv.cx + (anchor[0] - (pdfFrame.x + pdfFrame.w / 2)) / pv.s, wy = pv.cy + (anchor[1] - (pdfFrame.y + pdfFrame.h / 2)) / pv.s;
+    pv.cx = wx - (anchor[0] - (pdfFrame.x + pdfFrame.w / 2)) / s2; pv.cy = wy - (anchor[1] - (pdfFrame.y + pdfFrame.h / 2)) / s2;
+  }
+  pv.s = s2; $('pdfZoom').value = z;
+  schedulePreview(); scheduleBg();
+}
+function pdfWheel(e){
+  const p = inFrame(e); if (!p) return;
+  e.preventDefault();
+  setPdfZoom(+$('pdfZoom').value - Math.sign(e.deltaY) * 0.25, p);
+}
+$('pdfZoom').oninput = () => setPdfZoom(+$('pdfZoom').value);
+$('pdfZin').onclick = () => setPdfZoom(+$('pdfZoom').value + 0.5);
+$('pdfZout').onclick = () => setPdfZoom(+$('pdfZoom').value - 0.5);
+$('pdfFit').onclick = () => { fitPdfView(); schedulePreview(); scheduleBg(); };
+for (const [id, key] of [['pdfRowW', 'rowW'], ['pdfPtScale', 'ptScale']]) $(id).oninput = () => { ui[key] = +$(id).value; syncLookInputs(); saveUI(); render(); schedulePreview(); };
+$('pdfOrthoQ').onchange = () => { ui.orthoQ = $('pdfOrthoQ').value; saveUI(); };
+async function openPdfDialog(){
+  if (!ready()) return;
+  $('pdfDlg').hidden = false;
+  document.body.classList.add('dlg-open');
+  renderPdfTree(); syncLookInputs();
+  let rec = null; try { rec = ortho ? await idb.get(plan.id) : null; } catch {}
+  const q = $('pdfOrthoQ');
+  q.disabled = !ortho;
+  q.querySelectorAll('option[data-orig]').forEach(op => op.disabled = !(rec && rec.orig));
+  q.value = (ui.orthoQ && !(q.querySelector(`option[value="${ui.orthoQ}"]`) || {}).disabled) ? ui.orthoQ : 'normal';
+  $('pdfOrthoHint').textContent = !ortho ? 'Inget ortofoto är inläst i den här planen.'
+    : rec && rec.orig ? `Originalet är ${fmt(rec.fullW || rec.w)} × ${fmt(rec.fullH || rec.h)} px. Högsta kvalitet ger större PDF.`
+    : 'Läs in ortofotot igen för att kunna välja högre kvalitet (originalfilen sparades inte i tidigare version).';
+  fitPdfView();
+  if (!bgFits(pdfBg, pv, false)) pdfBg = null;
+  renderPreview(); scheduleBg();
+}
+function closePdfDialog(){ $('pdfDlg').hidden = true; document.body.classList.remove('dlg-open'); $('pdfPages').innerHTML = ''; }
+$('pdfClose').onclick = closePdfDialog;
+$('pdfCancel').onclick = closePdfDialog;
+$('pdfDlg').addEventListener('keydown', e => { if (e.key === 'Escape') closePdfDialog(); });
+window.addEventListener('resize', () => { if (!$('pdfDlg').hidden) schedulePreview(); });
+
+async function savePdf(){
+  const btn = $('pdfSave'); btn.disabled = true;
+  const status = t => { $('pdfStatus').textContent = t; };
+  try {
+    status('Förbereder PDF…');
+    await need('jspdf');
+    const view = {...pv}, fw = frameWorld(view);
+    let bgImg = null, bgFail = false, orthoImg = null;
+    if (pdfOn('map')) {
+      status('Hämtar kartbild…');
+      let bg = pdfBg;
+      if (!bgFits(bg, view, true)) bg = await fetchBg(view, 0.02, 2400);
+      bgFail = !bg.ok;
+      // beskär till kartramen
+      const sx = (fw.x0 - bg.wx0) * bg.scale, sy = (fw.y0 - bg.wy0) * bg.scale, sw = (fw.x1 - fw.x0) * bg.scale, sh = (fw.y1 - fw.y0) * bg.scale;
+      const c = document.createElement('canvas'); c.width = Math.round(sw); c.height = Math.round(sh);
+      c.getContext('2d').drawImage(bg.el, sx, sy, sw, sh, 0, 0, c.width, c.height);
+      bgImg = {el: c, dataUrl: c.toDataURL('image/jpeg', 0.9), fmt: 'JPEG', alias: 'bg', wx0: fw.x0, wy0: fw.y0, wx1: fw.x1, wy1: fw.y1};
+      if (ortho && pdfOn('map.ortho')) {
+        status('Förbereder ortofoto…');
+        orthoImg = await orthoForPdf(view, fw, bgImg.el, $('pdfOrthoQ').value);
+      }
+    }
+    status('Skapar PDF…');
+    await new Promise(r => setTimeout(r, 30));
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF({unit: 'mm', format: 'a4', compress: true});
+    layoutReport(new PdfPainter(doc), {view, bg: bgImg, ortho: orthoImg, bgFail});
+    doc.setProperties({title: plan.pdfTitle ?? ('Potatisplan: ' + plan.name), creator: 'Potatisplaneraren'});
     doc.save(slug() + '.pdf');
+    status('');
+    closePdfDialog();
     msg('PDF-rapporten är sparad.');
   } catch (err) {
-    console.error(err); msg('Kunde inte skapa PDF: ' + err.message, 0);
-  } finally { $('btnPdf').disabled = false; $('statsPdf').disabled = false; }
+    console.error(err); status('Kunde inte skapa PDF: ' + err.message);
+  } finally { btn.disabled = false; }
 }
-$('btnPdf').onclick = exportPDF;
-$('statsPdf').onclick = exportPDF;
+$('pdfSave').onclick = savePdf;
+/* Ortofotot läggs i PDF:en som en färdig bild ovanpå bakgrunden (behåller genomskinlighet och vald täckning) */
+async function orthoForPdf(view, fw, bgCanvas, quality){
+  const ow = orthoWorldImg();
+  const x0 = Math.max(fw.x0, ow.wx0), y0 = Math.max(fw.y0, ow.wy0), x1 = Math.min(fw.x1, ow.wx1), y1 = Math.min(fw.y1, ow.wy1);
+  if (x1 <= x0 || y1 <= y0) return null;
+  const regionMM = (x1 - x0) * view.s;
+  let img = null, W;
+  if (quality !== 'normal') {
+    let rec = null; try { rec = await idb.get(plan.id); } catch {}
+    if (rec && rec.orig) {
+      const needW = quality === 'max' ? Infinity : Math.round(regionMM / 25.4 * 300);
+      try { img = await orthoRegionFromOriginal(rec, x0, y0, x1, y1, needW); } catch (err) { console.error(err); }
+    }
+  }
+  if (img) W = img.width;
+  else { W = Math.max(1, Math.round((x1 - x0) / (ow.wx1 - ow.wx0) * ortho.img.naturalWidth)); W = Math.min(W, 4000); }
+  const H = Math.max(1, Math.round(W * (y1 - y0) / (x1 - x0)));
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  // bakgrunden under, så att genomskinliga kanter blir rätt
+  const bw = bgCanvas.width / (fw.x1 - fw.x0);
+  ctx.drawImage(bgCanvas, (x0 - fw.x0) * bw, (y0 - fw.y0) * bw, (x1 - x0) * bw, (y1 - y0) * bw, 0, 0, W, H);
+  ctx.globalAlpha = ortho.opacity / 100;
+  if (img) ctx.drawImage(img, 0, 0, W, H);
+  else {
+    const nw = ortho.img.naturalWidth / (ow.wx1 - ow.wx0), nh = ortho.img.naturalHeight / (ow.wy1 - ow.wy0);
+    ctx.drawImage(ortho.img, (x0 - ow.wx0) * nw, (y0 - ow.wy0) * nh, (x1 - x0) * nw, (y1 - y0) * nh, 0, 0, W, H);
+  }
+  return {el: c, dataUrl: c.toDataURL('image/jpeg', 0.92), fmt: 'JPEG', alias: 'ortho', wx0: x0, wy0: y0, wx1: x1, wy1: y1, alpha: 1};
+}
+$('btnPdf').onclick = openPdfDialog;
+$('statsPdf').onclick = openPdfDialog;
 
 /* =================== Start =================== */
+syncLookInputs();
 loadStore();
 loadPlan(store.plans.find(p => p.id === store.current) || store.plans[0]);
 openSharedLink();
