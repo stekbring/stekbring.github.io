@@ -144,10 +144,10 @@
       <fieldset>
         <legend>Sättning</legend>
         <div class="r"><label for="rowSpacing">Radavstånd</label><input type="number" id="rowSpacing" min="10" step="1"><span class="u">cm</span></div>
-        <div class="r"><label for="plantSpacing">Avstånd i raden</label><input type="number" id="plantSpacing" min="5" step="1"><span class="u">cm</span></div>
+        <div class="r"><label for="plantSpacing" title="Avståndet mellan två potatisar i samma rad">Sättavstånd</label><input type="number" id="plantSpacing" min="5" step="1"><span class="u">cm</span></div>
         <div class="r"><label for="weight">Vikt per sättpotatis</label><input type="number" id="weight" min="1" step="1"><span class="u">g</span></div>
         <div class="r"><label for="bagKg">Säckstorlek</label><input type="number" id="bagKg" min="1" step="1"><span class="u">kg</span></div>
-        <div class="r"><label for="edgeMargin" title="Minsta avstånd från den markerade gränsen till en sättpotatis">Kantavstånd</label><input type="number" id="edgeMargin" min="0" step="0.1"><span class="u">m</span></div>
+        <div class="r"><label for="edgeMargin" title="Minsta avstånd från den markerade gränsen till en sättpotatis">Avstånd från kant</label><input type="number" id="edgeMargin" min="0" step="0.1"><span class="u">m</span></div>
         <div class="r"><label for="obstacleMargin">Avstånd runt hinder</label><input type="number" id="obstacleMargin" min="0" step="0.1"><span class="u">m</span></div>
         <div class="r"><label for="offset">Sidoförskjutning av rader</label><input type="number" id="offset" step="1"><span class="u">cm</span></div>
       </fieldset>
@@ -229,7 +229,7 @@
           <div class="hint" id="machineHint"></div>
         </div>
         <div class="manual-only">
-          <div class="r"><label for="plantRate">Sättningstakt per person</label><input type="number" id="plantRate" min="10" step="50"><span class="u">st/h</span></div>
+          <div class="r"><label for="plantRate">Sättningstakt per person</label><input type="number" id="plantRate" min="10" step="10"><span class="u">st/h</span></div>
           <div class="r"><label for="workers">Antal personer</label><input type="number" id="workers" min="1" step="1"><span class="u">st</span></div>
           <div class="sep"></div>
           <div class="r"><label for="manualEnd" title="Fri yta vid radernas ändar, till exempel för att vända med kärra eller gå runt">Fritt vid radernas ändar</label><input type="number" id="manualEnd" min="0" step="0.5"><span class="u">m</span></div>
@@ -268,13 +268,13 @@
         </div>
         <div class="r"><label for="rowW" style="flex:none;width:92px">Radlinjer</label><input type="range" id="rowW" min="0.5" max="6" step="0.5"><span class="u" id="rowWv" style="width:40px"></span></div>
         <div class="r"><label for="rowOp" style="flex:none;width:92px">Radfärg</label><input type="color" id="rowColor" title="Färg på radlinjerna"><input type="range" id="rowOp" min="10" max="100" step="5" title="Täckning"><span class="u" id="rowOpV" style="width:40px"></span></div>
-        <div class="r"><label for="ptScale" style="flex:none;width:92px">Sättpunkter</label><input type="range" id="ptScale" min="30" max="300" step="10"><span class="u" id="ptScaleV" style="width:40px"></span></div>
+        <div class="r"><label for="ptScale" style="flex:none;width:92px">Sättpunkter</label><input type="color" id="ptColor" title="Färg på sättpunkterna"><input type="range" id="ptScale" min="30" max="300" step="10"><span class="u" id="ptScaleV" style="width:40px"></span></div>
       </fieldset>
 
       <fieldset>
         <legend>Exportera</legend>
         <div class="b" style="margin-top:0">
-          <button id="btnPdf" title="Resultat och kartbild i en PDF">PDF-rapport</button>
+          <button id="btnPdf" title="Resultat och kartbild i en PDF">PDF</button>
           <button id="btnKml">KML</button>
           <button id="btnKmz">KMZ</button>
           <button id="btnIso" title="TASKDATA för ISOBUS-terminal: fältgräns, hinder och AB-linje">ISOXML</button>
@@ -305,7 +305,7 @@
           <div class="hint" style="margin-top:0">Dra i kartbilden i förhandsvisningen för att flytta den. Scrolla på den för att zooma.</div>
           <div class="r"><label for="pdfRowW" style="flex:none;width:86px">Radlinjer</label><input type="range" id="pdfRowW" min="0.5" max="6" step="0.5"><span class="u" id="pdfRowWv" style="width:40px"></span></div>
           <div class="r"><label for="pdfRowOp" style="flex:none;width:86px">Radfärg</label><input type="color" id="pdfRowColor" title="Färg på radlinjerna"><input type="range" id="pdfRowOp" min="10" max="100" step="5" title="Täckning"><span class="u" id="pdfRowOpV" style="width:40px"></span></div>
-          <div class="r"><label for="pdfPtScale" style="flex:none;width:86px">Sättpunkter</label><input type="range" id="pdfPtScale" min="30" max="300" step="10"><span class="u" id="pdfPtScaleV" style="width:40px"></span></div>
+          <div class="r"><label for="pdfPtScale" style="flex:none;width:86px">Sättpunkter</label><input type="color" id="pdfPtColor" title="Färg på sättpunkterna"><input type="range" id="pdfPtScale" min="30" max="300" step="10"><span class="u" id="pdfPtScaleV" style="width:40px"></span></div>
           <div class="r"><label for="pdfOrthoQ" style="flex:none;width:86px">Ortofoto</label>
             <select id="pdfOrthoQ">
               <option value="normal">Som i programmet (max 4000 px)</option>
@@ -363,9 +363,11 @@ function need(name){
 
 /* =================== Gränssnittsinställningar =================== */
 const UI_KEY = 'potatisplaneraren.ui';
-let ui = {sideW: 580, collapsed: false, base: 'hybrid', rowW: 2, ptScale: 100, rowColor: '#e0a42b', rowOp: 90};
+let ui = {sideW: 580, collapsed: false, base: 'hybrid', rowW: 2, ptScale: 100, rowColor: '#e0a42b', rowOp: 90, ptColor: '#ffffff'};
 try { ui = {...ui, ...JSON.parse(localStorage.getItem(UI_KEY) || '{}')}; } catch {}
 const saveUI = () => { try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch {} };
+const PDF_DEFAULT_OFF = ['memo', 'sec:Konfiguration|Sättmetod', 'sec:Utsäde|Säckar à kg', 'sec:Uppskattad skörd|Förökningsgrad'];
+if (ui.pdfDefaultsV !== 2) { ui.pdfOff = [...PDF_DEFAULT_OFF]; ui.pdfNames = {}; ui.pdfDefaultsV = 2; saveUI(); }
 
 /* =================== Sorter (riktvärden, t/ha) =================== */
 const VARIETIES = [
@@ -622,7 +624,9 @@ const PointsLayer = L.Layer.extend({
 function drawPoints(ctx, rows, spacingPx, proj, W, H){
   if (!rows || !rows.length || spacingPx < 3) return;
   const sc = (ui.ptScale || 100) / 100;
-  const r = Math.max(1, Math.min(7 * sc, spacingPx * 0.28 * sc));
+  // punkten görs alltid lite bredare än radlinjen, så att linjen aldrig täcker den
+  const minR = $('showRows').checked ? (ui.rowW || 2) / 2 + 1 : 1;
+  const r = Math.max(Math.min(minR, spacingPx * 0.45), Math.min(7 * sc, spacingPx * 0.28 * sc), 1);
   ctx.beginPath();
   for (const row of rows) {
     if (row.removed) continue;
@@ -636,8 +640,8 @@ function drawPoints(ctx, rows, spacingPx, proj, W, H){
       ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, 6.2832);
     }
   }
-  ctx.fillStyle = '#ffffff'; ctx.fill();
-  if (r >= 1.6) { ctx.strokeStyle = '#111111'; ctx.lineWidth = Math.max(0.8, r * 0.35); ctx.stroke(); }
+  ctx.fillStyle = ui.ptColor || '#ffffff'; ctx.fill();
+  ctx.strokeStyle = ptEdge(ui.ptColor); ctx.lineWidth = Math.max(0.7, Math.min(2, r * 0.35)); ctx.stroke();
 }
 function metersPerPixel(){ return 40075016.686 * Math.cos(map.getCenter().lat * DEG) / Math.pow(2, map.getZoom() + 8); }
 
@@ -937,8 +941,8 @@ function updateMethodUI(){
     ? `Raderna slutar ${fmt(s.endM, 1)} m före kanten i radernas riktning, så att du kan vända innanför den markerade ytan.`
     : 'Hela den markerade ytan sätts. Vändningarna görs utanför gränsen, så det måste finnas plats där.';
   $('manualHint').textContent = s.manualEnd > s.edge
-    ? `Raderna slutar ${fmt(s.endM, 1)} m före kanten i ändarna och ${fmt(s.edge, 2)} m från kanten längs sidorna. Kantavståndet ändrar du under Sättning.`
-    : `Hela den markerade ytan sätts, bara kantavståndet (${fmt(s.edge, 2)} m, under Sättning) lämnas fritt. Sättningstakten är ett riktvärde.`;
+    ? `Raderna slutar ${fmt(s.endM, 1)} m före kanten i ändarna och ${fmt(s.edge, 2)} m från kanten längs sidorna. Avståndet från kant ändrar du under Sättning.`
+    : `Hela den markerade ytan sätts, bara avståndet från kant (${fmt(s.edge, 2)} m, under Sättning) lämnas fritt. Sättningstakten är ett riktvärde.`;
   $('machineHint').textContent = `Arbetsbredd ${fmt(s.N * s.rs, 2)} m (${s.N} × ${fmt(s.rs * 100)} cm).`;
   $('btnStartFlip').classList.toggle('on', s.startFlip);
   $('btnDirFlip').classList.toggle('on', s.dirFlip);
@@ -1016,14 +1020,17 @@ function syncLookInputs(){
   for (const id of ['ptScale', 'pdfPtScale']) if ($(id)) $(id).value = ui.ptScale;
   $('rowWv').textContent = fmt(ui.rowW, 1) + ' px'; $('ptScaleV').textContent = ui.ptScale + ' %';
   for (const id of ['rowColor', 'pdfRowColor']) if ($(id)) $(id).value = ui.rowColor;
+  for (const id of ['ptColor', 'pdfPtColor']) if ($(id)) $(id).value = ui.ptColor;
   for (const id of ['rowOp', 'pdfRowOp']) if ($(id)) $(id).value = ui.rowOp;
   $('rowOpV').textContent = ui.rowOp + ' %';
   if ($('pdfRowWv')) { $('pdfRowWv').textContent = $('rowWv').textContent; $('pdfPtScaleV').textContent = $('ptScaleV').textContent; $('pdfRowOpV').textContent = $('rowOpV').textContent; }
 }
-for (const [id, key, num] of [['rowColor', 'rowColor', false], ['pdfRowColor', 'rowColor', false], ['rowOp', 'rowOp', true], ['pdfRowOp', 'rowOp', true]])
+for (const [id, key, num] of [['ptColor', 'ptColor', false], ['pdfPtColor', 'ptColor', false], ['rowColor', 'rowColor', false], ['pdfRowColor', 'rowColor', false], ['rowOp', 'rowOp', true], ['pdfRowOp', 'rowOp', true]])
   $(id).addEventListener('input', () => { ui[key] = num ? +$(id).value : $(id).value; syncLookInputs(); saveUI(); render(); updateStats(); if (!$('pdfDlg').hidden) schedulePreview(); });
 $('rowW').oninput = () => { ui.rowW = +$('rowW').value; syncLookInputs(); saveUI(); render(); };
 $('ptScale').oninput = () => { ui.ptScale = +$('ptScale').value; syncLookInputs(); saveUI(); plantsLayer._redraw(); };
+/* Kantfärg som syns mot vald punktfärg */
+function ptEdge(hex){ const n = parseInt((hex || '#ffffff').slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255; return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.45 ? '#ffffff' : '#111111'; }
 function applyVisibility(){
   const t = (on, layer) => on ? map.addLayer(layer) : map.removeLayer(layer);
   t($('showRows').checked, rowsLayer); t($('showPlants').checked, plantsLayer);
@@ -1334,19 +1341,19 @@ function statsModel(){
     }
     if (pi.omegas) warnings.push(`${pi.omegas} vändningar är snävare än vändradien och kräver omega- eller fiskstjärtsvändning (röda).`);
   } else if (!s.machine) {
-    sections.push({title: 'Manuell sättning', rows: [['Personer', `${fmt(s.workers)} st`], ['Takt', `${fmt(s.rate)} st/h per person`],
+    sections.push({title: 'Sättning', rows: [['Personer', `${fmt(s.workers)} st`], ['Takt', `${fmt(s.rate)} st/h per person`],
       ['Beräknad tid', hm(plants / (s.rate * s.workers) * 3600)], ['Gångsträcka längs raderna', fM(len)]]});
   }
-  sections.push({title: 'Skörd (uppskattning)', rows: [['Förväntad skörd', fKg(harvestKg)], ['Per planta', `${fmt(kgPerPlant, 2)} kg`],
+  sections.push({title: 'Uppskattad skörd', rows: [['Förväntad skörd', fKg(harvestKg)], ['Per planta', `${fmt(kgPerPlant, 2)} kg`],
     ['Förökningsgrad', seedKg > 0 ? `${fmt(harvestKg / seedKg, 1)} ×` : '–']]});
-  if (!plants) warnings.push('Inga sättpunkter får plats. Kontrollera kantavstånd, vändteg och radavstånd.');
+  if (!plants) warnings.push('Inga sättpunkter får plats. Kontrollera avstånd från kant, vändteg, radavstånd och sättavstånd.');
   return {sections, warnings, infos};
 }
 function settingsModel(){
   const s = S(), p = plan.settings;
-  const rows = [['Sättmetod', s.machine ? 'potatissättare' : 'manuellt'], ['Radavstånd', `${fmt(s.rs * 100)} cm`], ['Avstånd i raden', `${fmt(s.ps * 100)} cm`],
+  const rows = [['Sättmetod', s.machine ? 'potatissättare' : 'manuellt'], ['Radavstånd', `${fmt(s.rs * 100)} cm`], ['Sättavstånd', `${fmt(s.ps * 100)} cm`],
     ['Vikt per sättpotatis', `${fmt(s.weight)} g`], ['Radriktning', `${fmt(s.angle, 1)}° (${compassWord(s.angle)}–${compassWord(s.angle + 180)})`],
-    ['Kantavstånd', `${fmt(s.edge, 2)} m`]];
+    ['Avstånd från kant', `${fmt(s.edge, 2)} m`]];
   if (plan.excl.length) rows.push(['Hinderzoner', `${plan.excl.length} st, ${fmt(s.m2, 1)} m avstånd`]);
   if (s.machine) rows.push(['Rader per drag', `${s.N} st (${fmt(s.N * s.rs, 2)} m)`], ['Minsta vändradie', `${fmt(s.r, 1)} m`],
     ['Vändteg', s.inside ? `${fmt(s.headland, 1)} m innanför ytan` : 'utanför ytan'], ['Hastighet', `${fmt(s.speed, 1)} km/h`]);
@@ -1354,7 +1361,7 @@ function settingsModel(){
   rows.push(['Sort', p.variety], ['Förväntad avkastning', `${fmt(s.yieldTha)} t/ha`]);
   const nr = plan.removedRows.length, np = plan.removedPts.length;
   if (nr || np) rows.push(['Manuellt borttaget', `${nr} rader, ${np} punkter`]);
-  return {title: 'Inställningar', rows};
+  return {title: 'Konfiguration', rows};
 }
 function updateStats(){
   const box = $('statsBody');
@@ -1367,7 +1374,7 @@ function updateStats(){
       sec.rows.map(([a, b]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join('')).join('')}</table>
     ${m.warnings.map(w => `<div class="warn">${esc(w)}</div>`).join('')}${m.infos.map(w => `<div class="info">${esc(w)}</div>`).join('')}
     <div class="lg">${legendItems(k => ({field: $('showField').checked, rows: $('showRows').checked, plants: $('showPlants').checked, passes: $('showPasses').checked})[k]).map(it =>
-      it.kind === 'dot' ? `<span><i class="dot" style="background:#fff;border:1.5px solid #111"></i>${it.label}</span>`
+      it.kind === 'dot' ? `<span><i class="dot" style="background:${ui.ptColor || '#fff'};border:1.5px solid #111"></i>${it.label}</span>`
       : it.kind === 'field' ? `<span><i style="background:repeating-linear-gradient(90deg,#666 0 3px,#bbb 3px 5px)"></i>${it.label}</span>`
       : it.kind === 'fill' ? `<span><i style="background:${it.color};opacity:.6;height:8px"></i>${it.label}</span>`
       : `<span><i style="opacity:${it.alpha ?? 1};background:${it.dash ? `repeating-linear-gradient(90deg,${it.color} 0 4px,transparent 4px 6px)` : it.color}"></i>${it.label}</span>`).join('')}</div>
@@ -1752,7 +1759,7 @@ $('btnGeo').onclick = () => {
   const s = S(), c = p => [+p[1].toFixed(8), +p[0].toFixed(8)];
   const ring = r => { const x = r.map(c); x.push(x[0]); return x; };
   const F = (props, geometry) => ({type: 'Feature', properties: props, geometry});
-  const feats = [F({typ: 'falt', namn: plan.name, sattmetod: s.machine ? 'maskin' : 'manuell', radavstand_cm: s.rs * 100, plantavstand_cm: s.ps * 100, vinkel_grader: s.angle, vikt_g: s.weight, rader_per_drag: s.machine ? s.N : null}, {type: 'Polygon', coordinates: plan.field.map(ring)})];
+  const feats = [F({typ: 'falt', namn: plan.name, sattmetod: s.machine ? 'maskin' : 'manuell', radavstand_cm: s.rs * 100, sattavstand_cm: s.ps * 100, vinkel_grader: s.angle, vikt_g: s.weight, rader_per_drag: s.machine ? s.N : null}, {type: 'Polygon', coordinates: plan.field.map(ring)})];
   plan.excl.forEach((r, i) => feats.push(F({typ: 'hinder', nr: i + 1}, {type: 'Polygon', coordinates: [ring(r)]})));
   for (const r of geo.rows) {
     const pts = activePts(r);
@@ -1780,7 +1787,7 @@ function buildKML(withPoints){
   const line = pts => `<LineString><tessellate>1</tessellate><coordinates>${pts.map(k).join(' ')}</coordinates></LineString>`;
   const s = S();
   let x = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>${esc(plan.name)}</name>
-<description>${esc(`Radavstånd ${fmt(s.rs * 100)} cm, avstånd i rad ${fmt(s.ps * 100)} cm, radriktning ${fmt(s.angle, 1)}°` + (s.machine ? `, ${s.N} rader per drag` : ', manuell sättning'))}</description>
+<description>${esc(`Radavstånd ${fmt(s.rs * 100)} cm, sättavstånd ${fmt(s.ps * 100)} cm, radriktning ${fmt(s.angle, 1)}°` + (s.machine ? `, ${s.N} rader per drag` : ', manuell sättning'))}</description>
 <Style id="falt"><LineStyle><color>ffffffff</color><width>2</width></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
 <Style id="hinder"><LineStyle><color>ff4040ff</color><width>2</width></LineStyle><PolyStyle><color>554040ff</color></PolyStyle></Style>
 <Style id="rad"><LineStyle><color>ff2ba4e0</color><width>2</width></LineStyle></Style>
@@ -1871,7 +1878,7 @@ class CanvasPainter {
   _paint(mode){
     const c = this.ctx; c.save(); c.globalAlpha = this._alpha;
     if (mode.includes('F')) { c.fillStyle = this._fill; c.fill(); }
-    if (mode.includes('S') || mode === 'D') { c.strokeStyle = this._stroke; c.lineWidth = this._lw; c.setLineDash(this._dash); c.stroke(); }
+    if (mode.includes('S') || mode.includes('D')) { c.strokeStyle = this._stroke; c.lineWidth = this._lw; c.setLineDash(this._dash); c.stroke(); }
     c.restore();
   }
   rect(x, y, w, h, mode){ this.ctx.beginPath(); this.ctx.rect(x, y, w, h); this._paint(mode); }
@@ -1954,7 +1961,7 @@ function pdfTree(){
     {key: 'foot', label: 'Sidnummer', children: []}
   ];
 }
-const pdfOff = () => new Set(ui.pdfOff || ['memo']);
+const pdfOff = () => new Set(ui.pdfOff || PDF_DEFAULT_OFF);
 function pdfOn(key){
   const off = pdfOff();
   if (off.has(key)) return false;
@@ -2095,7 +2102,8 @@ function drawMap(P, f, o){
     P.alpha(1);
   }
   if (pdfOn('map.plants')) {
-    const r = Math.min(1.2, Math.min(psMM, rsMM) * 0.3 * ui.ptScale / 100);
+    const rowLw = pdfOn('map.rows') ? Math.max(0.03, Math.min(ui.rowW * 0.11, rsMM * 0.45)) : 0;
+    const r = Math.max(rowLw * 0.8, Math.min(1.2, Math.min(psMM, rsMM) * 0.3 * ui.ptScale / 100));
     if (r >= 0.012) {
       const pts = [];
       for (const row of geo.rows) {
@@ -2109,7 +2117,7 @@ function drawMap(P, f, o){
           if (inside(p, r)) pts.push(p);
         }
       }
-      P.fillColor('#ffffff'); P.strokeColor('#111111'); P.lineWidth(r * 0.35);
+      P.fillColor(ui.ptColor || '#ffffff'); P.strokeColor(ptEdge(ui.ptColor)); P.lineWidth(r * 0.35);
       P.circles(pts, r, 'FD');
     }
   }
@@ -2149,7 +2157,7 @@ function drawMap(P, f, o){
 function drawSwatch(P, it, lx, ly){
   if (it.kind === 'field') { P.fillColor('#6b6b6b'); P.rect(lx, ly - 2.9, 5.5, 3.2, 'F'); P.strokeColor('#ffffff'); P.lineWidth(0.4); P.dash([0.9, 0.6]); P.rect(lx + 0.7, ly - 2.3, 4.1, 2, 'S'); P.dash(null); }
   else if (it.kind === 'fill') { P.fillColor(it.color); P.alpha(0.35); P.rect(lx, ly - 2.9, 5.5, 3.2, 'F'); P.alpha(1); P.strokeColor(it.color); P.lineWidth(0.35); P.rect(lx, ly - 2.9, 5.5, 3.2, 'S'); }
-  else if (it.kind === 'dot') { P.fillColor('#ffffff'); P.strokeColor('#111111'); P.lineWidth(0.3); P.circles([[lx + 2.75, ly - 1.3]], 1.1, 'FD'); }
+  else if (it.kind === 'dot') { P.fillColor(ui.ptColor || '#ffffff'); P.strokeColor('#111111'); P.lineWidth(0.35); P.circles([[lx + 2.75, ly - 1.3]], 1.2, 'FD'); }
   else { P.strokeColor(it.color); P.lineWidth(0.7); P.alpha(it.alpha ?? 1); if (it.dash) P.dash([1, 0.7]); P.segs([[lx, ly - 1.3, lx + 5.5, ly - 1.3]]); P.dash(null); P.alpha(1); }
 }
 /* Delar upp posterna på så få rader som möjligt, med lika bredd per rad, och centrerar varje rad */
