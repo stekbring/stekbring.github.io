@@ -95,6 +95,11 @@
           <button id="btnCopy">Kopiera</button>
           <button id="btnDel">Ta bort</button>
         </div>
+        <div class="b">
+          <button id="btnSaveProj" title="Sparar planen med allt inlagt, även ortofotot, i en fil som du kan skicka till någon">Spara projektfil</button>
+          <button id="btnOpenProj" title="Öppnar en projektfil. Du kan också dra filen och släppa den på sidan.">Öppna projektfil…</button>
+          <button id="btnShare" title="Skapar en länk som öppnar planen i mottagarens webbläsare">Dela länk</button>
+        </div>
       </fieldset>
 
       <fieldset>
@@ -149,7 +154,13 @@
         <div class="b">
           <button id="btnLongest">Längs längsta kanten</button>
           <button id="btnPerp">Vrid 90°</button>
-          <button id="btnBest" title="Provar alla vinklar och väljer den som ger flest sättpotatisar">Hitta vinkeln med flest potatisar</button>
+        </div>
+        <div class="b">
+          <button data-goal="plants" title="Provar alla vinklar och väljer den som ger flest sättpotatisar">Flest potatisar</button>
+          <button data-goal="rows" title="Provar alla vinklar och väljer den som ger minst antal rader">Färst rader</button>
+        </div>
+        <div class="b">
+          <button data-goal="perRow" title="Provar alla vinklar och väljer den som ger flest sättpotatisar per rad, alltså få och långa rader">Flest potatisar per rad</button>
         </div>
       </fieldset>
 
@@ -645,6 +656,7 @@ map.on('popupopen', e => { if (tool || drawing) map.closePopup(e.popup); });
 let importMode = 'field';
 $('btnImport').onclick = () => { importMode = 'field'; $('fileIn').accept = '.geojson,.json,.kml,.kmz'; $('fileIn').click(); };
 $('btnRestore').onclick = () => { importMode = 'backup'; $('fileIn').accept = '.json'; $('fileIn').click(); };
+$('btnOpenProj').onclick = () => { importMode = 'project'; $('fileIn').accept = '.potatisplan,.json'; $('fileIn').click(); };
 $('fileIn').onchange = async e => {
   const f = e.target.files[0]; e.target.value = '';
   if (!f) return;
@@ -661,8 +673,11 @@ async function importFile(file){
   } else if (name.endsWith('.kml')) {
     res = fromKML(await file.text());
   } else {
-    const json = JSON.parse(await file.text());
+    let json;
+    try { json = JSON.parse(await file.text()); } catch { throw new Error('filen går inte att läsa som projekt eller GeoJSON'); }
+    if (json && json.app === 'potatisplaneraren' && json.type === 'projekt') return importProject(json, 'filen');
     if (json && json.app === 'potatisplaneraren' && Array.isArray(json.plans)) return importBackup(json);
+    if (importMode === 'project') throw new Error('filen är ingen projektfil från Potatisplaneraren');
     if (importMode === 'backup') throw new Error('filen är ingen backup från Potatisplaneraren');
     res = fromGeoJSON(json);
   }
@@ -714,6 +729,78 @@ function importBackup(json){
   persist(); refreshPlanUI();
   msg(`${n} planer lästes in. Välj dem i listan under Plan.`);
 }
+
+/* =================== Projektfil & delningslänk =================== */
+const blobToDataUrl = blob => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(blob); });
+async function importProject(d, source){
+  const p = d.plan;
+  if (!p || !p.settings) throw new Error('filen innehåller ingen plan');
+  const q = JSON.parse(JSON.stringify(p));
+  const existing = store.plans.find(x => x.id === q.id);
+  if (existing) {
+    if (confirm(`Planen "${existing.name}" finns redan här. Vill du ersätta den med planen från ${source}?\n\nTryck Avbryt för att öppna den som en ny plan i stället.`))
+      store.plans = store.plans.filter(x => x !== existing);
+    else { q.id = uid(); q.name = (q.name || 'Plan') + ' (delad)'; }
+  }
+  store.plans.push(q);
+  if (d.ortho && d.ortho.dataUrl) {
+    try { const blob = await (await fetch(d.ortho.dataUrl)).blob(); const rec = {...d.ortho, blob}; delete rec.dataUrl; await idb.put(q.id, rec); }
+    catch { msg('Ortofotot i projektet kunde inte läsas in.'); }
+  }
+  loadPlan(q);
+  msg(`Projektet "${q.name}" är öppnat${d.ortho ? ' med ortofoto' : ''}.`);
+}
+$('btnSaveProj').onclick = async () => {
+  const d = {app: 'potatisplaneraren', type: 'projekt', version: 4, saved: new Date().toISOString(), plan: JSON.parse(JSON.stringify(plan))};
+  try { const rec = await idb.get(plan.id); if (rec && rec.blob) { d.ortho = {...rec, dataUrl: await blobToDataUrl(rec.blob)}; delete d.ortho.blob; } } catch {}
+  download(slug() + '.potatisplan', JSON.stringify(d), 'application/json');
+  msg('Projektfilen är sparad. Mottagaren öppnar den med "Öppna projektfil…" eller genom att dra filen till sidan.' + (d.ortho ? ' Ortofotot följer med.' : ''), 12000);
+};
+const toB64url = buf => { const u8 = new Uint8Array(buf); let bin = ''; for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+const fromB64url = str => { const bin = atob(str.replace(/-/g, '+').replace(/_/g, '/')); const u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); return u8; };
+async function encodePlan(p){
+  const stream = new Blob([JSON.stringify({v: 4, plan: p})]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+  return toB64url(await new Response(stream).arrayBuffer());
+}
+async function decodePlan(str){
+  const stream = new Blob([fromB64url(str)]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return JSON.parse(await new Response(stream).text());
+}
+$('btnShare').onclick = async () => {
+  if (!plan.field) return msg('Rita eller importera ett fält först.');
+  let base = location.href.split('#')[0];
+  if (location.protocol === 'file:') {
+    const ans = prompt('Sidan är öppnad som en fil på din dator, så en länk hit fungerar inte för andra.\n\nOm sidan ligger uppe på en webbadress (till exempel din hemsida) kan du skriva in adressen här, så skapas länken till den:', ui.shareBase || 'https://');
+    if (!ans || !/^https?:\/\/.+/.test(ans.trim())) return msg('Ingen länk skapades. Du kan dela planen med "Spara projektfil" i stället.', 10000);
+    ui.shareBase = ans.trim().split('#')[0]; saveUI(); base = ui.shareBase;
+  }
+  const link = base + '#plan=' + await encodePlan(plan);
+  let copied = false;
+  try { await navigator.clipboard.writeText(link); copied = true; } catch {}
+  if (!copied) prompt('Kopiera länken:', link);
+  const long = link.length > 8000 ? ' Länken är lång eftersom planen har många borttagna punkter. Projektfilen kan vara säkrare.' : '';
+  msg((copied ? 'Länken är kopierad. Klistra in den i ett mejl eller sms.' : 'Länken är skapad.') + (ortho ? ' Ortofotot följer inte med i länken, använd projektfil för det.' : '') + long, 14000);
+};
+async function openSharedLink(){
+  const m = location.hash.match(/^#plan=([A-Za-z0-9_-]+)/);
+  if (!m) return;
+  history.replaceState(null, '', location.href.split('#')[0]);
+  try { const d = await decodePlan(m[1]); await importProject({plan: d.plan}, 'länken'); }
+  catch (err) { console.error(err); msg('Länken gick inte att öppna. Den kan ha blivit avklippt när den skickades.', 0); }
+}
+window.addEventListener('hashchange', openSharedLink);
+/* Dra och släpp filer var som helst på sidan */
+document.addEventListener('dragover', e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
+document.addEventListener('drop', async e => {
+  if (!e.dataTransfer || !e.dataTransfer.files.length) return;
+  e.preventDefault();
+  const files = [...e.dataTransfer.files];
+  const orthoFiles = files.filter(f => /\.(tiff?|jpe?g|png|jgw|pgw|tfw|wld|jpgw|pngw)$/i.test(f.name));
+  try {
+    if (orthoFiles.length) { $('orthoIn').onchange({target: {files: orthoFiles, value: ''}}); return; }
+    importMode = 'any'; await importFile(files[0]);
+  } catch (err) { msg('Kunde inte läsa filen: ' + err.message, 0); }
+});
 
 /* =================== Knappar: fält =================== */
 $('btnDraw').onclick = () => { drawKind = 'field'; new L.Draw.Polygon(map, {...polyOpts, shapeOptions: drawFieldStyle}).enable(); };
@@ -809,36 +896,48 @@ $('btnLongest').onclick = () => {
   }
   setAngle(bearing);
 };
-$('btnBest').onclick = async () => {
+/* Vinkelsökning: provar varje hel grad och sedan halvgrader runt de fem bästa */
+const ANGLE_GOALS = {
+  plants: (c, b) => (c.n - b.n) || (b.rows - c.rows),                          // flest potatisar, vid lika färre rader
+  rows: (c, b) => (b.rows - c.rows) || (c.n - b.n),                            // färst rader, vid lika fler potatisar
+  perRow: (c, b) => ((c.rows ? c.n / c.rows : 0) - (b.rows ? b.n / b.rows : 0)) || (c.n - b.n)  // flest potatisar per rad
+};
+async function findAngle(goal){
   if (!plan.field) return msg('Rita eller importera ett fält först.');
-  const base = S();
+  const base = S(), cmp = ANGLE_GOALS[goal];
   const count = a => {
     const g = computeGeo(plan.field, plan.excl, {...base, angle: a});
     if (g.tooMany) return null;
     let n = 0; for (const r of g.rows) n += r.n;
     return {a, n, rows: g.rows.length};
   };
-  // Vid lika antal vinner färre rader (längre rader, färre vändningar)
-  const better = (c, b) => c && (!b || c.n > b.n || (c.n === b.n && c.rows < b.rows));
+  const better = (c, b) => c && (!b || cmp(c, b) > 1e-9);
   const cur = count(base.angle);
   if (!cur) return msg('Fältet är för stort för att prova alla vinklar med de här avstånden.');
-  $('btnBest').disabled = true;
+  const btns = document.querySelectorAll('[data-goal]');
+  btns.forEach(b => b.disabled = true);
   try {
-    // Varje hel grad provas, sedan halvgrader runt de fem bästa
     let best = cur; const all = [];
     for (let a = 0; a < 180; a++) {
       const c = count(a); if (c) all.push(c); if (better(c, best)) best = c;
       if (a % 5 === 0) { msg(`Provar vinklar… ${Math.round(a / 180 * 100)} %`, 0); await new Promise(r => setTimeout(r, 0)); }
     }
-    all.sort((x, y) => y.n - x.n || x.rows - y.rows);
+    all.sort((x, y) => cmp(y, x));
     for (const top of all.slice(0, 5)) for (const d of [-0.5, 0.5]) { const c = count(((top.a + d) % 180 + 180) % 180); if (better(c, best)) best = c; }
     setAngle(best.a);
-    const diff = best.n - cur.n;
-    msg(diff > 0
-      ? `Bästa vinkel är ${fmt(best.a, 1)}° med ${fmt(best.n)} sättpotatisar, ${fmt(diff)} fler än vid ${fmt(base.angle, 1)}°.`
-      : `Nuvarande vinkel ${fmt(base.angle, 1)}° ger redan flest sättpotatisar (${fmt(cur.n)} st).`, 12000);
-  } finally { $('btnBest').disabled = false; }
-};
+    const same = best === cur, A = fmt(best.a, 1), A0 = fmt(base.angle, 1);
+    const per = c => c.rows ? c.n / c.rows : 0;
+    let t;
+    if (goal === 'plants') t = same ? `Nuvarande vinkel ${A0}° ger redan flest sättpotatisar (${fmt(cur.n)} st).`
+      : `Flest potatisar vid ${A}°: ${fmt(best.n)} st, ${fmt(best.n - cur.n)} fler än vid ${A0}°. Det blir ${fmt(best.rows)} rader.`;
+    else if (goal === 'rows') t = same ? `Nuvarande vinkel ${A0}° ger redan färst rader (${fmt(cur.rows)} st).`
+      : `Färst rader vid ${A}°: ${fmt(best.rows)} rader, ${fmt(cur.rows - best.rows)} färre än vid ${A0}°. Det blir ${fmt(best.n)} sättpotatisar (${best.n >= cur.n ? '+' : '−'}${fmt(Math.abs(best.n - cur.n))}).`;
+    else t = same ? `Nuvarande vinkel ${A0}° ger redan flest potatisar per rad (${fmt(per(cur), 1)} st per rad).`
+      : `Flest potatisar per rad vid ${A}°: ${fmt(per(best), 1)} st per rad (${fmt(best.rows)} rader, ${fmt(best.n)} potatisar). Vid ${A0}° var det ${fmt(per(cur), 1)} st per rad.`;
+    msg(t, 15000);
+  } finally { btns.forEach(b => b.disabled = false); }
+}
+document.querySelectorAll('[data-goal]').forEach(b => b.onclick = () => findAngle(b.dataset.goal));
 function setAngle(a){
   a = Math.round((((a % 180) + 180) % 180) * 2) / 2;
   plan.settings.angle = a; $('angle').value = a; $('angleRange').value = a;
@@ -1746,6 +1845,7 @@ $('statsPdf').onclick = exportPDF;
 /* =================== Start =================== */
 loadStore();
 loadPlan(store.plans.find(p => p.id === store.current) || store.plans[0]);
+openSharedLink();
 </script>
 </body>
 </html>
