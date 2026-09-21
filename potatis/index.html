@@ -266,9 +266,9 @@
           <label class="machine-only"><input type="checkbox" id="showPasses" checked> Körspår</label>
           <label><input type="checkbox" id="showField" checked> Fält &amp; hinder</label>
         </div>
-        <div class="r"><label for="rowW" style="flex:none;width:92px">Radlinjer</label><input type="range" id="rowW" min="0.5" max="6" step="0.5"><span class="u" id="rowWv" style="width:40px"></span></div>
-        <div class="r"><label for="rowOp" style="flex:none;width:92px">Radfärg</label><input type="color" id="rowColor" title="Färg på radlinjerna"><input type="range" id="rowOp" min="10" max="100" step="5" title="Täckning"><span class="u" id="rowOpV" style="width:40px"></span></div>
-        <div class="r"><label for="ptScale" style="flex:none;width:92px">Sättpunkter</label><input type="color" id="ptColor" title="Färg på sättpunkterna"><input type="range" id="ptScale" min="30" max="300" step="10"><span class="u" id="ptScaleV" style="width:40px"></span></div>
+        <div class="r"><label for="rowW" style="flex:none;width:92px">Radlinjer</label><input type="range" id="rowW" min="0.5" max="12" step="0.5"><span class="u" id="rowWv" style="width:40px"></span></div>
+        <div class="r"><label for="rowOp" style="flex:none;width:92px">Radfärg</label><input type="color" id="rowColor" title="Färg på radlinjerna"><input type="range" id="rowOp" min="1" max="100" step="5" title="Täckning"><span class="u" id="rowOpV" style="width:40px"></span></div>
+        <div class="r"><label for="ptScale" style="flex:none;width:92px">Sättpunkter</label><input type="color" id="ptColor" title="Färg på sättpunkterna"><input type="range" id="ptScale" min="1" max="300" step="10"><span class="u" id="ptScaleV" style="width:40px"></span></div>
       </fieldset>
 
       <fieldset>
@@ -303,9 +303,9 @@
           <legend>Kartbild</legend>
           <div class="r"><label for="pdfZoom" style="flex:none">Zoom</label><button id="pdfZout">−</button><input type="range" id="pdfZoom" min="-3" max="5" step="0.05" value="0"><button id="pdfZin">+</button><button id="pdfFit" title="Anpassa så att hela fältet syns">Anpassa</button></div>
           <div class="hint" style="margin-top:0">Dra i kartbilden i förhandsvisningen för att flytta den. Scrolla på den för att zooma.</div>
-          <div class="r"><label for="pdfRowW" style="flex:none;width:86px">Radlinjer</label><input type="range" id="pdfRowW" min="0.5" max="6" step="0.5"><span class="u" id="pdfRowWv" style="width:40px"></span></div>
+          <div class="r"><label for="pdfRowW" style="flex:none;width:86px">Radlinjer</label><input type="range" id="pdfRowW" min="0.5" max="12" step="0.5"><span class="u" id="pdfRowWv" style="width:40px"></span></div>
           <div class="r"><label for="pdfRowOp" style="flex:none;width:86px">Radfärg</label><input type="color" id="pdfRowColor" title="Färg på radlinjerna"><input type="range" id="pdfRowOp" min="10" max="100" step="5" title="Täckning"><span class="u" id="pdfRowOpV" style="width:40px"></span></div>
-          <div class="r"><label for="pdfPtScale" style="flex:none;width:86px">Sättpunkter</label><input type="color" id="pdfPtColor" title="Färg på sättpunkterna"><input type="range" id="pdfPtScale" min="30" max="300" step="10"><span class="u" id="pdfPtScaleV" style="width:40px"></span></div>
+          <div class="r"><label for="pdfPtScale" style="flex:none;width:86px">Sättpunkter</label><input type="color" id="pdfPtColor" title="Färg på sättpunkterna"><input type="range" id="pdfPtScale" min="1" max="300" step="10"><span class="u" id="pdfPtScaleV" style="width:40px"></span></div>
           <div class="r"><label for="pdfOrthoQ" style="flex:none;width:86px">Ortofoto</label>
             <select id="pdfOrthoQ">
               <option value="normal">Som i programmet (max 4000 px)</option>
@@ -602,7 +602,7 @@ const PointsLayer = L.Layer.extend({
   onAdd(map){
     this._c = L.DomUtil.create('canvas', 'leaflet-zoom-hide');
     this._c.style.pointerEvents = 'none'; this._c.style.zIndex = 5;   // alltid ovanför rader och körspår
-    map.getPanes().overlayPane.appendChild(this._c);
+    map.getPanes().markerPane.appendChild(this._c);
     map.on('moveend zoomend resize', this._reset, this);
     this._reset();
   },
@@ -624,9 +624,9 @@ const PointsLayer = L.Layer.extend({
 function drawPoints(ctx, rows, spacingPx, proj, W, H){
   if (!rows || !rows.length || spacingPx < 3) return;
   const sc = (ui.ptScale || 100) / 100;
-  // punkten görs alltid lite bredare än radlinjen, så att linjen aldrig täcker den
   const minR = $('showRows').checked ? (ui.rowW || 2) / 2 + 1 : 1;
-  const r = Math.max(Math.min(minR, spacingPx * 0.45), Math.min(7 * sc, spacingPx * 0.28 * sc), 1);
+  const baseR = Math.max(Math.min(minR, spacingPx * 0.45), Math.min(7, spacingPx * 0.28));
+  const r = Math.max(baseR * sc, 1); // Byt ut 1 mot din önskade absoluta minsta pixelstorlek om du vill
   ctx.beginPath();
   for (const row of rows) {
     if (row.removed) continue;
@@ -2102,8 +2102,12 @@ function drawMap(P, f, o){
     P.alpha(1);
   }
   if (pdfOn('map.plants')) {
-    const rowLw = pdfOn('map.rows') ? Math.max(0.03, Math.min(ui.rowW * 0.11, rsMM * 0.45)) : 0;
-    const r = Math.max(rowLw * 0.8, Math.min(1.2, Math.min(psMM, rsMM) * 0.3 * ui.ptScale / 100));
+    const sc = (ui.ptScale || 100) / 100;
+    const px = 0.11; // Skalfaktor för PDF som visuellt motsvarar 1 skärmpixel
+    const rowLw = pdfOn('map.rows') ? Math.max(0.03, Math.min(ui.rowW * px, rsMM * 0.45)) : 0;
+    const minR = pdfOn('map.rows') ? (rowLw / 2 + px) : px;
+    const baseR = Math.max(Math.min(minR, psMM * 0.45), Math.min(7 * px, psMM * 0.28));
+    const r = Math.max(baseR * sc, px);
     if (r >= 0.012) {
       const pts = [];
       for (const row of geo.rows) {
