@@ -70,6 +70,8 @@
   .pass-icon div{font:bold 11px Georgia,serif;color:#fff;text-shadow:0 0 3px #000,0 0 2px #000,0 0 1px #000;white-space:nowrap;display:flex;align-items:center;gap:2px;justify-content:center}
   .pass-icon .arr{display:inline-block;color:#8fd6ff}
   .hide-pl .pass-icon{display:none}
+  .part-icon div{background:rgba(0,0,0,.55);color:#fff;border:1px solid #fff;font:bold 10px Georgia,serif;padding:1px 4px;text-align:center;white-space:nowrap;border-radius:3px}
+  #partsList a{color:#004a9f}
   .se-icon div{background:#fff;border:1px solid #000;font:bold 11px Georgia,serif;padding:1px 4px;text-align:center;white-space:nowrap}
   body.tool-on #map{cursor:crosshair}
   body.dragging, body.dragging *{cursor:col-resize !important;user-select:none}
@@ -130,6 +132,7 @@
           <button id="btnDraw">Rita fält</button>
           <button id="btnImport">Importera fil…</button>
           <button id="btnExcl" title="Rita ett område som inte ska sättas (sten, brunn, blöt svacka)">Rita hinderzon</button>
+          <button id="btnRoad" title="Rita en väg: inget sätts där, men sättaren får köra och vända på den">Rita väg</button>
           <button id="btnFit">Visa fältet</button>
           <button id="btnClear">Radera fält</button>
         </div>
@@ -149,6 +152,7 @@
         <div class="r"><label for="bagKg">Säckstorlek</label><input type="number" id="bagKg" min="1" step="1"><span class="u">kg</span></div>
         <div class="r"><label for="edgeMargin" title="Minsta avstånd från den markerade gränsen till en sättpotatis">Avstånd från kant</label><input type="number" id="edgeMargin" min="0" step="0.1"><span class="u">m</span></div>
         <div class="r"><label for="obstacleMargin">Avstånd runt hinder</label><input type="number" id="obstacleMargin" min="0" step="0.1"><span class="u">m</span></div>
+        <div class="r"><label for="roadMargin" title="Avstånd från en väg till närmaste sättpotatis">Avstånd till väg</label><input type="number" id="roadMargin" min="0" step="0.1"><span class="u">m</span></div>
         <div class="r"><label for="offset">Sidoförskjutning av rader</label><input type="number" id="offset" step="1"><span class="u">cm</span></div>
       </fieldset>
 
@@ -184,6 +188,13 @@
         <div class="b">
           <button data-goal="perRow" title="Provar alla vinklar och väljer den som ger flest sättpotatisar per rad, alltså få och långa rader">Flest potatisar per rad</button>
         </div>
+      </fieldset>
+
+      <fieldset id="partsBox" hidden>
+        <legend>Delområden</legend>
+        <div class="hint" style="margin-top:0">Hinder och vägar som går tvärs över fältet delar upp det. Varje del kan få en egen radriktning.</div>
+        <div id="partsList"></div>
+        <div class="b"><button id="btnPartsReset">Alla följer fältets vinkel</button></div>
       </fieldset>
 
       <fieldset>
@@ -268,6 +279,13 @@
         </div>
         <div class="r"><label for="rowW" style="flex:none;width:92px">Radlinjer</label><input type="range" id="rowW" min="0.5" max="12" step="0.5"><span class="u" id="rowWv" style="width:40px"></span></div>
         <div class="r"><label for="rowOp" style="flex:none;width:92px">Radfärg</label><input type="color" id="rowColor" title="Färg på radlinjerna"><input type="range" id="rowOp" min="1" max="100" step="5" title="Täckning"><span class="u" id="rowOpV" style="width:40px"></span></div>
+        <div class="r"><label for="ptMode" style="flex:none;width:92px">Punkter visas</label>
+          <select id="ptMode" title="När sättpunkterna ska ritas ut på kartan">
+            <option value="auto">Vid inzoomning</option>
+            <option value="always">Alltid</option>
+            <option value="never">Aldrig</option>
+          </select></div>
+        <div class="r" id="ptMinRow"><label for="ptMinPx" style="flex:none;width:92px" title="Sättpunkterna visas när avståndet mellan dem är minst så här många bildpunkter på skärmen">Visa från</label><input type="range" id="ptMinPx" min="3" max="30" step="1"><span class="u" id="ptMinPxV" style="width:40px"></span></div>
         <div class="r"><label for="ptScale" style="flex:none;width:92px">Sättpunkter</label><input type="color" id="ptColor" title="Färg på sättpunkterna"><input type="range" id="ptScale" min="1" max="300" step="10"><span class="u" id="ptScaleV" style="width:40px"></span></div>
       </fieldset>
 
@@ -363,7 +381,7 @@ function need(name){
 
 /* =================== Gränssnittsinställningar =================== */
 const UI_KEY = 'potatisplaneraren.ui';
-let ui = {sideW: 580, collapsed: false, base: 'hybrid', rowW: 2, ptScale: 100, rowColor: '#e0a42b', rowOp: 90, ptColor: '#ffffff'};
+let ui = {sideW: 580, collapsed: false, base: 'hybrid', rowW: 2, ptScale: 100, rowColor: '#e0a42b', rowOp: 90, ptColor: '#ffffff', ptMode: 'auto', ptMinPx: 8};
 try { ui = {...ui, ...JSON.parse(localStorage.getItem(UI_KEY) || '{}')}; } catch {}
 const saveUI = () => { try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch {} };
 const PDF_DEFAULT_OFF = ['memo', 'sec:Konfiguration|Sättmetod', 'sec:Utsäde|Säckar à kg', 'sec:Uppskattad skörd|Förökningsgrad'];
@@ -401,15 +419,15 @@ $('orthoCrs').innerHTML = '<option value="">Automatiskt (från filen)</option>' 
 const ORTHO_HINT = 'GeoTIFF, eller JPG/PNG tillsammans med sin world-fil (.jgw/.pgw). Markera båda filerna samtidigt. Bilden sparas i webbläsaren för den här planen.';
 
 /* =================== Planer & lagring =================== */
-const DEFAULTS = {rowSpacing: 75, plantSpacing: 30, weight: 60, bagKg: 25, edgeMargin: 0.3, obstacleMargin: 0.5, offset: 0, angle: 0,
+const DEFAULTS = {rowSpacing: 75, plantSpacing: 30, weight: 60, bagKg: 25, edgeMargin: 0.3, obstacleMargin: 0.5, roadMargin: 0.3, offset: 0, angle: 0,
   method: 'machine', rowsPerPass: 2, turnRadius: 5, speed: 5, turnMode: 'auto', headland: 6, headlandInside: true,
   plantRate: 500, workers: 2, manualEnd: 0, variety: 'Amandine (tidig)', yieldTha: 30, startFlip: false, dirFlip: false};
-const SETTING_IDS = ['rowSpacing', 'plantSpacing', 'weight', 'bagKg', 'edgeMargin', 'obstacleMargin', 'offset', 'angle',
+const SETTING_IDS = ['rowSpacing', 'plantSpacing', 'weight', 'bagKg', 'edgeMargin', 'obstacleMargin', 'roadMargin', 'offset', 'angle',
   'rowsPerPass', 'turnRadius', 'speed', 'turnMode', 'headland', 'plantRate', 'workers', 'manualEnd', 'variety', 'yieldTha'];
 const STORE = 'potatisplaneraren.v2';
 const uid = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 function newPlan(name, baseSettings){
-  return {id: uid(), name, field: null, excl: [], settings: {...DEFAULTS, ...(baseSettings || {})}, removedRows: [], removedPts: [], updated: Date.now()};
+  return {id: uid(), name, field: null, zones: [], partAngles: [], settings: {...DEFAULTS, ...(baseSettings || {})}, removedRows: [], removedPts: [], updated: Date.now()};
 }
 let store = {current: null, plans: []};
 let plan = null;
@@ -450,7 +468,10 @@ function fillInputs(){
 function loadPlan(p, fit = true){
   plan = p; store.current = p.id; undoStack = [];
   plan.settings = {...DEFAULTS, ...plan.settings};
-  plan.excl = plan.excl || []; plan.removedRows = plan.removedRows || []; plan.removedPts = plan.removedPts || [];
+  if (!plan.zones) plan.zones = (plan.excl || []).map(r => ({ring: r, type: 'hinder'}));   // äldre planer
+  delete plan.excl;
+  plan.partAngles = plan.partAngles || [];
+  plan.removedRows = plan.removedRows || []; plan.removedPts = plan.removedPts || [];
   fillInputs();
   geoKey = ''; geo = null;
   rebuildEditGroup();
@@ -621,8 +642,15 @@ const PointsLayer = L.Layer.extend({
     drawPoints(ctx, this._rows, this._ps / metersPerPixel(), ll => m.latLngToContainerPoint(ll), S.x, S.y);
   }
 });
+/* Sättpunkterna ritas bara när de hinner bli tydliga: annars blir kartan grötig och långsam */
+function pointsVisible(spacingPx){
+  if (ui.ptMode === 'never') return false;
+  if (ui.ptMode === 'always') return true;
+  return spacingPx >= (ui.ptMinPx || 8);
+}
 function drawPoints(ctx, rows, spacingPx, proj, W, H){
-  if (!rows || !rows.length || spacingPx < 3) return;
+  if (!rows || !rows.length || !pointsVisible(spacingPx)) return;
+  if (ui.ptMode !== 'always' && spacingPx < 0.6) return;
   const sc = (ui.ptScale || 100) / 100;
   const minR = $('showRows').checked ? (ui.rowW || 2) / 2 + 1 : 1;
   const baseR = Math.max(Math.min(minR, spacingPx * 0.45), Math.min(7, spacingPx * 0.28));
@@ -647,6 +675,8 @@ function metersPerPixel(){ return 40075016.686 * Math.cos(map.getCenter().lat * 
 
 const fieldStyle = {color: '#ffffff', weight: 2, fillColor: '#ffffff', fillOpacity: 0.05, dashArray: '6 4'};
 const exclStyle = {color: '#ff4040', weight: 2, fillColor: '#ff4040', fillOpacity: 0.25};
+const roadStyle = {color: '#d8d8d8', weight: 2, fillColor: '#bfc4c9', fillOpacity: 0.45, dashArray: '6 4'};
+const zoneStyle = z => z.type === 'vag' ? roadStyle : exclStyle;
 const editGroup = new L.FeatureGroup().addTo(map);
 const vecRenderer = L.canvas({padding: 0.3, tolerance: 4});
 const rowsLayer = L.layerGroup().addTo(map);
@@ -668,6 +698,7 @@ const vertexIcon = new L.DivIcon({iconSize: new L.Point(14, 14), className: 'lea
 for (const cls of [L.Draw.Polyline, L.Draw.Polygon, L.Edit.PolyVerticesEdit]) { cls.prototype.options.icon = vertexIcon; cls.prototype.options.touchIcon = vertexIcon; }
 const drawFieldStyle = {color: '#ffffff', weight: 2, fill: true, fillColor: '#ffffff', fillOpacity: 0.3};
 const drawExclStyle = {color: '#ff4040', weight: 2, fill: true, fillColor: '#ff4040', fillOpacity: 0.4};
+const drawRoadStyle = {color: '#ffffff', weight: 2, fill: true, fillColor: '#c8ccd1', fillOpacity: 0.5};
 const polyOpts = {allowIntersection: false, showArea: false, shapeOptions: drawFieldStyle};
 map.addControl(new L.Control.Draw({
   position: 'topleft',
@@ -682,8 +713,8 @@ map.on('draw:drawstop draw:deletestop', () => { drawing = false; drawKind = 'fie
 map.on('draw:editstop', () => { drawing = false; syncFromGroup(); regenerate(); save(); });
 map.on(L.Draw.Event.CREATED, e => {
   const rings = layerRings(e.layer);
-  if (drawKind === 'excl') { pushUndo(); plan.excl.push(rings[0]); }
-  else { plan.field = rings; plan.removedRows = []; plan.removedPts = []; undoStack = []; }
+  if (drawKind === 'excl' || drawKind === 'road') { pushUndo(); plan.zones.push({ring: rings[0], type: drawKind === 'road' ? 'vag' : 'hinder'}); }
+  else { plan.field = rings; plan.removedRows = []; plan.removedPts = []; plan.partAngles = []; undoStack = []; }
   rebuildEditGroup(); regenerate(); save();
 });
 map.on(L.Draw.Event.EDITED, () => { syncFromGroup(); regenerate(); save(); });
@@ -699,20 +730,26 @@ function layerRings(layer){
 function rebuildEditGroup(){
   editGroup.clearLayers();
   if (plan.field) { const f = L.polygon(plan.field, fieldStyle); f._kind = 'field'; editGroup.addLayer(f); }
-  plan.excl.forEach(ring => {
-    const x = L.polygon(ring, exclStyle); x._kind = 'excl';
+  (plan.zones || []).forEach(z => {
+    const x = L.polygon(z.ring, zoneStyle(z)); x._kind = 'zone'; x._zone = z;
     const div = document.createElement('div');
-    div.innerHTML = '<b>Hinderzon</b><br>';
-    const b = document.createElement('button'); b.textContent = 'Ta bort hinderzon';
-    b.onclick = () => { pushUndo(); plan.excl = plan.excl.filter(r => r !== ring); map.closePopup(); rebuildEditGroup(); regenerate(); save(); };
-    div.appendChild(b); x.bindPopup(div);
+    div.innerHTML = `<b>${z.type === 'vag' ? 'Väg' : 'Hinderzon'}</b><br>`;
+    const t = document.createElement('button');
+    t.textContent = z.type === 'vag' ? 'Gör om till hinderzon' : 'Gör om till väg';
+    t.onclick = () => { pushUndo(); z.type = z.type === 'vag' ? 'hinder' : 'vag'; map.closePopup(); rebuildEditGroup(); regenerate(); save(); };
+    const b = document.createElement('button'); b.textContent = 'Ta bort';
+    b.onclick = () => { pushUndo(); plan.zones = plan.zones.filter(q => q !== z); map.closePopup(); rebuildEditGroup(); regenerate(); save(); };
+    div.appendChild(t); div.appendChild(document.createTextNode(' ')); div.appendChild(b); x.bindPopup(div);
     editGroup.addLayer(x);
   });
 }
 function syncFromGroup(){
-  let field = null; const excl = [];
-  editGroup.eachLayer(l => { if (l._kind === 'field') field = layerRings(l); else excl.push(layerRings(l)[0]); });
-  plan.field = field; plan.excl = excl;
+  let field = null; const zones = [];
+  editGroup.eachLayer(l => {
+    if (l._kind === 'field') field = layerRings(l);
+    else if (l._zone) { l._zone.ring = layerRings(l)[0]; zones.push(l._zone); }
+  });
+  plan.field = field; plan.zones = zones;
 }
 map.on('popupopen', e => { if (tool || drawing) map.closePopup(e.popup); });
 
@@ -748,7 +785,8 @@ async function importFile(file){
   if (!res || !res.field || !res.field[0] || res.field[0].length < 3) throw new Error('hittade ingen polygon');
   const clean = r => { const a = r[0], b = r[r.length - 1]; return (a[0] === b[0] && a[1] === b[1]) ? r.slice(0, -1) : r; };
   plan.field = res.field.map(clean);
-  plan.excl = (res.excl || []).map(clean);
+  plan.zones = (res.zones || []).map(z => ({ring: clean(z.ring), type: z.type}));
+  plan.partAngles = [];
   plan.removedRows = []; plan.removedPts = []; undoStack = [];
   if (/^(Ny plan|Min första plan)/.test(plan.name)) { plan.name = file.name.replace(/\.[^.]+$/, ''); refreshPlanUI(); }
   rebuildEditGroup();
@@ -763,12 +801,15 @@ function fromGeoJSON(g){
     if (o.type === 'FeatureCollection') o.features.forEach(f => walk(f));
     else if (o.type === 'Feature') walk(o.geometry, o.properties || {});
     else if (o.type === 'GeometryCollection') o.geometries.forEach(x => walk(x, props));
-    else if (o.type === 'Polygon') (props && props.typ === 'hinder' ? excl : polys).push(o.coordinates);
-    else if (o.type === 'MultiPolygon') o.coordinates.forEach(c => (props && props.typ === 'hinder' ? excl : polys).push(c));
+    else if (o.type === 'Polygon' || o.type === 'MultiPolygon') {
+      const t = props && (props.typ === 'hinder' || props.typ === 'vag') ? props.typ : null;
+      const list = o.type === 'Polygon' ? [o.coordinates] : o.coordinates;
+      for (const c of list) (t ? excl : polys).push(t ? {coords: c, type: t} : c);
+    }
   })(g);
   const conv = poly => poly.map(r => r.map(c => [c[1], c[0]]));
   if (!polys.length) return null;
-  return {field: conv(polys[0]), excl: excl.map(p => conv(p)[0]), count: polys.length};
+  return {field: conv(polys[0]), zones: excl.map(z => ({ring: conv(z.coords)[0], type: z.type})), count: polys.length};
 }
 function fromKML(text){
   const doc = new DOMParser().parseFromString(text, 'text/xml');
@@ -780,7 +821,7 @@ function fromKML(text){
   const poly = polys[0];
   const rings = [parse(poly.getElementsByTagName('outerBoundaryIs')[0])];
   for (const ib of poly.getElementsByTagName('innerBoundaryIs')) rings.push(parse(ib));
-  return {field: rings, excl: [], count: polys.length};
+  return {field: rings, zones: [], count: polys.length};
 }
 function importBackup(json){
   let n = 0;
@@ -873,11 +914,16 @@ $('btnExcl').onclick = () => {
   drawKind = 'excl'; new L.Draw.Polygon(map, {...polyOpts, shapeOptions: drawExclStyle}).enable();
   msg('Rita hinderzonen. Klicka på första punkten för att stänga den.');
 };
+$('btnRoad').onclick = () => {
+  if (!plan.field) return msg('Rita eller importera ett fält först.');
+  drawKind = 'road'; new L.Draw.Polygon(map, {...polyOpts, shapeOptions: drawRoadStyle}).enable();
+  msg('Rita vägen som ett område. Inget sätts på vägen, men sättaren får köra och vända där.');
+};
 $('btnFit').onclick = () => { if (plan.field) map.fitBounds(L.polygon(plan.field).getBounds(), {padding: [30, 30]}); };
 $('btnClear').onclick = () => {
   if (!plan.field) return;
   if (!confirm('Radera fältet, hinderzonerna och alla borttagningar i den här planen?')) return;
-  plan.field = null; plan.excl = []; plan.removedRows = []; plan.removedPts = []; undoStack = [];
+  plan.field = null; plan.zones = []; plan.partAngles = []; plan.removedRows = []; plan.removedPts = []; undoStack = [];
   rebuildEditGroup(); regenerate(); save();
 };
 $('btnLocate').onclick = () => map.locate({setView: true, maxZoom: 17});
@@ -907,7 +953,7 @@ function S(){
     endM: inside ? Math.max(edge, headland) : !machine ? Math.max(edge, manualEnd) : edge,
     rs: Math.max(0.1, n('rowSpacing', 75) / 100), ps: Math.max(0.05, n('plantSpacing', 30) / 100),
     weight: Math.max(0, n('weight', 60)), bag: Math.max(0.1, n('bagKg', 25)),
-    m2: Math.max(0, n('obstacleMargin', 0)), off: n('offset', 0) / 100,
+    m2: Math.max(0, n('obstacleMargin', 0)), mRoad: Math.max(0, n('roadMargin', 0)), off: n('offset', 0) / 100,
     angle: ((n('angle', 0) % 180) + 180) % 180,
     N: Math.max(1, Math.round(n('rowsPerPass', 2))), r: Math.max(0, n('turnRadius', 5)), speed: Math.max(0.5, n('speed', 5)),
     mode: p.turnMode || 'auto', yieldTha: Math.max(0, n('yieldTha', 30)),
@@ -968,37 +1014,51 @@ const ANGLE_GOALS = {
 };
 async function findAngle(goal){
   if (!plan.field) return msg('Rita eller importera ett fält först.');
+  if (!geo || geo.tooMany || !geoMask) return msg('Fältet är för stort för att prova alla vinklar med de här avstånden.');
   const base = S(), cmp = ANGLE_GOALS[goal];
-  const count = a => {
-    const g = computeGeo(plan.field, plan.excl, {...base, angle: a});
-    if (g.tooMany) return null;
+  const parts = geo.parts.map(g => g.part);
+  const count = (part, a) => {
+    const g = buildPartGeo(geoCtx, geoMask, part, base, a);
     let n = 0; for (const r of g.rows) n += r.n;
     return {a, n, rows: g.rows.length};
   };
   const better = (c, b) => c && (!b || cmp(c, b) > 1e-9);
-  const cur = count(base.angle);
-  if (!cur) return msg('Fältet är för stort för att prova alla vinklar med de här avstånden.');
+  const per = c => c.rows ? c.n / c.rows : 0;
   const btns = document.querySelectorAll('[data-goal]');
   btns.forEach(b => b.disabled = true);
   try {
-    let best = cur; const all = [];
-    for (let a = 0; a < 180; a++) {
-      const c = count(a); if (c) all.push(c); if (better(c, best)) best = c;
-      if (a % 5 === 0) { msg(`Provar vinklar… ${Math.round(a / 180 * 100)} %`, 0); await new Promise(r => setTimeout(r, 0)); }
+    const results = [];
+    for (const [pi, part] of parts.entries()) {
+      const cur = count(part, partAngle(part, base.angle));
+      let best = cur; const all = [];
+      for (let a = 0; a < 180; a++) {
+        const c = count(part, a); all.push(c); if (better(c, best)) best = c;
+        if (a % 5 === 0) {
+          msg(parts.length > 1 ? `Provar vinklar för del ${part.no} av ${parts.length}… ${Math.round(a / 180 * 100)} %` : `Provar vinklar… ${Math.round(a / 180 * 100)} %`, 0);
+          await new Promise(r => setTimeout(r, 0));
+        }
+      }
+      all.sort((x, y) => cmp(y, x));
+      for (const top of all.slice(0, 5)) for (const d of [-0.5, 0.5]) { const c = count(part, ((top.a + d) % 180 + 180) % 180); if (better(c, best)) best = c; }
+      results.push({part, cur, best});
     }
-    all.sort((x, y) => cmp(y, x));
-    for (const top of all.slice(0, 5)) for (const d of [-0.5, 0.5]) { const c = count(((top.a + d) % 180 + 180) % 180); if (better(c, best)) best = c; }
-    setAngle(best.a);
-    const same = best === cur, A = fmt(best.a, 1), A0 = fmt(base.angle, 1);
-    const per = c => c.rows ? c.n / c.rows : 0;
+    const tot = k => results.reduce((a, r) => a + r[k === 'curN' || k === 'curR' ? 'cur' : 'best'][k.endsWith('N') ? 'n' : 'rows'], 0);
+    const curN = tot('curN'), curR = tot('curR'), bestN = tot('bestN'), bestR = tot('bestR');
+    if (parts.length === 1) setAngle(results[0].best.a);
+    else { for (const r of results) setPartAngle(r.part, r.best.a); geoKey = ''; regenerate(); save(); }
+    const same = results.every(r => Math.abs(r.best.a - r.cur.a) < 1e-9);
+    const list = parts.length > 1 ? ' Vinklar: ' + results.map(r => `del ${r.part.no} ${fmt(r.best.a, 1)}°`).join(', ') + '.' : '';
+    const A = fmt(results[0].best.a, 1), A0 = fmt(results[0].cur.a, 1);
     let t;
-    if (goal === 'plants') t = same ? `Nuvarande vinkel ${A0}° ger redan flest sättpotatisar (${fmt(cur.n)} st).`
-      : `Flest potatisar vid ${A}°: ${fmt(best.n)} st, ${fmt(best.n - cur.n)} fler än vid ${A0}°. Det blir ${fmt(best.rows)} rader.`;
-    else if (goal === 'rows') t = same ? `Nuvarande vinkel ${A0}° ger redan färst rader (${fmt(cur.rows)} st).`
-      : `Färst rader vid ${A}°: ${fmt(best.rows)} rader, ${fmt(cur.rows - best.rows)} färre än vid ${A0}°. Det blir ${fmt(best.n)} sättpotatisar (${best.n >= cur.n ? '+' : '−'}${fmt(Math.abs(best.n - cur.n))}).`;
-    else t = same ? `Nuvarande vinkel ${A0}° ger redan flest potatisar per rad (${fmt(per(cur), 1)} st per rad).`
-      : `Flest potatisar per rad vid ${A}°: ${fmt(per(best), 1)} st per rad (${fmt(best.rows)} rader, ${fmt(best.n)} potatisar). Vid ${A0}° var det ${fmt(per(cur), 1)} st per rad.`;
-    msg(t, 15000);
+    if (same) t = parts.length > 1
+      ? `Nuvarande vinklar ger redan bäst resultat (${fmt(curN)} potatisar på ${fmt(curR)} rader).${list}`
+      : goal === 'rows' ? `Nuvarande vinkel ${A0}° ger redan färst rader (${fmt(curR)} st).`
+      : goal === 'plants' ? `Nuvarande vinkel ${A0}° ger redan flest sättpotatisar (${fmt(curN)} st).`
+      : `Nuvarande vinkel ${A0}° ger redan flest potatisar per rad (${fmt(curN / Math.max(1, curR), 1)} st per rad).`;
+    else if (goal === 'plants') t = `Flest potatisar${parts.length > 1 ? '' : ' vid ' + A + '°'}: ${fmt(bestN)} st, ${fmt(bestN - curN)} fler än förut. Det blir ${fmt(bestR)} rader.${list}`;
+    else if (goal === 'rows') t = `Färst rader${parts.length > 1 ? '' : ' vid ' + A + '°'}: ${fmt(bestR)} rader, ${fmt(curR - bestR)} färre än förut. Det blir ${fmt(bestN)} sättpotatisar (${bestN >= curN ? '+' : '−'}${fmt(Math.abs(bestN - curN))}).${list}`;
+    else t = `Flest potatisar per rad${parts.length > 1 ? '' : ' vid ' + A + '°'}: ${fmt(bestN / Math.max(1, bestR), 1)} st per rad (${fmt(bestR)} rader, ${fmt(bestN)} potatisar). Förut ${fmt(curN / Math.max(1, curR), 1)} st per rad.${list}`;
+    msg(t, 20000);
   } finally { btns.forEach(b => b.disabled = false); }
 }
 document.querySelectorAll('[data-goal]').forEach(b => b.onclick = () => findAngle(b.dataset.goal));
@@ -1009,6 +1069,35 @@ function setAngle(a){
 }
 $('btnStartFlip').onclick = () => { plan.settings.startFlip = !plan.settings.startFlip; updateMethodUI(); regenerate(); save(); };
 $('btnDirFlip').onclick = () => { plan.settings.dirFlip = !plan.settings.dirFlip; updateMethodUI(); regenerate(); save(); };
+/* Lista över delområden med egen vinkel */
+function renderParts(){
+  const box = $('partsBox');
+  if (!geo || geo.tooMany || !geo.parts || geo.parts.length < 2) { box.hidden = true; return; }
+  box.hidden = false;
+  const s = S();
+  $('partsList').innerHTML = geo.parts.map(g => {
+    const own = plan.partAngles.some(a => maskAt(a.lat, a.lng) === g.part.id);
+    return `<div class="r"><label style="flex:1" title="Klicka för att zooma till delen"><a href="#" data-zoom="${g.part.no}">Del ${g.part.no}</a> · ${fArea(g.part.area)}</label>
+      <input type="number" data-part="${g.part.no}" min="0" max="180" step="0.5" value="${fmt(g.angle, 1).replace(',', '.')}" style="width:62px"><span class="u">°</span>
+      <button data-reset="${g.part.no}" title="Följ fältets vinkel"${own ? '' : ' class="on"'}>⟲</button></div>`;
+  }).join('');
+  $('partsList').querySelectorAll('input[data-part]').forEach(inp => inp.onchange = () => {
+    const g = geo.parts.find(x => x.part.no === +inp.dataset.part); if (!g) return;
+    setPartAngle(g.part, parseFloat(inp.value.replace(',', '.')) || 0);
+    geoKey = ''; regenerate(); save();
+  });
+  $('partsList').querySelectorAll('button[data-reset]').forEach(b => b.onclick = () => {
+    const g = geo.parts.find(x => x.part.no === +b.dataset.reset); if (!g) return;
+    setPartAngle(g.part, null); geoKey = ''; regenerate(); save();
+  });
+  $('partsList').querySelectorAll('a[data-zoom]').forEach(a => a.onclick = e => {
+    e.preventDefault();
+    const g = geo.parts.find(x => x.part.no === +a.dataset.zoom); if (!g) return;
+    const b = L.latLngBounds(g.rows.length ? g.rows.flatMap(r => [r.ll0, r.ll1]) : [g.part.center]);
+    map.fitBounds(b.pad(0.1));
+  });
+}
+$('btnPartsReset').onclick = () => { plan.partAngles = []; geoKey = ''; regenerate(); save(); };
 function updateCompass(){
   const a = S().angle;
   $('compassLine').setAttribute('transform', `rotate(${a} 50 50)`);
@@ -1021,6 +1110,9 @@ function syncLookInputs(){
   $('rowWv').textContent = fmt(ui.rowW, 1) + ' px'; $('ptScaleV').textContent = ui.ptScale + ' %';
   for (const id of ['rowColor', 'pdfRowColor']) if ($(id)) $(id).value = ui.rowColor;
   for (const id of ['ptColor', 'pdfPtColor']) if ($(id)) $(id).value = ui.ptColor;
+  $('ptMode').value = ui.ptMode; $('ptMinPx').value = ui.ptMinPx;
+  $('ptMinPxV').textContent = ui.ptMinPx + ' px';
+  $('ptMinRow').style.display = ui.ptMode === 'auto' ? '' : 'none';
   for (const id of ['rowOp', 'pdfRowOp']) if ($(id)) $(id).value = ui.rowOp;
   $('rowOpV').textContent = ui.rowOp + ' %';
   if ($('pdfRowWv')) { $('pdfRowWv').textContent = $('rowWv').textContent; $('pdfPtScaleV').textContent = $('ptScaleV').textContent; $('pdfRowOpV').textContent = $('rowOpV').textContent; }
@@ -1029,6 +1121,8 @@ for (const [id, key, num] of [['ptColor', 'ptColor', false], ['pdfPtColor', 'ptC
   $(id).addEventListener('input', () => { ui[key] = num ? +$(id).value : $(id).value; syncLookInputs(); saveUI(); render(); updateStats(); if (!$('pdfDlg').hidden) schedulePreview(); });
 $('rowW').oninput = () => { ui.rowW = +$('rowW').value; syncLookInputs(); saveUI(); render(); };
 $('ptScale').oninput = () => { ui.ptScale = +$('ptScale').value; syncLookInputs(); saveUI(); plantsLayer._redraw(); };
+$('ptMode').onchange = () => { ui.ptMode = $('ptMode').value; syncLookInputs(); saveUI(); plantsLayer._redraw(); updateStats(); };
+$('ptMinPx').oninput = () => { ui.ptMinPx = +$('ptMinPx').value; syncLookInputs(); saveUI(); plantsLayer._redraw(); updateStats(); };
 /* Kantfärg som syns mot vald punktfärg */
 function ptEdge(hex){ const n = parseInt((hex || '#ffffff').slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255; return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.45 ? '#ffffff' : '#111111'; }
 function applyVisibility(){
@@ -1073,35 +1167,127 @@ function nearEdge(u, v, edges, lim){
   }
   return false;
 }
-/* Lokal plan projektion (meter), roterad så att raderna går längs u-axeln och v ökar åt höger om radriktningen.
-   endM = avstånd vid radernas ändar (vändteg), edge = minsta avstånd till gränsen i övrigt. */
-function computeGeo(field, excl, s){
-  const outer = field[0];
+function pointInRings(rings, u, v){
+  let inside = false;
+  for (const r of rings) for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+    const a = r[i], b = r[j];
+    if ((a.v > v) !== (b.v > v) && u < a.u + (v - a.v) * (b.u - a.u) / (b.v - a.v)) inside = !inside;
+  }
+  return inside;
+}
+const zonesOf = type => (plan.zones || []).filter(z => z.type === type).map(z => z.ring);
+
+/* Gemensam plan projektion för hela planen: u = öster, v = norr (meter) */
+function baseCtx(){
+  const outer = plan.field[0];
   let la = 0, lo = 0; for (const p of outer) { la += p[0]; lo += p[1]; } la /= outer.length; lo /= outer.length;
   const ky = R * DEG, kx = ky * Math.cos(la * DEG);
-  const a = s.angle * DEG, sa = Math.sin(a), ca = Math.cos(a);
-  const toUV = p => { const e = (p[1] - lo) * kx, n = (p[0] - la) * ky; return {u: e * sa + n * ca, v: e * ca - n * sa}; };
-  const toLL = (u, v) => { const e = u * sa + v * ca, n = u * ca - v * sa; return [la + n / ky, lo + e / kx]; };
+  const toM = p => ({u: (p[1] - lo) * kx, v: (p[0] - la) * ky});
+  const field = plan.field.map(r => r.map(toM));
+  const obst = zonesOf('hinder').map(r => r.map(toM));
+  const roads = zonesOf('vag').map(r => r.map(toM));
+  return {la, lo, ky, kx, toM, field, obst, roads,
+    fieldE: edgesOf(field), fieldArea: ringArea(field[0]) - field.slice(1).reduce((t, r) => t + ringArea(r), 0),
+    obstArea: obst.reduce((t, r) => t + ringArea(r), 0), roadArea: roads.reduce((t, r) => t + ringArea(r), 0)};
+}
+/* Rutnät över den sättbara ytan, för att hitta delområden som hinder eller vägar delar upp fältet i */
+function buildMask(ctx){
+  let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+  for (const p of ctx.field[0]) { u0 = Math.min(u0, p.u); u1 = Math.max(u1, p.u); v0 = Math.min(v0, p.v); v1 = Math.max(v1, p.v); }
+  const cell = Math.max(0.25, Math.min(3, Math.sqrt(Math.max(1, ctx.fieldArea)) / 220));
+  const w = Math.max(1, Math.ceil((u1 - u0) / cell)), h = Math.max(1, Math.ceil((v1 - v0) / cell));
+  const lab = new Int32Array(w * h).fill(-1);
+  const zoneEdges = [...ctx.obst, ...ctx.roads].map(r => edgesOf([r]));
+  for (let y = 0; y < h; y++) {
+    const v = v0 + (y + 0.5) * cell;
+    let ints = scan(ctx.fieldE, v);
+    for (const ze of zoneEdges) { const cut = scan(ze, v); if (cut.length) ints = subtract(ints, cut); }
+    for (const [a, b] of ints) {
+      const x0 = Math.max(0, Math.ceil((a - u0) / cell - 0.5)), x1 = Math.min(w - 1, Math.floor((b - u0) / cell - 0.5));
+      for (let x = x0; x <= x1; x++) lab[y * w + x] = 0;   // 0 = sättbar men ännu inte märkt
+    }
+  }
+  // märk sammanhängande delar
+  const parts = [];
+  const stack = [];
+  for (let i = 0; i < lab.length; i++) {
+    if (lab[i] !== 0) continue;
+    const id = parts.length + 1;
+    let cells = 0, su = 0, sv = 0;
+    stack.push(i); lab[i] = id;
+    while (stack.length) {
+      const k = stack.pop(), x = k % w, y = (k - x) / w;
+      cells++; su += u0 + (x + 0.5) * cell; sv += v0 + (y + 0.5) * cell;
+      if (x > 0 && lab[k - 1] === 0) { lab[k - 1] = id; stack.push(k - 1); }
+      if (x < w - 1 && lab[k + 1] === 0) { lab[k + 1] = id; stack.push(k + 1); }
+      if (y > 0 && lab[k - w] === 0) { lab[k - w] = id; stack.push(k - w); }
+      if (y < h - 1 && lab[k + w] === 0) { lab[k + w] = id; stack.push(k + w); }
+    }
+    parts.push({id, cells, area: cells * cell * cell, cu: su / cells, cv: sv / cells});
+  }
+  parts.sort((a, b) => b.area - a.area);
+  parts.forEach((p, i) => { p.no = i + 1; p.center = [ctx.la + p.cv / ctx.ky, ctx.lo + p.cu / ctx.kx]; });
+  const at = (u, v) => {
+    const x = Math.floor((u - u0) / cell), y = Math.floor((v - v0) / cell);
+    return (x < 0 || y < 0 || x >= w || y >= h) ? -1 : lab[y * w + x];
+  };
+  // varje dels utbredning, för snabbare beräkning
+  for (const p of parts) { p.u0 = Infinity; p.u1 = -Infinity; p.v0 = Infinity; p.v1 = -Infinity; }
+  const byId = new Map(parts.map(p => [p.id, p]));
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const id = lab[y * w + x]; if (id <= 0) continue;
+    const p = byId.get(id), u = u0 + (x + 0.5) * cell, v = v0 + (y + 0.5) * cell;
+    p.u0 = Math.min(p.u0, u); p.u1 = Math.max(p.u1, u); p.v0 = Math.min(p.v0, v); p.v1 = Math.max(p.v1, v);
+  }
+  return {cell, u0, v0, w, h, lab, at, parts};
+}
+/* Vinkel för ett delområde: egen inställd vinkel eller fältets */
+function partAngle(part, globalAngle){
+  for (const a of plan.partAngles || []) {
+    const c = maskAt(a.lat, a.lng);
+    if (c === part.id) return ((a.angle % 180) + 180) % 180;
+  }
+  return globalAngle;
+}
+function maskAt(lat, lng){
+  if (!geoMask || !geoCtx) return -1;
+  return geoMask.at((lng - geoCtx.lo) * geoCtx.kx, (lat - geoCtx.la) * geoCtx.ky);
+}
+function setPartAngle(part, angle){
+  const list = (plan.partAngles || []).filter(a => maskAt(a.lat, a.lng) !== part.id);
+  if (angle !== null) list.push({lat: part.center[0], lng: part.center[1], angle: ((angle % 180) + 180) % 180});
+  plan.partAngles = list;
+}
 
-  const fR = field.map(r => r.map(toUV)), xR = excl.map(r => r.map(toUV));
-  const fE = edgesOf(fR), xE = edgesOf(xR), xEach = xR.map(r => edgesOf([r]));
-  const fieldArea = ringArea(fR[0]) - fR.slice(1).reduce((t, r) => t + ringArea(r), 0);
-  const exclArea = xR.reduce((t, r) => t + ringArea(r), 0);
-  const area = Math.max(0, fieldArea - exclArea);
+/* Rader för ett delområde. endM = vändteg vid radernas ändar, edge = minsta avstånd till fältgränsen,
+   m2 = avstånd till hinder, mRoad = avstånd till väg. */
+function buildPartGeo(ctx, mask, part, s, angle){
+  const a = angle * DEG, sa = Math.sin(a), ca = Math.cos(a);
+  // (u,v) i radernas system: u längs raden, v vinkelrätt. (e,n) = öster/norr.
+  const toUV = p => { const e = (p[1] - ctx.lo) * ctx.kx, n = (p[0] - ctx.la) * ctx.ky; return {u: e * sa + n * ca, v: e * ca - n * sa}; };
+  const toLL = (u, v) => { const e = u * sa + v * ca, n = u * ca - v * sa; return [ctx.la + n / ctx.ky, ctx.lo + e / ctx.kx]; };
+  const rot = (u, v) => [u * sa + v * ca, u * ca - v * sa];     // till (öster, norr)
+  const conv = rings => rings.map(r => r.map(p => { const e = p.u, n = p.v; return {u: e * sa + n * ca, v: e * ca - n * sa}; }));
+  const fR = conv(ctx.field), oR = conv(ctx.obst), rR = conv(ctx.roads);
+  const fE = edgesOf(fR), oE = edgesOf(oR), rE = edgesOf(rR);
+  const oEach = oR.map(r => edgesOf([r])), rEach = rR.map(r => edgesOf([r]));
+  const {rs, ps, edge, endM, m2, mRoad} = s;
+
+  // delens utbredning i v-led
   let vmin = Infinity, vmax = -Infinity;
-  for (const p of fR[0]) { vmin = Math.min(vmin, p.v); vmax = Math.max(vmax, p.v); }
-
-  const {rs, ps, edge, endM, m2} = s;
-  const est = area / (rs * ps);
-  if (est > 2e6) return {tooMany: est, area, fieldArea, exclArea, toUV, toLL};
+  for (const [pu, pv] of [[part.u0, part.v0], [part.u1, part.v0], [part.u0, part.v1], [part.u1, part.v1]]) {
+    const v = pu * ca - pv * sa; vmin = Math.min(vmin, v); vmax = Math.max(vmax, v);
+  }
+  vmin -= rs; vmax += rs;
 
   const off = ((s.off % rs) + rs) % rs;
-  const vFirst = vmin + Math.max(edge, rs / 2) + off;
+  const vStart = Math.ceil((vmin - off) / rs) * rs + off + rs / 2;   // samma radnät för alla delar
   const rows = [];
   let line = 0;
-  for (let v = vFirst; v < vmax; v += rs, line++) {
+  for (let v = vStart; v < vmax; v += rs, line++) {
     let ints = scan(fE, v).map(([x0, x1]) => [x0 + endM, x1 - endM]).filter(([x0, x1]) => x1 >= x0);
-    for (const ee of xEach) { const cut = scan(ee, v).map(([x0, x1]) => [x0 - m2, x1 + m2]); if (cut.length) ints = subtract(ints, cut); }
+    for (const ee of oEach) { const cut = scan(ee, v).map(([x0, x1]) => [x0 - m2, x1 + m2]); if (cut.length) ints = subtract(ints, cut); }
+    for (const ee of rEach) { const cut = scan(ee, v).map(([x0, x1]) => [x0 - mRoad, x1 + mRoad]); if (cut.length) ints = subtract(ints, cut); }
     const lineRows = [];
     for (const [s0, e0] of ints) {
       if (e0 < s0) continue;
@@ -1111,7 +1297,10 @@ function computeGeo(field, excl, s){
       const flush = () => { if (cnt) lineRows.push({line, v, u0, n: cnt}); cnt = 0; };
       for (let k = 0; k < n; k++) {
         const u = start + k * ps;
-        const bad = (edge > 0 && nearEdge(u, v, fE, edge - 1e-6)) || (m2 > 0 && xE.length && nearEdge(u, v, xE, m2 - 1e-6));
+        const [e, nn] = rot(u, v);
+        let bad = mask.at(e, nn) !== part.id;
+        if (!bad) bad = (edge > 0 && nearEdge(u, v, fE, edge - 1e-6)) || (m2 > 0 && oE.length && nearEdge(u, v, oE, m2 - 1e-6))
+          || (mRoad > 0 && rE.length && nearEdge(u, v, rE, mRoad - 1e-6));
         if (bad) { flush(); continue; }
         if (!cnt) u0 = u;
         cnt++;
@@ -1120,36 +1309,61 @@ function computeGeo(field, excl, s){
     }
     lineRows.forEach((r, i) => {
       r.seg = i;
-      r.label = String(line + 1) + (lineRows.length > 1 ? String.fromCharCode(97 + i) : '');
       r.u1 = r.u0 + (r.n - 1) * ps;
       r.ll0 = toLL(r.u0, r.v); r.ll1 = toLL(r.u1, r.v);
-      r.removed = false; r.off = new Set(); r.pass = 0;
+      r.removed = false; r.off = new Set(); r.pass = 0; r.part = part.id;
       rows.push(r);
     });
   }
   const byLine = new Map();
   for (const r of rows) { if (!byLine.has(r.line)) byLine.set(r.line, []); byLine.get(r.line).push(r); }
-  return {toUV, toLL, rows, byLine, lineCount: line, vFirst, rs, ps, area, fieldArea, exclArea};
+  return {part, angle, toUV, toLL, rows, byLine, lineCount: line, vStart, fR, rR};
 }
-function findRow(u, v, slack){
-  if (!geo || !geo.rows) return null;
-  const line = Math.round((v - geo.vFirst) / geo.rs);
-  const list = geo.byLine.get(line);
-  if (!list || Math.abs(v - (geo.vFirst + line * geo.rs)) > geo.rs / 2) return null;
+function buildGeo(s){
+  const ctx = baseCtx();
+  const mask = buildMask(ctx);
+  geoCtx = ctx; geoMask = mask;
+  const area = Math.max(0, ctx.fieldArea - ctx.obstArea - ctx.roadArea);
+  const base = {ctx, mask, parts: [], rows: [], area, fieldArea: ctx.fieldArea, obstArea: ctx.obstArea, roadArea: ctx.roadArea,
+    rs: s.rs, ps: s.ps, list: mask.parts};
+  if (area / (s.rs * s.ps) > 2e6) return {...base, tooMany: area / (s.rs * s.ps)};
+  const many = mask.parts.length > 1;
+  for (const part of mask.parts) {
+    if (part.area < Math.max(4, 4 * s.rs * s.ps)) continue;
+    const g = buildPartGeo(ctx, mask, part, s, partAngle(part, s.angle));
+    for (const r of g.rows) {
+      r.g = g;
+      const segs = g.byLine.get(r.line).length;
+      r.label = (many ? part.no + '·' : '') + (r.line + 1) + (segs > 1 ? String.fromCharCode(97 + r.seg) : '');
+      base.rows.push(r);
+    }
+    base.parts.push(g);
+  }
+  return base;
+}
+function findRowAt(lat, lng, slack){
+  if (!geo || !geo.parts) return null;
   let best = null, bd = Infinity;
-  for (const r of list) {
-    const d = u < r.u0 ? r.u0 - u : u > r.u1 ? u - r.u1 : 0;
-    if (d <= slack && d < bd) { bd = d; best = r; }
+  for (const g of geo.parts) {
+    const {u, v} = g.toUV([lat, lng]);
+    const line = Math.round((v - g.vStart) / geo.rs);
+    const list = g.byLine.get(line);
+    if (!list || Math.abs(v - (g.vStart + line * geo.rs)) > geo.rs / 2) continue;
+    for (const r of list) {
+      const d = u < r.u0 ? r.u0 - u : u > r.u1 ? u - r.u1 : 0;
+      if (d <= slack && d < bd) { bd = d; best = r; }
+    }
   }
   return best;
 }
+function rowU(r, lat, lng){ return r.g.toUV([lat, lng]).u; }
 function pointIndex(row, u){ const k = Math.round((u - row.u0) / geo.ps); return (k >= 0 && k < row.n) ? k : -1; }
 function applyEdits(){
   for (const r of geo.rows) { r.removed = false; r.off = new Set(); r.pass = 0; }
-  for (const p of plan.removedRows) { const {u, v} = geo.toUV(p); const r = findRow(u, v, geo.ps); if (r) r.removed = true; }
+  for (const p of plan.removedRows) { const r = findRowAt(p[0], p[1], geo.ps); if (r) r.removed = true; }
   for (const p of plan.removedPts) {
-    const {u, v} = geo.toUV(p); const r = findRow(u, v, geo.ps / 2);
-    if (r) { const k = pointIndex(r, u); if (k >= 0 && Math.abs(u - (r.u0 + k * geo.ps)) <= geo.ps / 2) r.off.add(k); }
+    const r = findRowAt(p[0], p[1], geo.ps / 2);
+    if (r) { const u = rowU(r, p[0], p[1]); const k = pointIndex(r, u); if (k >= 0 && Math.abs(u - (r.u0 + k * geo.ps)) <= geo.ps / 2) r.off.add(k); }
   }
 }
 
@@ -1181,15 +1395,16 @@ function turnPath(ua, va, ub, vb, side, r){
   let len = 0; for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
   return {pts, len, reach, omega};
 }
-function buildPasses(s){
-  const N = s.N, L = geo.lineCount, rs = geo.rs, ps = geo.ps;
+/* Körordning för ett delområde */
+function buildPartPasses(g, s, no0){
+  const N = s.N, L = g.lineCount, rs = geo.rs, ps = geo.ps;
   const groups = new Map();
-  for (const r of geo.rows) {
+  for (const r of g.rows) {
     if (r.removed || r.off.size >= r.n) continue;
     const li = s.startFlip ? (L - 1 - r.line) : r.line;
-    const g = Math.floor(li / N);
-    let G = groups.get(g);
-    if (!G) { G = {g, u0: Infinity, u1: -Infinity, rows: [], lmin: Infinity, lmax: -Infinity}; groups.set(g, G); }
+    const gi = Math.floor(li / N);
+    let G = groups.get(gi);
+    if (!G) { G = {g: gi, u0: Infinity, u1: -Infinity, rows: [], lmin: Infinity, lmax: -Infinity}; groups.set(gi, G); }
     let k0 = 0; while (r.off.has(k0)) k0++;
     let k1 = r.n - 1; while (r.off.has(k1)) k1--;
     G.u0 = Math.min(G.u0, r.u0 + k0 * ps); G.u1 = Math.max(G.u1, r.u0 + k1 * ps);
@@ -1198,17 +1413,16 @@ function buildPasses(s){
   const list = [...groups.values()].sort((a, b) => a.g - b.g);
   for (const G of list) {
     let sv = 0;
-    for (let i = 0; i < N; i++) { const li = G.g * N + i; const line = s.startFlip ? (L - 1 - li) : li; sv += geo.vFirst + line * rs; }
+    for (let i = 0; i < N; i++) { const li = G.g * N + i; const line = s.startFlip ? (L - 1 - li) : li; sv += g.vStart + line * rs; }
     G.v = sv / N;
   }
   const passW = N * rs, tight = 2 * s.r > passW + 1e-9;
   let mode = s.mode; if (mode === 'auto') mode = tight ? 'skip' : 'seq';
-  // Skifteskörning: skiften om 2k drag, körs 1, k+1, 2, k+2 … så att varje vändning hoppar k-1 eller k drag.
-  // Vartannat skifte körs spegelvänt så att även övergången mellan skiften blir bred.
   const k = Math.max(2, Math.ceil(2 * s.r / passW - 1e-9) + 1);
   let order = list;
   if (mode === 'skip') {
-    // Resten som inte fyller ett helt skifte läggs i det sista skiftet, så att inga vändningar blir snäva.
+    // Skiften om 2k drag: 1, k+1, 2, k+2 … så att varje vändning hoppar k-1 eller k drag.
+    // Vartannat skifte körs spegelvänt, och resten läggs i det sista skiftet.
     const M = list.length, idx = [], nL = Math.max(1, Math.floor(M / (2 * k)));
     for (let l = 0; l < nL; l++) {
       const base = l * 2 * k, Ls = l === nL - 1 ? M - base : 2 * k, kk = Math.floor(Ls / 2), odd = Ls % 2;
@@ -1219,35 +1433,62 @@ function buildPasses(s){
   }
   const first = s.dirFlip ? -1 : 1;
   const passes = [], turns = [];
-  let plantDist = 0, turnDist = 0, maxReach = 0, omegas = 0;
+  let plantDist = 0, turnDist = 0, maxReach = 0, omegas = 0, outside = 0, onRoad = 0;
   order.forEach((P, j) => {
     const dir = j % 2 ? -first : first;
     const a = dir > 0 ? P.u0 : P.u1, b = dir > 0 ? P.u1 : P.u0;
-    const pass = {no: j + 1, P, dir, start: [a, P.v], end: [b, P.v]};
+    const pass = {no: no0 + j + 1, g, P, dir, start: [a, P.v], end: [b, P.v]};
     passes.push(pass); plantDist += Math.abs(b - a);
-    for (const r of P.rows) r.pass = j + 1;
+    for (const r of P.rows) r.pass = pass.no;
     if (j > 0) {
       const prev = passes[j - 1];
       const t = turnPath(prev.end[0], prev.end[1], a, P.v, prev.dir, s.r);
-      turns.push(t); turnDist += t.len; maxReach = Math.max(maxReach, t.reach); if (t.omega) omegas++;
+      t.g = g;
+      // Vändningen får gå på en väg, men inte utanför fältet
+      t.outside = false; t.onRoad = false;
+      for (let i = 0; i < t.pts.length; i += 2) {
+        const [pu, pv] = t.pts[i];
+        const inField = pointInRings(g.fR, pu, pv);
+        const inRoad = g.rR.length && pointInRings(g.rR, pu, pv);
+        if (inRoad) t.onRoad = true;
+        if (!inField) t.outside = true;
+      }
+      turns.push(t); turnDist += t.len; maxReach = Math.max(maxReach, t.reach);
+      if (t.omega) omegas++;
+      if (t.outside) outside++;
+      if (t.onRoad) onRoad++;
     }
   });
-  return {passes, turns, plantDist, turnDist, maxReach, omegas, mode, passW, tight, k};
+  return {passes, turns, plantDist, turnDist, maxReach, omegas, outside, onRoad, mode, passW, tight, k};
+}
+function buildPasses(s){
+  const all = {passes: [], turns: [], plantDist: 0, turnDist: 0, maxReach: 0, omegas: 0, outside: 0, onRoad: 0,
+    mode: 'seq', passW: s.N * geo.rs, k: 2, parts: []};
+  for (const g of geo.parts) {
+    const pi = buildPartPasses(g, s, all.passes.length);
+    all.parts.push(pi);
+    all.passes.push(...pi.passes); all.turns.push(...pi.turns);
+    all.plantDist += pi.plantDist; all.turnDist += pi.turnDist;
+    all.maxReach = Math.max(all.maxReach, pi.maxReach);
+    all.omegas += pi.omegas; all.outside += pi.outside; all.onRoad += pi.onRoad;
+    all.mode = pi.mode; all.k = pi.k;
+  }
+  return all;
 }
 
 /* =================== Körning & rendering =================== */
-let geo = null, geoKey = '', passInfo = null, timer = null;
+let geo = null, geoKey = '', geoCtx = null, geoMask = null, passInfo = null, timer = null;
 function regenerate(){ clearTimeout(timer); timer = setTimeout(run, 90); }
 function run(){
   try {
-    if (!plan.field) { geo = null; geoKey = ''; passInfo = null; render(); updateStats(); return; }
+    if (!plan.field) { geo = null; geoKey = ''; geoCtx = geoMask = null; passInfo = null; render(); updateStats(); renderParts(); return; }
     const s = S();
-    const key = JSON.stringify([plan.field, plan.excl, s.rs, s.ps, s.edge, s.endM, s.m2, s.off, s.angle]);
-    if (key !== geoKey) { geo = computeGeo(plan.field, plan.excl, s); geoKey = key; }
-    if (geo.tooMany) { passInfo = null; render(); updateStats(); return; }
+    const key = JSON.stringify([plan.field, plan.zones, plan.partAngles, s.rs, s.ps, s.edge, s.endM, s.m2, s.mRoad, s.off, s.angle]);
+    if (key !== geoKey) { geo = buildGeo(s); geoKey = key; }
+    if (geo.tooMany) { passInfo = null; render(); updateStats(); renderParts(); return; }
     applyEdits();
     passInfo = s.machine ? buildPasses(s) : null;
-    render(); updateStats();
+    render(); updateStats(); renderParts();
   } catch (err) {
     console.error(err); msg('Fel vid beräkningen: ' + err.message, 0);
   }
@@ -1272,23 +1513,30 @@ function render(){
   }
   plantsLayer.setData(geo.rows, geo.ps);
   if (passInfo && passInfo.passes.length) {
-    const ll = p => geo.toLL(p[0], p[1]);
     for (const t of passInfo.turns)
-      passLayer.addLayer(L.polyline(t.pts.map(ll), {renderer: vecRenderer, color: t.omega ? '#ff5a4a' : '#6cc4ff', weight: 2, opacity: 0.9, dashArray: '5 4', interactive: false}));
+      passLayer.addLayer(L.polyline(t.pts.map(p => t.g.toLL(p[0], p[1])), {renderer: vecRenderer, color: t.omega ? '#ff5a4a' : t.outside ? '#ffb347' : '#6cc4ff', weight: 2, opacity: 0.9, dashArray: '5 4', interactive: false}));
     const many = passInfo.passes.length > 300;
     for (const p of passInfo.passes) {
+      const ll = q => p.g.toLL(q[0], q[1]);
       passLayer.addLayer(L.polyline([ll(p.start), ll(p.end)], {renderer: vecRenderer, color: '#3fa9f5', weight: 3, opacity: 0.75, interactive: false}));
       if (!many) {
         const mid = ll([(p.start[0] + p.end[0]) / 2, p.start[1]]);
-        const bearing = s.angle + (p.dir < 0 ? 180 : 0);
+        const bearing = p.g.angle + (p.dir < 0 ? 180 : 0);
         passLayer.addLayer(L.marker(mid, {interactive: false, keyboard: false, icon: L.divIcon({className: 'pass-icon', iconSize: [44, 16], iconAnchor: [22, 8],
           html: `<div><span class="arr" style="transform:rotate(${bearing}deg)">▲</span>${p.no}</div>`})}));
       }
     }
-    const f = passInfo.passes[0], l = passInfo.passes[passInfo.passes.length - 1];
-    const se = (pt, t) => L.marker(ll(pt), {interactive: false, keyboard: false, icon: L.divIcon({className: 'se-icon', iconSize: [46, 18], iconAnchor: [23, 9], html: `<div>${t}</div>`})});
-    passLayer.addLayer(se(f.start, 'START')); passLayer.addLayer(se(l.end, 'SLUT'));
+    for (const pi of passInfo.parts) {
+      if (!pi.passes.length) continue;
+      const f = pi.passes[0], l = pi.passes[pi.passes.length - 1];
+      const se = (pass, pt, t) => L.marker(pass.g.toLL(pt[0], pt[1]), {interactive: false, keyboard: false,
+        icon: L.divIcon({className: 'se-icon', iconSize: [46, 18], iconAnchor: [23, 9], html: `<div>${t}</div>`})});
+      passLayer.addLayer(se(f, f.start, 'START')); passLayer.addLayer(se(l, l.end, 'SLUT'));
+    }
   }
+  if (geo.parts.length > 1) for (const g of geo.parts)
+    passLayer.addLayer(L.marker(g.part.center, {interactive: false, keyboard: false,
+      icon: L.divIcon({className: 'part-icon', iconSize: [30, 18], iconAnchor: [15, 9], html: `<div>Del ${g.part.no}</div>`})}));
   updatePassLabels();
 }
 function updatePassLabels(){ map.getContainer().classList.toggle('hide-pl', !passInfo || passInfo.passW / metersPerPixel() < 16); }
@@ -1317,10 +1565,12 @@ function statsModel(){
   const same = ref > 0 && Math.abs(plantedM2 - ref) / ref < 0.01;
   const areaRows = same ? [['Yta (hela med potatis)', fA(ref)]] : [
     ['Markerad yta', fA(ref)],
-    ...(geo.exclArea > 0 ? [['varav hinderzoner', fA(geo.exclArea)]] : []),
+    ...(geo.obstArea > 0 ? [['varav hinderzoner', fA(geo.obstArea)]] : []),
+    ...(geo.roadArea > 0 ? [['varav vägar', fA(geo.roadArea)]] : []),
     ['Yta med potatis', `${fA(plantedM2)} (${fmt(ref > 0 ? plantedM2 / ref * 100 : 0)} %)`]];
   const sections = [
-    {title: 'Fält', rows: [...areaRows, ['Rader', `${fmt(rowsAct)} st`], ['Total radlängd', fM(len)]]},
+    {title: 'Fält', rows: [...areaRows, ...(geo.parts.length > 1 ? [['Delområden', `${fmt(geo.parts.length)} st`]] : []),
+      ['Rader', `${fmt(rowsAct)} st`], ['Total radlängd', fM(len)]]},
     {title: 'Utsäde', rows: [['Sättpotatisar', `${fmt(plants)} st`], ['Vikt', fKg(seedKg)], [`Säckar à ${fmt(s.bag)} kg`, `${fmt(Math.ceil(seedKg / s.bag))} st`],
       ['Täthet', `${ha > 0 ? fmt(plants / ha) : '–'} st/ha`], ['Utsädesmängd', `${ha > 0 ? fmt(seedKg / ha) : '–'} kg/ha`]]}
   ];
@@ -1328,16 +1578,20 @@ function statsModel(){
   const pi = passInfo;
   if (s.machine && pi) {
     const speed = s.speed / 3.6;
-    const b = pi.passes.length ? s.angle + (pi.passes[0].dir < 0 ? 180 : 0) : null;
+    const b = pi.passes.length ? pi.passes[0].g.angle + (pi.passes[0].dir < 0 ? 180 : 0) : null;
     sections.push({title: 'Körning med sättare', rows: [
       ['Drag', `${fmt(pi.passes.length)} st`], ['Vändningar', `${fmt(pi.turns.length)} st`],
       ['Vändmönster', pi.mode === 'skip' ? `skiften om ${2 * pi.k} drag` : 'intilliggande drag'],
       ['Första draget körs mot', b === null ? '–' : `${compassWord(b)} (${fmt(((b % 360) + 360) % 360)}°)`],
+      ...(pi.onRoad ? [['Vändningar på väg', `${fmt(pi.onRoad)} st`]] : []),
       ['Körsträcka sättning', fM(pi.plantDist)], ['Körsträcka vändningar', fM(pi.turnDist)],
       ['Beräknad tid', hm(pi.plantDist / speed + pi.turnDist / (speed * 0.5))]]});
     if (pi.passes.length > 1) {
-      if (s.inside && pi.maxReach > s.endM + 0.01) warnings.push(`Vändningarna behöver ca ${fmt(pi.maxReach, 1)} m vändteg men raderna slutar ${fmt(s.endM, 1)} m från kanten.`);
-      if (!s.inside) infos.push(`Vändningarna går upp till ca ${fmt(Math.max(0, pi.maxReach - s.edge), 1)} m utanför den markerade ytan.`);
+      if (pi.outside) {
+        const t = `${fmt(pi.outside)} av ${fmt(pi.turns.length)} vändningar går utanför fältet, upp till ca ${fmt(pi.maxReach, 1)} m (orange).`;
+        if (s.inside) warnings.push(t + ' Öka vändtegen eller rita en väg där du vänder.'); else infos.push(t);
+      }
+      if (geo.parts.length > 1) infos.push(`Körordningen räknas för varje delområde för sig. Förflyttningen mellan delarna ingår inte i sträcka och tid.`);
     }
     if (pi.omegas) warnings.push(`${pi.omegas} vändningar är snävare än vändradien och kräver omega- eller fiskstjärtsvändning (röda).`);
   } else if (!s.machine) {
@@ -1354,7 +1608,10 @@ function settingsModel(){
   const rows = [['Sättmetod', s.machine ? 'potatissättare' : 'manuellt'], ['Radavstånd', `${fmt(s.rs * 100)} cm`], ['Sättavstånd', `${fmt(s.ps * 100)} cm`],
     ['Vikt per sättpotatis', `${fmt(s.weight)} g`], ['Radriktning', `${fmt(s.angle, 1)}° (${compassWord(s.angle)}–${compassWord(s.angle + 180)})`],
     ['Avstånd från kant', `${fmt(s.edge, 2)} m`]];
-  if (plan.excl.length) rows.push(['Hinderzoner', `${plan.excl.length} st, ${fmt(s.m2, 1)} m avstånd`]);
+  const nz = t => (plan.zones || []).filter(z => z.type === t).length;
+  if (nz('hinder')) rows.push(['Hinderzoner', `${nz('hinder')} st, ${fmt(s.m2, 1)} m avstånd`]);
+  if (nz('vag')) rows.push(['Vägar', `${nz('vag')} st, ${fmt(s.mRoad, 1)} m avstånd`]);
+  if (geo && geo.parts && geo.parts.length > 1) rows.push(['Delområden', geo.parts.map(g => `del ${g.part.no}: ${fmt(g.angle, 1)}°`).join(', ')]);
   if (s.machine) rows.push(['Rader per drag', `${s.N} st (${fmt(s.N * s.rs, 2)} m)`], ['Minsta vändradie', `${fmt(s.r, 1)} m`],
     ['Vändteg', s.inside ? `${fmt(s.headland, 1)} m innanför ytan` : 'utanför ytan'], ['Hastighet', `${fmt(s.speed, 1)} km/h`]);
   else if (s.manualEnd > s.edge) rows.push(['Fritt vid radernas ändar', `${fmt(s.manualEnd, 1)} m`]);
@@ -1374,11 +1631,13 @@ function updateStats(){
       sec.rows.map(([a, b]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join('')).join('')}</table>
     ${m.warnings.map(w => `<div class="warn">${esc(w)}</div>`).join('')}${m.infos.map(w => `<div class="info">${esc(w)}</div>`).join('')}
     <div class="lg">${legendItems(k => ({field: $('showField').checked, rows: $('showRows').checked, plants: $('showPlants').checked, passes: $('showPasses').checked})[k]).map(it =>
-      it.kind === 'dot' ? `<span><i class="dot" style="background:${ui.ptColor || '#fff'};border:1.5px solid #111"></i>${it.label}</span>`
+      it.kind === 'dot' && !(geo.ps && !pointsVisible(geo.ps / metersPerPixel())) ? `<span><i class="dot" style="background:${ui.ptColor || '#fff'};border:1.5px solid #111"></i>${it.label}</span>`
+      : it.kind === 'dot' ? ''
       : it.kind === 'field' ? `<span><i style="background:repeating-linear-gradient(90deg,#666 0 3px,#bbb 3px 5px)"></i>${it.label}</span>`
       : it.kind === 'fill' ? `<span><i style="background:${it.color};opacity:.6;height:8px"></i>${it.label}</span>`
       : `<span><i style="opacity:${it.alpha ?? 1};background:${it.dash ? `repeating-linear-gradient(90deg,${it.color} 0 4px,transparent 4px 6px)` : it.color}"></i>${it.label}</span>`).join('')}</div>
-    ${geo.ps && geo.ps / metersPerPixel() < 3 ? '<div class="hint">Zooma in för att se de enskilda sättpunkterna.</div>' : ''}`;
+    ${geo.ps && $('showPlants').checked && !pointsVisible(geo.ps / metersPerPixel())
+      ? `<div class="hint">${ui.ptMode === 'never' ? 'Sättpunkterna är avstängda under Visa.' : 'Zooma in för att se de enskilda sättpunkterna. Du kan ändra gränsen under Visa.'}</div>` : ''}`;
 }
 map.on('zoomend', () => { if (geo) updateStats(); });
 
@@ -1397,15 +1656,15 @@ document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); undo(); }
 });
 function pushUndo(){
-  undoStack.push(JSON.stringify({rr: plan.removedRows, rp: plan.removedPts, ex: plan.excl}));
+  undoStack.push(JSON.stringify({rr: plan.removedRows, rp: plan.removedPts, ex: plan.zones, pa: plan.partAngles}));
   if (undoStack.length > 60) undoStack.shift();
 }
 function undo(){
   const s = undoStack.pop();
   if (!s) return msg('Inget att ångra.');
   const o = JSON.parse(s);
-  const exChanged = JSON.stringify(o.ex) !== JSON.stringify(plan.excl);
-  plan.removedRows = o.rr; plan.removedPts = o.rp; plan.excl = o.ex;
+  const exChanged = JSON.stringify(o.ex) !== JSON.stringify(plan.zones) || JSON.stringify(o.pa) !== JSON.stringify(plan.partAngles);
+  plan.removedRows = o.rr; plan.removedPts = o.rp; plan.zones = o.ex; plan.partAngles = o.pa || [];
   if (exChanged) { rebuildEditGroup(); regenerate(); save(); } else refreshEdits();
 }
 $('btnUndo').onclick = undo;
@@ -1416,26 +1675,26 @@ $('btnResetEdits').onclick = () => {
 const r8 = p => [+p[0].toFixed(8), +p[1].toFixed(8)];
 map.on('click', e => {
   if (!tool || drawing || !geo || geo.tooMany) return;
-  const {u, v} = geo.toUV([e.latlng.lat, e.latlng.lng]);
-  const row = findRow(u, v, Math.max(geo.ps, 10 * metersPerPixel()));
+  const row = findRowAt(e.latlng.lat, e.latlng.lng, Math.max(geo.ps, 10 * metersPerPixel()));
   if (!row) return;
+  const u = rowU(row, e.latlng.lat, e.latlng.lng);
   if (tool === 'row') {
     if (row.removed) return;
-    pushUndo(); plan.removedRows.push(r8(geo.toLL((row.u0 + row.u1) / 2, row.v))); refreshEdits();
+    pushUndo(); plan.removedRows.push(r8(row.g.toLL((row.u0 + row.u1) / 2, row.v))); refreshEdits();
   } else if (tool === 'pt') {
     if (row.removed) return;
     const k = Math.max(0, Math.min(row.n - 1, Math.round((u - row.u0) / geo.ps)));
     if (row.off.has(k)) return;
-    pushUndo(); plan.removedPts.push(r8(geo.toLL(row.u0 + k * geo.ps, row.v))); refreshEdits();
+    pushUndo(); plan.removedPts.push(r8(row.g.toLL(row.u0 + k * geo.ps, row.v))); refreshEdits();
   } else if (tool === 'restore') {
     if (row.removed) {
       pushUndo();
-      plan.removedRows = plan.removedRows.filter(p => { const q = geo.toUV(p); return findRow(q.u, q.v, geo.ps) !== row; });
+      plan.removedRows = plan.removedRows.filter(p => findRowAt(p[0], p[1], geo.ps) !== row);
     } else {
       const k = Math.max(0, Math.min(row.n - 1, Math.round((u - row.u0) / geo.ps)));
       if (!row.off.has(k)) return;
       pushUndo();
-      plan.removedPts = plan.removedPts.filter(p => { const q = geo.toUV(p); return !(findRow(q.u, q.v, geo.ps / 2) === row && pointIndex(row, q.u) === k); });
+      plan.removedPts = plan.removedPts.filter(p => !(findRowAt(p[0], p[1], geo.ps / 2) === row && pointIndex(row, rowU(row, p[0], p[1])) === k));
     }
     refreshEdits();
   }
@@ -1449,17 +1708,19 @@ map.on('mouseup', stopBrush);
 document.addEventListener('mouseup', stopBrush);
 function stopBrush(){ if (!brushing) return; brushing = false; map.dragging.enable(); refreshEdits(); }
 function brushAt(latlng){
-  const {u, v} = geo.toUV([latlng.lat, latlng.lng]);
   const Rm = Math.max(geo.ps * 0.6, 12 * metersPerPixel());
-  const l0 = Math.round((v - Rm - geo.vFirst) / geo.rs), l1 = Math.round((v + Rm - geo.vFirst) / geo.rs);
-  for (let l = l0; l <= l1; l++) {
-    const list = geo.byLine.get(l); if (!list) continue;
-    for (const r of list) {
-      if (r.removed) continue;
-      const dv = Math.abs(r.v - v); if (dv > Rm) continue;
-      const du = Math.sqrt(Rm * Rm - dv * dv);
-      const k0 = Math.max(0, Math.ceil((u - du - r.u0) / geo.ps)), k1 = Math.min(r.n - 1, Math.floor((u + du - r.u0) / geo.ps));
-      for (let k = k0; k <= k1; k++) if (!r.off.has(k)) { r.off.add(k); plan.removedPts.push(r8(geo.toLL(r.u0 + k * geo.ps, r.v))); }
+  for (const g of geo.parts) {
+    const {u, v} = g.toUV([latlng.lat, latlng.lng]);
+    const l0 = Math.round((v - Rm - g.vStart) / geo.rs), l1 = Math.round((v + Rm - g.vStart) / geo.rs);
+    for (let l = l0; l <= l1; l++) {
+      const list = g.byLine.get(l); if (!list) continue;
+      for (const r of list) {
+        if (r.removed) continue;
+        const dv = Math.abs(r.v - v); if (dv > Rm) continue;
+        const du = Math.sqrt(Rm * Rm - dv * dv);
+        const k0 = Math.max(0, Math.ceil((u - du - r.u0) / geo.ps)), k1 = Math.min(r.n - 1, Math.floor((u + du - r.u0) / geo.ps));
+        for (let k = k0; k <= k1; k++) if (!r.off.has(k)) { r.off.add(k); plan.removedPts.push(r8(g.toLL(r.u0 + k * geo.ps, r.v))); }
+      }
     }
   }
   cancelAnimationFrame(brushRaf); brushRaf = requestAnimationFrame(() => plantsLayer._redraw());
@@ -1734,12 +1995,18 @@ function srcWorldWidth(src, tr){ const b = srcWorldBox(src, tr); return b[2] - b
 /* =================== Export =================== */
 const slug = () => (plan.name || 'potatisplan').trim().replace(/[åäÅÄ]/g, c => /[ÅÄ]/.test(c) ? 'A' : 'a').replace(/[öÖ]/g, c => c === 'Ö' ? 'O' : 'o')
   .replace(/[^\w\- ]+/g, '').replace(/\s+/g, '_') || 'potatisplan';
-function abLine(){
-  const pi = passInfo; if (!pi || !pi.passes.length) return null;
-  const p1 = pi.passes[0];
-  let u0 = Infinity, u1 = -Infinity; for (const p of pi.passes) { u0 = Math.min(u0, p.P.u0); u1 = Math.max(u1, p.P.u1); }
-  const [a, b] = p1.dir > 0 ? [u0, u1] : [u1, u0];
-  return [geo.toLL(a, p1.P.v), geo.toLL(b, p1.P.v)];
+/* En AB-linje per delområde: följer dess första drag men sträcks över hela delen */
+function abLines(){
+  if (!passInfo) return [];
+  const out = [];
+  for (const pi of passInfo.parts) {
+    if (!pi.passes.length) continue;
+    const p1 = pi.passes[0], g = p1.g;
+    let u0 = Infinity, u1 = -Infinity; for (const p of pi.passes) { u0 = Math.min(u0, p.P.u0); u1 = Math.max(u1, p.P.u1); }
+    const [a, b] = p1.dir > 0 ? [u0, u1] : [u1, u0];
+    out.push({no: g.part.no, angle: g.angle, a: g.toLL(a, p1.P.v), b: g.toLL(b, p1.P.v)});
+  }
+  return out;
 }
 function download(name, data, type){
   const a = document.createElement('a');
@@ -1752,7 +2019,7 @@ function ready(){
   if (!geo || geo.tooMany) { msg('Det finns inga rader att exportera.'); return false; }
   return true;
 }
-function activePts(r){ const out = []; if (r.removed) return out; for (let k = 0; k < r.n; k++) if (!r.off.has(k)) out.push(geo.toLL(r.u0 + k * geo.ps, r.v)); return out; }
+function activePts(r){ const out = []; if (r.removed) return out; for (let k = 0; k < r.n; k++) if (!r.off.has(k)) out.push(r.g.toLL(r.u0 + k * geo.ps, r.v)); return out; }
 
 $('btnGeo').onclick = () => {
   if (!ready()) return;
@@ -1760,16 +2027,17 @@ $('btnGeo').onclick = () => {
   const ring = r => { const x = r.map(c); x.push(x[0]); return x; };
   const F = (props, geometry) => ({type: 'Feature', properties: props, geometry});
   const feats = [F({typ: 'falt', namn: plan.name, sattmetod: s.machine ? 'maskin' : 'manuell', radavstand_cm: s.rs * 100, sattavstand_cm: s.ps * 100, vinkel_grader: s.angle, vikt_g: s.weight, rader_per_drag: s.machine ? s.N : null}, {type: 'Polygon', coordinates: plan.field.map(ring)})];
-  plan.excl.forEach((r, i) => feats.push(F({typ: 'hinder', nr: i + 1}, {type: 'Polygon', coordinates: [ring(r)]})));
+  (plan.zones || []).forEach((z, i) => feats.push(F({typ: z.type, nr: i + 1}, {type: 'Polygon', coordinates: [ring(z.ring)]})));
   for (const r of geo.rows) {
     const pts = activePts(r);
     feats.push(F({typ: 'rad', rad: r.label, antal: pts.length, langd_m: +(r.u1 - r.u0).toFixed(2), borttagen: r.removed, drag: r.pass || null}, {type: 'LineString', coordinates: [c(r.ll0), c(r.ll1)]}));
     if (pts.length) feats.push(F({typ: 'sattpunkter', rad: r.label, antal: pts.length}, {type: 'MultiPoint', coordinates: pts.map(c)}));
   }
   if (passInfo) {
-    const ll = p => c(geo.toLL(p[0], p[1]));
-    passInfo.passes.forEach(p => feats.push(F({typ: 'drag', nr: p.no, rader: `${p.P.lmin}–${p.P.lmax}`}, {type: 'LineString', coordinates: [ll(p.start), ll(p.end)]})));
-    passInfo.turns.forEach((t, i) => feats.push(F({typ: 'vandning', efter_drag: i + 1, snav: t.omega}, {type: 'LineString', coordinates: t.pts.map(ll)})));
+    passInfo.passes.forEach(p => { const ll = q => c(p.g.toLL(q[0], q[1]));
+      feats.push(F({typ: 'drag', nr: p.no, del: p.g.part.no, rader: `${p.P.lmin}–${p.P.lmax}`}, {type: 'LineString', coordinates: [ll(p.start), ll(p.end)]})); });
+    passInfo.turns.forEach((t, i) => feats.push(F({typ: 'vandning', nr: i + 1, snav: t.omega, utanfor_falt: !!t.outside, pa_vag: !!t.onRoad},
+      {type: 'LineString', coordinates: t.pts.map(q => c(t.g.toLL(q[0], q[1])))})));
   }
   download(slug() + '.geojson', JSON.stringify({type: 'FeatureCollection', features: feats}), 'application/geo+json');
 };
@@ -1782,7 +2050,6 @@ $('btnCsv').onclick = () => {
 function buildKML(withPoints){
   const k = p => `${p[1].toFixed(8)},${p[0].toFixed(8)},0`;
   const ring = r => r.map(k).concat(k(r[0])).join(' ');
-  const ll = p => geo.toLL(p[0], p[1]);
   const pm = (name, style, geom, desc = '') => `<Placemark><name>${esc(name)}</name>${desc ? `<description>${esc(desc)}</description>` : ''}<styleUrl>#${style}</styleUrl>${geom}</Placemark>`;
   const line = pts => `<LineString><tessellate>1</tessellate><coordinates>${pts.map(k).join(' ')}</coordinates></LineString>`;
   const s = S();
@@ -1790,22 +2057,27 @@ function buildKML(withPoints){
 <description>${esc(`Radavstånd ${fmt(s.rs * 100)} cm, sättavstånd ${fmt(s.ps * 100)} cm, radriktning ${fmt(s.angle, 1)}°` + (s.machine ? `, ${s.N} rader per drag` : ', manuell sättning'))}</description>
 <Style id="falt"><LineStyle><color>ffffffff</color><width>2</width></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
 <Style id="hinder"><LineStyle><color>ff4040ff</color><width>2</width></LineStyle><PolyStyle><color>554040ff</color></PolyStyle></Style>
+<Style id="vag"><LineStyle><color>ffd8d8d8</color><width>2</width></LineStyle><PolyStyle><color>66c9c4bf</color></PolyStyle></Style>
 <Style id="rad"><LineStyle><color>ff2ba4e0</color><width>2</width></LineStyle></Style>
 <Style id="drag"><LineStyle><color>fff5a93f</color><width>3</width></LineStyle></Style>
 <Style id="vand"><LineStyle><color>c0ffc46c</color><width>2</width></LineStyle></Style>
 <Style id="ab"><LineStyle><color>ff00ff00</color><width>4</width></LineStyle></Style>
 <Style id="pkt"><IconStyle><scale>0.35</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle><LabelStyle><scale>0</scale></LabelStyle></Style>\n`;
   x += '<Folder><name>Fält</name>' + pm(plan.name, 'falt', `<Polygon><outerBoundaryIs><LinearRing><coordinates>${ring(plan.field[0])}</coordinates></LinearRing></outerBoundaryIs>${plan.field.slice(1).map(h => `<innerBoundaryIs><LinearRing><coordinates>${ring(h)}</coordinates></LinearRing></innerBoundaryIs>`).join('')}</Polygon>`);
-  plan.excl.forEach((r, i) => { x += pm('Hinder ' + (i + 1), 'hinder', `<Polygon><outerBoundaryIs><LinearRing><coordinates>${ring(r)}</coordinates></LinearRing></outerBoundaryIs></Polygon>`); });
+  (plan.zones || []).forEach((z, i) => { x += pm((z.type === 'vag' ? 'Väg ' : 'Hinder ') + (i + 1), z.type === 'vag' ? 'vag' : 'hinder', `<Polygon><outerBoundaryIs><LinearRing><coordinates>${ring(z.ring)}</coordinates></LinearRing></outerBoundaryIs></Polygon>`); });
   x += '</Folder>\n<Folder><name>Rader</name>';
   for (const r of geo.rows) if (!r.removed && r.off.size < r.n) x += pm('Rad ' + r.label, 'rad', line([r.ll0, r.ll1]), `${r.n - r.off.size} sättpotatisar, ${fmt(r.u1 - r.u0, 1)} m`);
   x += '</Folder>\n';
   if (passInfo && passInfo.passes.length) {
-    x += '<Folder><name>AB-linje</name>' + pm('AB-linje (drag 1)', 'ab', line(abLine()), `Arbetsbredd ${fmt(passInfo.passW, 2)} m`) + '</Folder>\n';
-    x += '<Folder><name>Körordning</name>';
-    passInfo.passes.forEach((p, i) => {
-      x += pm(`Drag ${p.no}`, 'drag', line([ll(p.start), ll(p.end)]), `Rader ${p.P.lmin}–${p.P.lmax}`);
-      if (passInfo.turns[i]) x += pm(`Vändning ${p.no}→${p.no + 1}`, 'vand', line(passInfo.turns[i].pts.map(ll)));
+    const many = geo.parts.length > 1;
+    x += '<Folder><name>AB-linjer</name>';
+    for (const ab of abLines()) x += pm(many ? `AB-linje del ${ab.no} (${fmt(ab.angle, 1)}°)` : 'AB-linje (drag 1)', 'ab', line([ab.a, ab.b]), `Arbetsbredd ${fmt(passInfo.passW, 2)} m`);
+    x += '</Folder>\n<Folder><name>Körordning</name>';
+    for (const pi of passInfo.parts) pi.passes.forEach((p, i) => {
+      const ll = q => p.g.toLL(q[0], q[1]);
+      x += pm(`Drag ${p.no}${many ? ' (del ' + p.g.part.no + ')' : ''}`, 'drag', line([ll(p.start), ll(p.end)]), `Rader ${p.P.lmin}–${p.P.lmax}`);
+      const t = pi.turns[i];
+      if (t) x += pm(`Vändning ${p.no}→${p.no + 1}`, 'vand', line(t.pts.map(q => t.g.toLL(q[0], q[1]))));
     });
     x += '</Folder>\n';
   }
@@ -1835,13 +2107,14 @@ $('btnIso').onclick = async () => {
   let x = `<?xml version="1.0" encoding="UTF-8"?>\n<ISO11783_TaskData VersionMajor="4" VersionMinor="0" ManagementSoftwareManufacturer="Potatisplaneraren" ManagementSoftwareVersion="3.0" DataTransferOrigin="1">\n`;
   x += `<PFD A="PFD1" C="${esc(plan.name)}" D="${fieldM2}">\n`;
   x += `<PLN A="1" C="${fieldM2}">${lsg(plan.field[0], 1)}${plan.field.slice(1).map(h => lsg(h, 2)).join('')}</PLN>\n`;
-  plan.excl.forEach((r, i) => { x += `<PLN A="6" B="Hinder ${i + 1}">${lsg(r, 1)}</PLN>\n`; });
-  const ab = abLine();
-  if (ab) x += `<GGP A="GGP1" B="Potatis ${S().N} rader"><GPN A="GPN1" B="AB drag 1" C="1" E="1" F="1"><LSG A="5">${P(ab[0], 6)}${P(ab[1], 7)}</LSG></GPN></GGP>\n`;
+  (plan.zones || []).forEach((z, i) => { x += `<PLN A="${z.type === 'vag' ? 5 : 6}" B="${z.type === 'vag' ? 'Väg' : 'Hinder'} ${i + 1}">${lsg(z.ring, 1)}</PLN>\n`; });
+  const abs = abLines();
+  if (abs.length) x += `<GGP A="GGP1" B="Potatis ${S().N} rader">` +
+    abs.map((ab, i) => `<GPN A="GPN${i + 1}" B="AB del ${ab.no} (${fmt(ab.angle, 1)} grader)" C="1" E="1" F="1"><LSG A="5">${P(ab.a, 6)}${P(ab.b, 7)}</LSG></GPN>`).join('') + '</GGP>\n';
   x += '</PFD>\n</ISO11783_TaskData>\n';
   const zip = new JSZip(); zip.file('TASKDATA/TASKDATA.XML', x);
   download(slug() + '_TASKDATA.zip', await zip.generateAsync({type: 'blob', compression: 'DEFLATE'}));
-  msg(ab ? `ISOXML sparad. Packa upp mappen TASKDATA på ett USB-minne. Ställ in arbetsbredden ${fmt(passInfo.passW, 2)} m i terminalen.`
+  msg(abs.length ? `ISOXML sparad. Packa upp mappen TASKDATA på ett USB-minne. Ställ in arbetsbredden ${fmt(passInfo.passW, 2)} m i terminalen.`
          : 'ISOXML sparad med fältgräns och hinder. AB-linje finns bara när sättmetoden är potatissättare.', 12000);
 };
 $('btnBackup').onclick = () => {
@@ -1861,6 +2134,7 @@ class CanvasPainter {
   constructor(container, k){ this.container = container; this.k = k; this.pages = []; this.addPage(); }
   addPage(){
     const d = window.devicePixelRatio || 1, c = document.createElement('canvas');
+    this.minLw = 1 / (this.k * d);   // PDF-läsare ritar aldrig linjer tunnare än en bildpunkt – gör likadant här
     c.width = Math.round(PG.W * this.k * d); c.height = Math.round(PG.H * this.k * d);
     c.style.width = PG.W * this.k + 'px'; c.style.height = PG.H * this.k + 'px'; c.className = 'pdf-page';
     const ctx = c.getContext('2d'); ctx.scale(this.k * d, this.k * d); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, PG.W, PG.H);
@@ -1878,7 +2152,7 @@ class CanvasPainter {
   _paint(mode){
     const c = this.ctx; c.save(); c.globalAlpha = this._alpha;
     if (mode.includes('F')) { c.fillStyle = this._fill; c.fill(); }
-    if (mode.includes('S') || mode.includes('D')) { c.strokeStyle = this._stroke; c.lineWidth = this._lw; c.setLineDash(this._dash); c.stroke(); }
+    if (mode.includes('S') || mode.includes('D')) { c.strokeStyle = this._stroke; c.lineWidth = Math.max(this._lw, this.minLw || 0); c.setLineDash(this._dash); c.stroke(); }
     c.restore();
   }
   rect(x, y, w, h, mode){ this.ctx.beginPath(); this.ctx.rect(x, y, w, h); this._paint(mode); }
@@ -1929,13 +2203,15 @@ function legendItems(on){
   if (!geo || geo.tooMany) return items;
   const s = S();
   if (on('field') && plan.field) items.push({label: 'fältgräns', kind: 'field'});
-  if (on('field') && plan.excl.length) items.push({label: 'hinderzon', kind: 'fill', color: '#ff4040'});
+  if (on('field') && (plan.zones || []).some(z => z.type === 'hinder')) items.push({label: 'hinderzon', kind: 'fill', color: '#ff4040'});
+  if (on('field') && (plan.zones || []).some(z => z.type === 'vag')) items.push({label: 'väg', kind: 'fill', color: '#bfc4c9'});
   if (on('rows') && geo.rows.some(r => !r.removed)) items.push({label: 'rad', kind: 'line', color: ui.rowColor || '#e0a42b', alpha: (ui.rowOp ?? 90) / 100});
   if (on('rows') && geo.rows.some(r => r.removed)) items.push({label: 'borttagen rad', kind: 'line', color: '#9a9a9a', dash: true});
   if (on('plants') && geo.rows.some(r => !r.removed && r.off.size < r.n)) items.push({label: 'sättpunkt', kind: 'dot'});
   if (s.machine && passInfo && passInfo.passes.length && on('passes')) {
     items.push({label: 'drag', kind: 'line', color: '#3fa9f5'});
-    if (passInfo.turns.some(t => !t.omega)) items.push({label: 'vändning', kind: 'line', color: '#6cc4ff', dash: true});
+    if (passInfo.turns.some(t => !t.omega && !t.outside)) items.push({label: 'vändning', kind: 'line', color: '#6cc4ff', dash: true});
+    if (passInfo.turns.some(t => t.outside && !t.omega)) items.push({label: 'vändning utanför fältet', kind: 'line', color: '#ffb347', dash: true});
     if (passInfo.omegas) items.push({label: 'snäv vändning', kind: 'line', color: '#ff5a4a', dash: true});
   }
   return items;
@@ -1999,7 +2275,7 @@ function renderPdfTree(){
 let pv = null, pvFit = null, pdfBg = null, bgTimer = null, pdfFrame = null, pdfK = 2.4;
 function fitPdfView(){
   const pts = [...plan.field[0]];
-  if (passInfo && pdfOn('map.passes')) for (const t of passInfo.turns) for (const p of t.pts) pts.push(geo.toLL(p[0], p[1]));
+  if (passInfo && pdfOn('map.passes')) for (const t of passInfo.turns) for (const p of t.pts) pts.push(t.g.toLL(p[0], p[1]));
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const p of pts) { const q = W0(p); x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); }
   const s = Math.min(MAP_W / Math.max(x1 - x0, 1e-12), MAP_H / Math.max(y1 - y0, 1e-12)) * 0.88;
@@ -2073,15 +2349,17 @@ function drawMap(P, f, o){
     P.alpha(1); P.strokeColor('#ffffff'); P.lineWidth(0.45); P.dash([1.6, 1]);
     for (const r of plan.field) P.poly(r.map(llMM), true, 'S');
     P.dash(null);
-    for (const r of plan.excl) {
-      const pts = r.map(llMM);
-      P.fillColor('#ff4040'); P.alpha(0.3); P.poly(pts, true, 'F'); P.alpha(1);
-      P.strokeColor('#ff4040'); P.lineWidth(0.35); P.poly(pts, true, 'S');
+    for (const z of (plan.zones || [])) {
+      const pts = z.ring.map(llMM), col = z.type === 'vag' ? '#bfc4c9' : '#ff4040';
+      P.fillColor(col); P.alpha(z.type === 'vag' ? 0.5 : 0.3); P.poly(pts, true, 'F'); P.alpha(1);
+      P.strokeColor(z.type === 'vag' ? '#ffffff' : '#ff4040'); P.lineWidth(0.35);
+      if (z.type === 'vag') P.dash([1.2, 0.8]);
+      P.poly(pts, true, 'S'); P.dash(null);
     }
   }
   const rsMM = s.rs / mPerMM, psMM = s.ps / mPerMM;
   if (pdfOn('map.rows')) {
-    const lw = Math.max(0.03, Math.min(ui.rowW * 0.11, rsMM * 0.45));
+    const lw = Math.max(0.03, Math.min(ui.rowW * 0.11, rsMM * 0.8));
     const act = [], rem = [];
     for (const r of geo.rows) {
       const a = llMM(r.ll0), b = llMM(r.ll1);
@@ -2092,19 +2370,18 @@ function drawMap(P, f, o){
     if (rem.length) { P.strokeColor('#9a9a9a'); P.dash([lw * 3, lw * 3]); P.segs(rem); P.dash(null); }
   }
   if (passInfo && passInfo.passes.length && pdfOn('map.passes') && s.machine) {
-    const ll = p => geo.toLL(p[0], p[1]);
     const pw = passInfo.passW / mPerMM;   // dragets bredd i mm
     const tl = Math.max(0.06, Math.min(0.3, pw * 0.12));
     P.lineWidth(tl); P.dash([tl * 3, tl * 2]);
-    for (const t of passInfo.turns) { P.strokeColor(t.omega ? '#ff5a4a' : '#6cc4ff'); P.poly(t.pts.map(q => llMM(ll(q))), false, 'S'); }
+    for (const t of passInfo.turns) { P.strokeColor(t.omega ? '#ff5a4a' : t.outside ? '#ffb347' : '#6cc4ff'); P.poly(t.pts.map(q => llMM(t.g.toLL(q[0], q[1]))), false, 'S'); }
     P.dash(null); P.strokeColor('#3fa9f5'); P.lineWidth(Math.max(0.08, Math.min(0.5, pw * 0.15))); P.alpha(0.7);
-    P.segs(passInfo.passes.map(p => { const a = llMM(ll(p.start)), b = llMM(ll(p.end)); return [a[0], a[1], b[0], b[1]]; }));
+    P.segs(passInfo.passes.map(p => { const a = llMM(p.g.toLL(p.start[0], p.start[1])), b = llMM(p.g.toLL(p.end[0], p.end[1])); return [a[0], a[1], b[0], b[1]]; }));
     P.alpha(1);
   }
   if (pdfOn('map.plants')) {
     const sc = (ui.ptScale || 100) / 100;
     const px = 0.11; // Skalfaktor för PDF som visuellt motsvarar 1 skärmpixel
-    const rowLw = pdfOn('map.rows') ? Math.max(0.03, Math.min(ui.rowW * px, rsMM * 0.45)) : 0;
+    const rowLw = pdfOn('map.rows') ? Math.max(0.03, Math.min(ui.rowW * px, rsMM * 0.8)) : 0;
     const minR = pdfOn('map.rows') ? (rowLw / 2 + px) : px;
     const baseR = Math.max(Math.min(minR, psMM * 0.45), Math.min(7 * px, psMM * 0.28));
     const r = Math.max(baseR * sc, px);
@@ -2122,17 +2399,21 @@ function drawMap(P, f, o){
         }
       }
       P.fillColor(ui.ptColor || '#ffffff'); P.strokeColor(ptEdge(ui.ptColor)); P.lineWidth(r * 0.35);
-      P.circles(pts, r, 'FD');
+      // mycket små punkter får ingen kant: kanten ritas minst en bildpunkt bred i PDF-läsaren och skulle svälla
+      P.circles(pts, r, r >= 0.2 ? 'FD' : 'F');
     }
   }
   if (passInfo && passInfo.passes.length && pdfOn('map.passes') && s.machine) {
-    const ll = p => geo.toLL(p[0], p[1]);
-    const lbl = (pt, t) => {
-      const q = llMM(ll(pt)); P.font('bold', 7); const w = P.textWidth(t) + 2.4;
+    const lbl = (pass, pt, t) => {
+      const q = llMM(pass.g.toLL(pt[0], pt[1])); P.font('bold', 7); const w = P.textWidth(t) + 2.4;
       P.fillColor('#ffffff'); P.strokeColor('#000000'); P.lineWidth(0.25); P.rect(q[0] - w / 2, q[1] - 2.2, w, 4.2, 'FD');
       P.textColor('#000000'); P.text(t, q[0], q[1] + 0.9, 'center');
     };
-    lbl(passInfo.passes[0].start, 'START'); lbl(passInfo.passes[passInfo.passes.length - 1].end, 'SLUT');
+    for (const pi of passInfo.parts) {
+      if (!pi.passes.length) continue;
+      const f0 = pi.passes[0], l0 = pi.passes[pi.passes.length - 1];
+      lbl(f0, f0.start, 'START'); lbl(l0, l0.end, 'SLUT');
+    }
   }
   P.unclip();
   P.alpha(1); P.dash(null);
