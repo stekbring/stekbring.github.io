@@ -1,0 +1,3134 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Odlingsverktyget</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:Georgia,"Times New Roman",serif;font-size:13px;color:#000;background:#ececec}
+  #app{display:flex;height:100vh;overflow:hidden}
+  #side{width:580px;flex:none;overflow-y:auto;overflow-x:hidden;background:#ececec;container-type:inline-size;container-name:side}
+  #side.collapsed{display:none}
+  [hidden]{display:none !important}
+  body.farmview .stats-box, body.farmview .leaflet-draw{display:none}
+  #side .inner{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;align-content:start;padding:6px 8px 10px}
+  @container side (max-width: 520px){ #side .inner{grid-template-columns:1fr} }
+  #side .col{display:flex;flex-direction:column;gap:4px;min-width:0}
+  #split{flex:none;width:9px;cursor:col-resize;background:#e1e1e1;border-left:1px solid #fff;border-right:1px solid #808080;position:relative;touch-action:none}
+  #split:hover{background:#d6d6d6}
+  #splitBtn{position:absolute;top:50%;left:-1px;width:9px;height:54px;padding:0;font-size:8px;transform:translateY(-50%)}
+  #map{flex:1;background:#222;min-width:0}
+  .title{grid-column:1/-1;display:flex;align-items:baseline;justify-content:space-between;padding:2px 2px 0;gap:8px}
+  .title b{font-size:18px;font-weight:normal}
+  .title span{color:#555;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  fieldset{border:2px groove #f7f7f7;margin:0;padding:4px 7px 7px;min-width:0}
+  legend{padding:0 4px}
+  .r{display:flex;align-items:center;gap:6px;margin:3px 0}
+  .r label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .u{width:28px;color:#444;font-size:12px}
+  input[type=number],input[type=text],select{font:inherit;background:#fff;color:#000;border:1px solid;border-color:#808080 #fff #fff #808080;
+        box-shadow:inset 1px 1px #404040;padding:2px 4px;height:22px}
+  input[type=number]{width:64px;text-align:right}
+  input[type=text]{flex:1;min-width:0}
+  select{flex:1;min-width:0}
+  input[type=range]{flex:1;min-width:0;margin:2px 0}
+  button{font:inherit;color:#000;background:#e1e1e1;border:1px solid;border-color:#fff #555 #555 #fff;
+        box-shadow:inset -1px -1px #a0a0a0,inset 1px 1px #f4f4f4;padding:2px 8px;height:24px;cursor:pointer;white-space:nowrap}
+  button:active,button.on{border-color:#555 #fff #fff #555;box-shadow:inset 1px 1px #a0a0a0;background:#d2d2d2}
+  button:disabled{color:#888;cursor:default}
+  button:focus-visible{outline:1px dotted #000;outline-offset:-4px}
+  .b{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+  .b button{flex:1 1 auto}
+  .hint{font-size:11.5px;color:#444;line-height:1.35;margin-top:4px}
+  .ang{display:flex;gap:8px;align-items:center}
+  .ang svg{flex:none}
+  .ang>div{flex:1;min-width:0}
+  .chk{display:flex;flex-wrap:wrap;gap:2px 12px}
+  .chk label{white-space:nowrap}
+  .radio{display:flex;gap:14px;margin:2px 0 4px}
+  .sep{border-top:1px solid #aaa;border-bottom:1px solid #fff;margin:6px 0 4px}
+  body.manual .machine-only{display:none}
+  body:not(.manual) .manual-only{display:none}
+  #msg{grid-column:1/-1;min-height:16px;color:#8a1c00}
+  .stats-box{background:#ececec;border:1px solid;border-color:#fff #555 #555 #fff;box-shadow:1px 1px 4px rgba(0,0,0,.45);
+        font-family:Georgia,serif;font-size:12.5px;width:268px;max-height:calc(100vh - 110px);overflow-y:auto}
+  .stats-box .hd{display:flex;justify-content:space-between;align-items:center;gap:4px;padding:3px 4px 3px 7px;background:#dcdcdc;border-bottom:1px solid #aaa}
+  .stats-box .hd span{flex:1}
+  .stats-box .hd button{height:19px;padding:0 6px;font-size:11px}
+  .stats-box .bd{padding:4px 8px 6px}
+  .stats-box table{width:100%;border-collapse:collapse}
+  .stats-box td{padding:1.5px 0;vertical-align:top}
+  .stats-box td+td{text-align:right;font-variant-numeric:tabular-nums;padding-left:6px}
+  .stats-box tr.h td{padding-top:6px;font-weight:bold;border-bottom:1px solid #aaa}
+  .stats-box .warn{color:#8a1c00;margin-top:5px;line-height:1.3}
+  .stats-box .info{color:#333;margin-top:5px;line-height:1.3}
+  .lg{display:flex;flex-wrap:wrap;gap:3px 10px;margin-top:6px;font-size:11.5px;color:#333}
+  .lg i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:3px}
+  .lg i.dot{width:7px;height:7px;border-radius:50%}
+  .pass-icon{background:none;border:0}
+  .pass-icon div{font:bold 11px Georgia,serif;color:#fff;text-shadow:0 0 3px #000,0 0 2px #000,0 0 1px #000;white-space:nowrap;display:flex;align-items:center;gap:2px;justify-content:center}
+  .pass-icon .arr{display:inline-block;color:#8fd6ff}
+  .hide-pl .pass-icon{display:none}
+  .fieldcard{border:2px groove #f7f7f7;margin:0 0 6px;padding:3px 7px 6px}
+  .fieldcard.sel{border-color:#c9d8ea;background:#f4f7fb}
+  .fieldcard legend input.fname{width:150px;height:20px;font-weight:bold}
+  .fieldcard .cropline{border-top:1px dotted #bbb;padding-top:3px}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;border:1px solid #555;vertical-align:middle}
+  table.tot{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+  table.tot td{padding:1.5px 0;border-bottom:1px dotted #bbb}
+  table.tot td+td{text-align:right;font-variant-numeric:tabular-nums}
+  table.tot tr.h td{font-weight:bold;border-bottom:1px solid #999;text-align:left}
+  .field-label{background:rgba(0,0,0,.55);color:#fff;border:0;font:bold 11px Georgia,serif;box-shadow:none}
+  .field-label::before{display:none}
+  #msg2{grid-column:1/-1;min-height:16px;color:#8a1c00}
+  .part-icon div{background:rgba(0,0,0,.55);color:#fff;border:1px solid #fff;font:bold 10px Georgia,serif;padding:1px 4px;text-align:center;white-space:nowrap;border-radius:3px}
+  #partsList a{color:#004a9f}
+  .se-icon div{background:#fff;border:1px solid #000;font:bold 11px Georgia,serif;padding:1px 4px;text-align:center;white-space:nowrap}
+  body.tool-on #map{cursor:crosshair}
+  body.dragging, body.dragging *{cursor:col-resize !important;user-select:none}
+  .leaflet-container{font-family:Georgia,serif}
+  .leaflet-popup-content button{margin-top:4px}
+  .fb-tile img{position:absolute;max-width:none;user-select:none}
+  .dlg-back{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:5000;display:flex;align-items:center;justify-content:center}
+  .dlg-back[hidden]{display:none}
+  .dlg{background:#ececec;border:1px solid;border-color:#fff #555 #555 #fff;box-shadow:2px 3px 14px rgba(0,0,0,.5);width:min(1180px,97vw);height:min(940px,95vh);display:flex;flex-direction:column}
+  .dlg-title{background:#dcdcdc;padding:3px 4px 3px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #aaa;font-weight:bold}
+  .dlg-title button{height:20px;padding:0 7px}
+  .dlg-body{flex:1;display:flex;min-height:0}
+  .dlg-opts{width:360px;flex:none;overflow:auto;padding:8px;border-right:2px groove #fff;display:flex;flex-direction:column;gap:6px}
+  .dlg-prev{flex:1;display:flex;flex-direction:column;min-width:0;padding:8px;gap:4px}
+  #pdfPages{flex:1;overflow:auto;background:#8f8f8f;padding:14px;display:flex;flex-direction:column;align-items:center;gap:14px;border:1px solid;border-color:#808080 #fff #fff #808080}
+  .pdf-page{box-shadow:0 1px 6px rgba(0,0,0,.45);background:#fff;flex:none}
+  body.pdf-dragging, body.pdf-dragging *{cursor:grabbing !important;user-select:none}
+  .tree ul{list-style:none;margin:0;padding-left:18px}
+  .tree>ul{padding-left:0}
+  .tree li{margin:1px 0}
+  .tree label{white-space:normal}
+  .tree label.dis{color:#999}
+  .tree input.ren{width:190px;height:20px;font-weight:bold;margin-left:2px}
+  input[type=color]{width:34px;height:22px;padding:0 1px;border:1px solid;border-color:#808080 #fff #fff #808080;background:#fff}
+  .tree textarea{width:100%;font:inherit;border:1px solid;border-color:#808080 #fff #fff #808080;box-shadow:inset 1px 1px #404040;padding:3px}
+  .dlg-foot{display:flex;gap:6px;justify-content:flex-end;align-items:center;padding:6px 8px;border-top:1px solid #aaa}
+  .dlg-foot #pdfStatus{flex:1;color:#333}
+  .dlg-foot button{min-width:96px}
+  .leaflet-div-icon.pp-vertex{background:radial-gradient(circle,#fff 0 2.6px,#1a1a1a 2.9px 4.6px,rgba(0,0,0,0) 5px) !important;border:0 !important;border-radius:50% !important;box-shadow:none !important;cursor:move}
+  .leaflet-div-icon.pp-vertex:hover{background:radial-gradient(circle,#ffe27a 0 2.9px,#1a1a1a 3.2px 5px,rgba(0,0,0,0) 5.4px) !important}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="side"><div class="inner" id="farmPanel">
+    <div class="title"><b>Odlingsverktyget</b><span>fält · grödor · planering</span></div>
+    <div class="col">
+      <fieldset>
+        <legend>Gården</legend>
+        <div class="r"><label for="farmName" style="flex:none">Namn</label><input type="text" id="farmName" placeholder="Min gård"></div>
+        <div class="b" style="margin-top:6px">
+          <button id="btnDrawField">Rita fält</button>
+          <button id="btnImportField">Importera fält…</button>
+        </div>
+        <div class="b">
+          <button id="btnFarmSave" title="Sparar alla fält och odlingar i en fil">Spara gården</button>
+          <button id="btnFarmOpen">Öppna gårdsfil…</button>
+          <button id="btnCalcAll" title="Beräknar rader och skörd för alla odlingar">Räkna om alla</button>
+        </div>
+        <div class="hint">Rita dina fält på kartan. Öppna sedan ett fält och lägg till en odling för potatis, morötter, lök eller något annat. Samma fält kan ha flera odlingar.</div>
+      </fieldset>
+      <fieldset><legend>Totalt</legend><div id="farmTotals"></div></fieldset>
+    </div>
+    <div class="col">
+      <fieldset><legend>Fält och odlingar</legend><div id="fieldList"></div></fieldset>
+    </div>
+    <div id="msg2"></div>
+  </div><div class="inner" id="planPanel" hidden>
+    <div class="title"><b id="planTitle">Odlingsplaneraren</b><span>rader · sättpunkter · körordning</span></div>
+
+    <div class="col">
+      <fieldset>
+        <legend>Odling</legend>
+        <div class="b" style="margin-top:0"><button id="btnToFarm">◀ Till gården</button></div>
+        <div class="r"><label for="planName" style="flex:none">Namn</label><input type="text" id="planName"></div>
+        <div class="r"><label for="cropSel" style="flex:none">Gröda</label><select id="cropSel"></select></div>
+        <div class="hint" id="planWhere"></div>
+        <div class="b">
+          <button id="btnSaveProj" title="Sparar planen med allt inlagt, även ortofotot, i en fil som du kan skicka till någon">Spara projektfil</button>
+          <button id="btnOpenProj" title="Öppnar en projektfil. Du kan också dra filen och släppa den på sidan.">Öppna projektfil…</button>
+          <button id="btnShare" title="Skapar en länk som öppnar planen i mottagarens webbläsare">Dela länk</button>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Odlingsyta</legend>
+        <div class="b" style="margin-top:0">
+          <button id="btnWhole" title="Använd hela fältets yta för den här odlingen">Hela fältet</button>
+          <button id="btnDraw" title="Rita en mindre yta inne i fältet för den här odlingen">Rita yta</button>
+          <button id="btnImport">Importera fil…</button>
+          <button id="btnExcl" title="Rita ett område som inte ska sättas (sten, brunn, blöt svacka)">Rita hinderzon</button>
+          <button id="btnRoad" title="Rita en väg: inget sätts där, men sättaren får köra och vända på den">Rita väg</button>
+          <button id="btnFit">Visa ytan</button>
+          <button id="btnClear">Radera ytan</button>
+        </div>
+        <input type="file" id="fileIn" accept=".geojson,.json,.kml,.kmz" hidden>
+        <div class="r" style="margin-top:5px">
+          <input type="text" id="search" placeholder="Sök plats…">
+          <button id="btnSearch">Sök</button>
+          <button id="btnLocate" title="Min position">◎</button>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Sättning</legend>
+        <div class="r"><label for="rowSpacing">Radavstånd</label><input type="number" id="rowSpacing" min="10" step="1"><span class="u">cm</span></div>
+        <div class="r"><label for="plantSpacing" title="Avståndet mellan två potatisar i samma rad">Sättavstånd</label><input type="number" id="plantSpacing" min="5" step="1"><span class="u">cm</span></div>
+        <div class="r"><label for="weight" id="lblWeight">Vikt per sättpotatis</label><input type="number" id="weight" min="0" step="0.001"><span class="u">g</span></div>
+        <div class="r"><label for="bagKg">Säckstorlek</label><input type="number" id="bagKg" min="1" step="1"><span class="u">kg</span></div>
+        <div class="r"><label for="edgeMargin" title="Minsta avstånd från den markerade gränsen till en sättpotatis">Avstånd från kant</label><input type="number" id="edgeMargin" min="0" step="0.1"><span class="u">m</span></div>
+        <div class="r"><label for="obstacleMargin">Avstånd runt hinder</label><input type="number" id="obstacleMargin" min="0" step="0.1"><span class="u">m</span></div>
+        <div class="r"><label for="roadMargin" title="Avstånd från en väg till närmaste sättpotatis">Avstånd till väg</label><input type="number" id="roadMargin" min="0" step="0.1"><span class="u">m</span></div>
+        <div class="r"><label for="offset">Sidoförskjutning av rader</label><input type="number" id="offset" step="1"><span class="u">cm</span></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Radriktning</legend>
+        <div class="ang">
+          <svg width="62" height="62" viewBox="0 0 100 100" aria-label="Kompass">
+            <circle cx="50" cy="50" r="45" fill="#fff" stroke="#808080" stroke-width="2"/>
+            <text x="50" y="17" text-anchor="middle" font-size="14" font-family="Georgia" font-weight="bold">N</text>
+            <text x="50" y="94" text-anchor="middle" font-size="12" font-family="Georgia" fill="#555">S</text>
+            <text x="89" y="55" text-anchor="middle" font-size="12" font-family="Georgia" fill="#555">Ö</text>
+            <text x="11" y="55" text-anchor="middle" font-size="12" font-family="Georgia" fill="#555">V</text>
+            <g id="compassLine">
+              <line x1="50" y1="22" x2="50" y2="78" stroke="#c77f00" stroke-width="5" stroke-linecap="round"/>
+              <line x1="39" y1="26" x2="39" y2="74" stroke="#c77f00" stroke-width="2" opacity=".55"/>
+              <line x1="61" y1="26" x2="61" y2="74" stroke="#c77f00" stroke-width="2" opacity=".55"/>
+            </g>
+          </svg>
+          <div>
+            <div class="r" style="margin-top:0"><label for="angle">Vinkel mot norr</label><input type="number" id="angle" min="0" max="180" step="0.5"><span class="u">°</span></div>
+            <div class="r"><input type="range" id="angleRange" min="0" max="179.5" step="0.5"></div>
+            <div class="hint" id="angleText" style="margin-top:0"></div>
+          </div>
+        </div>
+        <div class="b">
+          <button id="btnLongest">Längs längsta kanten</button>
+          <button id="btnPerp">Vrid 90°</button>
+        </div>
+        <div class="b">
+          <button data-goal="plants" title="Provar alla vinklar och väljer den som ger flest sättpotatisar">Flest potatisar</button>
+          <button data-goal="rows" title="Provar alla vinklar och väljer den som ger minst antal rader">Färst rader</button>
+        </div>
+        <div class="b">
+          <button data-goal="perRow" title="Provar alla vinklar och väljer den som ger flest sättpotatisar per rad, alltså få och långa rader">Flest potatisar per rad</button>
+        </div>
+      </fieldset>
+
+      <fieldset id="partsBox" hidden>
+        <legend>Delområden</legend>
+        <div class="hint" style="margin-top:0">Hinder och vägar som går tvärs över fältet delar upp det. Varje del kan få en egen radriktning.</div>
+        <div id="partsList"></div>
+        <div class="b"><button id="btnPartsReset">Alla följer fältets vinkel</button></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Eget ortofoto</legend>
+        <div class="b" style="margin-top:0">
+          <button id="btnOrtho">Läs in ortofoto…</button>
+          <button id="btnOrthoFit">Visa</button>
+          <button id="btnOrthoDel">Ta bort</button>
+        </div>
+        <input type="file" id="orthoIn" multiple accept=".tif,.tiff,.jpg,.jpeg,.png,.jgw,.pgw,.tfw,.wld,.jpgw,.pngw" hidden>
+        <div class="r"><label for="orthoCrs" style="flex:none">Koordinatsystem</label><select id="orthoCrs"></select></div>
+        <div class="r"><label for="orthoOp" style="flex:none">Täckning</label><input type="range" id="orthoOp" min="0" max="100" value="100"><label style="flex:none"><input type="checkbox" id="orthoShow" checked> Visa</label></div>
+        <div class="hint" id="orthoInfo"></div>
+      </fieldset>
+    </div>
+
+    <div class="col">
+      <fieldset>
+        <legend>Sättmetod &amp; körning</legend>
+        <div class="radio">
+          <label><input type="radio" name="method" value="machine" id="mMachine"> Potatissättare</label>
+          <label><input type="radio" name="method" value="manual" id="mManual"> Manuellt</label>
+        </div>
+        <div class="machine-only">
+          <div class="r"><label for="rowsPerPass">Rader per drag</label><input type="number" id="rowsPerPass" min="1" max="24" step="1"><span class="u">st</span></div>
+          <div class="r"><label for="turnRadius">Minsta vändradie</label><input type="number" id="turnRadius" min="0" step="0.5"><span class="u">m</span></div>
+          <div class="r"><label for="speed">Hastighet vid sättning</label><input type="number" id="speed" min="0.5" step="0.5"><span class="u">km/h</span></div>
+          <div class="r"><label for="turnMode" style="flex:none">Vändmönster</label>
+            <select id="turnMode">
+              <option value="auto">Automatiskt</option>
+              <option value="seq">Intilliggande drag</option>
+              <option value="skip">Skiften (hoppa över drag)</option>
+            </select>
+          </div>
+          <div class="sep"></div>
+          <div class="r"><label for="headlandInside" style="white-space:normal"><input type="checkbox" id="headlandInside"> Lämna vändteg innanför markerad yta</label></div>
+          <div class="r" id="headlandRow"><label for="headland">Vändtegens bredd</label><input type="number" id="headland" min="0" step="0.5"><span class="u">m</span></div>
+          <div class="hint" id="headlandHint"></div>
+          <div class="b">
+            <button id="btnStartFlip" title="Börja från andra sidan av fältet">Byt startsida</button>
+            <button id="btnDirFlip" title="Kör första draget åt andra hållet">Byt körriktning</button>
+          </div>
+          <div class="hint" id="machineHint"></div>
+        </div>
+        <div class="manual-only">
+          <div class="r"><label for="plantRate">Sättningstakt per person</label><input type="number" id="plantRate" min="10" step="10"><span class="u">st/h</span></div>
+          <div class="r"><label for="workers">Antal personer</label><input type="number" id="workers" min="1" step="1"><span class="u">st</span></div>
+          <div class="sep"></div>
+          <div class="r"><label for="manualEnd" title="Fri yta vid radernas ändar, till exempel för att vända med kärra eller gå runt">Fritt vid radernas ändar</label><input type="number" id="manualEnd" min="0" step="0.5"><span class="u">m</span></div>
+          <div class="hint" id="manualHint"></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><span id="lblSeed">Utsäde</span> &amp; skörd</legend>
+        <div class="r"><label for="variety" style="flex:none">Sort</label><select id="variety"></select></div>
+        <div class="r"><label for="yieldTha">Förväntad avkastning</label><input type="number" id="yieldTha" min="0" step="1"><span class="u">t/ha</span></div>
+        <div class="hint">Sorternas avkastning är ungefärliga medelvärden. Ändra till det du brukar få på din jord.</div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Redigera rader &amp; punkter</legend>
+        <div class="b" style="margin-top:0">
+          <button id="toolRow" data-tool="row">Ta bort rader</button>
+          <button id="toolPt" data-tool="pt">Sudda punkter</button>
+          <button id="toolRestore" data-tool="restore">Återställ</button>
+        </div>
+        <div class="b">
+          <button id="btnUndo" title="Ctrl+Z">Ångra</button>
+          <button id="btnResetEdits">Återställ alla</button>
+        </div>
+        <div class="b" id="editFoot" hidden>
+          <button id="btnEditSave">Spara ändringar</button>
+          <button id="btnEditCancel">Avbryt</button>
+        </div>
+        <div class="hint" id="editHint"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Visa</legend>
+        <div class="chk">
+          <label><input type="checkbox" id="showRows" checked> Rader</label>
+          <label><input type="checkbox" id="showPlants" checked> Sättpunkter</label>
+          <label class="machine-only"><input type="checkbox" id="showPasses" checked> Körspår</label>
+          <label><input type="checkbox" id="showField" checked> Fält &amp; hinder</label>
+        </div>
+        <div class="r"><label for="rowW" style="flex:none;width:92px">Radlinjer</label><input type="range" id="rowW" min="0.5" max="12" step="0.5"><span class="u" id="rowWv" style="width:40px"></span></div>
+        <div class="r"><label for="rowOp" style="flex:none;width:92px">Radfärg</label><input type="color" id="rowColor" title="Färg på radlinjerna"><input type="range" id="rowOp" min="1" max="100" step="5" title="Täckning"><span class="u" id="rowOpV" style="width:40px"></span></div>
+        <div class="r"><label for="ptMode" style="flex:none;width:92px">Punkter visas</label>
+          <select id="ptMode" title="När sättpunkterna ska ritas ut på kartan">
+            <option value="auto">Vid inzoomning</option>
+            <option value="always">Alltid</option>
+            <option value="never">Aldrig</option>
+          </select></div>
+        <div class="r" id="ptMinRow"><label for="ptMinPx" style="flex:none;width:92px" title="Sättpunkterna visas när avståndet mellan dem är minst så här många bildpunkter på skärmen">Visa från</label><input type="range" id="ptMinPx" min="3" max="30" step="1"><span class="u" id="ptMinPxV" style="width:40px"></span></div>
+        <div class="r"><label for="ptScale" style="flex:none;width:92px">Sättpunkter</label><input type="color" id="ptColor" title="Färg på sättpunkterna"><input type="range" id="ptScale" min="1" max="300" step="10"><span class="u" id="ptScaleV" style="width:40px"></span></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Exportera</legend>
+        <div class="b" style="margin-top:0">
+          <button id="btnPdf" title="Resultat och kartbild i en PDF">PDF</button>
+          <button id="btnKml">KML</button>
+          <button id="btnKmz">KMZ</button>
+          <button id="btnIso" title="TASKDATA för ISOBUS-terminal: fältgräns, hinder och AB-linje">ISOXML</button>
+          <button id="btnGeo">GeoJSON</button>
+          <button id="btnCsv">CSV</button>
+        </div>
+        <div class="chk" style="margin-top:4px"><label><input type="checkbox" id="expPoints"> Ta med sättpunkter i KML/KMZ</label></div>
+        <div class="b">
+          <button id="btnBackup">Säkerhetskopiera allt</button>
+          <button id="btnRestore">Läs in säkerhetskopia…</button>
+        </div>
+      </fieldset>
+    </div>
+    <div id="msg"></div>
+  </div></aside>
+  <div id="split" title="Dra för att ändra panelens bredd. Dubbelklicka för att dölja eller visa."><button id="splitBtn" title="Dölj/visa panelen">◀</button></div>
+  <div id="map"></div>
+</div>
+
+<div id="pdfDlg" class="dlg-back" hidden>
+  <div class="dlg" role="dialog" aria-label="PDF-rapport" tabindex="-1">
+    <div class="dlg-title"><span>PDF-rapport</span><button id="pdfClose" title="Stäng">✕</button></div>
+    <div class="dlg-body">
+      <div class="dlg-opts">
+        <fieldset>
+          <legend>Kartbild</legend>
+          <div class="r"><label for="pdfZoom" style="flex:none">Zoom</label><button id="pdfZout">−</button><input type="range" id="pdfZoom" min="-3" max="5" step="0.05" value="0"><button id="pdfZin">+</button><button id="pdfFit" title="Anpassa så att hela fältet syns">Anpassa</button></div>
+          <div class="hint" style="margin-top:0">Dra i kartbilden i förhandsvisningen för att flytta den. Scrolla på den för att zooma.</div>
+          <div class="r"><label for="pdfRowW" style="flex:none;width:86px">Radlinjer</label><input type="range" id="pdfRowW" min="0.5" max="12" step="0.5"><span class="u" id="pdfRowWv" style="width:40px"></span></div>
+          <div class="r"><label for="pdfRowOp" style="flex:none;width:86px">Radfärg</label><input type="color" id="pdfRowColor" title="Färg på radlinjerna"><input type="range" id="pdfRowOp" min="10" max="100" step="5" title="Täckning"><span class="u" id="pdfRowOpV" style="width:40px"></span></div>
+          <div class="r"><label for="pdfPtScale" style="flex:none;width:86px">Sättpunkter</label><input type="color" id="pdfPtColor" title="Färg på sättpunkterna"><input type="range" id="pdfPtScale" min="1" max="300" step="10"><span class="u" id="pdfPtScaleV" style="width:40px"></span></div>
+          <div class="r"><label for="pdfOrthoQ" style="flex:none;width:86px">Ortofoto</label>
+            <select id="pdfOrthoQ">
+              <option value="normal">Som i programmet (max 4000 px)</option>
+              <option value="high" data-orig>Hög (300 dpi)</option>
+              <option value="max" data-orig>Högsta (originalets upplösning)</option>
+            </select></div>
+          <div class="hint" id="pdfOrthoHint"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Innehåll</legend>
+          <div class="tree" id="pdfTree"></div>
+        </fieldset>
+      </div>
+      <div class="dlg-prev">
+        <div class="r" style="margin:0"><b style="flex:1">Förhandsvisning</b><span id="pdfPagesInfo" class="hint" style="margin:0"></span></div>
+        <div id="pdfPages"></div>
+      </div>
+    </div>
+    <div class="dlg-foot"><span id="pdfStatus"></span><button id="pdfSave">Spara PDF</button><button id="pdfCancel">Avbryt</button></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const R = 6371008.8;
+const DEG = Math.PI / 180;
+const fmt = (x, d = 0) => (+x).toLocaleString('sv-SE', {minimumFractionDigits: d, maximumFractionDigits: d});
+let msgTimer = null;
+function msg(t, ms = 6000){
+  for (const id of ['msg', 'msg2']) { const el = $(id); if (el) el.textContent = t || ''; }
+  clearTimeout(msgTimer); if (t && ms) msgTimer = setTimeout(() => msg(''), ms);
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;'}[c]));
+const COMPASS16 = ['N', 'NNO', 'NO', 'ONO', 'Ö', 'OSO', 'SO', 'SSO', 'S', 'SSV', 'SV', 'VSV', 'V', 'VNV', 'NV', 'NNV'];
+const compassWord = b => COMPASS16[Math.round((((b % 360) + 360) % 360) / 22.5) % 16];
+
+/* Bibliotek som bara laddas när de behövs */
+const LIBS = {
+  jspdf: ['https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js', () => window.jspdf],
+  geotiff: ['https://cdn.jsdelivr.net/npm/geotiff@2.1.3/dist-browser/geotiff.js', () => window.GeoTIFF],
+  proj4: ['https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js', () => window.proj4]
+};
+const libPromises = {};
+function need(name){
+  const [url, check] = LIBS[name];
+  if (check()) return Promise.resolve();
+  return libPromises[name] || (libPromises[name] = new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = url;
+    s.onload = () => check() ? res() : rej(new Error('biblioteket ' + name + ' laddades inte'));
+    s.onerror = () => { delete libPromises[name]; rej(new Error('kunde inte hämta ' + name + ' (ingen internetanslutning?)')); };
+    document.head.appendChild(s);
+  }));
+}
+
+/* =================== Gränssnittsinställningar =================== */
+const UI_KEY = 'potatisplaneraren.ui';
+let ui = {sideW: 580, collapsed: false, base: 'hybrid', rowW: 2, ptScale: 100, rowColor: '#e0a42b', rowOp: 90, ptColor: '#ffffff', ptMode: 'auto', ptMinPx: 8};
+try { ui = {...ui, ...JSON.parse(localStorage.getItem(UI_KEY) || '{}')}; } catch {}
+const saveUI = () => { try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch {} };
+const PDF_DEFAULT_OFF = ['memo', 'sec:Konfiguration|Sättmetod', 'sec:Utsäde|Säckar à kg', 'sec:Uppskattad skörd|Förökningsgrad'];
+if (ui.pdfDefaultsV !== 2) { ui.pdfOff = [...PDF_DEFAULT_OFF]; ui.pdfNames = {}; ui.pdfDefaultsV = 2; saveUI(); }
+
+/* =================== Sorter (riktvärden, t/ha) =================== */
+const VARIETIES = [
+  ['Egen', null],
+  ['Rocket (mycket tidig)', 20], ['Swift (mycket tidig)', 20],
+  ['Solist (tidig)', 28], ['Annabelle (tidig)', 28], ['Amandine (tidig)', 30], ['Princess (tidig)', 32],
+  ['King Edward (medeltidig)', 30], ['Bintje (medeltidig)', 40], ['Folva (medeltidig)', 40],
+  ['Melody (medelsen)', 45], ['Asterix (sen)', 40], ['Mandel (sen)', 22]
+];
+$('variety').innerHTML = VARIETIES.map(([n, y]) => `<option value="${esc(n)}">${esc(n)}${y ? ` – ${y} t/ha` : ''}</option>`).join('');
+
+/* =================== Koordinatsystem för ortofoton =================== */
+const CRS_DEFS = {
+  3006: ['SWEREF 99 TM', '+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'],
+  3007: ['SWEREF 99 12 00', 12], 3008: ['SWEREF 99 13 30', 13.5], 3012: ['SWEREF 99 14 15', 14.25], 3009: ['SWEREF 99 15 00', 15],
+  3013: ['SWEREF 99 15 45', 15.75], 3010: ['SWEREF 99 16 30', 16.5], 3014: ['SWEREF 99 17 15', 17.25], 3011: ['SWEREF 99 18 00', 18],
+  3015: ['SWEREF 99 18 45', 18.75], 3016: ['SWEREF 99 20 15', 20.25], 3017: ['SWEREF 99 21 45', 21.75], 3018: ['SWEREF 99 23 15', 23.25],
+  3021: ['RT90 2,5 gon V', '+proj=tmerc +lat_0=0 +lon_0=15.80827777777778 +k=1 +x_0=1500000 +y_0=0 +ellps=bessel +towgs84=414.1,41.3,603.1,-0.855,2.141,-7.023,0 +units=m +no_defs'],
+  32632: ['WGS 84 / UTM 32N', '+proj=utm +zone=32 +datum=WGS84 +units=m +no_defs'],
+  32633: ['WGS 84 / UTM 33N', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs'],
+  32634: ['WGS 84 / UTM 34N', '+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs'],
+  25832: ['ETRS89 / UTM 32N', '+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'],
+  25833: ['ETRS89 / UTM 33N', '+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'],
+  25834: ['ETRS89 / UTM 34N', '+proj=utm +zone=34 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs'],
+  4326: ['WGS 84 (lat/long)', null], 3857: ['Web Mercator', null]
+};
+for (const v of Object.values(CRS_DEFS)) if (typeof v[1] === 'number')
+  v[1] = `+proj=tmerc +lat_0=0 +lon_0=${v[1]} +k=1 +x_0=150000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs`;
+$('orthoCrs').innerHTML = '<option value="">Automatiskt (från filen)</option>' +
+  Object.entries(CRS_DEFS).map(([k, v]) => `<option value="${k}">${esc(v[0])} (EPSG:${k})</option>`).join('');
+const ORTHO_HINT = 'GeoTIFF, eller JPG/PNG tillsammans med sin world-fil (.jgw/.pgw). Markera båda filerna samtidigt. Bilden sparas i webbläsaren för den här planen.';
+
+/* =================== Planer & lagring =================== */
+const DEFAULTS = {rowSpacing: 75, plantSpacing: 30, weight: 60, bagKg: 25, edgeMargin: 0.3, obstacleMargin: 0.5, roadMargin: 0.3, offset: 0, angle: 0,
+  method: 'machine', rowsPerPass: 2, turnRadius: 5, speed: 5, turnMode: 'auto', headland: 6, headlandInside: true,
+  plantRate: 500, workers: 2, manualEnd: 0, variety: 'Amandine (tidig)', yieldTha: 30, startFlip: false, dirFlip: false};
+const SETTING_IDS = ['rowSpacing', 'plantSpacing', 'weight', 'bagKg', 'edgeMargin', 'obstacleMargin', 'roadMargin', 'offset', 'angle',
+  'rowsPerPass', 'turnRadius', 'speed', 'turnMode', 'headland', 'plantRate', 'workers', 'manualEnd', 'variety', 'yieldTha'];
+const STORE = 'odlingsverktyget.v1';
+const uid = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+function newPlan(name, baseSettings){
+  return {id: uid(), name, field: null, zones: [], partAngles: [], settings: {...DEFAULTS, ...(baseSettings || {})}, removedRows: [], removedPts: [], updated: Date.now()};
+}
+let store = {current: null, plans: [], fields: [], farmName: ''};
+let plan = null;
+let undoStack = [];
+
+function persist(){
+  try { localStorage.setItem(STORE, JSON.stringify(store)); }
+  catch { msg('Kunde inte spara i webbläsaren. Spara en backup via Exportera.', 0); }
+}
+let saveT = null;
+function save(){ if (!plan) return; plan.updated = Date.now(); clearTimeout(saveT); saveT = setTimeout(persist, 300); }
+window.addEventListener('pagehide', () => { if (saveT) { clearTimeout(saveT); persist(); } });
+
+function loadStore(){
+  try { const s = JSON.parse(localStorage.getItem(STORE) || 'null'); if (s && Array.isArray(s.plans)) store = s; } catch {}
+  store.fields = store.fields || [];
+  store.farmName = store.farmName || '';
+  // planer från den fristående Potatisplaneraren tas med om de finns
+  if (!store.plans.length && !store.fields.length) {
+    try {
+      const old = JSON.parse(localStorage.getItem('potatisplaneraren.v2') || 'null');
+      for (const p of (old && old.plans) || []) {
+        if (!p.field) continue;
+        const f = {id: uid(), name: p.name || 'Fält', rings: p.field, color: FIELD_COLORS[store.fields.length % FIELD_COLORS.length], zones: p.zones || []};
+        store.fields.push(f);
+        store.plans.push({...p, fieldId: f.id, crop: 'potatis', wholeField: true});
+      }
+      if (store.plans.length) msg(`${store.plans.length} planer hämtades från Potatisplaneraren.`, 12000);
+    } catch {}
+  }
+}
+function refreshPlanUI(){
+  if (document.activeElement !== $('planName')) $('planName').value = plan.name;
+  if (typeof applyCrop === 'function') applyCrop();
+}
+function fillInputs(){
+  for (const id of SETTING_IDS) $(id).value = plan.settings[id];
+  $('angleRange').value = plan.settings.angle;
+  $('mMachine').checked = plan.settings.method !== 'manual';
+  $('mManual').checked = plan.settings.method === 'manual';
+  $('headlandInside').checked = !!plan.settings.headlandInside;
+}
+function loadPlan(p, fit = true){
+  if (typeof editSession !== 'undefined' && editSession) { editSession = null; if (tool) setTool(tool); $('editFoot').hidden = true; }
+  plan = p; store.current = p.id; undoStack = [];
+  plan.settings = {...DEFAULTS, ...plan.settings};
+  if (!plan.zones) plan.zones = (plan.excl || []).map(r => ({ring: r, type: 'hinder'}));   // äldre planer
+  delete plan.excl;
+  plan.partAngles = plan.partAngles || [];
+  plan.removedRows = plan.removedRows || []; plan.removedPts = plan.removedPts || [];
+  fillInputs();
+  geoKey = ''; geo = null;
+  rebuildEditGroup();
+  if (fit && plan.field) map.fitBounds(L.polygon(plan.field).getBounds(), {padding: [30, 30]});
+  refreshPlanUI(); updateCompass(); updateMethodUI(); regenerate(); persist();
+  loadOrthoForPlan();
+}
+$('planName').oninput = () => { plan.name = $('planName').value; save(); };
+/* =================== Bakgrundskartor =================== */
+const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+const TILE_DEFS = {
+  img: {url: ESRI + 'World_Imagery/MapServer/tile/{z}/{y}/{x}?blankTile=false', max: 19, detect: true},
+  roads: {url: ESRI + 'Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', max: 19},
+  places: {url: ESRI + 'Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', max: 19},
+  osm: {url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', max: 19}
+};
+const BASES = {
+  hybrid: {name: 'Satellit med namn', defs: ['img', 'roads', 'places'], attr: 'Bilder och namn © Esri, Maxar, Earthstar Geographics'},
+  sat: {name: 'Satellit', defs: ['img'], attr: 'Bilder © Esri, Maxar, Earthstar Geographics'},
+  osm: {name: 'Karta', defs: ['osm'], attr: '© OpenStreetMap'}
+};
+/* Känner igen Esris ruta "Map data not yet available" (en nästan jämngrå bild) */
+const phCanvas = document.createElement('canvas'); phCanvas.width = phCanvas.height = 16;
+const phCtx = phCanvas.getContext('2d', {willReadFrequently: true});
+function isPlaceholder(img){
+  try {
+    phCtx.clearRect(0, 0, 16, 16); phCtx.drawImage(img, 0, 0, 16, 16);
+    const d = phCtx.getImageData(0, 0, 16, 16).data;
+    const r0 = d[0], g0 = d[1], b0 = d[2];
+    if (Math.abs(r0 - g0) > 6 || Math.abs(g0 - b0) > 6 || r0 < 170) return false;
+    let n = 0;
+    for (let i = 0; i < d.length; i += 4) if (Math.abs(d[i] - r0) < 10 && Math.abs(d[i + 1] - g0) < 10 && Math.abs(d[i + 2] - b0) < 10) n++;
+    return n > 256 * 0.75;
+  } catch { return false; }
+}
+/* Laddar en kartruta. Saknas den (404 eller platshållare) används en förstorad bit av en ruta på lägre zoomnivå.
+   requireCors = true när bilden ska ritas in i PDF:en (kräver CORS). */
+function loadTile(def, z, x, y, requireCors){
+  return new Promise(resolve => {
+    const attempt = (d, useCors) => {
+      const zz = z - d;
+      if (d > 6 || zz < 0) return resolve(null);
+      const f = 1 << d, px = Math.floor(x / f), py = Math.floor(y / f);
+      const img = new Image();
+      if (useCors) img.crossOrigin = 'anonymous';
+      const t = setTimeout(() => { img.onload = img.onerror = null; attempt(d + 1, useCors); }, 12000);
+      img.onload = () => {
+        clearTimeout(t);
+        if (def.detect && useCors && isPlaceholder(img)) return attempt(d + 1, useCors);
+        resolve({img, f, ox: x - px * f, oy: y - py * f, cors: useCors});
+      };
+      img.onerror = () => { clearTimeout(t); if (useCors && !requireCors) attempt(d, false); else attempt(d + 1, useCors); };
+      img.src = L.Util.template(def.url, {x: px, y: py, z: zz});
+    };
+    attempt(0, true);
+  });
+}
+const FallbackTiles = L.GridLayer.extend({
+  initialize(def, opts){ this._def = def; L.setOptions(this, opts); },
+  createTile(coords, done){
+    const tile = document.createElement('div'); tile.className = 'fb-tile';
+    const size = this.getTileSize();
+    loadTile(this._def, coords.z, coords.x, coords.y, false).then(r => {
+      if (r) {
+        const im = r.img;
+        im.style.width = size.x * r.f + 'px'; im.style.height = size.y * r.f + 'px';
+        im.style.left = -r.ox * size.x + 'px'; im.style.top = -r.oy * size.y + 'px';
+        tile.appendChild(im);
+      }
+      done(null, tile);
+    });
+    return tile;
+  }
+});
+const map = L.map('map', {maxZoom: 22, zoomControl: true}).setView([59.0, 15.5], 6);
+map.createPane('orthoPane').style.zIndex = 250;
+const baseLayers = {};
+for (const [key, b] of Object.entries(BASES)) {
+  const g = L.layerGroup(b.defs.map((d, i) => new FallbackTiles(TILE_DEFS[d], {maxNativeZoom: TILE_DEFS[d].max, maxZoom: 22, attribution: i === 0 ? b.attr : ''})));
+  g._key = key; baseLayers[b.name] = g; b.layer = g;
+}
+let currentBase = BASES[ui.base] ? ui.base : 'hybrid';
+BASES[currentBase].layer.addTo(map);
+map.on('baselayerchange', e => { currentBase = e.layer._key; ui.base = currentBase; saveUI(); });
+
+const StatsCtl = L.Control.extend({
+  onAdd(){
+    const d = L.DomUtil.create('div', 'stats-box');
+    d.innerHTML = '<div class="hd"><span>Resultat</span><button id="statsPdf" title="Spara resultatet som PDF">PDF</button><button id="statsToggle" title="Fäll ihop/ut">–</button></div><div class="bd" id="statsBody"></div>';
+    L.DomEvent.disableClickPropagation(d); L.DomEvent.disableScrollPropagation(d);
+    return d;
+  }
+});
+new StatsCtl({position: 'topright'}).addTo(map);
+L.control.layers(baseLayers, null, {position: 'topright'}).addTo(map);
+L.control.scale({imperial: false}).addTo(map);
+$('statsToggle').onclick = () => { const b = $('statsBody'); const h = b.style.display === 'none'; b.style.display = h ? '' : 'none'; $('statsToggle').textContent = h ? '–' : '+'; };
+
+/* =================== Dragbar panel =================== */
+const side = $('side');
+function applySide(){
+  side.classList.toggle('collapsed', ui.collapsed);
+  side.style.width = ui.sideW + 'px';
+  $('splitBtn').textContent = ui.collapsed ? '▶' : '◀';
+  map.invalidateSize({pan: false});
+}
+let dragSplit = false, splitRaf = 0, dragStartW = 580;
+$('split').addEventListener('pointerdown', e => {
+  if (e.target === $('splitBtn')) return;
+  dragSplit = true; dragStartW = ui.collapsed ? ui.sideW : side.getBoundingClientRect().width;
+  $('split').setPointerCapture(e.pointerId); document.body.classList.add('dragging');
+});
+$('split').addEventListener('pointermove', e => {
+  if (!dragSplit) return;
+  const w = Math.min(window.innerWidth - 220, e.clientX);
+  if (w < 170) ui.collapsed = true; else { ui.collapsed = false; ui.sideW = Math.max(250, w); }
+  cancelAnimationFrame(splitRaf); splitRaf = requestAnimationFrame(applySide);
+});
+const endSplit = () => { if (!dragSplit) return; dragSplit = false; document.body.classList.remove('dragging'); if (ui.collapsed) ui.sideW = Math.max(300, dragStartW); applySide(); saveUI(); };
+$('split').addEventListener('pointerup', endSplit);
+$('split').addEventListener('pointercancel', endSplit);
+$('split').addEventListener('dblclick', () => { ui.collapsed = !ui.collapsed; applySide(); saveUI(); });
+$('splitBtn').onclick = () => { ui.collapsed = !ui.collapsed; applySide(); saveUI(); };
+window.addEventListener('resize', () => map.invalidateSize({pan: false}));
+applySide();
+
+/* =================== Lager =================== */
+const PointsLayer = L.Layer.extend({
+  initialize(){ this._rows = null; this._ps = 0.3; },
+  setData(rows, ps){ this._rows = rows; this._ps = ps; if (this._map) this._redraw(); },
+  onAdd(map){
+    this._c = L.DomUtil.create('canvas', 'leaflet-zoom-hide');
+    this._c.style.pointerEvents = 'none'; this._c.style.zIndex = 5;   // alltid ovanför rader och körspår
+    map.getPanes().markerPane.appendChild(this._c);
+    map.on('moveend zoomend resize', this._reset, this);
+    this._reset();
+  },
+  onRemove(map){ L.DomUtil.remove(this._c); map.off('moveend zoomend resize', this._reset, this); },
+  _reset(){
+    const m = this._map, s = m.getSize(), d = window.devicePixelRatio || 1;
+    L.DomUtil.setPosition(this._c, m.containerPointToLayerPoint([0, 0]));
+    this._c.width = s.x * d; this._c.height = s.y * d;
+    this._c.style.width = s.x + 'px'; this._c.style.height = s.y + 'px';
+    this._redraw();
+  },
+  _redraw(){
+    const m = this._map; if (!m || !this._c) return;
+    const ctx = this._c.getContext('2d'), d = window.devicePixelRatio || 1, S = m.getSize();
+    ctx.setTransform(d, 0, 0, d, 0, 0); ctx.clearRect(0, 0, S.x, S.y);
+    drawPoints(ctx, this._rows, this._ps / metersPerPixel(), ll => m.latLngToContainerPoint(ll), S.x, S.y);
+  }
+});
+/* Sättpunkterna ritas bara när de hinner bli tydliga: annars blir kartan grötig och långsam */
+function pointsVisible(spacingPx){
+  if (ui.ptMode === 'never') return false;
+  if (ui.ptMode === 'always') return true;
+  return spacingPx >= (ui.ptMinPx || 8);
+}
+function drawPoints(ctx, rows, spacingPx, proj, W, H){
+  if (!rows || !rows.length || !pointsVisible(spacingPx)) return;
+  if (ui.ptMode !== 'always' && spacingPx < 0.6) return;
+  const sc = (ui.ptScale || 100) / 100;
+  const minR = $('showRows').checked ? (ui.rowW || 2) / 2 + 1 : 1;
+  const baseR = Math.max(Math.min(minR, spacingPx * 0.45), Math.min(7, spacingPx * 0.28));
+  const r = Math.max(baseR * sc, 1); // Byt ut 1 mot din önskade absoluta minsta pixelstorlek om du vill
+  ctx.beginPath();
+  for (const row of rows) {
+    if (row.removed) continue;
+    const a = proj(row.ll0), b = proj(row.ll1);
+    if (Math.max(a.x, b.x) < -10 || Math.min(a.x, b.x) > W + 10 || Math.max(a.y, b.y) < -10 || Math.min(a.y, b.y) > H + 10) continue;
+    const n = row.n, dx = n > 1 ? (b.x - a.x) / (n - 1) : 0, dy = n > 1 ? (b.y - a.y) / (n - 1) : 0;
+    for (let k = 0; k < n; k++) {
+      if (row.off.size && row.off.has(k)) continue;
+      const x = a.x + dx * k, y = a.y + dy * k;
+      if (x < -10 || x > W + 10 || y < -10 || y > H + 10) continue;
+      ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, 6.2832);
+    }
+  }
+  ctx.fillStyle = ui.ptColor || '#ffffff'; ctx.fill();
+  ctx.strokeStyle = ptEdge(ui.ptColor); ctx.lineWidth = Math.max(0.7, Math.min(2, r * 0.35)); ctx.stroke();
+}
+function metersPerPixel(){ return 40075016.686 * Math.cos(map.getCenter().lat * DEG) / Math.pow(2, map.getZoom() + 8); }
+
+const fieldStyle = {color: '#ffffff', weight: 2, fillColor: '#ffffff', fillOpacity: 0.05, dashArray: '6 4'};
+const exclStyle = {color: '#ff4040', weight: 2, fillColor: '#ff4040', fillOpacity: 0.25};
+const roadStyle = {color: '#d8d8d8', weight: 2, fillColor: '#bfc4c9', fillOpacity: 0.45, dashArray: '6 4'};
+const zoneStyle = z => z.type === 'vag' ? roadStyle : exclStyle;
+const editGroup = new L.FeatureGroup().addTo(map);
+const vecRenderer = L.canvas({padding: 0.3, tolerance: 4});
+const rowsLayer = L.layerGroup().addTo(map);
+const plantsLayer = new PointsLayer().addTo(map);
+const passLayer = L.layerGroup().addTo(map);
+
+L.drawLocal.draw.toolbar.buttons.polygon = 'Rita fält';
+L.drawLocal.draw.toolbar.actions = {title: 'Avbryt', text: 'Avbryt'};
+L.drawLocal.draw.toolbar.finish = {title: 'Klar', text: 'Klar'};
+L.drawLocal.draw.toolbar.undo = {title: 'Ta bort sista punkten', text: 'Ta bort sista punkten'};
+L.drawLocal.draw.handlers.polygon.tooltip = {start: 'Klicka för att börja rita', cont: 'Klicka för att lägga till hörn', end: 'Klicka på första punkten för att stänga'};
+L.drawLocal.edit.toolbar.buttons = {edit: 'Redigera fält och hinder', editDisabled: 'Inget att redigera', remove: 'Radera fält eller hinder', removeDisabled: 'Inget att radera'};
+L.drawLocal.edit.toolbar.actions = {save: {title: 'Spara', text: 'Spara'}, cancel: {title: 'Avbryt', text: 'Avbryt'}, clearAll: {title: 'Rensa', text: 'Rensa allt'}};
+L.drawLocal.edit.handlers.edit.tooltip = {text: 'Dra i hörnen. Mittpunkt = nytt hörn. Klick på hörn = ta bort.', subtext: 'Spara behåller, Avbryt ångrar'};
+L.drawLocal.edit.handlers.remove.tooltip = {text: 'Klicka på det som ska raderas'};
+
+// Runda, mindre hörnpunkter (samma storlek även på pekskärmsdatorer)
+const vertexIcon = new L.DivIcon({iconSize: new L.Point(14, 14), className: 'leaflet-div-icon leaflet-editing-icon pp-vertex'});
+for (const cls of [L.Draw.Polyline, L.Draw.Polygon, L.Edit.PolyVerticesEdit]) { cls.prototype.options.icon = vertexIcon; cls.prototype.options.touchIcon = vertexIcon; }
+const drawFieldStyle = {color: '#ffffff', weight: 2, fill: true, fillColor: '#ffffff', fillOpacity: 0.3};
+const drawExclStyle = {color: '#ff4040', weight: 2, fill: true, fillColor: '#ff4040', fillOpacity: 0.4};
+const drawRoadStyle = {color: '#ffffff', weight: 2, fill: true, fillColor: '#c8ccd1', fillOpacity: 0.5};
+const polyOpts = {allowIntersection: false, showArea: false, shapeOptions: drawFieldStyle};
+map.addControl(new L.Control.Draw({
+  position: 'topleft',
+  draw: {polygon: polyOpts, polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false},
+  edit: {featureGroup: editGroup, remove: true, edit: {selectedPathOptions: {maintainColor: true, dashArray: '8, 6', fill: true, fillOpacity: 0.3}}}
+}));
+
+let drawKind = 'field', drawing = false;
+map.on('draw:drawstart draw:editstart draw:deletestart', () => { if (tool) setTool(tool); map.closePopup(); drawing = true; });
+map.on('draw:drawstop draw:deletestop', () => { drawing = false; drawKind = 'field'; });
+// Avbryt återställer hörnen innan editstop, så läs om fältet då
+map.on('draw:editstop', () => { drawing = false; syncFromGroup(); regenerate(); save(); });
+map.on(L.Draw.Event.CREATED, e => {
+  const rings = layerRings(e.layer);
+  if (drawKind === 'newfield') { drawKind = 'field'; newField(rings); drawFarm(); fitFarm(); return; }
+  if (drawKind === 'field' && plan) plan.wholeField = false;
+  if (drawKind === 'excl' || drawKind === 'road') { pushUndo(); plan.zones.push({ring: rings[0], type: drawKind === 'road' ? 'vag' : 'hinder'}); }
+  else { plan.field = rings; plan.removedRows = []; plan.removedPts = []; plan.partAngles = []; undoStack = []; }
+  rebuildEditGroup(); regenerate(); save();
+});
+map.on(L.Draw.Event.EDITED, () => { syncFromGroup(); regenerate(); save(); });
+map.on('draw:editvertex draw:editmove draw:editresize', () => { syncFromGroup(); regenerate(); });
+map.on(L.Draw.Event.DELETED, () => { syncFromGroup(); regenerate(); save(); });
+
+function layerRings(layer){
+  let ll = layer.getLatLngs();
+  if (Array.isArray(ll[0]) && Array.isArray(ll[0][0])) ll = ll[0];
+  if (!Array.isArray(ll[0])) ll = [ll];
+  return ll.map(r => r.map(p => [+p.lat.toFixed(9), +p.lng.toFixed(9)]));
+}
+function rebuildEditGroup(){
+  editGroup.clearLayers();
+  if (plan.field) { const f = L.polygon(plan.field, fieldStyle); f._kind = 'field'; editGroup.addLayer(f); }
+  (plan.zones || []).forEach(z => {
+    const x = L.polygon(z.ring, zoneStyle(z)); x._kind = 'zone'; x._zone = z;
+    const div = document.createElement('div');
+    div.innerHTML = `<b>${z.type === 'vag' ? 'Väg' : 'Hinderzon'}</b><br>`;
+    const t = document.createElement('button');
+    t.textContent = z.type === 'vag' ? 'Gör om till hinderzon' : 'Gör om till väg';
+    t.onclick = () => { pushUndo(); z.type = z.type === 'vag' ? 'hinder' : 'vag'; map.closePopup(); rebuildEditGroup(); regenerate(); save(); };
+    const b = document.createElement('button'); b.textContent = 'Ta bort';
+    b.onclick = () => { pushUndo(); plan.zones = plan.zones.filter(q => q !== z); map.closePopup(); rebuildEditGroup(); regenerate(); save(); };
+    div.appendChild(t); div.appendChild(document.createTextNode(' ')); div.appendChild(b); x.bindPopup(div);
+    editGroup.addLayer(x);
+  });
+}
+function syncFromGroup(){
+  let field = null; const zones = [];
+  editGroup.eachLayer(l => {
+    if (l._kind === 'field') field = layerRings(l);
+    else if (l._zone) { l._zone.ring = layerRings(l)[0]; zones.push(l._zone); }
+  });
+  plan.field = field; plan.zones = zones;
+}
+map.on('popupopen', e => { if (tool || drawing) map.closePopup(e.popup); });
+
+/* =================== Import av fält =================== */
+let importMode = 'field';
+$('btnImport').onclick = () => { importMode = 'field'; $('fileIn').accept = '.geojson,.json,.kml,.kmz'; $('fileIn').click(); };
+$('btnRestore').onclick = () => { importMode = 'backup'; $('fileIn').accept = '.json'; $('fileIn').click(); };
+$('btnOpenProj').onclick = () => { importMode = 'project'; $('fileIn').accept = '.potatis,.potatisplan,.json'; $('fileIn').click(); };
+$('fileIn').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try { await importFile(f); } catch (err) { msg('Kunde inte läsa filen: ' + err.message, 0); }
+};
+async function importFile(file){
+  const name = file.name.toLowerCase();
+  let res = null;
+  if (name.endsWith('.kmz')) {
+    const zip = await JSZip.loadAsync(file);
+    const kml = Object.keys(zip.files).find(n => n.toLowerCase().endsWith('.kml'));
+    if (!kml) throw new Error('ingen KML-fil i KMZ-arkivet');
+    res = fromKML(await zip.file(kml).async('string'));
+  } else if (name.endsWith('.kml')) {
+    res = fromKML(await file.text());
+  } else {
+    let json;
+    try { json = JSON.parse(await file.text()); } catch { throw new Error('filen går inte att läsa som projekt eller GeoJSON'); }
+    if (json && json.app === 'odlingsverktyget') return importFarm(json);
+    if (json && json.app === 'potatisplaneraren' && json.type === 'projekt') return importProject(json, 'filen');
+    if (json && json.app === 'potatisplaneraren' && Array.isArray(json.plans)) return importBackup(json);
+    if (importMode === 'project') throw new Error('filen är ingen projektfil från Potatisplaneraren');
+    if (importMode === 'backup') throw new Error('filen är ingen backup från Potatisplaneraren');
+    res = fromGeoJSON(json);
+  }
+  if (!res || !res.field || !res.field[0] || res.field[0].length < 3) throw new Error('hittade ingen polygon');
+  const clean = r => { const a = r[0], b = r[r.length - 1]; return (a[0] === b[0] && a[1] === b[1]) ? r.slice(0, -1) : r; };
+  if (importMode === 'newfield' || view === 'farm') {
+    const f = newField(res.field.map(clean), file.name.replace(/\.[^.]+$/, ''));
+    f.zones = (res.zones || []).map(z => ({ring: clean(z.ring), type: z.type}));
+    drawFarm(); fitFarm(); renderFarm();
+    return msg(`Fältet "${f.name}" importerades. Lägg till en odling för att planera på det.`, 12000);
+  }
+  plan.field = res.field.map(clean);
+  plan.zones = (res.zones || []).map(z => ({ring: clean(z.ring), type: z.type}));
+  plan.partAngles = [];
+  plan.removedRows = []; plan.removedPts = []; undoStack = [];
+  if (/^(Ny plan|Min första plan)/.test(plan.name)) { plan.name = file.name.replace(/\.[^.]+$/, ''); refreshPlanUI(); }
+  rebuildEditGroup();
+  map.fitBounds(L.polygon(plan.field).getBounds(), {padding: [30, 30]});
+  regenerate(); save();
+  msg(res.count > 1 ? `Filen innehöll ${res.count} polygoner, den första användes som fält.` : 'Fältet importerades.');
+}
+function fromGeoJSON(g){
+  const polys = [], excl = [];
+  (function walk(o, props){
+    if (!o) return;
+    if (o.type === 'FeatureCollection') o.features.forEach(f => walk(f));
+    else if (o.type === 'Feature') walk(o.geometry, o.properties || {});
+    else if (o.type === 'GeometryCollection') o.geometries.forEach(x => walk(x, props));
+    else if (o.type === 'Polygon' || o.type === 'MultiPolygon') {
+      const t = props && (props.typ === 'hinder' || props.typ === 'vag') ? props.typ : null;
+      const list = o.type === 'Polygon' ? [o.coordinates] : o.coordinates;
+      for (const c of list) (t ? excl : polys).push(t ? {coords: c, type: t} : c);
+    }
+  })(g);
+  const conv = poly => poly.map(r => r.map(c => [c[1], c[0]]));
+  if (!polys.length) return null;
+  return {field: conv(polys[0]), zones: excl.map(z => ({ring: conv(z.coords)[0], type: z.type})), count: polys.length};
+}
+function fromKML(text){
+  const doc = new DOMParser().parseFromString(text, 'text/xml');
+  const polys = doc.getElementsByTagName('Polygon');
+  if (!polys.length) return null;
+  const parse = el => el.getElementsByTagName('coordinates')[0].textContent.trim().split(/\s+/)
+    .map(s => { const [lo, la] = s.split(',').map(Number); return [la, lo]; })
+    .filter(p => isFinite(p[0]) && isFinite(p[1]));
+  const poly = polys[0];
+  const rings = [parse(poly.getElementsByTagName('outerBoundaryIs')[0])];
+  for (const ib of poly.getElementsByTagName('innerBoundaryIs')) rings.push(parse(ib));
+  return {field: rings, zones: [], count: polys.length};
+}
+function importBackup(json){
+  let n = 0;
+  for (const p of json.plans) {
+    if (!p || !p.settings) continue;
+    const q = JSON.parse(JSON.stringify(p));
+    if (store.plans.some(x => x.id === q.id)) q.id = uid();
+    store.plans.push(q); n++;
+  }
+  persist(); refreshPlanUI();
+  msg(`${n} planer lästes in. Välj dem i listan under Plan.`);
+}
+
+/* =================== Projektfil & delningslänk =================== */
+const blobToDataUrl = blob => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(blob); });
+async function importProject(d, source){
+  const p = d.plan;
+  if (!p || !p.settings) throw new Error('filen innehåller ingen plan');
+  const q = JSON.parse(JSON.stringify(p));
+  q.crop = q.crop || 'potatis';
+  if (!q.fieldId || !fieldById(q.fieldId)) {
+    const f = newField(q.field || [], q.name || 'Fält');
+    f.zones = JSON.parse(JSON.stringify(q.zones || []));
+    q.fieldId = f.id; q.wholeField = true;
+  }
+  const existing = store.plans.find(x => x.id === q.id);
+  if (existing) {
+    if (confirm(`Planen "${existing.name}" finns redan här. Vill du ersätta den med planen från ${source}?\n\nTryck Avbryt för att öppna den som en ny plan i stället.`))
+      store.plans = store.plans.filter(x => x !== existing);
+    else { q.id = uid(); q.name = (q.name || 'Plan') + ' (delad)'; }
+  }
+  store.plans.push(q);
+  renderFarm();
+  if (d.ortho && d.ortho.dataUrl) {
+    try { const blob = await (await fetch(d.ortho.dataUrl)).blob(); const rec = {...d.ortho, blob}; delete rec.dataUrl; await idb.put(q.id, rec); }
+    catch { msg('Ortofotot i projektet kunde inte läsas in.'); }
+  }
+  openPlan(q);
+  msg(`Odlingen "${q.name}" är öppnad${d.ortho ? ' med ortofoto' : ''}.`);
+}
+$('btnSaveProj').onclick = async () => {
+  const d = {app: 'potatisplaneraren', type: 'projekt', version: 4, saved: new Date().toISOString(), plan: JSON.parse(JSON.stringify(plan))};
+  try { const rec = await idb.get(plan.id); if (rec && rec.blob) { d.ortho = {...rec, dataUrl: await blobToDataUrl(rec.blob)}; delete d.ortho.blob; delete d.ortho.orig; } } catch {}
+  download(slug() + '.potatis', JSON.stringify(d), 'application/json');
+  msg('Projektfilen är sparad. Mottagaren öppnar den med "Öppna projektfil…" eller genom att dra filen till sidan.' + (d.ortho ? ' Ortofotot följer med.' : ''), 12000);
+};
+const toB64url = buf => { const u8 = new Uint8Array(buf); let bin = ''; for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
+const fromB64url = str => { const bin = atob(str.replace(/-/g, '+').replace(/_/g, '/')); const u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); return u8; };
+async function encodePlan(p){
+  const stream = new Blob([JSON.stringify({v: 4, plan: p})]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+  return toB64url(await new Response(stream).arrayBuffer());
+}
+async function decodePlan(str){
+  const stream = new Blob([fromB64url(str)]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return JSON.parse(await new Response(stream).text());
+}
+$('btnShare').onclick = async () => {
+  if (!plan.field) return msg('Rita eller importera ett fält först.');
+  let base = location.href.split('#')[0];
+  if (location.protocol === 'file:') {
+    const ans = prompt('Sidan är öppnad som en fil på din dator, så en länk hit fungerar inte för andra.\n\nOm sidan ligger uppe på en webbadress (till exempel din hemsida) kan du skriva in adressen här, så skapas länken till den:', ui.shareBase || 'https://');
+    if (!ans || !/^https?:\/\/.+/.test(ans.trim())) return msg('Ingen länk skapades. Du kan dela planen med "Spara projektfil" i stället.', 10000);
+    ui.shareBase = ans.trim().split('#')[0]; saveUI(); base = ui.shareBase;
+  }
+  const link = base + '#plan=' + await encodePlan(plan);
+  let copied = false;
+  try { await navigator.clipboard.writeText(link); copied = true; } catch {}
+  if (!copied) prompt('Kopiera länken:', link);
+  const long = link.length > 8000 ? ' Länken är lång eftersom planen har många borttagna punkter. Projektfilen kan vara säkrare.' : '';
+  msg((copied ? 'Länken är kopierad. Klistra in den i ett mejl eller sms.' : 'Länken är skapad.') + (ortho ? ' Ortofotot följer inte med i länken, använd projektfil för det.' : '') + long, 14000);
+};
+async function openSharedLink(){
+  const m = location.hash.match(/^#plan=([A-Za-z0-9_-]+)/);
+  if (!m) return;
+  history.replaceState(null, '', location.href.split('#')[0]);
+  try { const d = await decodePlan(m[1]); await importProject({plan: d.plan}, 'länken'); }
+  catch (err) { console.error(err); msg('Länken gick inte att öppna. Den kan ha blivit avklippt när den skickades.', 0); }
+}
+window.addEventListener('hashchange', openSharedLink);
+/* Dra och släpp filer var som helst på sidan */
+document.addEventListener('dragover', e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
+document.addEventListener('drop', async e => {
+  if (!e.dataTransfer || !e.dataTransfer.files.length) return;
+  e.preventDefault();
+  const files = [...e.dataTransfer.files];
+  const orthoFiles = files.filter(f => /\.(tiff?|jpe?g|png|jgw|pgw|tfw|wld|jpgw|pngw)$/i.test(f.name));
+  try {
+    if (orthoFiles.length) { $('orthoIn').onchange({target: {files: orthoFiles, value: ''}}); return; }
+    importMode = 'any'; await importFile(files[0]);
+  } catch (err) { msg('Kunde inte läsa filen: ' + err.message, 0); }
+});
+
+/* =================== Knappar: fält =================== */
+$('btnDraw').onclick = () => { drawKind = 'field'; new L.Draw.Polygon(map, {...polyOpts, shapeOptions: drawFieldStyle}).enable(); };
+$('btnExcl').onclick = () => {
+  if (!plan.field) return msg('Rita eller importera ett fält först.');
+  drawKind = 'excl'; new L.Draw.Polygon(map, {...polyOpts, shapeOptions: drawExclStyle}).enable();
+  msg('Rita hinderzonen. Klicka på första punkten för att stänga den.');
+};
+$('btnRoad').onclick = () => {
+  if (!plan.field) return msg('Rita eller importera ett fält först.');
+  drawKind = 'road'; new L.Draw.Polygon(map, {...polyOpts, shapeOptions: drawRoadStyle}).enable();
+  msg('Rita vägen som ett område. Inget sätts på vägen, men sättaren får köra och vända där.');
+};
+$('btnFit').onclick = () => { if (plan.field) map.fitBounds(L.polygon(plan.field).getBounds(), {padding: [30, 30]}); };
+$('btnClear').onclick = () => {
+  if (!plan.field) return;
+  if (!confirm('Radera fältet, hinderzonerna och alla borttagningar i den här planen?')) return;
+  plan.field = null; plan.zones = []; plan.partAngles = []; plan.removedRows = []; plan.removedPts = []; undoStack = [];
+  rebuildEditGroup(); regenerate(); save();
+};
+$('btnLocate').onclick = () => map.locate({setView: true, maxZoom: 17});
+map.on('locationerror', () => msg('Kunde inte hämta din position.'));
+async function doSearch(){
+  const q = $('search').value.trim(); if (!q) return;
+  try {
+    const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q));
+    const j = await r.json();
+    if (!j.length) return msg('Hittade ingen plats med det namnet.');
+    map.setView([+j[0].lat, +j[0].lon], 16); msg('');
+  } catch { msg('Sökningen misslyckades.'); }
+}
+$('btnSearch').onclick = doSearch;
+$('search').onkeydown = e => { if (e.key === 'Enter') doSearch(); };
+
+/* =================== Inställningar =================== */
+function S(){
+  const p = plan.settings, n = (k, d) => { const x = parseFloat(String(p[k]).replace(',', '.')); return isFinite(x) ? x : d; };
+  const machine = p.method !== 'manual';
+  const edge = Math.max(0, n('edgeMargin', 0.3));
+  const headland = Math.max(0, n('headland', 6));
+  const inside = machine && !!p.headlandInside;
+  const manualEnd = Math.max(0, n('manualEnd', 0));
+  return {
+    machine, inside, edge, headland, manualEnd,
+    endM: inside ? Math.max(edge, headland) : !machine ? Math.max(edge, manualEnd) : edge,
+    rs: Math.max(0.1, n('rowSpacing', 75) / 100), ps: Math.max(0.05, n('plantSpacing', 30) / 100),
+    weight: Math.max(0, n('weight', 60)), bag: Math.max(0.1, n('bagKg', 25)),
+    m2: Math.max(0, n('obstacleMargin', 0)), mRoad: Math.max(0, n('roadMargin', 0)), off: n('offset', 0) / 100,
+    angle: ((n('angle', 0) % 180) + 180) % 180,
+    N: Math.max(1, Math.round(n('rowsPerPass', 2))), r: Math.max(0, n('turnRadius', 5)), speed: Math.max(0.5, n('speed', 5)),
+    mode: p.turnMode || 'auto', yieldTha: Math.max(0, n('yieldTha', 30)),
+    rate: Math.max(1, n('plantRate', 500)), workers: Math.max(1, Math.round(n('workers', 1))),
+    startFlip: !!p.startFlip, dirFlip: !!p.dirFlip
+  };
+}
+function onSettingChange(id){
+  plan.settings[id] = $(id).value;
+  if (id === 'angle') $('angleRange').value = $(id).value;
+  if (id === 'variety') {
+    const v = VARIETIES.find(x => x[0] === $(id).value);
+    if (v && v[1]) { plan.settings.yieldTha = v[1]; $('yieldTha').value = v[1]; }
+  }
+  updateCompass(); updateMethodUI(); updateStats(); regenerate(); save();
+}
+for (const id of SETTING_IDS) {
+  $(id).addEventListener('input', () => onSettingChange(id));
+  $(id).addEventListener('change', () => onSettingChange(id));
+}
+for (const el of document.querySelectorAll('input[name=method]')) el.addEventListener('change', () => {
+  plan.settings.method = $('mManual').checked ? 'manual' : 'machine';
+  updateMethodUI(); regenerate(); save();
+});
+$('headlandInside').addEventListener('change', () => { plan.settings.headlandInside = $('headlandInside').checked; updateMethodUI(); regenerate(); save(); });
+function updateMethodUI(){
+  const s = S();
+  document.body.classList.toggle('manual', !s.machine);
+  $('headlandRow').style.opacity = s.inside ? 1 : 0.55;
+  $('headlandHint').textContent = s.inside
+    ? `Raderna slutar ${fmt(s.endM, 1)} m före kanten i radernas riktning, så att du kan vända innanför den markerade ytan.`
+    : 'Hela den markerade ytan sätts. Vändningarna görs utanför gränsen, så det måste finnas plats där.';
+  $('manualHint').textContent = s.manualEnd > s.edge
+    ? `Raderna slutar ${fmt(s.endM, 1)} m före kanten i ändarna och ${fmt(s.edge, 2)} m från kanten längs sidorna. Avståndet från kant ändrar du under Sättning.`
+    : `Hela den markerade ytan sätts, bara avståndet från kant (${fmt(s.edge, 2)} m, under Sättning) lämnas fritt. Sättningstakten är ett riktvärde.`;
+  $('machineHint').textContent = `Arbetsbredd ${fmt(s.N * s.rs, 2)} m (${s.N} × ${fmt(s.rs * 100)} cm).`;
+  $('btnStartFlip').classList.toggle('on', s.startFlip);
+  $('btnDirFlip').classList.toggle('on', s.dirFlip);
+}
+$('angleRange').addEventListener('input', () => { plan.settings.angle = $('angleRange').value; $('angle').value = $('angleRange').value; updateCompass(); regenerate(); save(); });
+$('btnPerp').onclick = () => setAngle(S().angle + 90);
+$('btnLongest').onclick = () => {
+  if (!plan.field) return msg('Rita eller importera ett fält först.');
+  const ring = plan.field[0], c = Math.cos(ring[0][0] * DEG);
+  let best = 0, bearing = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const a = ring[i], b = ring[(i + 1) % ring.length];
+    const de = (b[1] - a[1]) * c, dn = b[0] - a[0], len = Math.hypot(de, dn);
+    if (len > best) { best = len; bearing = Math.atan2(de, dn) / DEG; }
+  }
+  setAngle(bearing);
+};
+/* Vinkelsökning: provar varje hel grad och sedan halvgrader runt de fem bästa */
+const ANGLE_GOALS = {
+  plants: (c, b) => (c.n - b.n) || (b.rows - c.rows),                          // flest potatisar, vid lika färre rader
+  rows: (c, b) => (b.rows - c.rows) || (c.n - b.n),                            // färst rader, vid lika fler potatisar
+  perRow: (c, b) => ((c.rows ? c.n / c.rows : 0) - (b.rows ? b.n / b.rows : 0)) || (c.n - b.n)  // flest potatisar per rad
+};
+async function findAngle(goal){
+  if (!plan.field) return msg('Rita eller importera ett fält först.');
+  if (!geo || geo.tooMany || !geoMask) return msg('Fältet är för stort för att prova alla vinklar med de här avstånden.');
+  const base = S(), cmp = ANGLE_GOALS[goal];
+  const parts = geo.parts.map(g => g.part);
+  const count = (part, a) => {
+    const g = buildPartGeo(geoCtx, geoMask, part, base, a);
+    let n = 0; for (const r of g.rows) n += r.n;
+    return {a, n, rows: g.rows.length};
+  };
+  const better = (c, b) => c && (!b || cmp(c, b) > 1e-9);
+  const per = c => c.rows ? c.n / c.rows : 0;
+  const btns = document.querySelectorAll('[data-goal]');
+  btns.forEach(b => b.disabled = true);
+  try {
+    const results = [];
+    for (const [pi, part] of parts.entries()) {
+      const cur = count(part, partAngle(part, base.angle));
+      let best = cur; const all = [];
+      for (let a = 0; a < 180; a++) {
+        const c = count(part, a); all.push(c); if (better(c, best)) best = c;
+        if (a % 5 === 0) {
+          msg(parts.length > 1 ? `Provar vinklar för del ${part.no} av ${parts.length}… ${Math.round(a / 180 * 100)} %` : `Provar vinklar… ${Math.round(a / 180 * 100)} %`, 0);
+          await new Promise(r => setTimeout(r, 0));
+        }
+      }
+      all.sort((x, y) => cmp(y, x));
+      for (const top of all.slice(0, 5)) for (const d of [-0.5, 0.5]) { const c = count(part, ((top.a + d) % 180 + 180) % 180); if (better(c, best)) best = c; }
+      results.push({part, cur, best});
+    }
+    const tot = k => results.reduce((a, r) => a + r[k === 'curN' || k === 'curR' ? 'cur' : 'best'][k.endsWith('N') ? 'n' : 'rows'], 0);
+    const curN = tot('curN'), curR = tot('curR'), bestN = tot('bestN'), bestR = tot('bestR');
+    if (parts.length === 1) setAngle(results[0].best.a);
+    else { for (const r of results) setPartAngle(r.part, r.best.a); geoKey = ''; regenerate(); save(); }
+    const same = results.every(r => Math.abs(r.best.a - r.cur.a) < 1e-9);
+    const list = parts.length > 1 ? ' Vinklar: ' + results.map(r => `del ${r.part.no} ${fmt(r.best.a, 1)}°`).join(', ') + '.' : '';
+    const A = fmt(results[0].best.a, 1), A0 = fmt(results[0].cur.a, 1);
+    let t;
+    if (same) t = parts.length > 1
+      ? `Nuvarande vinklar ger redan bäst resultat (${fmt(curN)} potatisar på ${fmt(curR)} rader).${list}`
+      : goal === 'rows' ? `Nuvarande vinkel ${A0}° ger redan färst rader (${fmt(curR)} st).`
+      : goal === 'plants' ? `Nuvarande vinkel ${A0}° ger redan flest sättpotatisar (${fmt(curN)} st).`
+      : `Nuvarande vinkel ${A0}° ger redan flest potatisar per rad (${fmt(curN / Math.max(1, curR), 1)} st per rad).`;
+    else if (goal === 'plants') t = `Flest potatisar${parts.length > 1 ? '' : ' vid ' + A + '°'}: ${fmt(bestN)} st, ${fmt(bestN - curN)} fler än förut. Det blir ${fmt(bestR)} rader.${list}`;
+    else if (goal === 'rows') t = `Färst rader${parts.length > 1 ? '' : ' vid ' + A + '°'}: ${fmt(bestR)} rader, ${fmt(curR - bestR)} färre än förut. Det blir ${fmt(bestN)} sättpotatisar (${bestN >= curN ? '+' : '−'}${fmt(Math.abs(bestN - curN))}).${list}`;
+    else t = `Flest potatisar per rad${parts.length > 1 ? '' : ' vid ' + A + '°'}: ${fmt(bestN / Math.max(1, bestR), 1)} st per rad (${fmt(bestR)} rader, ${fmt(bestN)} potatisar). Förut ${fmt(curN / Math.max(1, curR), 1)} st per rad.${list}`;
+    msg(t, 20000);
+  } finally { btns.forEach(b => b.disabled = false); }
+}
+document.querySelectorAll('[data-goal]').forEach(b => b.onclick = () => findAngle(b.dataset.goal));
+function setAngle(a){
+  a = Math.round((((a % 180) + 180) % 180) * 2) / 2;
+  plan.settings.angle = a; $('angle').value = a; $('angleRange').value = a;
+  updateCompass(); regenerate(); save();
+}
+$('btnStartFlip').onclick = () => { plan.settings.startFlip = !plan.settings.startFlip; updateMethodUI(); regenerate(); save(); };
+$('btnDirFlip').onclick = () => { plan.settings.dirFlip = !plan.settings.dirFlip; updateMethodUI(); regenerate(); save(); };
+/* Lista över delområden med egen vinkel */
+function renderParts(){
+  const box = $('partsBox');
+  if (!geo || geo.tooMany || !geo.parts || geo.parts.length < 2) { box.hidden = true; return; }
+  box.hidden = false;
+  const s = S();
+  $('partsList').innerHTML = geo.parts.map(g => {
+    const own = plan.partAngles.some(a => maskAt(a.lat, a.lng) === g.part.id);
+    return `<div class="r"><label style="flex:1" title="Klicka för att zooma till delen"><a href="#" data-zoom="${g.part.no}">Del ${g.part.no}</a> · ${fArea(g.part.area)}</label>
+      <input type="number" data-part="${g.part.no}" min="0" max="180" step="0.5" value="${fmt(g.angle, 1).replace(',', '.')}" style="width:62px"><span class="u">°</span>
+      <button data-reset="${g.part.no}" title="Följ fältets vinkel"${own ? '' : ' class="on"'}>⟲</button></div>`;
+  }).join('');
+  $('partsList').querySelectorAll('input[data-part]').forEach(inp => inp.onchange = () => {
+    const g = geo.parts.find(x => x.part.no === +inp.dataset.part); if (!g) return;
+    setPartAngle(g.part, parseFloat(inp.value.replace(',', '.')) || 0);
+    geoKey = ''; regenerate(); save();
+  });
+  $('partsList').querySelectorAll('button[data-reset]').forEach(b => b.onclick = () => {
+    const g = geo.parts.find(x => x.part.no === +b.dataset.reset); if (!g) return;
+    setPartAngle(g.part, null); geoKey = ''; regenerate(); save();
+  });
+  $('partsList').querySelectorAll('a[data-zoom]').forEach(a => a.onclick = e => {
+    e.preventDefault();
+    const g = geo.parts.find(x => x.part.no === +a.dataset.zoom); if (!g) return;
+    const b = L.latLngBounds(g.rows.length ? g.rows.flatMap(r => [r.ll0, r.ll1]) : [g.part.center]);
+    map.fitBounds(b.pad(0.1));
+  });
+}
+$('btnPartsReset').onclick = () => { plan.partAngles = []; geoKey = ''; regenerate(); save(); };
+function updateCompass(){
+  const a = S().angle;
+  $('compassLine').setAttribute('transform', `rotate(${a} 50 50)`);
+  $('angleText').textContent = `Raderna går ${compassWord(a)}–${compassWord(a + 180)}`;
+}
+['showRows', 'showPlants', 'showPasses', 'showField'].forEach(id => $(id).addEventListener('change', () => { applyVisibility(); updateStats(); }));
+function syncLookInputs(){
+  for (const id of ['rowW', 'pdfRowW']) if ($(id)) $(id).value = ui.rowW;
+  for (const id of ['ptScale', 'pdfPtScale']) if ($(id)) $(id).value = ui.ptScale;
+  $('rowWv').textContent = fmt(ui.rowW, 1) + ' px'; $('ptScaleV').textContent = ui.ptScale + ' %';
+  for (const id of ['rowColor', 'pdfRowColor']) if ($(id)) $(id).value = ui.rowColor;
+  for (const id of ['ptColor', 'pdfPtColor']) if ($(id)) $(id).value = ui.ptColor;
+  $('ptMode').value = ui.ptMode; $('ptMinPx').value = ui.ptMinPx;
+  $('ptMinPxV').textContent = ui.ptMinPx + ' px';
+  $('ptMinRow').style.display = ui.ptMode === 'auto' ? '' : 'none';
+  for (const id of ['rowOp', 'pdfRowOp']) if ($(id)) $(id).value = ui.rowOp;
+  $('rowOpV').textContent = ui.rowOp + ' %';
+  if ($('pdfRowWv')) { $('pdfRowWv').textContent = $('rowWv').textContent; $('pdfPtScaleV').textContent = $('ptScaleV').textContent; $('pdfRowOpV').textContent = $('rowOpV').textContent; }
+}
+for (const [id, key, num] of [['ptColor', 'ptColor', false], ['pdfPtColor', 'ptColor', false], ['rowColor', 'rowColor', false], ['pdfRowColor', 'rowColor', false], ['rowOp', 'rowOp', true], ['pdfRowOp', 'rowOp', true]])
+  $(id).addEventListener('input', () => { ui[key] = num ? +$(id).value : $(id).value; syncLookInputs(); saveUI(); render(); updateStats(); if (!$('pdfDlg').hidden) schedulePreview(); });
+$('rowW').oninput = () => { ui.rowW = +$('rowW').value; syncLookInputs(); saveUI(); render(); };
+$('ptScale').oninput = () => { ui.ptScale = +$('ptScale').value; syncLookInputs(); saveUI(); plantsLayer._redraw(); };
+$('ptMode').onchange = () => { ui.ptMode = $('ptMode').value; syncLookInputs(); saveUI(); plantsLayer._redraw(); updateStats(); };
+$('ptMinPx').oninput = () => { ui.ptMinPx = +$('ptMinPx').value; syncLookInputs(); saveUI(); plantsLayer._redraw(); updateStats(); };
+/* Kantfärg som syns mot vald punktfärg */
+function ptEdge(hex){ const n = parseInt((hex || '#ffffff').slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255; return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.45 ? '#ffffff' : '#111111'; }
+function applyVisibility(){
+  const t = (on, layer) => on ? map.addLayer(layer) : map.removeLayer(layer);
+  t($('showRows').checked, rowsLayer); t($('showPlants').checked, plantsLayer);
+  t($('showPasses').checked, passLayer); t($('showField').checked, editGroup);
+}
+
+/* =================== Geometri =================== */
+function edgesOf(rings){
+  const e = [];
+  for (const r of rings) for (let i = 0; i < r.length; i++) { const p = r[i], q = r[(i + 1) % r.length]; if (p.u !== q.u || p.v !== q.v) e.push([p, q]); }
+  return e;
+}
+function ringArea(r){ let a = 0; for (let i = 0; i < r.length; i++) { const p = r[i], q = r[(i + 1) % r.length]; a += p.u * q.v - q.u * p.v; } return Math.abs(a) / 2; }
+function scan(edges, v){
+  const xs = [];
+  for (const [p, q] of edges) if ((p.v <= v && q.v > v) || (q.v <= v && p.v > v)) xs.push(p.u + (v - p.v) * (q.u - p.u) / (q.v - p.v));
+  xs.sort((a, b) => a - b);
+  const out = []; for (let i = 0; i + 1 < xs.length; i += 2) out.push([xs[i], xs[i + 1]]);
+  return out;
+}
+function subtract(ints, cuts){
+  let res = ints;
+  for (const [c0, c1] of cuts) {
+    const nx = [];
+    for (const [a, b] of res) {
+      if (c1 <= a || c0 >= b) { nx.push([a, b]); continue; }
+      if (c0 > a) nx.push([a, c0]);
+      if (c1 < b) nx.push([c1, b]);
+    }
+    res = nx;
+  }
+  return res;
+}
+function nearEdge(u, v, edges, lim){
+  for (const [p, q] of edges) {
+    const du = q.u - p.u, dv = q.v - p.v, L2 = du * du + dv * dv;
+    let t = L2 ? ((u - p.u) * du + (v - p.v) * dv) / L2 : 0;
+    t = t < 0 ? 0 : t > 1 ? 1 : t;
+    if (Math.hypot(u - p.u - t * du, v - p.v - t * dv) < lim) return true;
+  }
+  return false;
+}
+function pointInRings(rings, u, v){
+  let inside = false;
+  for (const r of rings) for (let i = 0, j = r.length - 1; i < r.length; j = i++) {
+    const a = r[i], b = r[j];
+    if ((a.v > v) !== (b.v > v) && u < a.u + (v - a.v) * (b.u - a.u) / (b.v - a.v)) inside = !inside;
+  }
+  return inside;
+}
+const zonesOf = type => (plan.zones || []).filter(z => z.type === type).map(z => z.ring);
+
+/* Gemensam plan projektion för hela planen: u = öster, v = norr (meter) */
+function baseCtx(){
+  const outer = plan.field[0];
+  let la = 0, lo = 0; for (const p of outer) { la += p[0]; lo += p[1]; } la /= outer.length; lo /= outer.length;
+  const ky = R * DEG, kx = ky * Math.cos(la * DEG);
+  const toM = p => ({u: (p[1] - lo) * kx, v: (p[0] - la) * ky});
+  const field = plan.field.map(r => r.map(toM));
+  const obst = zonesOf('hinder').map(r => r.map(toM));
+  const roads = zonesOf('vag').map(r => r.map(toM));
+  return {la, lo, ky, kx, toM, field, obst, roads,
+    fieldE: edgesOf(field), fieldArea: ringArea(field[0]) - field.slice(1).reduce((t, r) => t + ringArea(r), 0),
+    obstArea: obst.reduce((t, r) => t + ringArea(r), 0), roadArea: roads.reduce((t, r) => t + ringArea(r), 0)};
+}
+/* Rutnät över den sättbara ytan, för att hitta delområden som hinder eller vägar delar upp fältet i */
+function buildMask(ctx){
+  let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
+  for (const p of ctx.field[0]) { u0 = Math.min(u0, p.u); u1 = Math.max(u1, p.u); v0 = Math.min(v0, p.v); v1 = Math.max(v1, p.v); }
+  const cell = Math.max(0.25, Math.min(3, Math.sqrt(Math.max(1, ctx.fieldArea)) / 220));
+  const w = Math.max(1, Math.ceil((u1 - u0) / cell)), h = Math.max(1, Math.ceil((v1 - v0) / cell));
+  const lab = new Int32Array(w * h).fill(-1);
+  const zoneEdges = [...ctx.obst, ...ctx.roads].map(r => edgesOf([r]));
+  for (let y = 0; y < h; y++) {
+    const v = v0 + (y + 0.5) * cell;
+    let ints = scan(ctx.fieldE, v);
+    for (const ze of zoneEdges) { const cut = scan(ze, v); if (cut.length) ints = subtract(ints, cut); }
+    for (const [a, b] of ints) {
+      const x0 = Math.max(0, Math.ceil((a - u0) / cell - 0.5)), x1 = Math.min(w - 1, Math.floor((b - u0) / cell - 0.5));
+      for (let x = x0; x <= x1; x++) lab[y * w + x] = 0;   // 0 = sättbar men ännu inte märkt
+    }
+  }
+  // märk sammanhängande delar
+  const parts = [];
+  const stack = [];
+  for (let i = 0; i < lab.length; i++) {
+    if (lab[i] !== 0) continue;
+    const id = parts.length + 1;
+    let cells = 0, su = 0, sv = 0;
+    stack.push(i); lab[i] = id;
+    while (stack.length) {
+      const k = stack.pop(), x = k % w, y = (k - x) / w;
+      cells++; su += u0 + (x + 0.5) * cell; sv += v0 + (y + 0.5) * cell;
+      if (x > 0 && lab[k - 1] === 0) { lab[k - 1] = id; stack.push(k - 1); }
+      if (x < w - 1 && lab[k + 1] === 0) { lab[k + 1] = id; stack.push(k + 1); }
+      if (y > 0 && lab[k - w] === 0) { lab[k - w] = id; stack.push(k - w); }
+      if (y < h - 1 && lab[k + w] === 0) { lab[k + w] = id; stack.push(k + w); }
+    }
+    parts.push({id, cells, area: cells * cell * cell, cu: su / cells, cv: sv / cells});
+  }
+  parts.sort((a, b) => b.area - a.area);
+  parts.forEach((p, i) => { p.no = i + 1; p.center = [ctx.la + p.cv / ctx.ky, ctx.lo + p.cu / ctx.kx]; });
+  const at = (u, v) => {
+    const x = Math.floor((u - u0) / cell), y = Math.floor((v - v0) / cell);
+    return (x < 0 || y < 0 || x >= w || y >= h) ? -1 : lab[y * w + x];
+  };
+  // varje dels utbredning, för snabbare beräkning
+  for (const p of parts) { p.u0 = Infinity; p.u1 = -Infinity; p.v0 = Infinity; p.v1 = -Infinity; }
+  const byId = new Map(parts.map(p => [p.id, p]));
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const id = lab[y * w + x]; if (id <= 0) continue;
+    const p = byId.get(id), u = u0 + (x + 0.5) * cell, v = v0 + (y + 0.5) * cell;
+    p.u0 = Math.min(p.u0, u); p.u1 = Math.max(p.u1, u); p.v0 = Math.min(p.v0, v); p.v1 = Math.max(p.v1, v);
+  }
+  return {cell, u0, v0, w, h, lab, at, parts};
+}
+/* Vinkel för ett delområde: egen inställd vinkel eller fältets */
+function partAngle(part, globalAngle){
+  for (const a of plan.partAngles || []) {
+    const c = maskAt(a.lat, a.lng);
+    if (c === part.id) return ((a.angle % 180) + 180) % 180;
+  }
+  return globalAngle;
+}
+function maskAt(lat, lng){
+  if (!geoMask || !geoCtx) return -1;
+  return geoMask.at((lng - geoCtx.lo) * geoCtx.kx, (lat - geoCtx.la) * geoCtx.ky);
+}
+function setPartAngle(part, angle){
+  const list = (plan.partAngles || []).filter(a => maskAt(a.lat, a.lng) !== part.id);
+  if (angle !== null) list.push({lat: part.center[0], lng: part.center[1], angle: ((angle % 180) + 180) % 180});
+  plan.partAngles = list;
+}
+
+/* Rader för ett delområde. endM = vändteg vid radernas ändar, edge = minsta avstånd till fältgränsen,
+   m2 = avstånd till hinder, mRoad = avstånd till väg. */
+function buildPartGeo(ctx, mask, part, s, angle){
+  const a = angle * DEG, sa = Math.sin(a), ca = Math.cos(a);
+  // (u,v) i radernas system: u längs raden, v vinkelrätt. (e,n) = öster/norr.
+  const toUV = p => { const e = (p[1] - ctx.lo) * ctx.kx, n = (p[0] - ctx.la) * ctx.ky; return {u: e * sa + n * ca, v: e * ca - n * sa}; };
+  const toLL = (u, v) => { const e = u * sa + v * ca, n = u * ca - v * sa; return [ctx.la + n / ctx.ky, ctx.lo + e / ctx.kx]; };
+  const rot = (u, v) => [u * sa + v * ca, u * ca - v * sa];     // till (öster, norr)
+  const conv = rings => rings.map(r => r.map(p => { const e = p.u, n = p.v; return {u: e * sa + n * ca, v: e * ca - n * sa}; }));
+  const fR = conv(ctx.field), oR = conv(ctx.obst), rR = conv(ctx.roads);
+  const fE = edgesOf(fR), oE = edgesOf(oR), rE = edgesOf(rR);
+  const oEach = oR.map(r => edgesOf([r])), rEach = rR.map(r => edgesOf([r]));
+  const {rs, ps, edge, endM, m2, mRoad} = s;
+
+  // delens utbredning i v-led
+  let vmin = Infinity, vmax = -Infinity;
+  for (const [pu, pv] of [[part.u0, part.v0], [part.u1, part.v0], [part.u0, part.v1], [part.u1, part.v1]]) {
+    const v = pu * ca - pv * sa; vmin = Math.min(vmin, v); vmax = Math.max(vmax, v);
+  }
+  vmin -= rs; vmax += rs;
+
+  const off = ((s.off % rs) + rs) % rs;
+  const vStart = Math.ceil((vmin - off) / rs) * rs + off + rs / 2;   // samma radnät för alla delar
+  const rows = [];
+  let line = 0;
+  for (let v = vStart; v < vmax; v += rs, line++) {
+    let ints = scan(fE, v).map(([x0, x1]) => [x0 + endM, x1 - endM]).filter(([x0, x1]) => x1 >= x0);
+    for (const ee of oEach) { const cut = scan(ee, v).map(([x0, x1]) => [x0 - m2, x1 + m2]); if (cut.length) ints = subtract(ints, cut); }
+    for (const ee of rEach) { const cut = scan(ee, v).map(([x0, x1]) => [x0 - mRoad, x1 + mRoad]); if (cut.length) ints = subtract(ints, cut); }
+    const lineRows = [];
+    for (const [s0, e0] of ints) {
+      if (e0 < s0) continue;
+      const n = Math.floor((e0 - s0) / ps + 1e-9) + 1;
+      const start = s0 + ((e0 - s0) - (n - 1) * ps) / 2;
+      let u0 = 0, cnt = 0;
+      const flush = () => { if (cnt) lineRows.push({line, v, u0, n: cnt}); cnt = 0; };
+      for (let k = 0; k < n; k++) {
+        const u = start + k * ps;
+        const [e, nn] = rot(u, v);
+        let bad = mask.at(e, nn) !== part.id;
+        if (!bad) bad = (edge > 0 && nearEdge(u, v, fE, edge - 1e-6)) || (m2 > 0 && oE.length && nearEdge(u, v, oE, m2 - 1e-6))
+          || (mRoad > 0 && rE.length && nearEdge(u, v, rE, mRoad - 1e-6));
+        if (bad) { flush(); continue; }
+        if (!cnt) u0 = u;
+        cnt++;
+      }
+      flush();
+    }
+    lineRows.forEach((r, i) => {
+      r.seg = i;
+      r.u1 = r.u0 + (r.n - 1) * ps;
+      r.ll0 = toLL(r.u0, r.v); r.ll1 = toLL(r.u1, r.v);
+      r.removed = false; r.off = new Set(); r.pass = 0; r.part = part.id;
+      rows.push(r);
+    });
+  }
+  const byLine = new Map();
+  for (const r of rows) { if (!byLine.has(r.line)) byLine.set(r.line, []); byLine.get(r.line).push(r); }
+  return {part, angle, toUV, toLL, rows, byLine, lineCount: line, vStart, fR, rR};
+}
+function buildGeo(s){
+  const ctx = baseCtx();
+  const mask = buildMask(ctx);
+  geoCtx = ctx; geoMask = mask;
+  const area = Math.max(0, ctx.fieldArea - ctx.obstArea - ctx.roadArea);
+  const base = {ctx, mask, parts: [], rows: [], area, fieldArea: ctx.fieldArea, obstArea: ctx.obstArea, roadArea: ctx.roadArea,
+    rs: s.rs, ps: s.ps, list: mask.parts};
+  if (area / (s.rs * s.ps) > 12e6) return {...base, tooMany: area / (s.rs * s.ps)};
+  const many = mask.parts.length > 1;
+  for (const part of mask.parts) {
+    if (part.area < Math.max(4, 4 * s.rs * s.ps)) continue;
+    const g = buildPartGeo(ctx, mask, part, s, partAngle(part, s.angle));
+    for (const r of g.rows) {
+      r.g = g;
+      const segs = g.byLine.get(r.line).length;
+      r.label = (many ? part.no + '·' : '') + (r.line + 1) + (segs > 1 ? String.fromCharCode(97 + r.seg) : '');
+      base.rows.push(r);
+    }
+    base.parts.push(g);
+  }
+  return base;
+}
+function findRowAt(lat, lng, slack){
+  if (!geo || !geo.parts) return null;
+  let best = null, bd = Infinity;
+  for (const g of geo.parts) {
+    const {u, v} = g.toUV([lat, lng]);
+    const line = Math.round((v - g.vStart) / geo.rs);
+    const list = g.byLine.get(line);
+    if (!list || Math.abs(v - (g.vStart + line * geo.rs)) > geo.rs / 2) continue;
+    for (const r of list) {
+      const d = u < r.u0 ? r.u0 - u : u > r.u1 ? u - r.u1 : 0;
+      if (d <= slack && d < bd) { bd = d; best = r; }
+    }
+  }
+  return best;
+}
+function rowU(r, lat, lng){ return r.g.toUV([lat, lng]).u; }
+function pointIndex(row, u){ const k = Math.round((u - row.u0) / geo.ps); return (k >= 0 && k < row.n) ? k : -1; }
+function applyEdits(){
+  for (const r of geo.rows) { r.removed = false; r.off = new Set(); r.pass = 0; }
+  for (const p of plan.removedRows) { const r = findRowAt(p[0], p[1], geo.ps); if (r) r.removed = true; }
+  for (const p of plan.removedPts) {
+    const r = findRowAt(p[0], p[1], geo.ps / 2);
+    if (r) { const u = rowU(r, p[0], p[1]); const k = pointIndex(r, u); if (k >= 0 && Math.abs(u - (r.u0 + k * geo.ps)) <= geo.ps / 2) r.off.add(k); }
+  }
+}
+
+/* =================== Körordning =================== */
+function arcPts(out, cx, cy, r, a0, a1, step = 12 * DEG){
+  const n = Math.max(2, Math.ceil(Math.abs(a1 - a0) / step) + 1);
+  for (let i = 0; i < n; i++) { const t = a0 + (a1 - a0) * i / (n - 1); out.push([cx + r * Math.cos(t), cy + r * Math.sin(t)]); }
+}
+function turnPath(ua, va, ub, vb, side, r){
+  const ut = side > 0 ? Math.max(ua, ub) : Math.min(ua, ub);
+  const d = Math.abs(vb - va), sg = Math.sign(vb - va) || 1;
+  const loc = []; let reach, omega = false;
+  if (d >= 2 * r) {
+    arcPts(loc, 0, r, r, -Math.PI / 2, 0);
+    arcPts(loc, 0, d - r, r, 0, Math.PI / 2);
+    reach = r;
+  } else {
+    omega = true;
+    const h = Math.sqrt(Math.max(0, 4 * r * r - Math.pow(d / 2 + r, 2)));
+    const th = Math.atan2(d / 2 + r, h);
+    arcPts(loc, 0, -r, r, Math.PI / 2, th);
+    arcPts(loc, h, d / 2, r, th + Math.PI, 3 * Math.PI - th);
+    arcPts(loc, 0, d + r, r, -th, -Math.PI / 2);
+    reach = h + r;
+  }
+  const pts = [[ua, va]];
+  for (const [x, y] of loc) pts.push([ut + side * x, va + sg * y]);
+  pts.push([ub, vb]);
+  let len = 0; for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+  return {pts, len, reach, omega};
+}
+/* Körordning för ett delområde */
+function buildPartPasses(g, s, no0){
+  const N = s.N, L = g.lineCount, rs = geo.rs, ps = geo.ps;
+  const groups = new Map();
+  for (const r of g.rows) {
+    if (r.removed || r.off.size >= r.n) continue;
+    const li = s.startFlip ? (L - 1 - r.line) : r.line;
+    const gi = Math.floor(li / N);
+    let G = groups.get(gi);
+    if (!G) { G = {g: gi, u0: Infinity, u1: -Infinity, rows: [], lmin: Infinity, lmax: -Infinity}; groups.set(gi, G); }
+    let k0 = 0; while (r.off.has(k0)) k0++;
+    let k1 = r.n - 1; while (r.off.has(k1)) k1--;
+    G.u0 = Math.min(G.u0, r.u0 + k0 * ps); G.u1 = Math.max(G.u1, r.u0 + k1 * ps);
+    G.rows.push(r); G.lmin = Math.min(G.lmin, r.line + 1); G.lmax = Math.max(G.lmax, r.line + 1);
+  }
+  const list = [...groups.values()].sort((a, b) => a.g - b.g);
+  for (const G of list) {
+    let sv = 0;
+    for (let i = 0; i < N; i++) { const li = G.g * N + i; const line = s.startFlip ? (L - 1 - li) : li; sv += g.vStart + line * rs; }
+    G.v = sv / N;
+  }
+  const passW = N * rs, tight = 2 * s.r > passW + 1e-9;
+  let mode = s.mode; if (mode === 'auto') mode = tight ? 'skip' : 'seq';
+  const k = Math.max(2, Math.ceil(2 * s.r / passW - 1e-9) + 1);
+  let order = list;
+  if (mode === 'skip') {
+    // Skiften om 2k drag: 1, k+1, 2, k+2 … så att varje vändning hoppar k-1 eller k drag.
+    // Vartannat skifte körs spegelvänt, och resten läggs i det sista skiftet.
+    const M = list.length, idx = [], nL = Math.max(1, Math.floor(M / (2 * k)));
+    for (let l = 0; l < nL; l++) {
+      const base = l * 2 * k, Ls = l === nL - 1 ? M - base : 2 * k, kk = Math.floor(Ls / 2), odd = Ls % 2;
+      const seq = []; for (let i = 0; i < kk; i++) seq.push(i, kk + odd + i); if (odd) seq.push(kk);
+      for (const q of seq) idx.push(base + (l % 2 ? Ls - 1 - q : q));
+    }
+    order = idx.map(i => list[i]);
+  }
+  const first = s.dirFlip ? -1 : 1;
+  const passes = [], turns = [];
+  let plantDist = 0, turnDist = 0, maxReach = 0, omegas = 0, outside = 0, onRoad = 0;
+  order.forEach((P, j) => {
+    const dir = j % 2 ? -first : first;
+    const a = dir > 0 ? P.u0 : P.u1, b = dir > 0 ? P.u1 : P.u0;
+    const pass = {no: no0 + j + 1, g, P, dir, start: [a, P.v], end: [b, P.v]};
+    passes.push(pass); plantDist += Math.abs(b - a);
+    for (const r of P.rows) r.pass = pass.no;
+    if (j > 0) {
+      const prev = passes[j - 1];
+      const t = turnPath(prev.end[0], prev.end[1], a, P.v, prev.dir, s.r);
+      t.g = g;
+      // Vändningen får gå på en väg, men inte utanför fältet
+      t.outside = false; t.onRoad = false;
+      for (let i = 0; i < t.pts.length; i += 2) {
+        const [pu, pv] = t.pts[i];
+        const inField = pointInRings(g.fR, pu, pv);
+        const inRoad = g.rR.length && pointInRings(g.rR, pu, pv);
+        if (inRoad) t.onRoad = true;
+        if (!inField) t.outside = true;
+      }
+      turns.push(t); turnDist += t.len; maxReach = Math.max(maxReach, t.reach);
+      if (t.omega) omegas++;
+      if (t.outside) outside++;
+      if (t.onRoad) onRoad++;
+    }
+  });
+  return {passes, turns, plantDist, turnDist, maxReach, omegas, outside, onRoad, mode, passW, tight, k};
+}
+function buildPasses(s){
+  const all = {passes: [], turns: [], plantDist: 0, turnDist: 0, maxReach: 0, omegas: 0, outside: 0, onRoad: 0,
+    mode: 'seq', passW: s.N * geo.rs, k: 2, parts: []};
+  for (const g of geo.parts) {
+    const pi = buildPartPasses(g, s, all.passes.length);
+    all.parts.push(pi);
+    all.passes.push(...pi.passes); all.turns.push(...pi.turns);
+    all.plantDist += pi.plantDist; all.turnDist += pi.turnDist;
+    all.maxReach = Math.max(all.maxReach, pi.maxReach);
+    all.omegas += pi.omegas; all.outside += pi.outside; all.onRoad += pi.onRoad;
+    all.mode = pi.mode; all.k = pi.k;
+  }
+  return all;
+}
+
+/* =================== Körning & rendering =================== */
+let geo = null, geoKey = '', geoCtx = null, geoMask = null, passInfo = null, timer = null;
+function regenerate(){ clearTimeout(timer); timer = setTimeout(run, 90); }
+function run(){
+  try {
+    if (!plan.field) { geo = null; geoKey = ''; geoCtx = geoMask = null; passInfo = null; render(); updateStats(); renderParts(); return; }
+    const s = S();
+    const key = JSON.stringify([plan.field, plan.zones, plan.partAngles, s.rs, s.ps, s.edge, s.endM, s.m2, s.mRoad, s.off, s.angle]);
+    if (key !== geoKey) { geo = buildGeo(s); geoKey = key; }
+    if (geo.tooMany) { passInfo = null; render(); updateStats(); renderParts(); return; }
+    applyEdits();
+    passInfo = s.machine ? buildPasses(s) : null;
+    render(); updateStats(); renderParts();
+  } catch (err) {
+    console.error(err); msg('Fel vid beräkningen: ' + err.message, 0);
+  }
+}
+function refreshEdits(){
+  if (!geo || geo.tooMany) return;
+  applyEdits(); const s = S(); passInfo = s.machine ? buildPasses(s) : null; render(); updateStats(); save();
+}
+function render(){
+  rowsLayer.clearLayers(); passLayer.clearLayers();
+  if (!geo || geo.tooMany) { plantsLayer.setData(null, 0.3); return; }
+  const s = S();
+  const tips = geo.rows.length <= 4000;
+  for (const r of geo.rows) {
+    if (r.removed && !editSession) continue;        // borttagna rader syns bara i redigeringsläget
+    const active = r.n - r.off.size;
+    const line = L.polyline([r.ll0, r.ll1], r.removed
+      ? {renderer: vecRenderer, color: '#9a9a9a', weight: 1.5, opacity: 0.8, dashArray: '4 4'}
+      : {renderer: vecRenderer, color: ui.rowColor || '#e0a42b', weight: ui.rowW || 2, opacity: (ui.rowOp ?? 90) / 100});
+    if (tips) line.bindTooltip(r.removed ? `Rad ${r.label} · borttagen`
+      : `Rad ${r.label} · ${fmt(r.u1 - r.u0, 1)} m · ${fmt(active)} st${r.pass ? ' · drag ' + r.pass : ''}`, {sticky: true});
+    rowsLayer.addLayer(line);
+  }
+  plantsLayer.setData(geo.rows, geo.ps);
+  if (passInfo && passInfo.passes.length) {
+    for (const t of passInfo.turns)
+      passLayer.addLayer(L.polyline(t.pts.map(p => t.g.toLL(p[0], p[1])), {renderer: vecRenderer, color: t.omega ? '#ff5a4a' : t.outside ? '#ffb347' : '#6cc4ff', weight: 2, opacity: 0.9, dashArray: '5 4', interactive: false}));
+    const many = passInfo.passes.length > 300;
+    for (const p of passInfo.passes) {
+      const ll = q => p.g.toLL(q[0], q[1]);
+      passLayer.addLayer(L.polyline([ll(p.start), ll(p.end)], {renderer: vecRenderer, color: '#3fa9f5', weight: 3, opacity: 0.75, interactive: false}));
+      if (!many) {
+        const mid = ll([(p.start[0] + p.end[0]) / 2, p.start[1]]);
+        const bearing = p.g.angle + (p.dir < 0 ? 180 : 0);
+        passLayer.addLayer(L.marker(mid, {interactive: false, keyboard: false, icon: L.divIcon({className: 'pass-icon', iconSize: [44, 16], iconAnchor: [22, 8],
+          html: `<div><span class="arr" style="transform:rotate(${bearing}deg)">▲</span>${p.no}</div>`})}));
+      }
+    }
+    for (const pi of passInfo.parts) {
+      if (!pi.passes.length) continue;
+      const f = pi.passes[0], l = pi.passes[pi.passes.length - 1];
+      const se = (pass, pt, t) => L.marker(pass.g.toLL(pt[0], pt[1]), {interactive: false, keyboard: false,
+        icon: L.divIcon({className: 'se-icon', iconSize: [46, 18], iconAnchor: [23, 9], html: `<div>${t}</div>`})});
+      passLayer.addLayer(se(f, f.start, 'START')); passLayer.addLayer(se(l, l.end, 'SLUT'));
+    }
+  }
+  if (geo.parts.length > 1) for (const g of geo.parts)
+    passLayer.addLayer(L.marker(g.part.center, {interactive: false, keyboard: false,
+      icon: L.divIcon({className: 'part-icon', iconSize: [30, 18], iconAnchor: [15, 9], html: `<div>Del ${g.part.no}</div>`})}));
+  updatePassLabels();
+}
+function updatePassLabels(){ map.getContainer().classList.toggle('hide-pl', !passInfo || passInfo.passW / metersPerPixel() < 16); }
+map.on('zoomend', updatePassLabels);
+
+/* =================== Resultat (samma data till rutan och PDF:en) =================== */
+const fArea = v => v >= 5000 ? `${fmt(v / 10000, 2)} ha` : `${fmt(v)} m²`;
+const fKg = x => x >= 1000 ? `${fmt(x / 1000, 2)} ton` : `${fmt(x, x < 100 ? 1 : 0)} kg`;
+const fM = x => x >= 1000 ? `${fmt(x / 1000, 2)} km` : `${fmt(x)} m`;
+function hm(sec){ const h = Math.floor(sec / 3600), m = Math.round((sec % 3600) / 60); return h ? `${h} h ${m} min` : `${m} min`; }
+function statsModel(){
+  if (!geo) return null;
+  const s = S();
+  if (geo.tooMany) return {sections: [{title: 'Fält', rows: [['Markerad yta', fArea(geo.fieldArea)]]}],
+    warnings: [`För många sättpunkter (ca ${fmt(geo.tooMany)}) för att räknas ut. Öka avstånden eller dela upp ytan i flera delar.`], infos: []};
+  let rowsAct = 0, len = 0, plants = 0;
+  for (const r of geo.rows) { if (r.removed) continue; const a = r.n - r.off.size; if (!a) continue; rowsAct++; len += r.u1 - r.u0; plants += a; }
+  const ha = geo.area / 10000;
+  const seedKg = plants * s.weight / 1000;
+  const harvestKg = s.yieldTha * plants * s.rs * s.ps / 10;
+  const kgPerPlant = s.yieldTha / 10 * s.rs * s.ps;
+  // Yta med potatis = varje sättpotatis räknas med sin egen ruta (radavstånd × avstånd i raden)
+  const plantedM2 = plants * s.rs * s.ps;
+  const ref = geo.fieldArea, big = ref >= 5000;
+  const fA = v => big ? `${fmt(v / 10000, 2)} ha` : `${fmt(v)} m²`;
+  const same = ref > 0 && Math.abs(plantedM2 - ref) / ref < 0.01;
+  const areaRows = same ? [['Yta (hela med potatis)', fA(ref)]] : [
+    ['Markerad yta', fA(ref)],
+    ...(geo.obstArea > 0 ? [['varav hinderzoner', fA(geo.obstArea)]] : []),
+    ...(geo.roadArea > 0 ? [['varav vägar', fA(geo.roadArea)]] : []),
+    ['Yta med potatis', `${fA(plantedM2)} (${fmt(ref > 0 ? plantedM2 / ref * 100 : 0)} %)`]];
+  const sections = [
+    {title: 'Fält', rows: [...areaRows, ...(geo.parts.length > 1 ? [['Delområden', `${fmt(geo.parts.length)} st`]] : []),
+      ['Rader', `${fmt(rowsAct)} st`], ['Total radlängd', fM(len)]]},
+    {title: CU().seedName, rows: [[CU().unitPl, `${fmt(plants)} st`], ['Vikt', fKg(seedKg)], [`Säckar à ${fmt(s.bag)} kg`, `${fmt(Math.ceil(seedKg / s.bag))} st`],
+      ['Täthet', `${ha > 0 ? fmt(plants / ha) : '–'} st/ha`], ['Utsädesmängd', `${ha > 0 ? fmt(seedKg / ha) : '–'} kg/ha`]]}
+  ];
+  const warnings = [], infos = [];
+  const pi = passInfo;
+  if (s.machine && pi) {
+    const speed = s.speed / 3.6;
+    const b = pi.passes.length ? pi.passes[0].g.angle + (pi.passes[0].dir < 0 ? 180 : 0) : null;
+    sections.push({title: 'Körning med sättare', rows: [
+      ['Drag', `${fmt(pi.passes.length)} st`], ['Vändningar', `${fmt(pi.turns.length)} st`],
+      ['Vändmönster', pi.mode === 'skip' ? `skiften om ${2 * pi.k} drag` : 'intilliggande drag'],
+      ['Första draget körs mot', b === null ? '–' : `${compassWord(b)} (${fmt(((b % 360) + 360) % 360)}°)`],
+      ...(pi.onRoad ? [['Vändningar på väg', `${fmt(pi.onRoad)} st`]] : []),
+      ['Körsträcka sättning', fM(pi.plantDist)], ['Körsträcka vändningar', fM(pi.turnDist)],
+      ['Beräknad tid', hm(pi.plantDist / speed + pi.turnDist / (speed * 0.5))]]});
+    if (pi.passes.length > 1) {
+      if (pi.outside) {
+        const t = `${fmt(pi.outside)} av ${fmt(pi.turns.length)} vändningar går utanför fältet, upp till ca ${fmt(pi.maxReach, 1)} m (orange).`;
+        if (s.inside) warnings.push(t + ' Öka vändtegen eller rita en väg där du vänder.'); else infos.push(t);
+      }
+      if (geo.parts.length > 1) infos.push(`Körordningen räknas för varje delområde för sig. Förflyttningen mellan delarna ingår inte i sträcka och tid.`);
+    }
+    if (pi.omegas) warnings.push(`${pi.omegas} vändningar är snävare än vändradien och kräver omega- eller fiskstjärtsvändning (röda).`);
+  } else if (!s.machine) {
+    sections.push({title: 'Sättning', rows: [['Personer', `${fmt(s.workers)} st`], ['Takt', `${fmt(s.rate)} st/h per person`],
+      ['Beräknad tid', hm(plants / (s.rate * s.workers) * 3600)], ['Gångsträcka längs raderna', fM(len)]]});
+  }
+  sections.push({title: 'Uppskattad skörd', rows: [['Förväntad skörd', fKg(harvestKg)], ['Per planta', `${fmt(kgPerPlant, 2)} kg`],
+    ['Förökningsgrad', seedKg > 0 ? `${fmt(harvestKg / seedKg, 1)} ×` : '–']]});
+  if (!plants) warnings.push('Inga sättpunkter får plats. Kontrollera avstånd från kant, vändteg, radavstånd och sättavstånd.');
+  return {sections, warnings, infos};
+}
+function settingsModel(){
+  const s = S(), p = plan.settings;
+  const rows = [['Sättmetod', s.machine ? 'potatissättare' : 'manuellt'], ['Radavstånd', `${fmt(s.rs * 100)} cm`], ['Sättavstånd', `${fmt(s.ps * 100)} cm`],
+    [CU().weightLabel, `${fmt(s.weight, s.weight < 1 ? 4 : 0)} g`], ['Gröda', CU().name], ['Radriktning', `${fmt(s.angle, 1)}° (${compassWord(s.angle)}–${compassWord(s.angle + 180)})`],
+    ['Avstånd från kant', `${fmt(s.edge, 2)} m`]];
+  const nz = t => (plan.zones || []).filter(z => z.type === t).length;
+  if (nz('hinder')) rows.push(['Hinderzoner', `${nz('hinder')} st, ${fmt(s.m2, 1)} m avstånd`]);
+  if (nz('vag')) rows.push(['Vägar', `${nz('vag')} st, ${fmt(s.mRoad, 1)} m avstånd`]);
+  if (geo && geo.parts && geo.parts.length > 1) rows.push(['Delområden', geo.parts.map(g => `del ${g.part.no}: ${fmt(g.angle, 1)}°`).join(', ')]);
+  if (s.machine) rows.push(['Rader per drag', `${s.N} st (${fmt(s.N * s.rs, 2)} m)`], ['Minsta vändradie', `${fmt(s.r, 1)} m`],
+    ['Vändteg', s.inside ? `${fmt(s.headland, 1)} m innanför ytan` : 'utanför ytan'], ['Hastighet', `${fmt(s.speed, 1)} km/h`]);
+  else if (s.manualEnd > s.edge) rows.push(['Fritt vid radernas ändar', `${fmt(s.manualEnd, 1)} m`]);
+  rows.push(['Sort', p.variety], ['Förväntad avkastning', `${fmt(s.yieldTha)} t/ha`]);
+  const fld = typeof fieldById === 'function' ? fieldById(plan.fieldId) : null;
+  if (fld) rows.unshift(['Fält', fld.name]);
+  const nr = plan.removedRows.length, np = plan.removedPts.length;
+  if (nr || np) rows.push(['Manuellt borttaget', `${nr} rader, ${np} punkter`]);
+  return {title: 'Konfiguration', rows};
+}
+function updateStats(){
+  const box = $('statsBody');
+  if (plan && geo && !geo.tooMany && typeof planSummary === 'function') {
+    const s = S();
+    let plants = 0, rows = 0;
+    for (const r of geo.rows) { if (r.removed) continue; const a = r.n - r.off.size; if (a) { plants += a; rows++; } }
+    plan.summary = {plants, rows, area: geo.area, plantedM2: plants * s.rs * s.ps,
+      seedKg: plants * s.weight / 1000, harvestKg: s.yieldTha * plants * s.rs * s.ps / 10};
+  }
+  const nr = plan ? plan.removedRows.length : 0, np = plan ? plan.removedPts.length : 0;
+  $('btnResetEdits').textContent = (nr || np) ? `Återställ alla (${nr} rader, ${np} punkter)` : 'Återställ alla';
+  if (!geo) { box.innerHTML = '<div class="hint" style="margin:2px 0">Rita ett fält med polygonverktyget eller importera en GeoJSON-, KML- eller KMZ-fil.</div>'; return; }
+  const m = statsModel();
+  const s = S();
+  box.innerHTML = `<table>${m.sections.map(sec => `<tr class="h"><td colspan="2">${esc(sec.title)}</td></tr>` +
+      sec.rows.map(([a, b]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join('')).join('')}</table>
+    ${m.warnings.map(w => `<div class="warn">${esc(w)}</div>`).join('')}${m.infos.map(w => `<div class="info">${esc(w)}</div>`).join('')}
+    <div class="lg">${legendItems(k => ({field: $('showField').checked, rows: $('showRows').checked, plants: $('showPlants').checked, passes: $('showPasses').checked})[k]).map(it =>
+      it.kind === 'dot' && !(geo.ps && !pointsVisible(geo.ps / metersPerPixel())) ? `<span><i class="dot" style="background:${ui.ptColor || '#fff'};border:1.5px solid #111"></i>${it.label}</span>`
+      : it.kind === 'dot' ? ''
+      : it.kind === 'field' ? `<span><i style="background:repeating-linear-gradient(90deg,#666 0 3px,#bbb 3px 5px)"></i>${it.label}</span>`
+      : it.kind === 'fill' ? `<span><i style="background:${it.color};opacity:.6;height:8px"></i>${it.label}</span>`
+      : `<span><i style="opacity:${it.alpha ?? 1};background:${it.dash ? `repeating-linear-gradient(90deg,${it.color} 0 4px,transparent 4px 6px)` : it.color}"></i>${it.label}</span>`).join('')}</div>
+    ${geo.ps && $('showPlants').checked && !pointsVisible(geo.ps / metersPerPixel())
+      ? `<div class="hint">${ui.ptMode === 'never' ? 'Sättpunkterna är avstängda under Visa.' : 'Zooma in för att se de enskilda sättpunkterna. Du kan ändra gränsen under Visa.'}</div>` : ''}`;
+}
+map.on('zoomend', () => { if (geo) updateStats(); });
+
+/* =================== Redigering =================== */
+let tool = null, brushing = false, brushRaf = 0, editSession = null;
+const EDIT_HINTS = {
+  row: 'Klicka på en rad för att ta bort den, eller dra ett streck tvärs över flera rader så försvinner alla du korsar. Håll Alt för att flytta kartan.',
+  pt: 'Dra över sättpunkterna för att sudda bort dem, eller klicka på en i taget. Håll Alt för att flytta kartan.',
+  restore: 'Klicka eller dra ett streck över det du tagit bort för att lägga tillbaka det. Håll Alt för att flytta kartan.',
+  none: 'Välj ett verktyg för att börja redigera. Borttagna rader visas grå så länge du redigerar, och försvinner när du sparar.'
+};
+function setTool(t){
+  tool = (tool === t) ? null : t;
+  if (tool && !editSession) editSession = JSON.stringify({rr: plan.removedRows, rp: plan.removedPts});
+  document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === tool));
+  document.body.classList.toggle('tool-on', !!tool);
+  $('editHint').innerHTML = EDIT_HINTS[tool || 'none'];
+  $('editFoot').hidden = !editSession;
+  if (tool) { map.boxZoom.disable(); map.dragging.disable(); map.closePopup(); }
+  else { map.boxZoom.enable(); map.dragging.enable(); }
+  render();
+}
+function endEdit(keep){
+  if (!editSession) return;
+  if (!keep) { const o = JSON.parse(editSession); plan.removedRows = o.rr; plan.removedPts = o.rp; }
+  editSession = null; undoStack = [];
+  if (tool) setTool(tool); else { $('editFoot').hidden = true; $('editHint').innerHTML = EDIT_HINTS.none; }
+  map.dragging.enable(); map.boxZoom.enable();
+  refreshEdits(); save();
+  msg(keep ? 'Ändringarna är sparade.' : 'Ändringarna ångrades.');
+}
+$('btnEditSave').onclick = () => endEdit(true);
+$('btnEditCancel').onclick = () => endEdit(false);
+document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => setTool(b.dataset.tool));
+document.addEventListener('keyup', e => { if (e.key === 'Alt' && tool) map.dragging.disable(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && tool) setTool(tool);
+  if (e.key === 'Alt' && tool) map.dragging.enable();
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); undo(); }
+});
+function pushUndo(){
+  undoStack.push(JSON.stringify({rr: plan.removedRows, rp: plan.removedPts, ex: plan.zones, pa: plan.partAngles}));
+  if (undoStack.length > 60) undoStack.shift();
+}
+function undo(){
+  const s = undoStack.pop();
+  if (!s) return msg('Inget att ångra.');
+  const o = JSON.parse(s);
+  const exChanged = JSON.stringify(o.ex) !== JSON.stringify(plan.zones) || JSON.stringify(o.pa) !== JSON.stringify(plan.partAngles);
+  plan.removedRows = o.rr; plan.removedPts = o.rp; plan.zones = o.ex; plan.partAngles = o.pa || [];
+  if (exChanged) { rebuildEditGroup(); regenerate(); save(); } else refreshEdits();
+}
+$('btnUndo').onclick = undo;
+$('btnResetEdits').onclick = () => {
+  if (!plan.removedRows.length && !plan.removedPts.length) return;
+  if (!editSession) { editSession = JSON.stringify({rr: plan.removedRows, rp: plan.removedPts}); $('editFoot').hidden = false; $('editHint').innerHTML = EDIT_HINTS.none; }
+  pushUndo(); plan.removedRows = []; plan.removedPts = []; refreshEdits();
+};
+const r8 = p => [+p[0].toFixed(8), +p[1].toFixed(8)];
+map.on('click', e => {
+  if (skipClick) { skipClick = false; return; }
+  if (!tool || drawing || !geo || geo.tooMany) return;
+  const row = findRowAt(e.latlng.lat, e.latlng.lng, Math.max(geo.ps, 10 * metersPerPixel()));
+  if (!row) return;
+  const u = rowU(row, e.latlng.lat, e.latlng.lng);
+  if (tool === 'row') {
+    if (row.removed) return;
+    pushUndo(); plan.removedRows.push(r8(row.g.toLL((row.u0 + row.u1) / 2, row.v))); refreshEdits();
+  } else if (tool === 'pt') {
+    if (row.removed) return;
+    const k = Math.max(0, Math.min(row.n - 1, Math.round((u - row.u0) / geo.ps)));
+    if (row.off.has(k)) return;
+    pushUndo(); plan.removedPts.push(r8(row.g.toLL(row.u0 + k * geo.ps, row.v))); refreshEdits();
+  } else if (tool === 'restore') {
+    if (row.removed) {
+      pushUndo();
+      plan.removedRows = plan.removedRows.filter(p => findRowAt(p[0], p[1], geo.ps) !== row);
+    } else {
+      const k = Math.max(0, Math.min(row.n - 1, Math.round((u - row.u0) / geo.ps)));
+      if (!row.off.has(k)) return;
+      pushUndo();
+      plan.removedPts = plan.removedPts.filter(p => !(findRowAt(p[0], p[1], geo.ps / 2) === row && pointIndex(row, rowU(row, p[0], p[1])) === k));
+    }
+    refreshEdits();
+  }
+});
+/* Snittstreck: dra tvärs över rader för att ta bort (eller lägga tillbaka) alla som strecket korsar */
+let cutFrom = null, cutLine = null, cutMoved = false, skipClick = false;
+/* Strecket ritas med pekare, så att det fungerar lika med mus, penna och finger */
+const mapEl = map.getContainer();
+const strokeLL = e => { const r = mapEl.getBoundingClientRect(); return map.containerPointToLatLng([e.clientX - r.left, e.clientY - r.top]); };
+mapEl.addEventListener('pointerdown', e => {
+  if (!tool || drawing || !geo || geo.tooMany || e.altKey || (e.pointerType === 'mouse' && e.button !== 0)) return;
+  const ll = strokeLL(e);
+  if (tool === 'pt') { brushing = true; pushUndo(); brushAt(ll); }
+  else { cutFrom = ll; cutMoved = false; }
+  try { mapEl.setPointerCapture(e.pointerId); } catch {}
+});
+mapEl.addEventListener('pointermove', e => {
+  if (brushing) return brushAt(strokeLL(e));
+  if (!cutFrom) return;
+  const ll = strokeLL(e);
+  if (map.latLngToContainerPoint(cutFrom).distanceTo(map.latLngToContainerPoint(ll)) > 5) cutMoved = true;
+  if (!cutMoved) return;
+  const style = {color: tool === 'restore' ? '#39d353' : '#ff3b30', weight: 2, dashArray: '7 4', interactive: false};
+  if (!cutLine) cutLine = L.polyline([cutFrom, ll], style).addTo(map);
+  else cutLine.setLatLngs([cutFrom, ll]);
+});
+mapEl.addEventListener('pointerup', e => { if (cutFrom && cutMoved) cutRows(cutFrom, strokeLL(e)); endStroke(); });
+mapEl.addEventListener('pointercancel', () => endStroke());
+document.addEventListener('mouseup', () => endStroke());
+function endStroke(){
+  if (cutLine) { map.removeLayer(cutLine); cutLine = null; }
+  if (cutMoved) skipClick = true;
+  cutFrom = null; cutMoved = false;
+  if (brushing) { brushing = false; refreshEdits(); }
+}
+/* Alla radsegment som strecket korsar */
+function cutRows(a, b){
+  const hit = [];
+  for (const g of geo.parts) {
+    const A = g.toUV([a.lat, a.lng]), B = g.toUV([b.lat, b.lng]);
+    if (A.v === B.v) continue;
+    for (const r of g.rows) {
+      if ((A.v - r.v) * (B.v - r.v) > 0) continue;
+      const t = (r.v - A.v) / (B.v - A.v), u = A.u + t * (B.u - A.u);
+      if (u >= r.u0 - geo.ps / 2 && u <= r.u1 + geo.ps / 2) hit.push(r);
+    }
+  }
+  const want = tool === 'restore';
+  const rows = hit.filter(r => r.removed === want);
+  if (!rows.length) return msg(want ? 'Strecket korsade inga borttagna rader.' : 'Strecket korsade inga rader.');
+  pushUndo();
+  if (want) {
+    const keep = new Set(rows);
+    plan.removedRows = plan.removedRows.filter(p => !keep.has(findRowAt(p[0], p[1], geo.ps)));
+  } else {
+    for (const r of rows) plan.removedRows.push(r8(r.g.toLL((r.u0 + r.u1) / 2, r.v)));
+  }
+  refreshEdits();
+  msg(`${fmt(rows.length)} rader ${want ? 'lades tillbaka' : 'togs bort'}.`);
+}
+function brushAt(latlng){
+  const Rm = Math.max(geo.ps * 0.6, 12 * metersPerPixel());
+  for (const g of geo.parts) {
+    const {u, v} = g.toUV([latlng.lat, latlng.lng]);
+    const l0 = Math.round((v - Rm - g.vStart) / geo.rs), l1 = Math.round((v + Rm - g.vStart) / geo.rs);
+    for (let l = l0; l <= l1; l++) {
+      const list = g.byLine.get(l); if (!list) continue;
+      for (const r of list) {
+        if (r.removed) continue;
+        const dv = Math.abs(r.v - v); if (dv > Rm) continue;
+        const du = Math.sqrt(Rm * Rm - dv * dv);
+        const k0 = Math.max(0, Math.ceil((u - du - r.u0) / geo.ps)), k1 = Math.min(r.n - 1, Math.floor((u + du - r.u0) / geo.ps));
+        for (let k = k0; k <= k1; k++) if (!r.off.has(k)) { r.off.add(k); plan.removedPts.push(r8(g.toLL(r.u0 + k * geo.ps, r.v))); }
+      }
+    }
+  }
+  cancelAnimationFrame(brushRaf); brushRaf = requestAnimationFrame(() => plantsLayer._redraw());
+}
+
+/* =================== Eget ortofoto =================== */
+const idb = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej) => {
+    const r = indexedDB.open('potatisplaneraren', 1);
+    r.onupgradeneeded = () => r.result.createObjectStore('ortho');
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  }));
+  const tx = async (mode, fn) => {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const t = db.transaction('ortho', mode); const req = fn(t.objectStore('ortho'));
+      t.oncomplete = () => res(req && req.result); t.onerror = () => rej(t.error);
+    });
+  };
+  return {get: k => tx('readonly', s => s.get(k)), put: (k, v) => tx('readwrite', s => s.put(v, k)), del: k => tx('readwrite', s => s.delete(k))};
+})();
+let ortho = null; // {layer, img, url, bounds, name, opacity}
+let orthoToken = 0;
+function clearOrthoLayer(){
+  if (ortho) { map.removeLayer(ortho.layer); URL.revokeObjectURL(ortho.url); }
+  ortho = null;
+}
+async function showOrtho(rec, fit){
+  clearOrthoLayer();
+  const url = URL.createObjectURL(rec.blob);
+  const img = new Image(); img.src = url;
+  await img.decode().catch(() => {});
+  const op = rec.opacity ?? 100;
+  const layer = L.imageOverlay(url, rec.bounds, {pane: 'orthoPane', opacity: op / 100, interactive: false});
+  ortho = {layer, img, url, bounds: rec.bounds, name: rec.name, opacity: op};
+  $('orthoOp').value = op;
+  if ($('orthoShow').checked) layer.addTo(map);
+  $('orthoInfo').textContent = `${rec.name} · ${rec.w} × ${rec.h} px${rec.crsName ? ' · ' + rec.crsName : ''}`;
+  if (fit) map.fitBounds(rec.bounds);
+}
+async function loadOrthoForPlan(){
+  const tok = ++orthoToken; clearOrthoLayer();
+  $('orthoInfo').textContent = ORTHO_HINT;
+  try { const rec = await idb.get(plan.id); if (rec && tok === orthoToken) await showOrtho(rec, false); } catch {}
+}
+$('btnOrtho').onclick = () => $('orthoIn').click();
+$('btnOrthoFit').onclick = () => { if (ortho) map.fitBounds(ortho.bounds); else msg('Inget ortofoto inläst.'); };
+$('btnOrthoDel').onclick = async () => { if (!ortho) return; clearOrthoLayer(); await idb.del(plan.id).catch(() => {}); loadOrthoForPlan(); };
+$('orthoShow').onchange = () => { if (ortho) { if ($('orthoShow').checked) ortho.layer.addTo(map); else map.removeLayer(ortho.layer); } };
+let opT = null;
+$('orthoOp').oninput = () => {
+  if (!ortho) return;
+  ortho.opacity = +$('orthoOp').value; ortho.layer.setOpacity(ortho.opacity / 100);
+  const id = plan.id;
+  clearTimeout(opT); opT = setTimeout(async () => { try { const rec = await idb.get(id); if (rec) { rec.opacity = ortho.opacity; await idb.put(id, rec); } } catch {} }, 400);
+};
+$('orthoIn').onchange = async e => {
+  const files = [...e.target.files]; e.target.value = '';
+  if (!files.length) return;
+  $('btnOrtho').disabled = true;
+  try {
+    msg('Läser in ortofotot… stora filer kan ta en stund.', 0);
+    const rec = await buildOrtho(files);
+    try { await idb.put(plan.id, rec); } catch { msg('Ortofotot visas men kunde inte sparas i webbläsaren.'); }
+    await showOrtho(rec, true);
+    msg('Ortofotot är inläst.');
+  } catch (err) {
+    console.error(err); msg('Kunde inte läsa ortofotot: ' + err.message, 0);
+  } finally { $('btnOrtho').disabled = false; }
+};
+const MAXPX = 4000;
+const W0 = ll => L.CRS.EPSG3857.latLngToPoint(L.latLng(ll[0], ll[1]), 0);   // världspixlar vid zoom 0
+const W2LL = (x, y) => L.CRS.EPSG3857.pointToLatLng(L.point(x, y), 0);
+async function buildOrtho(files){
+  const tif = files.find(f => /\.tiff?$/i.test(f.name));
+  const pic = files.find(f => /\.(jpe?g|png)$/i.test(f.name));
+  const wld = files.find(f => /\.(jgw|pgw|tfw|wld|jpgw|pngw)$/i.test(f.name));
+  let src, world = null;
+  if (tif) src = await readGeoTiff(tif);
+  else if (pic && wld) { world = await readWorldFile(wld); src = await readWorldImage(pic, world); }
+  else if (pic) throw new Error('bilden saknar world-fil (.jgw/.pgw). Markera båda filerna samtidigt.');
+  else throw new Error('välj en GeoTIFF (.tif) eller en JPG/PNG med world-fil');
+  const code = $('orthoCrs').value ? +$('orthoCrs').value : src.epsg;
+  if (!code) throw new Error('filen anger inget koordinatsystem. Välj det i listan och läs in igen.');
+  await need('proj4');
+  const def = await crsDef(code);
+  const out = reproject(src, def);
+  let blob = await new Promise(res => out.canvas.toBlob(res, 'image/webp', 0.9));
+  if (!blob || blob.type !== 'image/webp') blob = await new Promise(res => out.canvas.toBlob(res, 'image/png'));
+  const file = tif || pic;
+  // Originalfilen sparas också, så att PDF:en kan få full upplösning
+  const orig = file.size <= 1.5e9 ? file : null;
+  return {blob, bounds: out.bounds, name: file.name, w: src.w, h: src.h, fullW: src.fullW, fullH: src.fullH, opacity: 100,
+    crs: code, crsName: CRS_DEFS[code] ? CRS_DEFS[code][0] : 'EPSG:' + code, kind: tif ? 'tif' : 'img', world, orig};
+}
+async function crsDef(code){
+  if (code === 4326) return 'EPSG:4326';
+  if (code === 3857 || code === 900913 || code === 102100) return 'EPSG:3857';
+  if (CRS_DEFS[code] && CRS_DEFS[code][1]) return CRS_DEFS[code][1];
+  try {
+    const r = await fetch(`https://epsg.io/${code}.proj4`);
+    const t = (await r.text()).trim();
+    if (r.ok && t.startsWith('+proj')) return t;
+  } catch {}
+  throw new Error(`okänt koordinatsystem EPSG:${code}. Välj koordinatsystem i listan.`);
+}
+function toRGBA(data, w, h, nodata){
+  const ch = Math.max(1, Math.round(data.length / (w * h)));
+  let maxv = 0; for (let i = 0; i < data.length; i += 97) if (data[i] > maxv) maxv = data[i];
+  const scale = maxv > 255 ? 255 / maxv : 1;
+  const rgba = new Uint8ClampedArray(w * h * 4);
+  for (let i = 0, j = 0; i < w * h; i++, j += ch) {
+    const r = data[j], g = ch >= 3 ? data[j + 1] : r, b = ch >= 3 ? data[j + 2] : r;
+    let a = ch === 4 ? data[j + 3] * scale : ch === 2 ? data[j + 1] * scale : 255;
+    if (nodata !== null && nodata !== undefined && r === nodata && g === nodata && b === nodata) a = 0;
+    if (ch === 3 && (nodata === null || nodata === undefined) && r === 0 && g === 0 && b === 0) a = 0;
+    rgba[i * 4] = r * scale; rgba[i * 4 + 1] = g * scale; rgba[i * 4 + 2] = b * scale; rgba[i * 4 + 3] = a;
+  }
+  return rgba;
+}
+async function tiffInfo(file){
+  await need('geotiff');
+  const tiff = await GeoTIFF.fromBlob(file);
+  const main = await tiff.getImage(0);
+  const n = await tiff.getImageCount(), spp = main.getSamplesPerPixel();
+  const levels = [{im: main, f: 1}];
+  for (let i = 1; i < n; i++) {
+    const im = await tiff.getImage(i);
+    if (im.getSamplesPerPixel() !== spp || im.getWidth() >= main.getWidth()) continue;
+    levels.push({im, f: main.getWidth() / im.getWidth()});
+  }
+  levels.sort((a, b) => a.f - b.f);
+  return {main, levels, nodata: main.getGDALNoData()};
+}
+async function readLevel(level, win, w, h){
+  const opts = {width: w, height: h, interleave: true, resampleMethod: 'bilinear'};
+  if (win) opts.window = win;
+  try { return await level.im.readRGB({...opts, enableAlpha: true}); }
+  catch { return await level.im.readRasters(opts); }
+}
+async function readGeoTiff(file){
+  const {main, levels, nodata} = await tiffInfo(file);
+  const bbox = main.getBoundingBox();
+  const keys = main.getGeoKeys() || {};
+  const valid = c => c && c !== 32767 ? c : null;
+  const epsg = valid(keys.ProjectedCSTypeGeoKey) || valid(keys.GeographicTypeGeoKey);
+  const MW = main.getWidth(), MH = main.getHeight();
+  // grövsta nivån som fortfarande har minst ~70 % av MAXPX
+  let pick = levels[0];
+  for (const lv of levels) if (Math.max(MW, MH) / lv.f >= MAXPX * 0.7) pick = lv;
+  const sc = Math.min(1, MAXPX / (Math.max(MW, MH) / pick.f));
+  const w = Math.max(1, Math.round(pick.im.getWidth() * sc)), h = Math.max(1, Math.round(pick.im.getHeight() * sc));
+  const data = await readLevel(pick, null, w, h);
+  return {w, h, rgba: toRGBA(data, w, h, nodata), bbox, epsg, fullW: MW, fullH: MH};
+}
+async function readWorldFile(wld){
+  const vals = (await wld.text()).trim().split(/\s+/).map(Number);
+  if (vals.length < 6 || vals.some(v => !isFinite(v))) throw new Error('world-filen går inte att läsa');
+  if (Math.abs(vals[1]) > 1e-9 || Math.abs(vals[2]) > 1e-9) throw new Error('roterade bilder stöds inte');
+  return vals;
+}
+async function readWorldImage(pic, world){
+  const [A, , , E, C, F] = world;
+  const bmp = await createImageBitmap(pic);
+  const sc = Math.min(1, MAXPX / Math.max(bmp.width, bmp.height));
+  const w = Math.round(bmp.width * sc), h = Math.round(bmp.height * sc);
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const ctx = c.getContext('2d'); ctx.drawImage(bmp, 0, 0, w, h);
+  const minX = C - A / 2, maxY = F - E / 2, maxX = minX + A * bmp.width, minY = maxY + E * bmp.height;
+  return {w, h, rgba: ctx.getImageData(0, 0, w, h).data, bbox: [minX, minY, maxX, maxY], epsg: null, fullW: bmp.width, fullH: bmp.height};
+}
+/* Ritar källbilden (i sitt eget koordinatsystem) till ett område i Web Mercator (världspixlar vid zoom 0) */
+function reprojectTo(src, tr, wx0, wy0, wx1, wy1, ow, oh){
+  const [bx0, by0, bx1, by1] = src.bbox;
+  const G = 32, gx = new Float64Array((G + 1) * (G + 1)), gy = new Float64Array((G + 1) * (G + 1));
+  for (let j = 0; j <= G; j++) for (let i = 0; i <= G; i++) {
+    const ll = W2LL(wx0 + (wx1 - wx0) * i / G, wy0 + (wy1 - wy0) * j / G);
+    const [X, Y] = tr.inverse([ll.lng, ll.lat]);
+    gx[j * (G + 1) + i] = (X - bx0) / (bx1 - bx0) * src.w;
+    gy[j * (G + 1) + i] = (by1 - Y) / (by1 - by0) * src.h;
+  }
+  const c = document.createElement('canvas'); c.width = ow; c.height = oh;
+  const ctx = c.getContext('2d'); const out = ctx.createImageData(ow, oh); const od = out.data, sd = src.rgba, sw = src.w, sh = src.h;
+  for (let y = 0; y < oh; y++) {
+    const fy = (y + 0.5) / oh * G, j0 = Math.min(G - 1, Math.floor(fy)), ty = fy - j0;
+    for (let x = 0; x < ow; x++) {
+      const fx = (x + 0.5) / ow * G, i0 = Math.min(G - 1, Math.floor(fx)), tx = fx - i0;
+      const a = j0 * (G + 1) + i0, b = a + 1, c2 = a + G + 1, d = c2 + 1;
+      const sx = (gx[a] * (1 - tx) + gx[b] * tx) * (1 - ty) + (gx[c2] * (1 - tx) + gx[d] * tx) * ty;
+      const sy = (gy[a] * (1 - tx) + gy[b] * tx) * (1 - ty) + (gy[c2] * (1 - tx) + gy[d] * tx) * ty;
+      if (sx < 0 || sy < 0 || sx >= sw || sy >= sh) continue;
+      const si = ((sy | 0) * sw + (sx | 0)) * 4, oi = (y * ow + x) * 4;
+      od[oi] = sd[si]; od[oi + 1] = sd[si + 1]; od[oi + 2] = sd[si + 2]; od[oi + 3] = sd[si + 3];
+    }
+  }
+  ctx.putImageData(out, 0, 0);
+  return c;
+}
+function srcWorldBox(src, tr){
+  const [bx0, by0, bx1, by1] = src.bbox;
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let i = 0; i <= 20; i++) for (const [x, y] of [[bx0 + (bx1 - bx0) * i / 20, by0], [bx0 + (bx1 - bx0) * i / 20, by1], [bx0, by0 + (by1 - by0) * i / 20], [bx1, by0 + (by1 - by0) * i / 20]]) {
+    const [lon, lat] = tr.forward([x, y]);
+    if (!isFinite(lat) || Math.abs(lat) > 85) continue;
+    const p = W0([lat, lon]);
+    x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x); y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y);
+  }
+  if (!isFinite(x0) || x1 - x0 <= 0) throw new Error('koordinaterna passar inte med valt koordinatsystem');
+  return [x0, y0, x1, y1];
+}
+/* Räknar om bilden till Web Mercator så att den ligger rätt på kartan */
+function reproject(src, def){
+  const tr = proj4(def, 'EPSG:4326');
+  const [x0, y0, x1, y1] = srcWorldBox(src, tr);
+  let ow = src.w, oh = Math.round(ow * (y1 - y0) / (x1 - x0));
+  if (oh > MAXPX) { ow = Math.round(ow * MAXPX / oh); oh = MAXPX; }
+  const canvas = reprojectTo(src, tr, x0, y0, x1, y1, ow, oh);
+  const sw = W2LL(x0, y1), ne = W2LL(x1, y0);
+  return {canvas, bounds: [[sw.lat, sw.lng], [ne.lat, ne.lng]]};
+}
+/* Läser ett utsnitt ur originalfilen med önskad upplösning och ritar det till ett Mercator-område (för PDF) */
+async function orthoRegionFromOriginal(rec, wx0, wy0, wx1, wy1, needW){
+  await need('proj4');
+  const tr = proj4(await crsDef(rec.crs), 'EPSG:4326');
+  // områdets gränser i bildens koordinatsystem
+  let cx0 = Infinity, cy0 = Infinity, cx1 = -Infinity, cy1 = -Infinity;
+  for (let i = 0; i <= 12; i++) for (const [x, y] of [[wx0 + (wx1 - wx0) * i / 12, wy0], [wx0 + (wx1 - wx0) * i / 12, wy1], [wx0, wy0 + (wy1 - wy0) * i / 12], [wx1, wy0 + (wy1 - wy0) * i / 12]]) {
+    const ll = W2LL(x, y); const [X, Y] = tr.inverse([ll.lng, ll.lat]);
+    cx0 = Math.min(cx0, X); cx1 = Math.max(cx1, X); cy0 = Math.min(cy0, Y); cy1 = Math.max(cy1, Y);
+  }
+  let src;
+  const CAP = 8000;
+  if (rec.kind === 'tif') {
+    const {main, levels, nodata} = await tiffInfo(rec.orig);
+    const [ox, oy] = main.getOrigin(), [rx, ry] = main.getResolution();
+    const MW = main.getWidth(), MH = main.getHeight();
+    let px0 = Math.floor((cx0 - ox) / rx), px1 = Math.ceil((cx1 - ox) / rx);
+    let py0 = Math.floor((cy1 - oy) / ry), py1 = Math.ceil((cy0 - oy) / ry);
+    px0 = Math.max(0, px0 - 2); py0 = Math.max(0, py0 - 2); px1 = Math.min(MW, px1 + 2); py1 = Math.min(MH, py1 + 2);
+    if (px1 <= px0 || py1 <= py0) return null;
+    const winW = px1 - px0, winH = py1 - py0;
+    let lv = levels[0];
+    for (const l of levels) if (winW / l.f >= Math.min(needW, winW)) lv = l;   // grövsta nivå som räcker
+    const f = lv.f, lw = lv.im.getWidth(), lh = lv.im.getHeight();
+    const lx0 = Math.max(0, Math.floor(px0 / f)), ly0 = Math.max(0, Math.floor(py0 / f));
+    const lx1 = Math.min(lw, Math.ceil(px1 / f)), ly1 = Math.min(lh, Math.ceil(py1 / f));
+    const nat = lx1 - lx0, sc = Math.min(1, CAP / Math.max(nat, ly1 - ly0), needW === Infinity ? 1 : needW * 1.15 / nat);
+    const w = Math.max(1, Math.round(nat * sc)), h = Math.max(1, Math.round((ly1 - ly0) * sc));
+    const data = await readLevel(lv, [lx0, ly0, lx1, ly1], w, h);
+    src = {w, h, rgba: toRGBA(data, w, h, nodata), bbox: [ox + lx0 * f * rx, oy + ly1 * f * ry, ox + lx1 * f * rx, oy + ly0 * f * ry]};
+  } else {
+    const [A, , , E, C, F] = rec.world;
+    const X0 = C - A / 2, Y0 = F - E / 2;
+    const bmpFull = await createImageBitmap(rec.orig);
+    let px0 = Math.max(0, Math.floor((cx0 - X0) / A) - 2), px1 = Math.min(bmpFull.width, Math.ceil((cx1 - X0) / A) + 2);
+    let py0 = Math.max(0, Math.floor((cy1 - Y0) / E) - 2), py1 = Math.min(bmpFull.height, Math.ceil((cy0 - Y0) / E) + 2);
+    if (px1 <= px0 || py1 <= py0) return null;
+    const nat = px1 - px0, sc = Math.min(1, CAP / Math.max(nat, py1 - py0), needW === Infinity ? 1 : needW * 1.15 / nat);
+    const w = Math.max(1, Math.round(nat * sc)), h = Math.max(1, Math.round((py1 - py0) * sc));
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const ctx = c.getContext('2d'); ctx.drawImage(bmpFull, px0, py0, nat, py1 - py0, 0, 0, w, h);
+    src = {w, h, rgba: ctx.getImageData(0, 0, w, h).data, bbox: [X0 + px0 * A, Y0 + py1 * E, X0 + px1 * A, Y0 + py0 * E]};
+  }
+  const ow = Math.max(1, Math.min(CAP, needW === Infinity ? Math.round(src.w * (wx1 - wx0) / Math.max(1e-12, srcWorldWidth(src, tr))) : needW));
+  const oh = Math.max(1, Math.round(ow * (wy1 - wy0) / (wx1 - wx0)));
+  return reprojectTo(src, tr, wx0, wy0, wx1, wy1, Math.min(ow, CAP), Math.min(oh, CAP));
+}
+function srcWorldWidth(src, tr){ const b = srcWorldBox(src, tr); return b[2] - b[0]; }
+
+
+/* =================== Export =================== */
+const slug = () => (plan.name || 'potatisplan').trim().replace(/[åäÅÄ]/g, c => /[ÅÄ]/.test(c) ? 'A' : 'a').replace(/[öÖ]/g, c => c === 'Ö' ? 'O' : 'o')
+  .replace(/[^\w\- ]+/g, '').replace(/\s+/g, '_') || 'potatisplan';
+/* En AB-linje per delområde: följer dess första drag men sträcks över hela delen */
+function abLines(){
+  if (!passInfo) return [];
+  const out = [];
+  for (const pi of passInfo.parts) {
+    if (!pi.passes.length) continue;
+    const p1 = pi.passes[0], g = p1.g;
+    let u0 = Infinity, u1 = -Infinity; for (const p of pi.passes) { u0 = Math.min(u0, p.P.u0); u1 = Math.max(u1, p.P.u1); }
+    const [a, b] = p1.dir > 0 ? [u0, u1] : [u1, u0];
+    out.push({no: g.part.no, angle: g.angle, a: g.toLL(a, p1.P.v), b: g.toLL(b, p1.P.v)});
+  }
+  return out;
+}
+function download(name, data, type){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(data instanceof Blob ? data : new Blob([data], {type}));
+  a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+}
+function ready(){
+  if (!plan.field) { msg('Rita eller importera ett fält först.'); return false; }
+  if (!geo || geo.tooMany) { msg('Det finns inga rader att exportera.'); return false; }
+  return true;
+}
+function activePts(r){ const out = []; if (r.removed) return out; for (let k = 0; k < r.n; k++) if (!r.off.has(k)) out.push(r.g.toLL(r.u0 + k * geo.ps, r.v)); return out; }
+
+$('btnGeo').onclick = () => {
+  if (!ready()) return;
+  const s = S(), c = p => [+p[1].toFixed(8), +p[0].toFixed(8)];
+  const ring = r => { const x = r.map(c); x.push(x[0]); return x; };
+  const F = (props, geometry) => ({type: 'Feature', properties: props, geometry});
+  const feats = [F({typ: 'falt', namn: plan.name, sattmetod: s.machine ? 'maskin' : 'manuell', radavstand_cm: s.rs * 100, sattavstand_cm: s.ps * 100, vinkel_grader: s.angle, vikt_g: s.weight, rader_per_drag: s.machine ? s.N : null}, {type: 'Polygon', coordinates: plan.field.map(ring)})];
+  (plan.zones || []).forEach((z, i) => feats.push(F({typ: z.type, nr: i + 1}, {type: 'Polygon', coordinates: [ring(z.ring)]})));
+  for (const r of geo.rows) {
+    const pts = activePts(r);
+    feats.push(F({typ: 'rad', rad: r.label, antal: pts.length, langd_m: +(r.u1 - r.u0).toFixed(2), borttagen: r.removed, drag: r.pass || null}, {type: 'LineString', coordinates: [c(r.ll0), c(r.ll1)]}));
+    if (pts.length) feats.push(F({typ: 'sattpunkter', rad: r.label, antal: pts.length}, {type: 'MultiPoint', coordinates: pts.map(c)}));
+  }
+  if (passInfo) {
+    passInfo.passes.forEach(p => { const ll = q => c(p.g.toLL(q[0], q[1]));
+      feats.push(F({typ: 'drag', nr: p.no, del: p.g.part.no, rader: `${p.P.lmin}–${p.P.lmax}`}, {type: 'LineString', coordinates: [ll(p.start), ll(p.end)]})); });
+    passInfo.turns.forEach((t, i) => feats.push(F({typ: 'vandning', nr: i + 1, snav: t.omega, utanfor_falt: !!t.outside, pa_vag: !!t.onRoad},
+      {type: 'LineString', coordinates: t.pts.map(q => c(t.g.toLL(q[0], q[1])))})));
+  }
+  download(slug() + '.geojson', JSON.stringify({type: 'FeatureCollection', features: feats}), 'application/geo+json');
+};
+$('btnCsv').onclick = () => {
+  if (!ready()) return;
+  const out = ['rad;nr;drag;lat;lon'];
+  for (const r of geo.rows) activePts(r).forEach((p, i) => out.push(`${r.label};${i + 1};${r.pass || ''};${p[0].toFixed(8)};${p[1].toFixed(8)}`));
+  download(slug() + '_sattpunkter.csv', '﻿' + out.join('\r\n'), 'text/csv;charset=utf-8');
+};
+function buildKML(withPoints){
+  const k = p => `${p[1].toFixed(8)},${p[0].toFixed(8)},0`;
+  const ring = r => r.map(k).concat(k(r[0])).join(' ');
+  const pm = (name, style, geom, desc = '') => `<Placemark><name>${esc(name)}</name>${desc ? `<description>${esc(desc)}</description>` : ''}<styleUrl>#${style}</styleUrl>${geom}</Placemark>`;
+  const line = pts => `<LineString><tessellate>1</tessellate><coordinates>${pts.map(k).join(' ')}</coordinates></LineString>`;
+  const s = S();
+  let x = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>${esc(plan.name)}</name>
+<description>${esc(`Radavstånd ${fmt(s.rs * 100)} cm, sättavstånd ${fmt(s.ps * 100)} cm, radriktning ${fmt(s.angle, 1)}°` + (s.machine ? `, ${s.N} rader per drag` : ', manuell sättning'))}</description>
+<Style id="falt"><LineStyle><color>ffffffff</color><width>2</width></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+<Style id="hinder"><LineStyle><color>ff4040ff</color><width>2</width></LineStyle><PolyStyle><color>554040ff</color></PolyStyle></Style>
+<Style id="vag"><LineStyle><color>ffd8d8d8</color><width>2</width></LineStyle><PolyStyle><color>66c9c4bf</color></PolyStyle></Style>
+<Style id="rad"><LineStyle><color>ff2ba4e0</color><width>2</width></LineStyle></Style>
+<Style id="drag"><LineStyle><color>fff5a93f</color><width>3</width></LineStyle></Style>
+<Style id="vand"><LineStyle><color>c0ffc46c</color><width>2</width></LineStyle></Style>
+<Style id="ab"><LineStyle><color>ff00ff00</color><width>4</width></LineStyle></Style>
+<Style id="pkt"><IconStyle><scale>0.35</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle><LabelStyle><scale>0</scale></LabelStyle></Style>\n`;
+  x += '<Folder><name>Fält</name>' + pm(plan.name, 'falt', `<Polygon><outerBoundaryIs><LinearRing><coordinates>${ring(plan.field[0])}</coordinates></LinearRing></outerBoundaryIs>${plan.field.slice(1).map(h => `<innerBoundaryIs><LinearRing><coordinates>${ring(h)}</coordinates></LinearRing></innerBoundaryIs>`).join('')}</Polygon>`);
+  (plan.zones || []).forEach((z, i) => { x += pm((z.type === 'vag' ? 'Väg ' : 'Hinder ') + (i + 1), z.type === 'vag' ? 'vag' : 'hinder', `<Polygon><outerBoundaryIs><LinearRing><coordinates>${ring(z.ring)}</coordinates></LinearRing></outerBoundaryIs></Polygon>`); });
+  x += '</Folder>\n<Folder><name>Rader</name>';
+  for (const r of geo.rows) if (!r.removed && r.off.size < r.n) x += pm('Rad ' + r.label, 'rad', line([r.ll0, r.ll1]), `${r.n - r.off.size} sättpotatisar, ${fmt(r.u1 - r.u0, 1)} m`);
+  x += '</Folder>\n';
+  if (passInfo && passInfo.passes.length) {
+    const many = geo.parts.length > 1;
+    x += '<Folder><name>AB-linjer</name>';
+    for (const ab of abLines()) x += pm(many ? `AB-linje del ${ab.no} (${fmt(ab.angle, 1)}°)` : 'AB-linje (drag 1)', 'ab', line([ab.a, ab.b]), `Arbetsbredd ${fmt(passInfo.passW, 2)} m`);
+    x += '</Folder>\n<Folder><name>Körordning</name>';
+    for (const pi of passInfo.parts) pi.passes.forEach((p, i) => {
+      const ll = q => p.g.toLL(q[0], q[1]);
+      x += pm(`Drag ${p.no}${many ? ' (del ' + p.g.part.no + ')' : ''}`, 'drag', line([ll(p.start), ll(p.end)]), `Rader ${p.P.lmin}–${p.P.lmax}`);
+      const t = pi.turns[i];
+      if (t) x += pm(`Vändning ${p.no}→${p.no + 1}`, 'vand', line(t.pts.map(q => t.g.toLL(q[0], q[1]))));
+    });
+    x += '</Folder>\n';
+  }
+  if (withPoints) {
+    x += '<Folder><name>Sättpunkter</name>';
+    for (const r of geo.rows) { const pts = activePts(r); if (pts.length) x += pm('Rad ' + r.label, 'pkt', `<MultiGeometry>${pts.map(p => `<Point><coordinates>${k(p)}</coordinates></Point>`).join('')}</MultiGeometry>`); }
+    x += '</Folder>\n';
+  }
+  return x + '</Document></kml>';
+}
+function pointsOk(){
+  if (!$('expPoints').checked) return true;
+  const n = geo.rows.reduce((t, r) => t + (r.removed ? 0 : r.n - r.off.size), 0);
+  return n <= 60000 || confirm(`Planen har ${fmt(n)} sättpunkter. Filen kan bli stor och trög i GPS-terminalen. Fortsätta?`);
+}
+$('btnKml').onclick = () => { if (!ready() || !pointsOk()) return; download(slug() + '.kml', buildKML($('expPoints').checked), 'application/vnd.google-earth.kml+xml'); };
+$('btnKmz').onclick = async () => {
+  if (!ready() || !pointsOk()) return;
+  const zip = new JSZip(); zip.file('doc.kml', buildKML($('expPoints').checked));
+  download(slug() + '.kmz', await zip.generateAsync({type: 'blob', compression: 'DEFLATE'}));
+};
+$('btnIso').onclick = async () => {
+  if (!ready()) return;
+  const P = (p, t = 2) => `<PNT A="${t}" C="${p[0].toFixed(9)}" D="${p[1].toFixed(9)}"/>`;
+  const lsg = (r, t) => `<LSG A="${t}">${r.map(p => P(p)).join('')}${P(r[0])}</LSG>`;
+  const fieldM2 = Math.round(geo.fieldArea);
+  let x = `<?xml version="1.0" encoding="UTF-8"?>\n<ISO11783_TaskData VersionMajor="4" VersionMinor="0" ManagementSoftwareManufacturer="Potatisplaneraren" ManagementSoftwareVersion="3.0" DataTransferOrigin="1">\n`;
+  x += `<PFD A="PFD1" C="${esc(plan.name)}" D="${fieldM2}">\n`;
+  x += `<PLN A="1" C="${fieldM2}">${lsg(plan.field[0], 1)}${plan.field.slice(1).map(h => lsg(h, 2)).join('')}</PLN>\n`;
+  (plan.zones || []).forEach((z, i) => { x += `<PLN A="${z.type === 'vag' ? 5 : 6}" B="${z.type === 'vag' ? 'Väg' : 'Hinder'} ${i + 1}">${lsg(z.ring, 1)}</PLN>\n`; });
+  const abs = abLines();
+  if (abs.length) x += `<GGP A="GGP1" B="Potatis ${S().N} rader">` +
+    abs.map((ab, i) => `<GPN A="GPN${i + 1}" B="AB del ${ab.no} (${fmt(ab.angle, 1)} grader)" C="1" E="1" F="1"><LSG A="5">${P(ab.a, 6)}${P(ab.b, 7)}</LSG></GPN>`).join('') + '</GGP>\n';
+  x += '</PFD>\n</ISO11783_TaskData>\n';
+  const zip = new JSZip(); zip.file('TASKDATA/TASKDATA.XML', x);
+  download(slug() + '_TASKDATA.zip', await zip.generateAsync({type: 'blob', compression: 'DEFLATE'}));
+  msg(abs.length ? `ISOXML sparad. Packa upp mappen TASKDATA på ett USB-minne. Ställ in arbetsbredden ${fmt(passInfo.passW, 2)} m i terminalen.`
+         : 'ISOXML sparad med fältgräns och hinder. AB-linje finns bara när sättmetoden är potatissättare.', 12000);
+};
+$('btnWhole').onclick = () => {
+  const f = fieldById(plan.fieldId);
+  if (!f) return msg('Odlingen hör inte till något fält.');
+  if (!confirm(`Låta odlingen "${plan.name}" använda hela ${f.name}? Hinder och vägar hämtas också från fältet.`)) return;
+  plan.field = JSON.parse(JSON.stringify(f.rings));
+  plan.zones = JSON.parse(JSON.stringify(f.zones || []));
+  plan.wholeField = true; plan.partAngles = []; geoKey = '';
+  rebuildEditGroup(); map.fitBounds(L.polygon(plan.field).getBounds(), {padding: [30, 30]});
+  regenerate(); save();
+  msg(`Odlingen täcker nu hela ${f.name}.`);
+};
+$('btnBackup').onclick = () => {
+  download(`potatisplaneraren_backup_${new Date().toISOString().slice(0, 10)}.json`,
+    JSON.stringify({app: 'odlingsverktyget', version: 1, saved: new Date().toISOString(), farmName: store.farmName, fields: store.fields, plans: store.plans}), 'application/json');
+  msg('Säkerhetskopian innehåller alla fält och odlingar. Ortofoton ingår inte, de ligger kvar i webbläsaren.');
+};
+
+/* =================== PDF-rapport =================== */
+const PG = {W: 210, H: 297, M: 14};
+const MAP_W = PG.W - 2 * PG.M, MAP_H = Math.round(MAP_W * 0.68 * 10) / 10;
+const pdfName = t => ((ui.pdfNames || {})[t] || '').trim() || t;
+const keyOf = (sec, label) => 'sec:' + sec + '|' + String(label).replace(/[\d\s,.]+/g, ' ').trim();
+
+/* Två ritytor med samma gränssnitt: förhandsvisning på canvas och riktig PDF (vektorer) */
+class CanvasPainter {
+  constructor(container, k){ this.container = container; this.k = k; this.pages = []; this.addPage(); }
+  addPage(){
+    const d = window.devicePixelRatio || 1, c = document.createElement('canvas');
+    this.minLw = 1 / (this.k * d);   // PDF-läsare ritar aldrig linjer tunnare än en bildpunkt – gör likadant här
+    c.width = Math.round(PG.W * this.k * d); c.height = Math.round(PG.H * this.k * d);
+    c.style.width = PG.W * this.k + 'px'; c.style.height = PG.H * this.k + 'px'; c.className = 'pdf-page';
+    const ctx = c.getContext('2d'); ctx.scale(this.k * d, this.k * d); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, PG.W, PG.H);
+    this.pages.push({c, ctx}); this.ctx = ctx; this.container.appendChild(c);
+    this._fill = '#000000'; this._stroke = '#000000'; this._text = '#000000'; this._lw = 0.2; this._dash = []; this._alpha = 1;
+    if (this._font) this.font(this._font[0], this._font[1]);
+  }
+  pageCount(){ return this.pages.length; }
+  setPage(i){ this.ctx = this.pages[i - 1].ctx; if (this._font) this.font(this._font[0], this._font[1]); }
+  font(style, size){ this._font = [style, size]; this.ctx.font = `${style === 'bold' ? 'bold ' : ''}${size * 0.3528}px "Times New Roman", Times, serif`; }
+  textColor(c){ this._text = c; } fillColor(c){ this._fill = c; } strokeColor(c){ this._stroke = c; }
+  lineWidth(w){ this._lw = w; } dash(a){ this._dash = a || []; } alpha(a){ this._alpha = a; }
+  textWidth(s){ return this.ctx.measureText(s).width; }
+  text(s, x, y, align){ const c = this.ctx; c.save(); c.fillStyle = this._text; c.textAlign = align || 'left'; c.textBaseline = 'alphabetic'; c.fillText(s, x, y); c.restore(); }
+  _paint(mode){
+    const c = this.ctx; c.save(); c.globalAlpha = this._alpha;
+    if (mode.includes('F')) { c.fillStyle = this._fill; c.fill(); }
+    if (mode.includes('S') || mode.includes('D')) { c.strokeStyle = this._stroke; c.lineWidth = Math.max(this._lw, this.minLw || 0); c.setLineDash(this._dash); c.stroke(); }
+    c.restore();
+  }
+  rect(x, y, w, h, mode){ this.ctx.beginPath(); this.ctx.rect(x, y, w, h); this._paint(mode); }
+  poly(pts, close, mode){ const c = this.ctx; c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); if (close) c.closePath(); this._paint(mode); }
+  segs(list){ const c = this.ctx; c.beginPath(); for (const s of list) { c.moveTo(s[0], s[1]); c.lineTo(s[2], s[3]); } this._paint('S'); }
+  circles(pts, r, mode){ const c = this.ctx; c.beginPath(); for (const p of pts) { c.moveTo(p[0] + r, p[1]); c.arc(p[0], p[1], r, 0, 6.2832); } this._paint(mode); }
+  image(img, x, y, w, h){ const c = this.ctx; c.save(); c.globalAlpha = this._alpha; c.drawImage(img.el, x, y, w, h); c.restore(); }
+  clip(x, y, w, h){ this.ctx.save(); this.ctx.beginPath(); this.ctx.rect(x, y, w, h); this.ctx.clip(); }
+  unclip(){ this.ctx.restore(); }
+}
+class PdfPainter {
+  constructor(doc){ this.doc = doc; this.gs = {}; }
+  addPage(){ this.doc.addPage(); }
+  pageCount(){ return this.doc.getNumberOfPages(); }
+  setPage(i){ this.doc.setPage(i); }
+  font(style, size){ this.doc.setFont('times', style); this.doc.setFontSize(size); }
+  textColor(c){ this.doc.setTextColor(c); } fillColor(c){ this.doc.setFillColor(c); } strokeColor(c){ this.doc.setDrawColor(c); }
+  lineWidth(w){ this.doc.setLineWidth(w); }
+  dash(a){ this.doc.setLineDashPattern(a || [], 0); }
+  alpha(a){ const k = a.toFixed(2); if (!this.gs[k]) this.gs[k] = new this.doc.GState({opacity: a, 'stroke-opacity': a}); this.doc.setGState(this.gs[k]); }
+  textWidth(s){ return this.doc.getTextWidth(s); }
+  text(s, x, y, align){ if (align && align !== 'left') this.doc.text(s, x, y, {align}); else this.doc.text(s, x, y); }
+  rect(x, y, w, h, mode){ this.doc.rect(x, y, w, h, mode); }
+  poly(pts, close, mode){
+    if (pts.length < 2) return;
+    const d = []; for (let i = 1; i < pts.length; i++) d.push([pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]]);
+    this.doc.lines(d, pts[0][0], pts[0][1], [1, 1], mode, close);
+  }
+  segs(list){ for (const s of list) this.doc.line(s[0], s[1], s[2], s[3], 'S'); }
+  circles(pts, r, mode){ for (const p of pts) this.doc.circle(p[0], p[1], r, mode); }
+  image(img, x, y, w, h){ this.doc.addImage(img.dataUrl, img.fmt, x, y, w, h, img.alias, 'FAST'); }
+  clip(x, y, w, h){ this.doc.saveGraphicsState(); this.doc.rect(x, y, w, h, null); this.doc.clip(); this.doc.discardPath(); }
+  unclip(){ this.doc.restoreGraphicsState(); }
+}
+function wrapText(P, s, w){
+  const out = []; let line = '';
+  for (const word of String(s).split(/\s+/)) {
+    const t = line ? line + ' ' + word : word;
+    if (P.textWidth(t) > w && line) { out.push(line); line = word; } else line = t;
+  }
+  if (line) out.push(line);
+  return out;
+}
+
+/* Färgförklaring: bara det som faktiskt syns */
+function legendItems(on, forPdf){
+  const items = [];
+  if (!geo || geo.tooMany) return items;
+  const s = S();
+  if (on('field') && plan.field) items.push({label: 'fältgräns', kind: 'field'});
+  if (on('field') && (plan.zones || []).some(z => z.type === 'hinder')) items.push({label: 'hinderzon', kind: 'fill', color: '#ff4040'});
+  if (on('field') && (plan.zones || []).some(z => z.type === 'vag')) items.push({label: 'väg', kind: 'fill', color: '#bfc4c9'});
+  if (on('rows') && geo.rows.some(r => !r.removed)) items.push({label: 'rad', kind: 'line', color: ui.rowColor || '#e0a42b', alpha: (ui.rowOp ?? 90) / 100});
+  if (on('rows') && editSession && !forPdf && geo.rows.some(r => r.removed)) items.push({label: 'borttagen rad', kind: 'line', color: '#9a9a9a', dash: true});
+  if (on('plants') && geo.rows.some(r => !r.removed && r.off.size < r.n)) items.push({label: 'sättpunkt', kind: 'dot'});
+  if (s.machine && passInfo && passInfo.passes.length && on('passes')) {
+    items.push({label: 'drag', kind: 'line', color: '#3fa9f5'});
+    if (passInfo.turns.some(t => !t.omega && !t.outside)) items.push({label: 'vändning', kind: 'line', color: '#6cc4ff', dash: true});
+    if (passInfo.turns.some(t => t.outside && !t.omega)) items.push({label: 'vändning utanför fältet', kind: 'line', color: '#ffb347', dash: true});
+    if (passInfo.omegas) items.push({label: 'snäv vändning', kind: 'line', color: '#ff5a4a', dash: true});
+  }
+  return items;
+}
+
+/* ---------- Val i dialogen ---------- */
+function pdfTree(){
+  const m = statsModel(), st = settingsModel();
+  const sec = s => ({key: 'sec:' + s.title, label: s.title, rename: s.title, children: s.rows.map(([a, b]) => ({key: keyOf(s.title, a), label: `${a}: ${b}`}))});
+  const mapKids = [];
+  if (plan.field) mapKids.push({key: 'map.field', label: 'Fältgräns och hinder'});
+  mapKids.push({key: 'map.rows', label: 'Rader'}, {key: 'map.plants', label: 'Sättpunkter'});
+  if (S().machine && passInfo && passInfo.passes.length) mapKids.push({key: 'map.passes', label: 'Körspår och START/SLUT'});
+  if (ortho) mapKids.push({key: 'map.ortho', label: 'Eget ortofoto'});
+  mapKids.push({key: 'map.legend', label: 'Teckenförklaring'}, {key: 'map.north', label: 'Norrpil'}, {key: 'map.scale', label: 'Skalstock'}, {key: 'map.attr', label: 'Källa för bakgrundskarta'});
+  const notes = [...m.warnings, ...m.infos];
+  return [
+    {key: 'head', label: 'Sidhuvud', children: [{key: 'head.title', label: 'Rubrik', input: 'title'}, {key: 'head.date', label: 'Datum'}, {key: 'head.base', label: 'Bakgrundskarta'}]},
+    {key: 'map', label: 'Kartbild', children: mapKids},
+    sec(st), ...m.sections.map(sec),
+    ...(notes.length ? [{key: 'notes', label: 'Att tänka på', rename: 'Att tänka på', children: notes.map(n => ({key: 'note|' + n.replace(/[\d\s,.]+/g, ' ').trim(), label: n}))}] : []),
+    {key: 'memo', label: 'Egen anteckning', rename: 'Anteckning', input: 'memo', children: []},
+    {key: 'foot', label: 'Sidnummer', children: []}
+  ];
+}
+const pdfOff = () => new Set(ui.pdfOff || PDF_DEFAULT_OFF);
+function pdfOn(key){
+  const off = pdfOff();
+  if (off.has(key)) return false;
+  const dot = key.indexOf('.');
+  if (dot > 0 && !key.startsWith('sec:') && off.has(key.slice(0, dot))) return false;
+  if (key.startsWith('sec:') && key.includes('|') && off.has(key.split('|')[0])) return false;
+  if (key.startsWith('note|') && off.has('notes')) return false;
+  return true;
+}
+function renderPdfTree(){
+  const tree = pdfTree(), off = pdfOff(), box = $('pdfTree');
+  const li = (n, parentOn) => {
+    const on = !off.has(n.key), dis = parentOn === false;
+    let h = n.rename
+      ? `<li><label><input type="checkbox" data-k="${esc(n.key)}" ${on ? 'checked' : ''} title="${esc(n.label)}"></label><input type="text" class="ren" data-ren="${esc(n.rename)}" value="${esc(pdfName(n.rename))}" title="Rubrikens namn i PDF:en (töm fältet för att återställa)" ${on ? '' : 'disabled'}>`
+      : `<li><label class="${dis ? 'dis' : ''}"><input type="checkbox" data-k="${esc(n.key)}" ${on ? 'checked' : ''} ${dis ? 'disabled' : ''}> ${esc(n.label)}</label>`;
+    if (n.input === 'title') h += `<div class="r" style="margin:2px 0 4px 20px"><input type="text" id="pdfTitle" value="${esc(plan.pdfTitle ?? ('Potatisplan: ' + plan.name))}" ${dis || !on ? 'disabled' : ''}></div>`;
+    if (n.input === 'memo') h += `<div style="margin:2px 0 4px 20px"><textarea id="pdfMemo" rows="3" placeholder="Skriv en anteckning som ska stå i rapporten" ${on ? '' : 'disabled'}>${esc(plan.pdfMemo || '')}</textarea></div>`;
+    if (n.children && n.children.length) h += `<ul>${n.children.map(c => li(c, on && !dis)).join('')}</ul>`;
+    return h + '</li>';
+  };
+  box.innerHTML = `<ul>${tree.map(n => li(n, true)).join('')}</ul>`;
+  box.querySelectorAll('input[type=checkbox]').forEach(cb => cb.onchange = () => {
+    const s = pdfOff(); if (cb.checked) s.delete(cb.dataset.k); else s.add(cb.dataset.k);
+    ui.pdfOff = [...s]; saveUI(); renderPdfTree(); schedulePreview();
+  });
+  box.querySelectorAll('input.ren').forEach(inp => inp.oninput = () => {
+    ui.pdfNames = {...(ui.pdfNames || {}), [inp.dataset.ren]: inp.value}; saveUI(); schedulePreview();
+  });
+  const t = $('pdfTitle'); if (t) t.oninput = () => { plan.pdfTitle = t.value; save(); schedulePreview(); };
+  const mm = $('pdfMemo'); if (mm) mm.oninput = () => { plan.pdfMemo = mm.value; save(); schedulePreview(); };
+}
+
+/* ---------- Kartbildens vy och bakgrund ---------- */
+let pv = null, pvFit = null, pdfBg = null, bgTimer = null, pdfFrame = null, pdfK = 2.4;
+function fitPdfView(){
+  const pts = [...plan.field[0]];
+  if (passInfo && pdfOn('map.passes')) for (const t of passInfo.turns) for (const p of t.pts) pts.push(t.g.toLL(p[0], p[1]));
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const p of pts) { const q = W0(p); x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x); y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); }
+  const s = Math.min(MAP_W / Math.max(x1 - x0, 1e-12), MAP_H / Math.max(y1 - y0, 1e-12)) * 0.88;
+  pvFit = {cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, s};
+  pv = {...pvFit};
+  $('pdfZoom').value = 0;
+}
+const frameWorld = v => ({x0: v.cx - MAP_W / 2 / v.s, y0: v.cy - MAP_H / 2 / v.s, x1: v.cx + MAP_W / 2 / v.s, y1: v.cy + MAP_H / 2 / v.s});
+async function fetchBg(view, margin, pxW){
+  const fw = frameWorld(view), mw = (fw.x1 - fw.x0) * margin, mh = (fw.y1 - fw.y0) * margin;
+  const wx0 = fw.x0 - mw, wy0 = fw.y0 - mh, wx1 = fw.x1 + mw, wy1 = fw.y1 + mh;
+  const scale = pxW / (fw.x1 - fw.x0);          // bildpixlar per världspixel
+  const W = Math.round((wx1 - wx0) * scale), H = Math.round((wy1 - wy0) * scale);
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  const zf = Math.log2(scale), ox = wx0 * scale, oy = wy0 * scale;
+  let loaded = 0, wanted = 0;
+  for (const key of BASES[currentBase].defs) {
+    const def = TILE_DEFS[key];
+    const tz = Math.max(0, Math.min(def.max, Math.ceil(zf)));
+    const ts = 256 * Math.pow(2, zf - tz);
+    const tx0 = Math.floor(ox / ts), tx1 = Math.floor((ox + W) / ts), ty0 = Math.floor(oy / ts), ty1 = Math.floor((oy + H) / ts);
+    const jobs = [];
+    for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) {
+      wanted++;
+      jobs.push(loadTile(def, tz, tx, ty, true).then(r => {
+        if (!r || !r.cors) return;
+        const sz = 256 / r.f;
+        try { ctx.drawImage(r.img, r.ox * sz, r.oy * sz, sz, sz, tx * ts - ox, ty * ts - oy, ts + 0.6, ts + 0.6); loaded++; } catch {}
+      }));
+    }
+    await Promise.all(jobs);
+  }
+  return {el: c, wx0, wy0, wx1, wy1, scale, base: currentBase, ok: wanted === 0 || loaded > 0};
+}
+function bgFits(bg, view, strict){
+  if (!bg || bg.base !== currentBase) return false;
+  const fw = frameWorld(view), ratio = bg.scale * (fw.x1 - fw.x0) / 2000;
+  const covers = fw.x0 >= bg.wx0 && fw.y0 >= bg.wy0 && fw.x1 <= bg.wx1 && fw.y1 <= bg.wy1;
+  return covers && (strict ? ratio >= 0.85 && ratio <= 1.3 : ratio >= 0.6 && ratio <= 1.6);
+}
+function scheduleBg(){
+  clearTimeout(bgTimer);
+  if (bgFits(pdfBg, pv, false)) return;
+  bgTimer = setTimeout(async () => {
+    const v = {...pv};
+    $('pdfStatus').textContent = 'Hämtar kartbild…';
+    const bg = await fetchBg(v, 0.3, 2000);
+    if (!$('pdfDlg').hidden) { pdfBg = bg; $('pdfStatus').textContent = ''; schedulePreview(); }
+  }, 350);
+}
+
+/* ---------- Själva kartbilden ---------- */
+function drawMap(P, f, o){
+  const v = o.view;
+  const toMM = (x, y) => [f.x + f.w / 2 + (x - v.cx) * v.s, f.y + f.h / 2 + (y - v.cy) * v.s];
+  const llMM = ll => { const q = W0(ll); return toMM(q.x, q.y); };
+  const s = S();
+  const centerLat = W2LL(v.cx, v.cy).lat;
+  const mPerMM = 40075016.686 * Math.cos(centerLat * DEG) / 256 / v.s;
+  const inside = (p, m) => p[0] > f.x - m && p[0] < f.x + f.w + m && p[1] > f.y - m && p[1] < f.y + f.h + m;
+  P.clip(f.x, f.y, f.w, f.h);
+  P.alpha(1); P.dash(null);
+  P.fillColor(currentBase === 'osm' ? '#f2efe9' : '#2b2b2b'); P.rect(f.x, f.y, f.w, f.h, 'F');
+  const placeImg = (img) => { const a = toMM(img.wx0, img.wy0), b = toMM(img.wx1, img.wy1); P.image(img, a[0], a[1], b[0] - a[0], b[1] - a[1]); };
+  if (o.bg) placeImg(o.bg);
+  if (o.ortho) { P.alpha(o.ortho.alpha ?? 1); placeImg(o.ortho); P.alpha(1); }
+  if (pdfOn('map.field') && plan.field) {
+    P.fillColor('#ffffff'); P.alpha(0.07);
+    for (const r of plan.field) P.poly(r.map(llMM), true, 'F');
+    P.alpha(1); P.strokeColor('#ffffff'); P.lineWidth(0.45); P.dash([1.6, 1]);
+    for (const r of plan.field) P.poly(r.map(llMM), true, 'S');
+    P.dash(null);
+    for (const z of (plan.zones || [])) {
+      const pts = z.ring.map(llMM), col = z.type === 'vag' ? '#bfc4c9' : '#ff4040';
+      P.fillColor(col); P.alpha(z.type === 'vag' ? 0.5 : 0.3); P.poly(pts, true, 'F'); P.alpha(1);
+      P.strokeColor(z.type === 'vag' ? '#ffffff' : '#ff4040'); P.lineWidth(0.35);
+      if (z.type === 'vag') P.dash([1.2, 0.8]);
+      P.poly(pts, true, 'S'); P.dash(null);
+    }
+  }
+  const rsMM = s.rs / mPerMM, psMM = s.ps / mPerMM;
+  if (pdfOn('map.rows')) {
+    const lw = Math.max(0.03, Math.min(ui.rowW * 0.11, rsMM * 0.8));
+    const act = [];
+    for (const r of geo.rows) {
+      if (r.removed) continue;
+      const a = llMM(r.ll0), b = llMM(r.ll1);
+      if (Math.max(a[0], b[0]) < f.x || Math.min(a[0], b[0]) > f.x + f.w || Math.max(a[1], b[1]) < f.y || Math.min(a[1], b[1]) > f.y + f.h) continue;
+      act.push([a[0], a[1], b[0], b[1]]);
+    }
+    P.lineWidth(lw); P.strokeColor(ui.rowColor || '#e0a42b'); P.alpha((ui.rowOp ?? 90) / 100); P.segs(act); P.alpha(1);
+  }
+  if (passInfo && passInfo.passes.length && pdfOn('map.passes') && s.machine) {
+    const pw = passInfo.passW / mPerMM;   // dragets bredd i mm
+    const tl = Math.max(0.06, Math.min(0.3, pw * 0.12));
+    P.lineWidth(tl); P.dash([tl * 3, tl * 2]);
+    for (const t of passInfo.turns) { P.strokeColor(t.omega ? '#ff5a4a' : t.outside ? '#ffb347' : '#6cc4ff'); P.poly(t.pts.map(q => llMM(t.g.toLL(q[0], q[1]))), false, 'S'); }
+    P.dash(null); P.strokeColor('#3fa9f5'); P.lineWidth(Math.max(0.08, Math.min(0.5, pw * 0.15))); P.alpha(0.7);
+    P.segs(passInfo.passes.map(p => { const a = llMM(p.g.toLL(p.start[0], p.start[1])), b = llMM(p.g.toLL(p.end[0], p.end[1])); return [a[0], a[1], b[0], b[1]]; }));
+    P.alpha(1);
+  }
+  if (pdfOn('map.plants')) {
+    const sc = (ui.ptScale || 100) / 100;
+    const px = 0.11; // Skalfaktor för PDF som visuellt motsvarar 1 skärmpixel
+    const rowLw = pdfOn('map.rows') ? Math.max(0.03, Math.min(ui.rowW * px, rsMM * 0.8)) : 0;
+    const minR = pdfOn('map.rows') ? (rowLw / 2 + px) : px;
+    const baseR = Math.max(Math.min(minR, psMM * 0.45), Math.min(7 * px, psMM * 0.28));
+    const r = Math.max(baseR * sc, px);
+    if (r >= 0.012) {
+      const pts = [];
+      for (const row of geo.rows) {
+        if (row.removed) continue;
+        const a = llMM(row.ll0), b = llMM(row.ll1), n = row.n;
+        if (Math.max(a[0], b[0]) < f.x - r || Math.min(a[0], b[0]) > f.x + f.w + r || Math.max(a[1], b[1]) < f.y - r || Math.min(a[1], b[1]) > f.y + f.h + r) continue;
+        const dx = n > 1 ? (b[0] - a[0]) / (n - 1) : 0, dy = n > 1 ? (b[1] - a[1]) / (n - 1) : 0;
+        for (let k = 0; k < n; k++) {
+          if (row.off.size && row.off.has(k)) continue;
+          const p = [a[0] + dx * k, a[1] + dy * k];
+          if (inside(p, r)) pts.push(p);
+        }
+      }
+      if (pts.length > 300000) pts.length = 0;   // så många punkter gör PDF:en ohanterlig; raderna visar ändå var det sätts
+      P.fillColor(ui.ptColor || '#ffffff'); P.strokeColor(ptEdge(ui.ptColor)); P.lineWidth(r * 0.35);
+      // mycket små punkter får ingen kant: kanten ritas minst en bildpunkt bred i PDF-läsaren och skulle svälla
+      P.circles(pts, r, r >= 0.2 ? 'FD' : 'F');
+    }
+  }
+  if (passInfo && passInfo.passes.length && pdfOn('map.passes') && s.machine) {
+    const lbl = (pass, pt, t) => {
+      const q = llMM(pass.g.toLL(pt[0], pt[1])); P.font('bold', 7); const w = P.textWidth(t) + 2.4;
+      P.fillColor('#ffffff'); P.strokeColor('#000000'); P.lineWidth(0.25); P.rect(q[0] - w / 2, q[1] - 2.2, w, 4.2, 'FD');
+      P.textColor('#000000'); P.text(t, q[0], q[1] + 0.9, 'center');
+    };
+    for (const pi of passInfo.parts) {
+      if (!pi.passes.length) continue;
+      const f0 = pi.passes[0], l0 = pi.passes[pi.passes.length - 1];
+      lbl(f0, f0.start, 'START'); lbl(l0, l0.end, 'SLUT');
+    }
+  }
+  P.unclip();
+  P.alpha(1); P.dash(null);
+  if (pdfOn('map.north')) {
+    const x = f.x + f.w - 11, y = f.y + 3;
+    P.fillColor('#ffffff'); P.strokeColor('#000000'); P.lineWidth(0.25); P.rect(x, y, 8, 11.5, 'FD');
+    P.fillColor('#000000'); P.poly([[x + 4, y + 1.3], [x + 1.8, y + 7.4], [x + 4, y + 6], [x + 6.2, y + 7.4]], true, 'F');
+    P.font('bold', 8); P.textColor('#000000'); P.text('N', x + 4, y + 10.6, 'center');
+  }
+  if (pdfOn('map.scale')) {
+    const nice = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 5000];
+    const target = f.w * 0.2 * mPerMM, len = nice.reduce((b, n) => n <= target ? n : b, 1), w = len / mPerMM;
+    const x = f.x + 3, y = f.y + f.h - 3;
+    P.fillColor('#ffffff'); P.strokeColor('#000000'); P.lineWidth(0.25); P.rect(x, y - 7.5, w + 6, 7.5, 'FD');
+    P.fillColor('#000000'); P.rect(x + 3, y - 2.6, w, 1, 'F'); P.rect(x + 3, y - 3.8, 0.3, 2.2, 'F'); P.rect(x + 3 + w - 0.3, y - 3.8, 0.3, 2.2, 'F');
+    P.font('normal', 7); P.textColor('#000000'); P.text(`${len} m`, x + 3 + w / 2, y - 4.3, 'center');
+  }
+  if (pdfOn('map.attr')) {
+    const t = BASES[currentBase].attr + (o.ortho ? ' · eget ortofoto' : '');
+    P.font('normal', 5.5); const w = P.textWidth(t) + 2;
+    P.fillColor('#ffffff'); P.alpha(0.85); P.rect(f.x + f.w - w, f.y + f.h - 3, w, 3, 'F'); P.alpha(1);
+    P.textColor('#333333'); P.text(t, f.x + f.w - 1, f.y + f.h - 0.9, 'right');
+  }
+  P.strokeColor('#000000'); P.lineWidth(0.3); P.rect(f.x, f.y, f.w, f.h, 'S');
+}
+function drawSwatch(P, it, lx, ly){
+  if (it.kind === 'field') { P.fillColor('#6b6b6b'); P.rect(lx, ly - 2.9, 5.5, 3.2, 'F'); P.strokeColor('#ffffff'); P.lineWidth(0.4); P.dash([0.9, 0.6]); P.rect(lx + 0.7, ly - 2.3, 4.1, 2, 'S'); P.dash(null); }
+  else if (it.kind === 'fill') { P.fillColor(it.color); P.alpha(0.35); P.rect(lx, ly - 2.9, 5.5, 3.2, 'F'); P.alpha(1); P.strokeColor(it.color); P.lineWidth(0.35); P.rect(lx, ly - 2.9, 5.5, 3.2, 'S'); }
+  else if (it.kind === 'dot') { P.fillColor(ui.ptColor || '#ffffff'); P.strokeColor('#111111'); P.lineWidth(0.35); P.circles([[lx + 2.75, ly - 1.3]], 1.2, 'FD'); }
+  else { P.strokeColor(it.color); P.lineWidth(0.7); P.alpha(it.alpha ?? 1); if (it.dash) P.dash([1, 0.7]); P.segs([[lx, ly - 1.3, lx + 5.5, ly - 1.3]]); P.dash(null); P.alpha(1); }
+}
+/* Delar upp posterna på så få rader som möjligt, med lika bredd per rad, och centrerar varje rad */
+function drawLegend(P, x, y, maxW){
+  const items = legendItems(k => pdfOn('map.' + k), true);
+  if (!items.length) return 0;
+  P.font('normal', 8.5);
+  const ws = items.map(it => 7 + P.textWidth(it.label)), n = ws.length, MIN = 4, MAX = 14;
+  const width = (i, j) => { let t = 0; for (let k = i; k < j; k++) t += ws[k]; return t + MIN * (j - i - 1); };
+  const split = L => {   // delning i L sammanhängande rader som minimerar den bredaste raden
+    const best = Array.from({length: L + 1}, () => new Array(n + 1).fill(Infinity)), cut = Array.from({length: L + 1}, () => new Array(n + 1).fill(0));
+    best[0][0] = 0;
+    for (let l = 1; l <= L; l++) for (let j = 1; j <= n; j++) for (let i = l - 1; i < j; i++) {
+      const v = Math.max(best[l - 1][i], width(i, j)); if (v < best[l][j]) { best[l][j] = v; cut[l][j] = i; }
+    }
+    const lines = []; let j = n; for (let l = L; l >= 1; l--) { const i = cut[l][j]; lines.unshift([i, j]); j = i; }
+    return {lines, w: best[L][n]};
+  };
+  let L = 1, res = split(1);
+  while (res.w > maxW && L < n) { L++; res = split(L); }
+  let gap = MAX;
+  for (const [i, j] of res.lines) if (j - i > 1) gap = Math.min(gap, (maxW - (width(i, j) - MIN * (j - i - 1))) / (j - i - 1));
+  gap = Math.max(MIN, Math.min(MAX, gap));
+  res.lines.forEach(([i, j], li) => {
+    let lw = 0; for (let k = i; k < j; k++) lw += ws[k]; lw += gap * (j - i - 1);
+    let lx = x + (maxW - lw) / 2; const ly = y + li * 4.6;
+    for (let k = i; k < j; k++) { drawSwatch(P, items[k], lx, ly); P.textColor('#000000'); P.text(items[k].label, lx + 7, ly); lx += ws[k] + gap; }
+  });
+  return res.lines.length * 4.6 + 1;
+}
+
+/* ---------- Sidlayout (samma kod för förhandsvisning och PDF) ---------- */
+function layoutReport(P, o){
+  const M = PG.M, colW = (MAP_W - 8) / 2, xs = [M, M + colW + 8], LH = 4.6;
+  let y = M + 3;
+  if (pdfOn('head.title')) { P.font('bold', 17); P.textColor('#000000'); P.text(plan.pdfTitle ?? ('Potatisplan: ' + plan.name), M, y + 1); y += 6; }
+  const meta = [];
+  if (pdfOn('head.date')) meta.push(`Skapad ${new Date().toLocaleString('sv-SE', {dateStyle: 'long', timeStyle: 'short'})} med Potatisplaneraren`);
+  if (pdfOn('head.base')) meta.push(`bakgrund: ${BASES[currentBase].name.toLowerCase()}${o.ortho ? ' och eget ortofoto' : ''}`);
+  if (meta.length) { P.font('normal', 9.5); P.textColor('#5a5a5a'); P.text(meta.join(' · '), M, y); y += 4; }
+  if (y > M + 3) y += 1.5;
+  let frame = null;
+  if (pdfOn('map')) {
+    frame = {x: M, y, w: MAP_W, h: MAP_H};
+    drawMap(P, frame, o);
+    y += MAP_H + 4.5;
+    if (pdfOn('map.legend')) y += drawLegend(P, M, y, MAP_W);
+    y += 1;
+  }
+  const m = statsModel();
+  const sections = [settingsModel(), ...m.sections];
+  const blocks = [];
+  for (const sec of sections) {
+    if (!pdfOn('sec:' + sec.title)) continue;
+    const rows = sec.rows.filter(([a]) => pdfOn(keyOf(sec.title, a)));
+    if (rows.length) blocks.push({kind: 'table', title: pdfName(sec.title), rows});
+  }
+  const notes = [...m.warnings.map(t => [t, true]), ...m.infos.map(t => [t, false])]
+    .filter(([t]) => pdfOn('notes') && pdfOn('note|' + t.replace(/[\d\s,.]+/g, ' ').trim()));
+  if (o.bgFail) notes.push(['Bakgrundskartan kunde inte hämtas till bilden.', false]);
+  if (notes.length) blocks.push({kind: 'text', title: pdfName('Att tänka på'), items: notes});
+  if (pdfOn('memo') && (plan.pdfMemo || '').trim()) blocks.push({kind: 'text', title: pdfName('Anteckning'), items: plan.pdfMemo.trim().split(/\n+/).map(t => [t, false, true])});
+  P.font('normal', 9.5);
+  for (const b of blocks) {
+    if (b.kind === 'table') b.h = 1.4 + LH + b.rows.length * LH + 2.5;
+    else { b.wrapped = b.items.map(([t, w, raw]) => [wrapText(P, raw ? t : '– ' + t, colW), w]); b.h = LH + 0.5 + b.wrapped.reduce((a, [l]) => a + l.length * 4.2 + 1, 0) + 2; }
+  }
+  const bottom = PG.H - 12;
+  let col = 0, top = y, flow = true;
+  const room = h => { if (!flow) return; if (y + h > bottom) { if (col === 0) { col = 1; y = top; } else { P.addPage(); col = 0; top = y = M + 4; } } };
+  const drawBlock = b => {
+    room(LH * 2.2);
+    P.font('bold', 11); P.textColor('#000000'); P.text(b.title, xs[col], y);
+    if (b.kind === 'table') {
+      y += 1.4; P.strokeColor('#969696'); P.lineWidth(0.25); P.segs([[xs[col], y, xs[col] + colW, y]]); y += LH;
+      P.font('normal', 10);
+      for (const [a, v] of b.rows) { room(LH); P.textColor('#000000'); P.text(String(a), xs[col], y); P.text(String(v), xs[col] + colW, y, 'right'); y += LH; }
+      y += 2.5;
+    } else {
+      y += LH + 0.5; P.font('normal', 9.5);
+      for (const [lines, warn] of b.wrapped) {
+        room(lines.length * 4.2);
+        P.textColor(warn ? '#8c1c00' : '#3c3c3c');
+        lines.forEach((ln, i) => P.text(ln, xs[col], y + i * 4.2));
+        y += lines.length * 4.2 + 1;
+      }
+      y += 2;
+    }
+  };
+  // Får allt plats på sidan fördelas blocken så att spalterna blir ungefär lika långa
+  const avail = bottom - top, total = blocks.reduce((a, b) => a + b.h, 0);
+  let bestK = -1, bestMax = Infinity;
+  if (blocks.length >= 2 && blocks.every(b => b.h <= avail)) {
+    for (let k = 1; k < blocks.length; k++) {
+      const left = blocks.slice(0, k).reduce((a, b) => a + b.h, 0), right = total - left;
+      if (left <= avail && right <= avail && Math.max(left, right) < bestMax) { bestMax = Math.max(left, right); bestK = k; }
+    }
+  }
+  if (bestK > 0) {
+    flow = false;
+    blocks.forEach((b, i) => { if (i === bestK) { col = 1; y = top; } drawBlock(b); });
+  } else blocks.forEach(drawBlock);
+  if (pdfOn('foot')) {
+    const n = P.pageCount();
+    for (let i = 1; i <= n; i++) { P.setPage(i); P.font('normal', 8); P.textColor('#787878'); P.text(`Sida ${i} av ${n}`, PG.W - M, PG.H - 5, 'right'); }
+    P.setPage(1);
+  }
+  return frame;
+}
+
+/* ---------- Dialogen ---------- */
+let prevRaf = 0;
+function schedulePreview(){ cancelAnimationFrame(prevRaf); prevRaf = requestAnimationFrame(renderPreview); }
+function renderPreview(){
+  if ($('pdfDlg').hidden) return;
+  const box = $('pdfPages'), keep = box.scrollTop;
+  pdfK = Math.max(1.4, Math.min(3.2, (box.clientWidth - 30) / PG.W));
+  box.innerHTML = '';
+  const P = new CanvasPainter(box, pdfK);
+  const oimg = ortho && pdfOn('map.ortho') ? orthoWorldImg() : null;
+  pdfFrame = layoutReport(P, {view: pv, bg: pdfBg, ortho: oimg ? {...oimg, alpha: ortho.opacity / 100} : null});
+  box.scrollTop = keep;
+  const first = P.pages[0].c;
+  first.style.cursor = pdfFrame ? 'grab' : 'default';
+  first.addEventListener('pointerdown', pdfPointerDown);
+  first.addEventListener('wheel', pdfWheel, {passive: false});
+  const n = P.pageCount();
+  $('pdfPagesInfo').textContent = n > 1 ? `${n} sidor` : '1 sida';
+}
+function orthoWorldImg(){
+  const [[s_, w_], [n_, e_]] = ortho.bounds, a = W0([n_, w_]), b = W0([s_, e_]);
+  return {el: ortho.img, wx0: a.x, wy0: a.y, wx1: b.x, wy1: b.y};
+}
+function inFrame(e){
+  if (!pdfFrame) return false;
+  const r = e.currentTarget.getBoundingClientRect(), x = (e.clientX - r.left) / pdfK, y = (e.clientY - r.top) / pdfK;
+  return x >= pdfFrame.x && x <= pdfFrame.x + pdfFrame.w && y >= pdfFrame.y && y <= pdfFrame.y + pdfFrame.h ? [x, y] : false;
+}
+let pdfDrag = null;
+function pdfPointerDown(e){
+  if (!inFrame(e)) return;
+  e.preventDefault();
+  pdfDrag = {x: e.clientX, y: e.clientY, cx: pv.cx, cy: pv.cy};
+  document.body.classList.add('pdf-dragging');
+}
+window.addEventListener('pointermove', e => {
+  if (!pdfDrag) return;
+  pv.cx = pdfDrag.cx - (e.clientX - pdfDrag.x) / pdfK / pv.s;
+  pv.cy = pdfDrag.cy - (e.clientY - pdfDrag.y) / pdfK / pv.s;
+  schedulePreview();
+});
+window.addEventListener('pointerup', () => { if (!pdfDrag) return; pdfDrag = null; document.body.classList.remove('pdf-dragging'); scheduleBg(); });
+function setPdfZoom(z, anchor){
+  z = Math.max(-3, Math.min(5, z));
+  const s2 = pvFit.s * Math.pow(2, z);
+  if (anchor) { // håll punkten under muspekaren still
+    const wx = pv.cx + (anchor[0] - (pdfFrame.x + pdfFrame.w / 2)) / pv.s, wy = pv.cy + (anchor[1] - (pdfFrame.y + pdfFrame.h / 2)) / pv.s;
+    pv.cx = wx - (anchor[0] - (pdfFrame.x + pdfFrame.w / 2)) / s2; pv.cy = wy - (anchor[1] - (pdfFrame.y + pdfFrame.h / 2)) / s2;
+  }
+  pv.s = s2; $('pdfZoom').value = z;
+  schedulePreview(); scheduleBg();
+}
+function pdfWheel(e){
+  const p = inFrame(e); if (!p) return;
+  e.preventDefault();
+  setPdfZoom(+$('pdfZoom').value - Math.sign(e.deltaY) * 0.25, p);
+}
+$('pdfZoom').oninput = () => setPdfZoom(+$('pdfZoom').value);
+$('pdfZin').onclick = () => setPdfZoom(+$('pdfZoom').value + 0.5);
+$('pdfZout').onclick = () => setPdfZoom(+$('pdfZoom').value - 0.5);
+$('pdfFit').onclick = () => { fitPdfView(); schedulePreview(); scheduleBg(); };
+for (const [id, key] of [['pdfRowW', 'rowW'], ['pdfPtScale', 'ptScale']]) $(id).oninput = () => { ui[key] = +$(id).value; syncLookInputs(); saveUI(); render(); schedulePreview(); };
+$('pdfOrthoQ').onchange = () => { ui.orthoQ = $('pdfOrthoQ').value; saveUI(); };
+async function openPdfDialog(){
+  if (!ready()) return;
+  $('pdfDlg').hidden = false;
+  document.body.classList.add('dlg-open');
+  renderPdfTree(); syncLookInputs();
+  let rec = null; try { rec = ortho ? await idb.get(plan.id) : null; } catch {}
+  const q = $('pdfOrthoQ');
+  q.disabled = !ortho;
+  q.querySelectorAll('option[data-orig]').forEach(op => op.disabled = !(rec && rec.orig));
+  q.value = (ui.orthoQ && !(q.querySelector(`option[value="${ui.orthoQ}"]`) || {}).disabled) ? ui.orthoQ : 'normal';
+  $('pdfOrthoHint').textContent = !ortho ? 'Inget ortofoto är inläst i den här planen.'
+    : rec && rec.orig ? `Originalet är ${fmt(rec.fullW || rec.w)} × ${fmt(rec.fullH || rec.h)} px. Högsta kvalitet ger större PDF.`
+    : 'Läs in ortofotot igen för att kunna välja högre kvalitet (originalfilen sparades inte i tidigare version).';
+  fitPdfView();
+  if (!bgFits(pdfBg, pv, false)) pdfBg = null;
+  renderPreview(); scheduleBg();
+}
+function closePdfDialog(){ $('pdfDlg').hidden = true; document.body.classList.remove('dlg-open'); $('pdfPages').innerHTML = ''; }
+$('pdfClose').onclick = closePdfDialog;
+$('pdfCancel').onclick = closePdfDialog;
+$('pdfDlg').addEventListener('keydown', e => { if (e.key === 'Escape') closePdfDialog(); });
+window.addEventListener('resize', () => { if (!$('pdfDlg').hidden) schedulePreview(); });
+
+async function savePdf(){
+  const btn = $('pdfSave'); btn.disabled = true;
+  const status = t => { $('pdfStatus').textContent = t; };
+  try {
+    status('Förbereder PDF…');
+    await need('jspdf');
+    const view = {...pv}, fw = frameWorld(view);
+    let bgImg = null, bgFail = false, orthoImg = null;
+    if (pdfOn('map')) {
+      status('Hämtar kartbild…');
+      let bg = pdfBg;
+      if (!bgFits(bg, view, true)) bg = await fetchBg(view, 0.02, 2400);
+      bgFail = !bg.ok;
+      // beskär till kartramen
+      const sx = (fw.x0 - bg.wx0) * bg.scale, sy = (fw.y0 - bg.wy0) * bg.scale, sw = (fw.x1 - fw.x0) * bg.scale, sh = (fw.y1 - fw.y0) * bg.scale;
+      const c = document.createElement('canvas'); c.width = Math.round(sw); c.height = Math.round(sh);
+      c.getContext('2d').drawImage(bg.el, sx, sy, sw, sh, 0, 0, c.width, c.height);
+      bgImg = {el: c, dataUrl: c.toDataURL('image/jpeg', 0.9), fmt: 'JPEG', alias: 'bg', wx0: fw.x0, wy0: fw.y0, wx1: fw.x1, wy1: fw.y1};
+      if (ortho && pdfOn('map.ortho')) {
+        status('Förbereder ortofoto…');
+        orthoImg = await orthoForPdf(view, fw, bgImg.el, $('pdfOrthoQ').value);
+      }
+    }
+    status('Skapar PDF…');
+    await new Promise(r => setTimeout(r, 30));
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF({unit: 'mm', format: 'a4', compress: true});
+    layoutReport(new PdfPainter(doc), {view, bg: bgImg, ortho: orthoImg, bgFail});
+    doc.setProperties({title: plan.pdfTitle ?? ('Potatisplan: ' + plan.name), creator: 'Potatisplaneraren'});
+    doc.save(slug() + '.pdf');
+    status('');
+    closePdfDialog();
+    msg('PDF-rapporten är sparad.');
+  } catch (err) {
+    console.error(err); status('Kunde inte skapa PDF: ' + err.message);
+  } finally { btn.disabled = false; }
+}
+$('pdfSave').onclick = savePdf;
+/* Ortofotot läggs i PDF:en som en färdig bild ovanpå bakgrunden (behåller genomskinlighet och vald täckning) */
+async function orthoForPdf(view, fw, bgCanvas, quality){
+  const ow = orthoWorldImg();
+  const x0 = Math.max(fw.x0, ow.wx0), y0 = Math.max(fw.y0, ow.wy0), x1 = Math.min(fw.x1, ow.wx1), y1 = Math.min(fw.y1, ow.wy1);
+  if (x1 <= x0 || y1 <= y0) return null;
+  const regionMM = (x1 - x0) * view.s;
+  let img = null, W;
+  if (quality !== 'normal') {
+    let rec = null; try { rec = await idb.get(plan.id); } catch {}
+    if (rec && rec.orig) {
+      const needW = quality === 'max' ? Infinity : Math.round(regionMM / 25.4 * 300);
+      try { img = await orthoRegionFromOriginal(rec, x0, y0, x1, y1, needW); } catch (err) { console.error(err); }
+    }
+  }
+  if (img) W = img.width;
+  else { W = Math.max(1, Math.round((x1 - x0) / (ow.wx1 - ow.wx0) * ortho.img.naturalWidth)); W = Math.min(W, 4000); }
+  const H = Math.max(1, Math.round(W * (y1 - y0) / (x1 - x0)));
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  // bakgrunden under, så att genomskinliga kanter blir rätt
+  const bw = bgCanvas.width / (fw.x1 - fw.x0);
+  ctx.drawImage(bgCanvas, (x0 - fw.x0) * bw, (y0 - fw.y0) * bw, (x1 - x0) * bw, (y1 - y0) * bw, 0, 0, W, H);
+  ctx.globalAlpha = ortho.opacity / 100;
+  if (img) ctx.drawImage(img, 0, 0, W, H);
+  else {
+    const nw = ortho.img.naturalWidth / (ow.wx1 - ow.wx0), nh = ortho.img.naturalHeight / (ow.wy1 - ow.wy0);
+    ctx.drawImage(ortho.img, (x0 - ow.wx0) * nw, (y0 - ow.wy0) * nh, (x1 - x0) * nw, (y1 - y0) * nh, 0, 0, W, H);
+  }
+  return {el: c, dataUrl: c.toDataURL('image/jpeg', 0.92), fmt: 'JPEG', alias: 'ortho', wx0: x0, wy0: y0, wx1: x1, wy1: y1, alpha: 1};
+}
+$('btnPdf').onclick = openPdfDialog;
+$('statsPdf').onclick = openPdfDialog;
+
+/* =================== Gården: fält, grödor och odlingar =================== */
+const CROPS = {
+  potatis: {name: 'Potatis', color: '#d9a441', rowSpacing: 75, plantSpacing: 30, weight: 60, yieldTha: 30, machine: true,
+    weightLabel: 'Vikt per sättpotatis', unit: 'sättpotatis', unitPl: 'Sättpotatisar', seedName: 'Utsäde', rate: 500,
+    varieties: [['Egen', null], ['Rocket (mycket tidig)', 20], ['Swift (mycket tidig)', 20], ['Solist (tidig)', 28], ['Annabelle (tidig)', 28],
+      ['Amandine (tidig)', 30], ['Princess (tidig)', 32], ['King Edward (medeltidig)', 30], ['Bintje (medeltidig)', 40], ['Folva (medeltidig)', 40],
+      ['Melody (medelsen)', 45], ['Asterix (sen)', 40], ['Mandel (sen)', 22]]},
+  morot: {name: 'Morot', color: '#e2792b', rowSpacing: 50, plantSpacing: 4, weight: 0.0012, yieldTha: 60, machine: true,
+    weightLabel: 'Vikt per frö', unit: 'frö', unitPl: 'Frön', seedName: 'Utsäde', rate: 1500,
+    varieties: [['Egen', null], ['Nantes', 60], ['Napoli (tidig)', 45], ['Autumn King (sen)', 70], ['Chantenay', 55]]},
+  lok: {name: 'Lök (sättlök)', color: '#b07ccc', rowSpacing: 30, plantSpacing: 10, weight: 3, yieldTha: 40, machine: false,
+    weightLabel: 'Vikt per sättlök', unit: 'sättlök', unitPl: 'Sättlökar', seedName: 'Sättlök', rate: 800,
+    varieties: [['Egen', null], ['Stuttgarter', 40], ['Sturon', 45], ['Röd Karmen', 35]]},
+  vitlok: {name: 'Vitlök', color: '#cfc3a4', rowSpacing: 30, plantSpacing: 12, weight: 6, yieldTha: 12, machine: false,
+    weightLabel: 'Vikt per klyfta', unit: 'klyfta', unitPl: 'Klyftor', seedName: 'Sättvitlök', rate: 600,
+    varieties: [['Egen', null], ['Messidrome', 12], ['Thermidrome', 12], ['Vallelado', 14]]},
+  rodbeta: {name: 'Rödbeta', color: '#a33a4d', rowSpacing: 40, plantSpacing: 8, weight: 0.015, yieldTha: 45, machine: true,
+    weightLabel: 'Vikt per frö', unit: 'frö', unitPl: 'Frön', seedName: 'Utsäde', rate: 1200,
+    varieties: [['Egen', null], ['Boltardy', 45], ['Detroit', 45], ['Cylindra', 50]]},
+  sallat: {name: 'Sallat', color: '#6aa84f', rowSpacing: 35, plantSpacing: 25, weight: 0.001, yieldTha: 25, machine: false,
+    weightLabel: 'Vikt per planta', unit: 'planta', unitPl: 'Plantor', seedName: 'Plantor', rate: 700,
+    varieties: [['Egen', null], ['Isbergssallat', 30], ['Ekbladssallat', 20]]},
+  kal: {name: 'Kål', color: '#4f9d8c', rowSpacing: 60, plantSpacing: 45, weight: 0.5, yieldTha: 50, machine: false,
+    weightLabel: 'Vikt per planta', unit: 'planta', unitPl: 'Plantor', seedName: 'Plantor', rate: 400,
+    varieties: [['Egen', null], ['Vitkål', 60], ['Broccoli', 15], ['Blomkål', 25]]},
+  bona: {name: 'Böna', color: '#8db600', rowSpacing: 50, plantSpacing: 8, weight: 0.4, yieldTha: 12, machine: true,
+    weightLabel: 'Vikt per frö', unit: 'frö', unitPl: 'Frön', seedName: 'Utsäde', rate: 1000,
+    varieties: [['Egen', null], ['Brytböna', 12], ['Bondböna', 14]]},
+  egen: {name: 'Egen gröda', color: '#7f9bb3', rowSpacing: 50, plantSpacing: 20, weight: 5, yieldTha: 20, machine: false,
+    weightLabel: 'Vikt per planta', unit: 'planta', unitPl: 'Plantor', seedName: 'Utsäde', rate: 600,
+    varieties: [['Egen', null]]}
+};
+const CU = () => CROPS[(plan && plan.crop) || 'potatis'];
+const FIELD_COLORS = ['#ffd166', '#8ecae6', '#c8e6a0', '#f4a4a4', '#d0bfff', '#ffd6a5', '#9ae6c8', '#f7b7d7'];
+
+let view = 'farm', selField = null;
+const farmLayer = L.layerGroup();
+
+/* ---------- ytor ---------- */
+function ringsArea(rings){
+  if (!rings || !rings.length) return 0;
+  const outer = rings[0];
+  let la = 0, lo = 0; for (const p of outer) { la += p[0]; lo += p[1]; } la /= outer.length; lo /= outer.length;
+  const ky = R * DEG, kx = ky * Math.cos(la * DEG);
+  const A = r => { let a = 0; for (let i = 0; i < r.length; i++) { const p = r[i], q = r[(i + 1) % r.length];
+      a += ((p[1] - lo) * kx) * ((q[0] - la) * ky) - ((q[1] - lo) * kx) * ((p[0] - la) * ky); } return Math.abs(a) / 2; };
+  return A(outer) - rings.slice(1).reduce((t, r) => t + A(r), 0);
+}
+const fieldById = id => (store.fields || []).find(f => f.id === id);
+const plansOfField = id => store.plans.filter(p => p.fieldId === id);
+
+/* ---------- vyer ---------- */
+function setView(v, opts){
+  view = v;
+  $('farmPanel').hidden = v !== 'farm';
+  document.body.classList.toggle('farmview', v === 'farm');
+  $('planPanel').hidden = v !== 'plan';
+  const on = (show, layer) => show ? map.addLayer(layer) : map.removeLayer(layer);
+  on(v === 'farm', farmLayer);
+  for (const l of [rowsLayer, plantsLayer, passLayer, editGroup]) on(v === 'plan', l);
+  if (v === 'plan') applyVisibility();
+  if (v === 'farm') { if (tool) setTool(tool); renderFarm(); if (!opts || !opts.keepView) fitFarm(); }
+  document.title = v === 'farm' ? 'Odlingsverktyget' : `${CU().name} · ${plan ? plan.name : ''}`;
+}
+function fitFarm(){
+  const all = (store.fields || []).flatMap(f => f.rings ? f.rings[0] : []);
+  if (all.length) map.fitBounds(L.latLngBounds(all).pad(0.15));
+}
+function openPlan(p){ loadPlan(p); setView('plan'); }
+$('btnToFarm').onclick = () => { if (editSession) endEdit(true); setView('farm'); };
+
+/* ---------- gårdens panel ---------- */
+function cropSelect(id, val){
+  return `<select id="${id}">${Object.entries(CROPS).map(([k, c]) => `<option value="${k}"${k === val ? ' selected' : ''}>${esc(c.name)}</option>`).join('')}</select>`;
+}
+function renderFarm(){
+  const fields = store.fields || [];
+  const totalArea = fields.reduce((t, f) => t + ringsArea(f.rings), 0);
+  $('farmName').value = store.farmName || '';
+  $('fieldList').innerHTML = fields.length ? fields.map(f => {
+    const ps = plansOfField(f.id);
+    return `<fieldset class="fieldcard${selField === f.id ? ' sel' : ''}" data-f="${f.id}">
+      <legend><span class="dot" style="background:${f.color}"></span> <input type="text" class="fname" data-f="${f.id}" value="${esc(f.name)}"></legend>
+      <div class="hint" style="margin:2px 0">${fArea(ringsArea(f.rings))} · ${ps.length} ${ps.length === 1 ? 'odling' : 'odlingar'}</div>
+      <div class="b" style="margin-top:0">
+        <button data-zoom="${f.id}" title="Zooma till fältet">Visa</button>
+        <button data-shape="${f.id}" title="Dra i hörnen på kartan">Ändra form</button>
+        <button data-delf="${f.id}" title="Ta bort fältet och dess odlingar">Ta bort</button></div>
+      ${ps.map(p => {
+        const c = CROPS[p.crop] || CROPS.potatis, su = p.summary;
+        return `<div class="r cropline"><span class="dot" style="background:${c.color}"></span>
+          <label style="flex:1"><b>${esc(p.name)}</b> · ${esc(c.name)}${su && su.tooMany ? ' · för tät för att räknas ut' : su ? ` · ${fArea(su.plantedM2)} · ${fmt(su.plants)} ${c.unit === 'frö' ? 'frön' : c.unit + (su.plants === 1 ? '' : 'ar')}` : ' · ej beräknad'}</label>
+          <button data-open="${p.id}">Öppna</button><button data-delp="${p.id}">Ta bort</button></div>`;
+      }).join('')}
+      <div class="r"><label style="flex:none">Ny odling</label>${cropSelect('crop_' + f.id, 'potatis')}
+        <button data-newp="${f.id}">Lägg till</button></div>
+    </fieldset>`;
+  }).join('') : '<div class="hint">Inga fält ännu. Rita ditt första fält på kartan.</div>';
+
+  // totaler per gröda
+  const byCrop = new Map();
+  for (const p of store.plans) {
+    const c = CROPS[p.crop] || CROPS.potatis, e = byCrop.get(p.crop) || {c, area: 0, plants: 0, seed: 0, harvest: 0, n: 0, calc: 0};
+    e.n++;
+    if (p.summary && !p.summary.tooMany) { e.area += p.summary.plantedM2; e.plants += p.summary.plants; e.seed += p.summary.seedKg; e.harvest += p.summary.harvestKg; e.calc++; }
+    byCrop.set(p.crop, e);
+  }
+  $('farmTotals').innerHTML = `<table class="tot"><tr><td>Fält</td><td>${fmt(fields.length)} st</td></tr>
+    <tr><td>Total fältyta</td><td>${fArea(totalArea)}</td></tr>
+    <tr><td>Odlingar</td><td>${fmt(store.plans.length)} st</td></tr></table>` +
+    (byCrop.size ? `<table class="tot"><tr class="h"><td>Gröda</td><td>Yta</td><td>Utsäde</td><td>Skörd</td></tr>` +
+      [...byCrop.values()].map(e => `<tr><td><span class="dot" style="background:${e.c.color}"></span> ${esc(e.c.name)}${e.calc < e.n ? ' *' : ''}</td>
+        <td>${e.calc ? fArea(e.area) : '–'}</td><td>${e.calc ? fKg(e.seed) : '–'}</td><td>${e.calc ? fKg(e.harvest) : '–'}</td></tr>`).join('') +
+      '</table>' + ([...byCrop.values()].some(e => e.calc < e.n) ? '<div class="hint">* någon odling är inte beräknad än. Tryck på Räkna om alla.</div>' : '') : '');
+
+  // knappar
+  const q = (sel, fn) => $('fieldList').querySelectorAll(sel).forEach(el => el.onclick = e => { e.preventDefault(); fn(el); });
+  q('button[data-zoom]', el => { const f = fieldById(el.dataset.zoom); if (f) map.fitBounds(L.latLngBounds(f.rings[0]).pad(0.1)); });
+  q('button[data-shape]', el => toggleFieldShape(el.dataset.shape));
+  q('button[data-delf]', el => {
+    const f = fieldById(el.dataset.delf);
+    if (!confirm(`Ta bort fältet "${f.name}" och dess ${plansOfField(f.id).length} odlingar?`)) return;
+    store.plans = store.plans.filter(p => p.fieldId !== f.id);
+    store.fields = store.fields.filter(x => x !== f);
+    persist(); renderFarm(); drawFarm();
+  });
+  q('button[data-open]', el => { const p = store.plans.find(x => x.id === el.dataset.open); if (p) openPlan(p); });
+  q('button[data-delp]', el => {
+    const p = store.plans.find(x => x.id === el.dataset.delp);
+    if (!p || !confirm(`Ta bort odlingen "${p.name}"?`)) return;
+    store.plans = store.plans.filter(x => x !== p); idb.del(p.id).catch(() => {});
+    persist(); renderFarm(); drawFarm();
+  });
+  q('button[data-newp]', el => newCropPlan(el.dataset.newp, $('crop_' + el.dataset.newp).value));
+  $('fieldList').querySelectorAll('input.fname').forEach(inp => inp.oninput = () => {
+    const f = fieldById(inp.dataset.f); if (!f) return;
+    f.name = inp.value; persist(); drawFarm();
+  });
+  $('fieldList').querySelectorAll('.fieldcard').forEach(el => el.onmousedown = () => { selField = el.dataset.f; });
+  drawFarm();
+}
+function drawFarm(){
+  farmLayer.clearLayers();
+  for (const f of store.fields || []) {
+    const poly = L.polygon(f.rings, {color: f.color, weight: 2, fillColor: f.color, fillOpacity: 0.12});
+    poly._field = f;
+    poly.bindTooltip(`${f.name} · ${fArea(ringsArea(f.rings))}`, {permanent: true, direction: 'center', className: 'field-label'});
+    poly.on('click', () => { selField = f.id; renderFarm(); const el = document.querySelector(`.fieldcard[data-f="${f.id}"]`); if (el) el.scrollIntoView({block: 'nearest'}); });
+    farmLayer.addLayer(poly);
+    for (const p of plansOfField(f.id)) {
+      if (!p.field || JSON.stringify(p.field) === JSON.stringify(f.rings)) continue;   // eget delområde
+      const c = CROPS[p.crop] || CROPS.potatis;
+      farmLayer.addLayer(L.polygon(p.field, {color: c.color, weight: 2, fillColor: c.color, fillOpacity: 0.3, dashArray: '5 3'}).bindTooltip(p.name));
+    }
+  }
+}
+/* fältets form: dra i hörnen direkt i gårdsvyn */
+let shapeField = null;
+function toggleFieldShape(id){
+  const layer = farmLayer.getLayers().find(l => l._field && l._field.id === id);
+  if (!layer) return;
+  if (shapeField === id) { layer.editing.disable(); shapeField = null; msg('Formen sparad.'); persist(); renderFarm(); return; }
+  farmLayer.eachLayer(l => l.editing && l.editing.disable());
+  shapeField = id; layer.editing.enable();
+  layer.off('edit').on('edit', () => {
+    const f = layer._field;
+    f.rings = layerRings(layer);
+    for (const p of plansOfField(f.id)) if (p.wholeField) { p.field = JSON.parse(JSON.stringify(f.rings)); p.summary = null; }
+    persist(); renderFarm();
+  });
+  msg('Dra i hörnen för att ändra fältet. Klicka på Ändra form igen när du är klar.', 12000);
+}
+/* ---------- nytt fält och ny odling ---------- */
+function newField(rings, name){
+  const f = {id: uid(), name: name || `Fält ${(store.fields || []).length + 1}`, rings,
+    color: FIELD_COLORS[(store.fields || []).length % FIELD_COLORS.length], zones: []};
+  store.fields = [...(store.fields || []), f];
+  selField = f.id; persist(); renderFarm();
+  return f;
+}
+function newCropPlan(fieldId, crop){
+  const f = fieldById(fieldId); if (!f) return;
+  const c = CROPS[crop] || CROPS.potatis;
+  const p = newPlan(`${c.name} ${new Date().getFullYear()}`, {rowSpacing: c.rowSpacing, plantSpacing: c.plantSpacing, weight: c.weight,
+    yieldTha: c.yieldTha, variety: c.varieties[0][0], method: c.machine ? 'machine' : 'manual', plantRate: c.rate});
+  p.crop = crop; p.fieldId = f.id; p.wholeField = true;
+  p.field = JSON.parse(JSON.stringify(f.rings));
+  p.zones = JSON.parse(JSON.stringify(f.zones || []));
+  store.plans.push(p);
+  persist(); openPlan(p);
+  msg(`Odlingen "${p.name}" är skapad på ${f.name}. Ändra gröda, sort och avstånd i panelen.`, 12000);
+}
+$('btnDrawField').onclick = () => { drawKind = 'newfield'; new L.Draw.Polygon(map, {...polyOpts, shapeOptions: {color: '#ffd166', weight: 2, fill: true, fillColor: '#ffd166', fillOpacity: 0.3}}).enable();
+  msg('Rita fältets gräns. Klicka på första punkten för att stänga den.'); };
+$('btnImportField').onclick = () => { importMode = 'newfield'; $('fileIn').accept = '.geojson,.json,.kml,.kmz,.potatis'; $('fileIn').click(); };
+$('farmName').oninput = () => { store.farmName = $('farmName').value; persist(); };
+
+/* ---------- beräkna alla odlingar ---------- */
+function planSummary(p){
+  const keepPlan = plan, keepGeo = geo, keepCtx = geoCtx, keepMask = geoMask, keepKey = geoKey, keepPass = passInfo;
+  let out = null;
+  try {
+    plan = p; geoKey = '';
+    if (plan.field) {
+      const s = S();
+      geo = buildGeo(s);
+      if (geo.tooMany) out = {tooMany: geo.tooMany};
+      else {
+        applyEdits();
+        let plants = 0, rows = 0;
+        for (const r of geo.rows) { if (r.removed) continue; const a = r.n - r.off.size; if (a) { plants += a; rows++; } }
+        out = {plants, rows, area: geo.area, plantedM2: plants * s.rs * s.ps,
+          seedKg: plants * s.weight / 1000, harvestKg: s.yieldTha * plants * s.rs * s.ps / 10};
+      }
+    }
+  } catch (err) { console.error(err); }
+  plan = keepPlan; geo = keepGeo; geoCtx = keepCtx; geoMask = keepMask; geoKey = keepKey; passInfo = keepPass;
+  return out;
+}
+$('btnCalcAll').onclick = async () => {
+  $('btnCalcAll').disabled = true;
+  try {
+    for (const [i, p] of store.plans.entries()) {
+      msg(`Räknar ut odling ${i + 1} av ${store.plans.length}…`, 0);
+      await new Promise(r => setTimeout(r, 0));
+      p.summary = planSummary(p);
+    }
+    persist(); renderFarm(); msg('Alla odlingar är uträknade.');
+  } finally { $('btnCalcAll').disabled = false; }
+};
+
+/* ---------- import av hela gården ---------- */
+$('btnFarmSave').onclick = () => {
+  download((store.farmName || 'garden').replace(/[^\w\-]+/g, '_') + '.odling',
+    JSON.stringify({app: 'odlingsverktyget', version: 1, saved: new Date().toISOString(), farmName: store.farmName, fields: store.fields, plans: store.plans}), 'application/json');
+  msg('Gården är sparad som fil. Ortofoton ingår inte.');
+};
+$('btnFarmOpen').onclick = () => { importMode = 'farm'; $('fileIn').accept = '.odling,.json'; $('fileIn').click(); };
+function importFarm(d){
+  if (!confirm('Läsa in gården från filen? Det som finns här nu ersätts.')) return;
+  store.farmName = d.farmName || ''; store.fields = d.fields || []; store.plans = (d.plans || []).map(p => ({...p}));
+  store.current = null; persist(); setView('farm'); renderFarm(); fitFarm();
+  msg(`Gården är inläst: ${store.fields.length} fält och ${store.plans.length} odlingar.`);
+}
+/* ---------- grödans etiketter i planeraren ---------- */
+function applyCrop(){
+  const c = CU();
+  $('lblWeight').textContent = c.weightLabel;
+  $('lblSeed').textContent = c.seedName;
+  $('cropSel').value = plan.crop || 'potatis';
+  const keep = plan.settings.variety;
+  $('variety').innerHTML = c.varieties.map(([n, y]) => `<option value="${esc(n)}">${esc(n)}${y ? ` – ${y} t/ha` : ''}</option>`).join('');
+  $('variety').value = c.varieties.some(v => v[0] === keep) ? keep : c.varieties[0][0];
+  plan.settings.variety = $('variety').value;
+  const f = fieldById(plan.fieldId);
+  $('planWhere').innerHTML = `${f ? `<span class="dot" style="background:${f.color}"></span> ${esc(f.name)} · ` : ''}<span class="dot" style="background:${c.color}"></span> ${esc(c.name)}`;
+}
+$('cropSel').onchange = () => {
+  const c = CROPS[$('cropSel').value], old = CROPS[plan.crop] || CROPS.potatis;
+  if (plan.name.startsWith(old.name)) { plan.name = plan.name.replace(old.name, c.name); $('planName').value = plan.name; }
+  plan.crop = $('cropSel').value;
+  if (confirm(`Byta till ${c.name} och använda grödans standardavstånd (${c.rowSpacing} × ${c.plantSpacing} cm)?\n\nTryck Avbryt för att bara byta gröda och behålla dina avstånd.`)) {
+    Object.assign(plan.settings, {rowSpacing: c.rowSpacing, plantSpacing: c.plantSpacing, weight: c.weight, yieldTha: c.yieldTha, plantRate: c.rate});
+    fillInputs();
+  }
+  applyCrop(); updateMethodUI(); geoKey = ''; regenerate(); save();
+};
+
+/* =================== Start =================== */
+syncLookInputs();
+$('editHint').innerHTML = EDIT_HINTS.none;
+$('cropSel').innerHTML = Object.entries(CROPS).map(([k, c]) => `<option value="${k}">${esc(c.name)}</option>`).join('');
+loadStore();
+loadPlan(store.plans.find(p => p.id === store.current) || store.plans[0] || newPlan('Ingen odling'));
+setView('farm');
+renderFarm();
+if (store.fields.length) fitFarm();
+openSharedLink();
+</script>
+</body>
+</html>
