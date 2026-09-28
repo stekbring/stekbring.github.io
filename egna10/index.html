@@ -122,6 +122,14 @@ dialog{background:var(--face);border:2px outset var(--hi);padding:0;max-width:98
 dialog:not([style*="width"]){width:min(760px,96vw)}
 dialog[open]{display:flex;flex-direction:column}
 #dlgCrop:not([style*="width"]){width:min(460px,96vw)}
+#dlgPdf:not([style*="width"]){width:min(1180px,97vw)}
+.pdfbody{display:grid;grid-template-columns:minmax(360px,1fr) minmax(300px,1.05fr);gap:14px;align-items:start}
+.pdfopts{min-width:0}
+.pdfpv{position:sticky;top:0;min-width:0}
+.pdfpv-nav{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px;font-size:14px}
+.pdfpv-nav button{min-width:40px}
+.pdfpv-page{background:#8f8c84;border:2px inset var(--face);padding:10px;display:flex;justify-content:center}
+.pdfpv-page svg{display:block;width:100%;height:auto;max-height:68vh;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
 dialog>form{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
 dialog::backdrop{background:rgba(40,38,34,.35)}
 dialog .dhead{background:var(--sel);color:#fff;padding:5px 10px;font-weight:600;cursor:move;user-select:none;touch-action:none}
@@ -184,6 +192,8 @@ code{font-family:Consolas,"Courier New",monospace;font-size:.92em;background:#f4
   dialog .dfoot{flex-wrap:wrap}
   dialog .dfoot .left{margin-right:0}
   .grid2{grid-template-columns:1fr}
+  .pdfbody{grid-template-columns:1fr}
+  .pdfpv{position:static}
   .colors{grid-template-columns:1fr}
 }
 </style>
@@ -264,7 +274,8 @@ code{font-family:Consolas,"Courier New",monospace;font-size:.92em;background:#f4
 <dialog id="dlgPdf">
   <form method="dialog">
     <div class="dhead">Skapa PDF för utskrift</div>
-    <div class="dbody">
+    <div class="dbody pdfbody">
+      <div class="pdfopts">
       <fieldset><legend>Utskrift</legend>
         <label class="opt"><input type="radio" name="mode" value="long"> Dubbelsidig – vänd längs <b>långsidan</b> (standard i de flesta skrivare)</label>
         <label class="opt"><input type="radio" name="mode" value="short"> Dubbelsidig – vänd längs <b>kortsidan</b></label>
@@ -297,6 +308,12 @@ code{font-family:Consolas,"Courier New",monospace;font-size:.92em;background:#f4
         <p class="help">Gör en provutskrift först. Skriv ut i <b>100 % / Faktisk storlek</b>, inte ”Anpassa till sida”. Håll sedan arket mot ljuset: baksidans ram ska ligga exakt bakom framsidans. Mät hur mycket den är förskjuten och fyll i det ovan.</p>
       </fieldset>
       <div class="grid2"><span>Filnamn</span><input type="text" name="filename"></div>
+      </div>
+      <div class="pdfpv">
+        <div class="pdfpv-nav"><button type="button" id="ppPrev" title="Föregående sida">◀</button><span id="ppInfo">Sida 1 av 1</span><button type="button" id="ppNext" title="Nästa sida">▶</button></div>
+        <div id="ppPage" class="pdfpv-page"></div>
+        <p class="help" id="ppNote"></p>
+      </div>
     </div>
     <div class="dfoot">
       <button type="button" id="pdfTest" class="left">Provutskrift…</button>
@@ -1792,6 +1809,59 @@ function backSlot(slot, W, H, o) {
   return { x: W - slot.x - CARD - o.dx, y: slot.y + o.dy, rot: true };
 }
 function hash(s) { let h = 5381; for (let i = 0; i < s.length; i += 7) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36) + s.length.toString(36); }
+/* Låtsas-PDF som ritar samma sidor som SVG – används för förhandsvisningen,
+   så att den alltid visar exakt det som hamnar i PDF:en. */
+class SvgDoc {
+  constructor(o) {
+    this.W = o.format[0]; this.H = o.format[1];
+    this.pages = ['']; this.defs = []; this.n = 0;
+    this.st = { fill: '#000000', stroke: '#000000', lw: 0.2, cap: 'butt', join: 'miter', dash: null, font: 'KortSerif', pt: 10, tc: '#000000' };
+    this.stack = []; this.open = 0; this.path = '';
+  }
+  get cur() { return this.pages.length - 1; }
+  emit(s) { this.pages[this.cur] += s; }
+  addPage() { while (this.open) { this.emit('</g>'); this.open--; } this.stack = []; this.pages.push(''); return this; }
+  getNumberOfPages() { return this.pages.length; }
+  addFileToVFS() {} addFont() {} setProperties() {}
+  setFillColor(c) { this.st.fill = c; } setDrawColor(c) { this.st.stroke = c; } setTextColor(c) { this.st.tc = c; }
+  setLineWidth(w) { this.st.lw = w; } setLineCap(c) { this.st.cap = c; } setLineJoin(j) { this.st.join = j; }
+  setLineDashPattern(a) { this.st.dash = a && a.length ? a.join(' ') : null; }
+  setFont(f) { this.st.font = f; } setFontSize(p) { this.st.pt = p; }
+  strokeAttrs() { const s = this.st; return ` stroke="${s.stroke}" stroke-width="${n3(s.lw)}" stroke-linecap="${s.cap}" stroke-linejoin="${s.join}"${s.dash ? ` stroke-dasharray="${s.dash}"` : ''}`; }
+  moveTo(x, y) { this.path += `M${n3(x)} ${n3(y)}`; } lineTo(x, y) { this.path += `L${n3(x)} ${n3(y)}`; }
+  curveTo(a, b, c, d, e, f) { this.path += `C${n3(a)} ${n3(b)} ${n3(c)} ${n3(d)} ${n3(e)} ${n3(f)}`; }
+  close() { this.path += 'Z'; }
+  paint(fill, stroke) { if (this.path) this.emit(`<path d="${this.path}" fill="${fill ? this.st.fill : 'none'}"${stroke ? this.strokeAttrs() : ''}/>`); this.path = ''; }
+  fill() { this.paint(true, false); } stroke() { this.paint(false, true); } fillStroke() { this.paint(true, true); }
+  discardPath() { this.path = ''; }
+  circle(x, y, r, style) {
+    if (style === null || style === undefined && false) { this.path += `M${n3(x - r)} ${n3(y)}a${n3(r)} ${n3(r)} 0 1 0 ${n3(2 * r)} 0a${n3(r)} ${n3(r)} 0 1 0 ${n3(-2 * r)} 0Z`; return; }
+    const f = /F/.test(style), d = /S|D/.test(style);
+    this.emit(`<circle cx="${n3(x)}" cy="${n3(y)}" r="${n3(r)}" fill="${f ? this.st.fill : 'none'}"${d ? this.strokeAttrs() : ''}/>`);
+  }
+  rect(x, y, w, h, style) {
+    if (style === null) { this.path += `M${n3(x)} ${n3(y)}h${n3(w)}v${n3(h)}h${n3(-w)}Z`; return; }
+    const f = /F/.test(style), d = /S|D/.test(style);
+    this.emit(`<rect x="${n3(x)}" y="${n3(y)}" width="${n3(w)}" height="${n3(h)}" fill="${f ? this.st.fill : 'none'}"${d ? this.strokeAttrs() : ''}/>`);
+  }
+  line(x1, y1, x2, y2) { this.emit(`<line x1="${n3(x1)}" y1="${n3(y1)}" x2="${n3(x2)}" y2="${n3(y2)}"${this.strokeAttrs()}/>`); }
+  text(s, x, y, o) {
+    const a = o && o.angle ? ` transform="rotate(${-o.angle} ${n3(x)} ${n3(y)})"` : '';
+    this.emit(`<text x="${n3(x)}" y="${n3(y)}" font-family="${this.st.font}" font-size="${n3(this.st.pt * PT)}" fill="${this.st.tc}" style="font-kerning:none;white-space:pre"${a}>${esc(s)}</text>`);
+  }
+  addImage(data, fmt, x, y, w, h) { this.emit(`<image href="${data}" x="${n3(x)}" y="${n3(y)}" width="${n3(w)}" height="${n3(h)}" preserveAspectRatio="none"/>`); }
+  saveGraphicsState() { this.stack.push({ st: Object.assign({}, this.st), open: this.open }); }
+  restoreGraphicsState() { const t = this.stack.pop(); if (!t) return; while (this.open > t.open) { this.emit('</g>'); this.open--; } this.st = t.st; }
+  clip() { const id = 'pc' + (++this.n); this.defs.push(`<clipPath id="${id}"><path d="${this.path}"/></clipPath>`); this.emit(`<g clip-path="url(#${id})">`); this.open++; }
+  pageSVG(i) {
+    let body = this.pages[i] || '';
+    const opens = (body.match(/<g clip-path/g) || []).length - (body.match(/<\/g>/g) || []).length;
+    for (let k = 0; k < opens; k++) body += '</g>';
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${this.W} ${this.H}"><defs>${this.defs.join('')}</defs><rect width="${this.W}" height="${this.H}" fill="#fff"/>${body}</svg>`;
+  }
+}
+
+const ROT_CACHE = new Map();
 async function prepareImages(sides, needRot) {
   const map = new Map();
   const get = src => new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src; });
@@ -1799,11 +1869,13 @@ async function prepareImages(sides, needRot) {
     if (!it.img || map.has(it.img)) continue;
     const fmt = /^data:image\/png/i.test(it.img) ? 'PNG' : 'JPEG';
     const entry = { n: { data: it.img, fmt, alias: 'i' + hash(it.img) } };
-    if (needRot) {
+    if (needRot && ROT_CACHE.has(it.img)) entry.r = ROT_CACHE.get(it.img);
+    else if (needRot) {
       const im = await get(it.img);
       const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
       const x = c.getContext('2d'); x.translate(c.width, c.height); x.rotate(Math.PI); x.drawImage(im, 0, 0);
       entry.r = { data: c.toDataURL('image/jpeg', 0.92), fmt: 'JPEG', alias: 'r' + hash(it.img) };
+      ROT_CACHE.set(it.img, entry.r);
     }
     map.set(it.img, entry);
   }
@@ -1880,8 +1952,8 @@ function pickCards(o) {
   }
   return Array.from({ length: n }, (_, i) => i);
 }
-async function buildPDF(o) {
-  const jsPDF = await loadJsPDF();
+async function buildPDF(o, Impl) {
+  const jsPDF = Impl || await loadJsPDF();
   const deck = state.deck;
   const { doc, W, H } = newDoc(jsPDF, o.paper, deck.name);
   const idx = pickCards(o);
@@ -1994,7 +2066,28 @@ function bindPdf() {
     return e;
   };
   $('#btnPdf').addEventListener('click', () => { fill(); dlg.showModal(); });
-  f.addEventListener('input', () => { read(); scheduleSave(); });
+  let ppPage = 0, ppDoc = null, ppTimer = 0, ppSeq = 0;
+  const ppShow = () => {
+    if (!ppDoc) return;
+    const n = ppDoc.getNumberOfPages(); ppPage = Math.max(0, Math.min(n - 1, ppPage));
+    $('#ppPage').innerHTML = ppDoc.pageSVG(ppPage);
+    const e = state.deck.export, back = e.mode !== 'fold' && ppPage % 2 === 1;
+    $('#ppInfo').textContent = `Sida ${ppPage + 1} av ${n}` + (e.mode === 'fold' ? '' : back ? ' · baksida' : ' · framsida');
+    $('#ppPrev').disabled = ppPage === 0; $('#ppNext').disabled = ppPage >= n - 1;
+    $('#ppNote').textContent = back && e.mode === 'long' ? 'Baksidorna ligger upp och ned – så ska det vara när skrivaren vänder längs långsidan.' : '';
+  };
+  const ppUpdate = () => {
+    clearTimeout(ppTimer);
+    ppTimer = setTimeout(async () => {
+      const my = ++ppSeq;
+      try { const doc = await buildPDF(read(), SvgDoc); if (my === ppSeq) { ppDoc = doc; ppShow(); } }
+      catch (err) { $('#ppPage').textContent = 'Förhandsvisningen kunde inte visas: ' + (err.message || err); }
+    }, 180);
+  };
+  $('#ppPrev').addEventListener('click', () => { ppPage--; ppShow(); });
+  $('#ppNext').addEventListener('click', () => { ppPage++; ppShow(); });
+  $('#btnPdf').addEventListener('click', () => { ppPage = 0; ppUpdate(); });
+  f.addEventListener('input', () => { read(); scheduleSave(); ppUpdate(); });
   const run = async (fn, name, open) => {
     const o = read();
     const win = open ? window.open('', '_blank') : null;   // öppnas direkt vid klicket så att den inte blockeras
