@@ -1,0 +1,21 @@
+{
+  "name": "egna10 – egna frågekort",
+  "short_name": "egna10",
+  "description": "Gör egna dubbelsidiga frågekort i originalstorlek (110 × 110 mm) och skriv ut dem som PDF.",
+  "lang": "sv",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#d4d0c8",
+  "theme_color": "#d4d0c8",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "file_handlers": [
+    { "action": "./", "accept": { "application/x-egna10": [".egna10"] }, "icons": [{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" }] }
+  ],
+  "launch_handler": { "client_mode": "focus-existing" }
+}
