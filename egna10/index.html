@@ -1097,9 +1097,12 @@ function scheduleSave() {
   saveTimer = setTimeout(saveNow, 600);
 }
 async function saveNow() {
-  clearTimeout(saveTimer);
+  clearTimeout(saveTimer); saveTimer = null;
   try {
     await DB.set('deck', JSON.parse(JSON.stringify(state.deck)));
+    const meta = { t: Date.now(), tab: TAB_ID };
+    await DB.set('deckMeta', meta); state.syncT = meta.t;
+    try { if (syncChan) syncChan.postMessage(meta); } catch (e) { /* ingen synk */ }
     const t = new Date();
     setStatus(`Sparat i webbläsaren ${String(t.getHours()).padStart(2, '0')}:${String(t.getMinutes()).padStart(2, '0')}`);
   } catch (e) {
@@ -1107,6 +1110,29 @@ async function saveNow() {
   }
 }
 function setStatus(s) { $('#status').textContent = s; }
+
+/* ---------- Synk: egna10 och egna20 (och flera flikar) delar samma kortlek i webbläsaren ---------- */
+const TAB_ID = Math.random().toString(36).slice(2) + Date.now().toString(36);
+let syncChan = null;
+async function reloadFromOtherTab(meta) {
+  if (!meta || meta.tab === TAB_ID || meta.t <= (state.syncT || 0)) return;
+  if (saveTimer) return;                 // egna ändringar som inte hunnit sparas vinner
+  try {
+    const d = await DB.get('deck'); if (!d) return;
+    state.deck = sanitizeDeck(d); state.syncT = meta.t; state.status.clear();
+    const fs = await DB.get('file');
+    if (fs) { fileState.handle = fs.handle || null; fileState.name = fs.name || ''; fileState.dirty = !!fs.dirty; updateFileLabel(); }
+    selectCard(Math.min(state.cur, state.deck.cards.length - 1), state.side);
+    if (typeof renderAllCards === 'function' && isMobile() && document.body.dataset.view === 'preview') renderAllCards();
+    setStatus('Uppdaterad med ändringar från en annan flik');
+  } catch (e) { /* försöker igen nästa gång */ }
+}
+function bindSync() {
+  try { syncChan = new BroadcastChannel('egna10-kortlek'); syncChan.onmessage = e => reloadFromOtherTab(e.data); } catch (e) { /* äldre webbläsare */ }
+  const check = async () => { if (document.visibilityState !== 'visible') return; try { reloadFromOtherTab(await DB.get('deckMeta')); } catch (e) { /* ingen lagring */ } };
+  document.addEventListener('visibilitychange', check);
+  window.addEventListener('focus', check);
+}
 
 /* ---------- Kortlista ---------- */
 function cardStatus(ci) {
@@ -1362,11 +1388,12 @@ function bindApp() {
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   let prompt = null;
   if (location.protocol.startsWith('http') && 'serviceWorker' in navigator) {
+    const hadController = !!navigator.serviceWorker.controller;   // första installationen räknas inte som ny version
     navigator.serviceWorker.register('sw.js').catch(() => { /* fungerar ändå som vanlig sida */ });
     let reloaded = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (reloaded || !navigator.serviceWorker.controller) return;
-      reloaded = true; setStatus('En ny version av egna10 finns – ladda om sidan för att använda den.');
+      if (reloaded || !hadController) return;
+      reloaded = true; setStatus('En ny version av Egna10 finns – ladda om sidan för att använda den.');
     });
   }
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); prompt = e; if (!standalone) btn.hidden = false; });
@@ -2215,9 +2242,10 @@ async function init() {
   let d = null;
   try { d = await DB.get('deck'); } catch (e) { /* ingen lagring */ }
   state.deck = d ? sanitizeDeck(d) : sanitizeDeck(exampleDeck());
+  try { const m = await DB.get('deckMeta'); state.syncT = m ? m.t : 0; } catch (e) { state.syncT = 0; }
   try { const fs = await DB.get('file'); if (fs) { fileState.handle = fs.handle || null; fileState.name = fs.name || ''; fileState.dirty = !!fs.dirty; } } catch (e) { /* ingen lagring */ }
   updateFileLabel();
-  bindLayout(); bindMobile(); bindApp();
+  bindLayout(); bindMobile(); bindApp(); bindSync();
   bindEditor(); bindPreview(); bindCards(); bindFiles(); bindImport(); bindSettings(); bindCropper(); bindPdf();
   selectCard(0, 0);
   setStatus(d ? 'Kortleken är hämtad från webbläsaren' : 'Exempelkort – skriv över det eller lägg till nya');

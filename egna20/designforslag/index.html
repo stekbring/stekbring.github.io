@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Egna10 – designförslag</title>
+<style>
+:root{--bg:#f4f4f2;--ink:#1c1c1a;--muted:#6b6a66;--line:#dddcd6;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+header{max-width:1240px;margin:0 auto;padding:36px 20px 8px}
+h1{margin:0 0 6px;font-size:28px}
+header p{margin:0;color:var(--muted);max-width:760px}
+main{max-width:1240px;margin:0 auto;padding:20px;display:grid;gap:28px}
+.d{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.d-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;padding:18px 22px 6px}
+.d-head h2{margin:0;font-size:21px}
+.d-head .n{font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.d-head a{margin-left:auto;display:inline-block;background:var(--ink);color:#fff;text-decoration:none;padding:9px 16px;border-radius:10px;font-weight:600;font-size:14px}
+.d-head a:hover{background:#3b3b38}
+.d p.desc{margin:0;padding:0 22px 14px;color:var(--muted);max-width:820px}
+.shots{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,.95fr) minmax(0,.95fr);gap:14px;padding:0 22px 22px;align-items:start}
+.shots figure{margin:0}
+.shots img{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line)}
+.shots figcaption{font-size:12.5px;color:var(--muted);margin-top:6px;text-align:center}
+footer{max-width:1240px;margin:0 auto;padding:10px 20px 40px;color:var(--muted);font-size:14px}
+@media (max-width:760px){.shots{grid-template-columns:1fr 1fr}.shots figure:first-child{grid-column:1 / -1}.d-head a{margin-left:0}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Egna10 – fyra designförslag</h1>
+  <p>Alla fyra är fullt fungerande versioner av samma sida med exakt samma funktioner. Bara utseendet skiljer. Öppna ett förslag och klicka runt – dina kort från webbläsaren syns i alla.</p>
+</header>
+<main>
+  <section class="d">
+    <div class="d-head"><span class="n">Förslag 1</span><h2>Klar</h2><a href="design-1.html">Öppna förslag 1</a></div>
+    <p class="desc">Ljus, luftig och neutral. Vita rutor som svävar på en ljusgrå bakgrund, mjuka hörn, blå accent och ikoner i knapparna. Kortens förhandsvisning ligger på en diskret prickad yta. Känns som en modern webbapp.</p>
+    <div class="shots"><figure><img src="design-1-dator.jpg" alt="Förslag 1 på dator"><figcaption>Dator</figcaption></figure><figure><img src="design-1-mobil.jpg" alt="Förslag 1 på mobil, redigera"><figcaption>Mobil – redigera</figcaption></figure><figure><img src="design-1-mobil-kort.jpg" alt="Förslag 1 på mobil, alla kort"><figcaption>Mobil – alla kort</figcaption></figure></div>
+  </section>
+  <section class="d">
+    <div class="d-head"><span class="n">Förslag 2</span><h2>Kväll</h2><a href="design-2.html">Öppna förslag 2</a></div>
+    <p class="desc">Mörk arbetsyta som i ett ritprogram. Rutorna sitter kant i kant, och korten lyser upp mot en nästan svart bakgrund. Bärnstensgul accent. Skonsam för ögonen på kvällen.</p>
+    <div class="shots"><figure><img src="design-2-dator.jpg" alt="Förslag 2 på dator"><figcaption>Dator</figcaption></figure><figure><img src="design-2-mobil.jpg" alt="Förslag 2 på mobil, redigera"><figcaption>Mobil – redigera</figcaption></figure><figure><img src="design-2-mobil-kort.jpg" alt="Förslag 2 på mobil, alla kort"><figcaption>Mobil – alla kort</figcaption></figure></div>
+  </section>
+  <section class="d">
+    <div class="d-head"><span class="n">Förslag 3</span><h2>Spelbord</h2><a href="design-3.html">Öppna förslag 3</a></div>
+    <p class="desc">Varm och lekfull, byggd på kortens egna färger: gräddvita rutor, grå topplist som kortens etikett, rundade knappar och den blå ringfärgen som accent. Rubrikerna i samma typsnitt som på korten.</p>
+    <div class="shots"><figure><img src="design-3-dator.jpg" alt="Förslag 3 på dator"><figcaption>Dator</figcaption></figure><figure><img src="design-3-mobil.jpg" alt="Förslag 3 på mobil, redigera"><figcaption>Mobil – redigera</figcaption></figure><figure><img src="design-3-mobil-kort.jpg" alt="Förslag 3 på mobil, alla kort"><figcaption>Mobil – alla kort</figcaption></figure></div>
+  </section>
+  <section class="d">
+    <div class="d-head"><span class="n">Förslag 4</span><h2>Tryckeri</h2><a href="design-4.html">Öppna förslag 4</a></div>
+    <p class="desc">Papper och tusch. Skarpa svarta linjer, versala etiketter och röd accent som saxarna i PDF:en. Korten ligger på en grön skärmatta med rutnät – passar att sidan handlar om att skriva ut och klippa.</p>
+    <div class="shots"><figure><img src="design-4-dator.jpg" alt="Förslag 4 på dator"><figcaption>Dator</figcaption></figure><figure><img src="design-4-mobil.jpg" alt="Förslag 4 på mobil, redigera"><figcaption>Mobil – redigera</figcaption></figure><figure><img src="design-4-mobil-kort.jpg" alt="Förslag 4 på mobil, alla kort"><figcaption>Mobil – alla kort</figcaption></figure></div>
+  </section>
+</main>
+<footer>Välj ett förslag (eller en blandning, t.ex. ”3 men med mörkt läge”), så gör jag det till den riktiga sidan i egna20.</footer>
+</body>
+</html>
