@@ -45,6 +45,7 @@ textarea{resize:vertical;width:100%}
 .tb-items{display:contents}
 .tb-menu{display:none}
 .mobnav{display:none}
+.mobonly,.pvall{display:none}
 .status{margin-left:auto;color:var(--muted);font-size:14px}
 
 .layout{display:grid;grid-template-columns:var(--cols,250px 6px minmax(470px,1.05fr) 6px minmax(360px,1fr));column-gap:2px;padding:8px;flex:1 1 auto;min-height:0}
@@ -111,8 +112,8 @@ table.rows tr.hl td{background:#f3edd8}
 .pvwrap figcaption{text-align:center;font-size:14px;color:var(--muted);margin-top:2px}
 .pv svg{display:block;max-width:100%;height:auto;filter:drop-shadow(1px 2px 2px rgba(0,0,0,.25))}
 .pvwrap figure,.pv{max-width:100%}
-.pv .hit{fill:transparent;cursor:pointer}
-.pv .hit:hover{fill:rgba(39,69,111,.12)}
+.pv .hit,.pvall .hit{fill:transparent;cursor:pointer}
+.pv .hit:hover,.pvall .hit:active{fill:rgba(39,69,111,.12)}
 .warnings{margin-top:10px;font-size:14px}
 .warnings ul{margin:4px 0 0;padding-left:18px}
 .warnings .ok{color:var(--ok)}
@@ -173,6 +174,28 @@ code{font-family:Consolas,"Courier New",monospace;font-size:.92em;background:#f4
   .layout>.panel{display:none;min-height:calc(100dvh - 140px)}
   body[data-view="cards"] #pCards,body[data-view="editor"] #pEditor,body[data-view="preview"] #pPreview{display:block}
   .grip,.colgrip{display:none}
+  .deskonly,body[data-view="preview"] #pPreview .pvwrap,body[data-view="preview"] #pPreview #warnings{display:none}
+  .pvctl .deskonly{display:none}
+  .mobonly{display:inline-flex}
+  .colsw{gap:0}
+  .colsw button{min-width:44px;padding:2px 10px}
+  .pvctl{justify-content:space-between}
+  .pvall{display:grid;grid-template-columns:1fr;gap:10px 8px}
+  .pvall.two{grid-template-columns:1fr 1fr}
+  .pvall .pvhead{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--lo);padding:8px 2px 2px;font-weight:600;font-size:15px}
+  .pvall .pvhead .st{font-weight:400;font-size:13px}
+  .pvall .pvhead .st.bad{color:var(--warn)} .pvall .pvhead .st.ok{color:var(--ok)}
+  .pvall figure{margin:0;cursor:pointer}
+  .pvall figure svg{display:block;width:100%;height:auto;filter:drop-shadow(1px 2px 2px rgba(0,0,0,.25))}
+  .pvall .pvside{aspect-ratio:1/1}
+  .pvall .pvside.lazy{background:rgba(255,255,255,.25);border-radius:12px 4px 4px 12px}
+  .pvall .pvhead{scroll-margin-top:84px}
+  .pvall figure.sel svg{outline:3px solid var(--sel);outline-offset:2px;border-radius:6px}
+  .pvall figcaption{text-align:center;font-size:13px;color:var(--muted)}
+  .pvall .addcard{grid-column:1 / -1;display:flex;justify-content:center;padding:6px 0 14px}
+  .pvall.two .addcard{grid-column:auto;justify-content:stretch}
+  .pvall .addcard button{all:unset;cursor:pointer;display:block;width:100%;max-width:100%}
+  .pvall .addcard svg{display:block;width:100%;height:auto}
   .mobnav{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--bg);border-top:2px groove var(--hi);padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
   .mobnav button{min-height:46px;font-size:15px}
   .cardlist li{padding:8px 6px;font-size:15px}
@@ -255,8 +278,10 @@ code{font-family:Consolas,"Courier New",monospace;font-size:.92em;background:#f4
     <div class="panel-title"><span class="grip" draggable="true" title="Dra för att flytta rutan"></span>Förhandsvisning</div>
     <div class="pvctl">
       <label><input type="checkbox" id="pvHoles"> Visa boxens hål</label>
-      <label>Storlek <input type="range" id="pvZoom" min="50" max="200" step="5"> <span id="pvZoomVal"></span></label>
+      <label class="deskonly">Storlek <input type="range" id="pvZoom" min="50" max="200" step="5"> <span id="pvZoomVal"></span></label>
+      <span class="colsw mobonly" id="pvCols" role="group" aria-label="Antal kolumner"><button type="button" data-cols="1">1 kolumn</button><button type="button" data-cols="2">2 kolumner</button></span>
     </div>
+    <div class="pvall" id="pvAll"></div>
     <div class="pvwrap">
       <figure><div id="pvFront" class="pv"></div><figcaption>Framsida</figcaption></figure>
       <figure><div id="pvBack" class="pv"></div><figcaption>Baksida</figcaption></figure>
@@ -1099,7 +1124,7 @@ function listItemHTML(ci) {
     const t = (s.text || '').replace(/[|~]/g, ' ').trim() || '(ingen fråga)';
     return `<span><i class="dot" style="background:${ringColor(s)}"></i>${esc(t)}</span>`;
   };
-  return `<span class="n">${ci + 1}.</span><span class="q">${q(0)}${q(1)}</span><span class="st ${n ? 'bad' : 'ok'}" title="${n ? n + ' saker att kontrollera' : 'Klart'}">${n ? '!' : '✓'}</span>`;
+  return `<span class="n">${ci + 1}.</span><span class="q">${q(0)}${q(1)}</span><span class="st ${n ? 'bad' : 'ok'}" title="${n ? n + (n === 1 ? ' sak' : ' saker') + ' att kontrollera' : 'Klart'}">${n ? '!' : '✓'}</span>`;
 }
 function renderList() {
   const ol = $('#cardList');
@@ -1207,6 +1232,7 @@ function highlightRow(tr) { $$('#rows tr.hl').forEach(t => t.classList.remove('h
 /* ---------- Förhandsvisning ---------- */
 let pvRaf = 0;
 function renderPreview() {
+  if (isMobile() && document.body.dataset.view === 'preview') renderAllCards();
   cancelAnimationFrame(pvRaf);
   pvRaf = requestAnimationFrame(() => {
     const c = curCard();
@@ -1224,7 +1250,76 @@ function renderPreview() {
       : `<span class="ok">✓ Kortet är komplett på båda sidor.</span>`;
   });
 }
+// Mobil: alla kort under varandra + ett tomt ”plus-kort” sist.
+// Korten ritas först när de närmar sig skärmen, så att långa kortlekar går snabbt.
+let pvAllRaf = 0, pvObs = null;
+function renderLazySide(el) {
+  const ci = Number(el.dataset.ci), si = Number(el.dataset.si), c = state.deck.cards[ci];
+  if (!c) return;
+  const sc = buildSide(c.sides[si], state.deck, { number: sideNumber(ci, si), preview: true, holes: state.holes });
+  el.innerHTML = sceneToSVG(sc);
+  el.classList.remove('lazy');
+}
+function renderAllCards(scrollToCur) {
+  cancelAnimationFrame(pvAllRaf);
+  pvAllRaf = requestAnimationFrame(() => {
+    const box = $('#pvAll'), deck = state.deck;
+    box.classList.toggle('two', state.pvCols === 2);
+    let h = '';
+    deck.cards.forEach((c, ci) => {
+      const nw = state.status.has(c.id) ? state.status.get(c.id) : cardStatus(ci);
+      h += `<div class="pvhead" data-ci="${ci}"><span>Kort ${ci + 1}</span><span class="st ${nw ? 'bad' : 'ok'}">${nw ? nw + (nw === 1 ? ' sak' : ' saker') + ' att kontrollera' : '✓ klart'}</span></div>`;
+      for (let si = 0; si < 2; si++) {
+        h += `<figure data-ci="${ci}" data-si="${si}"${ci === state.cur && si === state.side ? ' class="sel"' : ''}><div class="pvside lazy" data-ci="${ci}" data-si="${si}"></div><figcaption>${si ? 'Baksida' : 'Framsida'}</figcaption></figure>`;
+      }
+    });
+    const ghost = `<svg viewBox="-2 -2 114 114" xmlns="http://www.w3.org/2000/svg"><path d="${pathD(cardPath(0))}" fill="rgba(255,255,255,.35)" stroke="#6f6c65" stroke-width="0.8" stroke-dasharray="3 2.2"/><circle cx="55" cy="55" r="15" fill="none" stroke="#6f6c65" stroke-width="0.8"/><path d="M55 46V64M46 55H64" stroke="#3b3a37" stroke-width="2.2" stroke-linecap="round"/><text x="55" y="84" text-anchor="middle" font-family="KortSerif" font-size="6.5" fill="#5c5a55">Nytt kort</text></svg>`;
+    h += `<div class="addcard"><button type="button" id="pvAdd" aria-label="Lägg till ett nytt kort">${ghost}</button></div>`;
+    box.innerHTML = h;
+    if (pvObs) pvObs.disconnect();
+    const lazies = [...box.querySelectorAll('.pvside.lazy')];
+    if ('IntersectionObserver' in window) {
+      pvObs = new IntersectionObserver(entries => {
+        for (const en of entries) if (en.isIntersecting) { pvObs.unobserve(en.target); renderLazySide(en.target); }
+      }, { rootMargin: '900px 0px' });
+      lazies.forEach(el => pvObs.observe(el));
+    } else lazies.forEach(renderLazySide);
+    if (scrollToCur && state.cur > 0) {
+      const head = box.querySelector(`.pvhead[data-ci="${state.cur}"]`);
+      if (head) head.scrollIntoView({ block: 'start' });
+    }
+  });
+}
+// hoppa till rätt fält i redigeringen (från en klickad position på ett kort)
+function focusTarget(kind, pos) {
+  let el;
+  if (kind === 'q') el = $('#qText');
+  else {
+    const tr = $(`#rows tr[data-pos="${pos}"]`); if (!tr) return;
+    el = kind === 'alt' ? tr.querySelector('input.alt:not([disabled])') || tr.querySelector('.altimg')
+      : tr.querySelector('input.ans:not([disabled])') || tr.querySelector('.ans-sant button, input.acol, .ansimg');
+    highlightRow(tr);
+    tr.scrollIntoView({ block: 'center' });
+  }
+  if (el) el.focus({ preventScroll: kind !== 'q' });
+}
 function bindPreview() {
+  state.pvCols = state.pvCols || 1;
+  const colMark = () => $$('#pvCols button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.cols) === state.pvCols)));
+  colMark();
+  $$('#pvCols button').forEach(b => b.addEventListener('click', () => { state.pvCols = Number(b.dataset.cols); colMark(); savePrefs(); renderAllCards(); }));
+  $('#pvAll').addEventListener('click', e => {
+    if (e.target.closest('#pvAdd')) {
+      const c = newCard();
+      state.deck.cards.push(c); selectCard(state.deck.cards.length - 1, 0); scheduleSave();
+      setView('editor'); $('#qText').focus();
+      return;
+    }
+    const fig = e.target.closest('figure[data-ci]'); if (!fig) return;
+    const h = e.target.closest('.hit');
+    selectCard(Number(fig.dataset.ci), Number(fig.dataset.si)); setView('editor');
+    if (h) focusTarget(h.dataset.kind, Number(h.dataset.pos));
+  });
   $('#pvHoles').checked = state.holes;
   $('#pvZoom').value = state.zoom; $('#pvZoomVal').textContent = state.zoom + ' %';
   $('#pvHoles').addEventListener('change', e => { state.holes = e.target.checked; savePrefs(); renderPreview(); });
@@ -1247,11 +1342,11 @@ function bindPreview() {
     if (el) el.focus();
   });
 }
-function savePrefs() { try { localStorage.setItem('egna10.prefs', JSON.stringify({ zoom: state.zoom, holes: state.holes, layout: state.layout })); } catch (e) { /* inte viktigt */ } }
+function savePrefs() { try { localStorage.setItem('egna10.prefs', JSON.stringify({ zoom: state.zoom, holes: state.holes, layout: state.layout, pvCols: state.pvCols })); } catch (e) { /* inte viktigt */ } }
 function loadPrefs() {
   try {
     const p = JSON.parse(localStorage.getItem('egna10.prefs') || '{}');
-    if (p.zoom) state.zoom = p.zoom; if (p.holes !== undefined) state.holes = !!p.holes;
+    if (p.zoom) state.zoom = p.zoom; if (p.holes !== undefined) state.holes = !!p.holes; if (p.pvCols) state.pvCols = p.pvCols;
     const L = p.layout;
     if (L && Array.isArray(L.order) && L.order.length === 3 && ['cards', 'editor', 'preview'].every(id => L.order.includes(id))
       && Array.isArray(L.w) && L.w.length === 3 && L.w.every(v => v > 0)) {
@@ -1298,6 +1393,7 @@ function setView(v) {
   document.body.dataset.view = v;
   $$('#mobNav button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === v)));
   if (isMobile()) window.scrollTo(0, 0);
+  if (v === 'preview' && isMobile() && state.deck) renderAllCards(true);
 }
 function bindMobile() {
   setView('editor');
