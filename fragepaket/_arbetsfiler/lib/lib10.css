@@ -66,3 +66,31 @@
   .libcount{flex-basis:100%}
   .libfoot button{flex:1}
 }
+/* ---------- Markera och sortera kort ---------- */
+.cardlist li{grid-template-columns:18px 28px minmax(0,1fr) 18px}
+.cardlist .ck{margin:2px 0 0}
+.cardlist li.mk{background:#f3edd8}
+.cardlist li.mk.sel{background:var(--sel);color:var(--selink)}
+.listbar{display:flex;align-items:center;gap:6px;margin:0 0 6px;font-size:14px}
+.listbar label{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.listbar select{flex:1;min-width:0}
+.selbar{display:flex;align-items:center;gap:6px;margin:0 0 6px;padding:4px 6px;background:#f3edd8;border:1px solid var(--lo);font-size:13px}
+.selbar span{flex:1}
+.edwarn{display:none}
+@media (max-width:720px){
+  body:not(.selmode) .cardlist li{grid-template-columns:28px minmax(0,1fr) 18px}
+  body:not(.selmode) .cardlist .ck{display:none}
+  .cardlist li{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .edwarn:not([hidden]){display:block;margin:0 0 10px}
+}
+/* ---------- Betyg för hela kortet ---------- */
+.sidetabs .cardscore{display:inline-flex;align-items:center;gap:0;margin-left:10px;padding:0 4px 4px;color:var(--muted)}
+.cardscore .cs-l{margin-right:4px}
+.cardscore .cs-star{min-height:0;min-width:0;padding:0 2px;border:0;background:transparent;box-shadow:none;font-size:20px;line-height:1;color:#9a958a;opacity:.5;cursor:pointer}
+.cardscore .cs-star:hover{opacity:.9;color:#b07d10}
+.cardscore .cs-star.auto{opacity:.65;color:#b07d10}
+.cardscore .cs-star.on{opacity:1;color:#b07d10}
+@media (max-width:720px){
+  .sidetabs .cardscore{flex-basis:100%;order:4;margin:0;padding:2px 2px 4px}
+  .cardscore .cs-star{font-size:27px;padding:0 5px}
+}

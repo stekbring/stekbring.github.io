@@ -1,7 +1,7 @@
 """Bygger egna10 och egna20 med biblioteket från originalfilerna (orig10/orig20)."""
 import pathlib, re, sys
 W = pathlib.Path('/home/claude/w')
-LIBJS = (W / 'lib/library.js').read_text()
+LIBJS = (W / 'lib/library.js').read_text() + '\n' + (W / 'lib/cards-extra.js').read_text()
 
 def ic(n):
     return f'<svg class="ic" aria-hidden="true"><use href="#i-{n}"/></svg>'
@@ -54,7 +54,28 @@ def add_script_and_init(s):
     i = s.index('function bindCards()')
     j = s.rfind('<script>', 0, i)
     s = s[:j] + '<script>\n' + LIBJS + '</script>\n' + s[j:]
-    s = sub1(s, 'bindCropper(); bindPdf();\n', 'bindCropper(); bindPdf(); bindLibrary();\n', 'init')
+    s = sub1(s, 'bindCropper(); bindPdf();\n', 'bindCropper(); bindPdf(); bindLibrary(); bindCardSelect();\n', 'init')
+    s = common_js(s)
+    return s
+
+LISTBAR = '''<div class="listbar"><label title="Markera alla kort (Ctrl+A). Shift-klick markerar ett intervall, Ctrl-klick ett i taget. På mobilen: håll in ett kort."><input type="checkbox" id="ckAll"> Alla</label><select id="cardSort" aria-label="Sortera korten"><option value="">Sortera…</option><option value="alpha">Frågetext A–Ö</option><option value="best">Betyg – bäst först</option><option value="worst">Betyg – sämst först</option><option value="pack">Paket</option><option value="type">Frågetyp</option><option value="todo">Saker att kontrollera först</option><option value="random">Slumpvis ordning</option><option value="reverse">Vänd på ordningen</option><option value="undo" disabled>Ångra senaste sortering</option></select></div>
+    <div class="selbar" id="selBar" hidden><span id="selInfo"></span><button type="button" id="selDone">Avmarkera</button></div>
+'''
+
+def common_js(s):
+    s = sub1(s, "ol.innerHTML = state.deck.cards.map((c, ci) => `<li data-i=\"${ci}\"${ci === state.cur ? ' class=\"sel\"' : ''}>${listItemHTML(ci)}</li>`).join('');",
+             "ol.innerHTML = state.deck.cards.map((c, ci) => `<li data-i=\"${ci}\" class=\"${ci === state.cur ? 'sel' : ''}${cardSel.ids.has(c.id) ? ' mk' : ''}\">${csCk(ci)}${listItemHTML(ci)}</li>`).join('');", 'renderList')
+    s = sub1(s, "  const sel = ol.querySelector('li.sel'); if (sel) sel.scrollIntoView({ block: 'nearest' });\n}", "  const sel = ol.querySelector('li.sel'); if (sel) sel.scrollIntoView({ block: 'nearest' });\n  csRender();\n}", 'renderList2')
+    s = sub1(s, "if (li) li.innerHTML = listItemHTML(state.cur);", "if (li) li.innerHTML = csCk(state.cur) + listItemHTML(state.cur);", 'refresh')
+    s = sub1(s, "$('#cardList').addEventListener('click', e => { const li = e.target.closest('li'); if (li) { selectCard(Number(li.dataset.i)); if (isMobile()) setView('editor'); } });", "$('#cardList').addEventListener('click', csListClick);", 'click')
+    s = sub1(s, "q.text = String(src.text || ''); q.ring = src.ring || '';", "q.text = String(src.text || ''); q.ring = src.ring || ''; if (Number(src.score) > 0) q.score = Number(src.score); if (src.pack) q.pack = String(src.pack);", 'sanitize')
+    s = sub1(s, "      : `<span class=\"ok\">✓ Kortet är komplett på båda sidor.</span>`;\n", "      : `<span class=\"ok\">✓ Kortet är komplett på båda sidor.</span>`;\n    { const ew = $('#edWarn'); if (ew) { ew.innerHTML = warns.length ? $('#warnings').innerHTML : ''; ew.hidden = !warns.length; } }\n", 'warn')
+    s = sub1(s, "const nc = newCard(); nc.id = c && c.id || uid();", "const nc = newCard(); nc.id = c && c.id || uid(); if (c && Number(c.score) > 0) nc.score = Number(c.score);", 'cardscore')
+    s = sub1(s, "$('#typeHelp').textContent = TYPE_BY_ID[q.type].help;", "$('#typeHelp').textContent = TYPE_BY_ID[q.type].help; csRenderScore();", 'scorerender')
+    s = sub1(s, '<span class="cardtitle" id="cardTitle"></span>', '<span class="cardtitle" id="cardTitle"></span>\n      <span class="cardscore" id="cardScore" role="group" aria-label="Betyg för kortet"></span>', 'scoremarkup')
+    s = sub1(s, '<label>Frågetyp <select id="qType">', '<div id="edWarn" class="warnings edwarn" hidden></div>\n      <label>Frågetyp <select id="qType">', 'edwarn')
+    s = re.sub(r'(<div class="btnrow"><button id="btnLibCards".*?</div>\n)', lambda m: m.group(1) + '    ' + LISTBAR, s, count=1)
+    assert 'id="ckAll"' in s
     return s
 
 def build20():
@@ -107,7 +128,7 @@ if __name__ == '__main__':
     (out / 'egna20').mkdir(parents=True, exist_ok=True)
     (out / 'egna10/index.html').write_text(build10())
     (out / 'egna20/index.html').write_text(build20())
-    (out / 'egna10/sw.js').write_text(sw('orig10/sw.js', 'egna10-v6'))
-    (out / 'egna20/sw.js').write_text(sw('orig20/sw.js', 'egna20-v3'))
+    (out / 'egna10/sw.js').write_text(sw('orig10/sw.js', 'egna10-v8'))
+    (out / 'egna20/sw.js').write_text(sw('orig20/sw.js', 'egna20-v5'))
     for f in ['egna10/index.html', 'egna20/index.html', 'egna10/sw.js', 'egna20/sw.js']:
         print(f, (out / f).stat().st_size)

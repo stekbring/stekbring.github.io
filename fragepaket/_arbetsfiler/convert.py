@@ -75,6 +75,56 @@ def parse(path):
     return meta, qs, errors
 
 
+LONG = 99
+
+
+def shuffled(q, rnd):
+    # Blanda alternativens plats runt kortet så att facit inte hamnar i mönster
+    # (t.ex. alla sanna till höger eller 1–10 medurs). Undvik långa rader av samma svar.
+    rows = list(q['rows'])
+    longs = sorted((len(a) for a, _ in rows), reverse=True)
+    lim = longs[2] if len(longs) > 2 else 0
+    def fits(r):  # de längsta alternativen får plats bäst högst upp och längst ned (plats 1 och 6)
+        return all(len(a) <= max(lim, LONG) or i in (0, 5) for i, (a, _) in enumerate(r))
+    for _ in range(2000):
+        rnd.shuffle(rows)
+        if not fits(rows):
+            continue
+        ans = [f for _, f in rows]
+        if q['type'] == 'sant':
+            run = max_run(ans)
+            half = sum(1 for f in ans[:5] if f == 'ja')
+            if run <= 3 and 1 <= half <= 4:
+                break
+        elif q['type'] in ('ordning', 'siffra', 'tid'):
+            if max_run(ans) <= 2 and not ascending_run(ans, 3):
+                break
+        else:
+            break
+    return rows
+
+
+def max_run(a):
+    best = cur = 1
+    for i in range(1, len(a) * 2):  # runt hela cirkeln
+        if a[i % len(a)] == a[(i - 1) % len(a)]:
+            cur += 1; best = max(best, cur)
+        else:
+            cur = 1
+    return min(best, len(a))
+
+
+def ascending_run(a, n):
+    try:
+        v = [float(x.replace(',', '.')) for x in a]
+    except ValueError:
+        return False
+    for i in range(len(v)):
+        if all(v[(i + k) % len(v)] < v[(i + k + 1) % len(v)] for k in range(n - 1)):
+            if n >= 3: return True
+    return False
+
+
 def side(q):
     alts, ans = [], []
     for a, f in q['rows']:
@@ -123,8 +173,10 @@ def main():
             allerr.append(f'{path.name}: udda antal frågor ({len(qs)}) – varje kort behöver två frågor')
         if len(qs) != 100:
             print(f'OBS {path.name}: {len(qs)} frågor (målet är 100)')
-        cards = pair(qs)
         rnd = random.Random(meta['file'])
+        for q in qs:
+            q['rows'] = shuffled(q, rnd)
+        cards = pair(qs)
         deck = {
             'format': 'egna10', 'version': 1, 'name': meta['title'], 'description': meta.get('desc', ''),
             'color': meta.get('color', ''),

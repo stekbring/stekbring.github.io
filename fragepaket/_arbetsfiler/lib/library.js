@@ -34,7 +34,8 @@ function libFlatten(deck) {
     const raw = deck.cards[ci] && deck.cards[ci].sides && deck.cards[ci].sides[si] || {};
     const empty = !q.text.trim() && q.alts.every(a => !a.text && !a.img);
     if (empty) return;
-    const sc = Number(raw.score);
+    // ett eget betyg på hela kortet gäller före frågornas betyg från biblioteket
+    const sc = Number(deck.cards[ci] && deck.cards[ci].score) || Number(raw.score);
     out.push({ q, score: isFinite(sc) && sc > 0 ? sc : null });
   }));
   return out;
@@ -316,6 +317,7 @@ async function libAddSelected() {
   for (const it of items) {
     const p = libPack(it.id); if (!p || !p.qs || !p.qs[it.i]) continue;
     const q = JSON.parse(JSON.stringify(p.qs[it.i].q)), s = libSig(q);
+    q.pack = p.name; if (p.qs[it.i].score) q.score = p.qs[it.i].score;
     if (sigs.has(s) || seen.has(s)) { dup++; continue; }
     seen.add(s); qs.push(q);
   }

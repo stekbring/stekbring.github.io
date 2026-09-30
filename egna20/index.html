@@ -416,6 +416,36 @@ html[data-theme="light"] #btnTheme .ic-moon{display:none}
   .libcount{flex-basis:100%}
   .libfoot button{flex:1}
 }
+/* ---------- Markera och sortera kort ---------- */
+.cardlist li{grid-template-columns:18px 30px minmax(0,1fr) 18px}
+.cardlist .ck{margin:0;width:16px;height:16px}
+.cardlist li.mk{background:var(--accent-soft)}
+.cardlist li.mk.sel{box-shadow:inset 3px 0 0 var(--list-sel-bar)}
+.listbar{display:flex;align-items:center;gap:8px;margin:2px 0 6px;font-size:13px;color:var(--muted)}
+.listbar label{display:inline-flex;align-items:center;white-space:nowrap}
+.listbar select{flex:1;min-width:0;min-height:32px;padding:4px 8px;font-size:13px}
+.selbar{display:flex;align-items:center;gap:8px;margin:0 0 6px;padding:6px 8px;border-radius:var(--radius-sm);background:var(--accent-soft);font-size:12.5px;color:var(--text)}
+.selbar span{flex:1}
+.selbar button{padding:3px 10px;min-height:28px;font-size:12.5px}
+.edwarn{display:none}
+@media (max-width:720px){
+  body:not(.selmode) .cardlist li{grid-template-columns:30px minmax(0,1fr) 18px}
+  body:not(.selmode) .cardlist .ck{display:none}
+  .cardlist li{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .cardlist .ck{width:20px;height:20px}
+  .edwarn:not([hidden]){display:block;margin:0 0 12px}
+}
+/* ---------- Betyg för hela kortet ---------- */
+.sidetabs .cardscore{display:inline-flex;align-items:center;gap:1px;margin-left:12px;font-size:12.5px;color:var(--muted)}
+.cardscore .cs-l{margin-right:5px}
+.cardscore .cs-star{min-height:0;padding:0 2px;border:0;background:transparent;box-shadow:none;font-size:19px;line-height:1.1;color:var(--muted);opacity:.35;cursor:pointer}
+.cardscore .cs-star:hover{background:transparent;opacity:.8;color:var(--accent)}
+.cardscore .cs-star.auto{opacity:.6;color:var(--accent)}
+.cardscore .cs-star.on{opacity:1;color:var(--accent)}
+@media (max-width:720px){
+  .sidetabs .cardscore{margin:2px 0 0;flex-basis:100%}
+  .cardscore .cs-star{font-size:26px;padding:0 5px}
+}
 </style>
   </head>
   <body>
@@ -486,6 +516,8 @@ html[data-theme="light"] #btnTheme .ic-moon{display:none}
     <div class="btnrow"><button id="btnAddCard" class="default"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg><span>Nytt kort</span></button><button id="btnDupCard"><svg class="ic" aria-hidden="true"><use href="#i-copy"/></svg><span>Duplicera</span></button></div>
     <div class="btnrow"><button id="btnUp" title="Flytta upp"><svg class="ic" aria-hidden="true"><use href="#i-up"/></svg><span>Upp</span></button><button id="btnDown" title="Flytta ned"><svg class="ic" aria-hidden="true"><use href="#i-down"/></svg><span>Ned</span></button><button id="btnDelCard" class="danger"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg><span>Ta bort</span></button></div>
     <div class="btnrow"><button id="btnLibCards" class="js-lib" title="Hämta frågor från färdiga paket"><svg class="ic" aria-hidden="true"><use href="#i-books"/></svg><span>Hämta från biblioteket</span></button></div>
+    <div class="listbar"><label title="Markera alla kort (Ctrl+A). Shift-klick markerar ett intervall, Ctrl-klick ett i taget. På mobilen: håll in ett kort."><input type="checkbox" id="ckAll"> Alla</label><select id="cardSort" aria-label="Sortera korten"><option value="">Sortera…</option><option value="alpha">Frågetext A–Ö</option><option value="best">Betyg – bäst först</option><option value="worst">Betyg – sämst först</option><option value="pack">Paket</option><option value="type">Frågetyp</option><option value="todo">Saker att kontrollera först</option><option value="random">Slumpvis ordning</option><option value="reverse">Vänd på ordningen</option><option value="undo" disabled>Ångra senaste sortering</option></select></div>
+    <div class="selbar" id="selBar" hidden><span id="selInfo"></span><button type="button" id="selDone">Avmarkera</button></div>
     <ol id="cardList" class="cardlist" tabindex="0" aria-label="Kort i kortleken"></ol>
   </aside>
 
@@ -494,8 +526,10 @@ html[data-theme="light"] #btnTheme .ic-moon{display:none}
       <span class="grip" draggable="true" title="Dra för att flytta rutan"></span>
       <div class="seg"><button class="tab" role="tab" data-side="0">Framsida</button><button class="tab" role="tab" data-side="1">Baksida</button></div>
       <span class="cardtitle" id="cardTitle"></span>
+      <span class="cardscore" id="cardScore" role="group" aria-label="Betyg för kortet"></span>
     </div>
     <div class="form">
+      <div id="edWarn" class="warnings edwarn" hidden></div>
       <label>Frågetyp <select id="qType"></select></label>
       <label>Ringens färg <input type="color" id="qRing"> <button id="qRingReset" title="Använd frågetypens färg">Standard</button></label>
       <p id="typeHelp" class="help"></p>
@@ -1302,7 +1336,8 @@ function libFlatten(deck) {
     const raw = deck.cards[ci] && deck.cards[ci].sides && deck.cards[ci].sides[si] || {};
     const empty = !q.text.trim() && q.alts.every(a => !a.text && !a.img);
     if (empty) return;
-    const sc = Number(raw.score);
+    // ett eget betyg på hela kortet gäller före frågornas betyg från biblioteket
+    const sc = Number(deck.cards[ci] && deck.cards[ci].score) || Number(raw.score);
     out.push({ q, score: isFinite(sc) && sc > 0 ? sc : null });
   }));
   return out;
@@ -1584,6 +1619,7 @@ async function libAddSelected() {
   for (const it of items) {
     const p = libPack(it.id); if (!p || !p.qs || !p.qs[it.i]) continue;
     const q = JSON.parse(JSON.stringify(p.qs[it.i].q)), s = libSig(q);
+    q.pack = p.name; if (p.qs[it.i].score) q.score = p.qs[it.i].score;
     if (sigs.has(s) || seen.has(s)) { dup++; continue; }
     seen.add(s); qs.push(q);
   }
@@ -1690,6 +1726,220 @@ function libRenderMainDesc(p) {
   const n = p.qs.length, cnt = libSelCount(p.id), d = $('#libHead .lib-desc'); if (!d) return;
   d.innerHTML = `${esc(p.desc || '')}${p.desc ? ' · ' : ''}${n} frågor${cnt ? ` · <b>${cnt} valda</b>` : ''}`;
 }
+
+'use strict';
+/* =====================================================================
+   Egna10 – markera flera kort (kryssrutor på datorn, håll in på mobilen)
+   och sortera kortleken.
+   ===================================================================== */
+const cardSel = { ids: new Set(), anchor: null, mode: false, undo: null, lpTimer: 0, lpFired: false };
+
+function csCount() { return cardSel.ids.size; }
+function csIndices() { return state.deck.cards.map((c, i) => cardSel.ids.has(c.id) ? i : -1).filter(i => i >= 0); }
+function csPrune() { const ids = new Set(state.deck.cards.map(c => c.id)); for (const id of [...cardSel.ids]) if (!ids.has(id)) cardSel.ids.delete(id); }
+function csToggle(i, on) {
+  const c = state.deck.cards[i]; if (!c) return;
+  const v = on === undefined ? !cardSel.ids.has(c.id) : on;
+  if (v) cardSel.ids.add(c.id); else cardSel.ids.delete(c.id);
+  cardSel.anchor = i;
+}
+function csRange(i) {
+  const a = cardSel.anchor == null ? i : cardSel.anchor;
+  const [lo, hi] = a < i ? [a, i] : [i, a];
+  for (let k = lo; k <= hi; k++) cardSel.ids.add(state.deck.cards[k].id);
+}
+function csClear() { cardSel.ids.clear(); cardSel.mode = false; cardSel.anchor = null; csRender(); }
+function csRender() {
+  csPrune();
+  const n = csCount(), total = state.deck.cards.length;
+  if (!n) cardSel.mode = false;
+  document.body.classList.toggle('selmode', cardSel.mode || n > 0);
+  $$('#cardList li').forEach(li => {
+    const c = state.deck.cards[Number(li.dataset.i)];
+    const on = !!c && cardSel.ids.has(c.id);
+    li.classList.toggle('mk', on);
+    const ck = li.querySelector('.ck'); if (ck) ck.checked = on;
+  });
+  const all = $('#ckAll');
+  if (all) { all.checked = n > 0 && n === total; all.indeterminate = n > 0 && n < total; }
+  const bar = $('#selBar');
+  if (bar) {
+    bar.hidden = !n;
+    $('#selInfo').textContent = n ? `${n} markerade – knapparna ovan gäller ${n === 1 ? 'det' : 'alla'}` : '';
+  }
+  const srt = $('#cardSort');
+  if (srt) {
+    const u = srt.querySelector('option[value="undo"]'); if (u) u.disabled = !cardSel.undo;
+    srt.options[0].textContent = n > 1 ? `Sortera ${n} markerade…` : 'Sortera…';
+  }
+}
+
+/* ---------- Klick, kryssrutor och håll-in ---------- */
+function csListClick(e) {
+  const li = e.target.closest('li'); if (!li) return;
+  const i = Number(li.dataset.i);
+  if (cardSel.lpFired) { cardSel.lpFired = false; e.preventDefault(); return; }
+  if (e.target.classList.contains('ck')) {
+    if (e.shiftKey) csRange(i); else csToggle(i, e.target.checked);
+    csRender(); return;
+  }
+  if (e.shiftKey && !isMobile()) { e.preventDefault(); csRange(i); csRender(); return; }
+  if ((e.ctrlKey || e.metaKey) && !isMobile()) { e.preventDefault(); csToggle(i); csRender(); return; }
+  if (isMobile() && (cardSel.mode || csCount())) { csToggle(i); if (!csCount()) cardSel.mode = false; csRender(); return; }
+  selectCard(i);
+  if (isMobile()) setView('editor');
+}
+function csBindLongPress(ol) {
+  let sx = 0, sy = 0;
+  const cancel = () => { clearTimeout(cardSel.lpTimer); cardSel.lpTimer = 0; };
+  ol.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse') return;
+    const li = e.target.closest('li'); if (!li) return;
+    sx = e.clientX; sy = e.clientY; cardSel.lpFired = false;
+    cancel();
+    cardSel.lpTimer = setTimeout(() => {
+      cardSel.lpFired = true; cardSel.mode = true;
+      csToggle(Number(li.dataset.i), true); csRender();
+      if (navigator.vibrate) try { navigator.vibrate(15); } catch (err) { /* ok */ }
+    }, 450);
+  });
+  ol.addEventListener('pointermove', e => { if (cardSel.lpTimer && Math.hypot(e.clientX - sx, e.clientY - sy) > 10) cancel(); });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => ol.addEventListener(t, cancel));
+  ol.addEventListener('contextmenu', e => { if (e.target.closest('li') && (cardSel.lpFired || cardSel.lpTimer || isMobile())) e.preventDefault(); });
+}
+
+/* ---------- Åtgärder på markerade kort ---------- */
+function csAfterChange(cur) {
+  state.status.clear();
+  selectCard(Math.max(0, Math.min(state.deck.cards.length - 1, cur)));
+  scheduleSave(); csRender();
+}
+function csDelete() {
+  const idx = csIndices(), n = idx.length;
+  if (!confirm(`Ta bort ${n} ${n === 1 ? 'kort' : 'kort'}?`)) return;
+  state.deck.cards = state.deck.cards.filter(c => !cardSel.ids.has(c.id));
+  if (!state.deck.cards.length) state.deck.cards.push(newCard());
+  cardSel.ids.clear(); cardSel.mode = false;
+  csAfterChange(idx[0]);
+  setStatus(`${n} kort borttagna.`);
+}
+function csDuplicate() {
+  const out = [], copies = [];
+  for (const c of state.deck.cards) {
+    out.push(c);
+    if (cardSel.ids.has(c.id)) { const d = JSON.parse(JSON.stringify(c)); d.id = uid(); out.push(d); copies.push(d.id); }
+  }
+  state.deck.cards = out;
+  cardSel.ids = new Set(copies);
+  csAfterChange(state.deck.cards.findIndex(c => c.id === copies[0]));
+  setStatus(`${copies.length} kort duplicerade – kopiorna är markerade.`);
+}
+function csMove(d) {
+  const a = state.deck.cards, idx = csIndices();
+  if (!idx.length) return;
+  if (d < 0 && idx[0] === 0) return;
+  if (d > 0 && idx[idx.length - 1] === a.length - 1) return;
+  const curId = curCard().id;
+  const order = d < 0 ? idx : idx.slice().reverse();
+  for (const i of order) [a[i], a[i + d]] = [a[i + d], a[i]];
+  csAfterChange(a.findIndex(c => c.id === curId));
+}
+
+/* ---------- Sortering ---------- */
+const CS_TYPE_ORDER = ['sant', 'siffra', 'ordning', 'tid', 'farg', 'ovrigt'];
+function csText(c) { return (c.sides[0].text || c.sides[1].text || '').replace(/[|~]/g, ' ').trim(); }
+function csScore(c) { return csCardScore(c); }
+function csPack(c) { return c.sides[0].pack || c.sides[1].pack || ''; }
+function csWarn(c) { const i = state.deck.cards.indexOf(c); return i >= 0 ? cardStatus(i) : 0; }
+const CS_SORTS = {
+  alpha: { label: 'frågetext A–Ö', cmp: (a, b) => csText(a).localeCompare(csText(b), 'sv') || 0, empty: c => !csText(c) },
+  best: { label: 'betyg (bäst först)', cmp: (a, b) => csScore(b) - csScore(a), empty: c => !csScore(c) },
+  worst: { label: 'betyg (sämst först)', cmp: (a, b) => csScore(a) - csScore(b), empty: c => !csScore(c) },
+  pack: { label: 'paket', cmp: (a, b) => csPack(a).localeCompare(csPack(b), 'sv'), empty: c => !csPack(c) },
+  type: { label: 'frågetyp', cmp: (a, b) => CS_TYPE_ORDER.indexOf(a.sides[0].type) - CS_TYPE_ORDER.indexOf(b.sides[0].type) },
+  todo: { label: 'saker att kontrollera först', cmp: (a, b) => csWarn(b) - csWarn(a) },
+};
+function csSort(kind) {
+  const cards = state.deck.cards;
+  if (kind === 'undo') {
+    if (!cardSel.undo) return;
+    const byId = new Map(cards.map(c => [c.id, c]));
+    const restored = cardSel.undo.map(id => byId.get(id)).filter(Boolean);
+    for (const c of cards) if (!restored.includes(c)) restored.push(c);
+    state.deck.cards = restored; cardSel.undo = null;
+    csAfterChange(state.cur); setStatus('Sorteringen är ångrad.'); return;
+  }
+  const idx = csCount() > 1 ? csIndices() : cards.map((c, i) => i);
+  const part = idx.map(i => cards[i]);
+  cardSel.undo = cards.map(c => c.id);
+  const curId = curCard().id;
+  let label;
+  if (kind === 'random') {
+    for (let i = part.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [part[i], part[j]] = [part[j], part[i]]; }
+    label = 'slumpvis ordning';
+  } else if (kind === 'reverse') { part.reverse(); label = 'omvänd ordning'; }
+  else {
+    const S = CS_SORTS[kind]; if (!S) return;
+    // stabil sortering; kort som saknar värdet (t.ex. inget paket) hamnar sist
+    const dec = part.map((c, k) => ({ c, k, e: S.empty ? S.empty(c) : false }));
+    dec.sort((x, y) => (x.e - y.e) || S.cmp(x.c, y.c) || (x.k - y.k));
+    part.splice(0, part.length, ...dec.map(x => x.c));
+    label = S.label;
+  }
+  idx.forEach((i, k) => { cards[i] = part[k]; });
+  csAfterChange(cards.findIndex(c => c.id === curId));
+  setStatus(`Sorterat efter ${label}${idx.length < cards.length ? ` (${idx.length} markerade kort)` : ''}. Välj ”Ångra senaste sortering” i sorteringslistan för att backa.`);
+}
+
+function bindCardSelect() {
+  bindCardScore();
+  const ol = $('#cardList');
+  csBindLongPress(ol);
+  $('#pCards').addEventListener('click', e => {
+    const b = e.target.closest('#btnDelCard, #btnDupCard, #btnUp, #btnDown');
+    if (!b || !csCount()) return;
+    e.stopPropagation(); e.preventDefault();
+    if (b.id === 'btnDelCard') csDelete();
+    else if (b.id === 'btnDupCard') csDuplicate();
+    else csMove(b.id === 'btnUp' ? -1 : 1);
+  }, true);
+  $('#ckAll').addEventListener('change', e => {
+    if (e.target.checked) { state.deck.cards.forEach(c => cardSel.ids.add(c.id)); cardSel.mode = true; }
+    else csClear();
+    csRender();
+  });
+  $('#selDone').addEventListener('click', csClear);
+  $('#cardSort').addEventListener('change', e => { const v = e.target.value; e.target.selectedIndex = 0; if (v) csSort(v); });
+  ol.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') { e.preventDefault(); state.deck.cards.forEach(c => cardSel.ids.add(c.id)); csRender(); }
+    if (e.key === 'Escape' && csCount()) { e.preventDefault(); csClear(); }
+    if ((e.key === 'Delete' || e.key === 'Backspace') && csCount()) { e.preventDefault(); csDelete(); }
+  });
+}
+function csCk(ci) { const c = state.deck.cards[ci]; return `<input type="checkbox" class="ck" tabindex="-1" aria-label="Markera kort ${ci + 1}"${c && cardSel.ids.has(c.id) ? ' checked' : ''}>`; }
+
+/* ---------- Betyg för hela kortet (1–5 stjärnor) ---------- */
+function csCardScore(c) {
+  if (Number(c.score) > 0) return Number(c.score);
+  const s = c.sides.map(q => Number(q.score) || 0).filter(Boolean);
+  return s.length ? Math.round(s.reduce((x, y) => x + y) / s.length) : 0;
+}
+function csRenderScore() {
+  const el = $('#cardScore'); if (!el) return;
+  const c = curCard(), v = Number(c.score) || 0, auto = !v ? csCardScore(c) : 0;
+  el.innerHTML = '<span class="cs-l">Kortets betyg</span>' + [1, 2, 3, 4, 5].map(i =>
+    `<button type="button" class="cs-star${i <= v ? ' on' : i <= auto ? ' auto' : ''}" data-v="${i}" aria-label="${i} av 5" aria-pressed="${i <= v}">★</button>`).join('');
+  el.title = v ? `Kortets betyg: ${v} av 5 (klicka på samma stjärna igen för att ta bort)` : auto ? `Inget eget betyg – frågorna från biblioteket har i snitt ${auto}` : 'Ge kortet ett betyg 1–5 (används för sortering och ”bästa” i biblioteket)';
+}
+function bindCardScore() {
+  const el = $('#cardScore'); if (!el) return;
+  el.addEventListener('click', e => {
+    const b = e.target.closest('.cs-star'); if (!b) return;
+    const c = curCard(), v = Number(b.dataset.v);
+    if (Number(c.score) === v) delete c.score; else c.score = v;
+    csRenderScore(); refreshListItem(); scheduleSave();
+  });
+}
 </script>
 <script>
   'use strict';
@@ -1747,11 +1997,11 @@ function sanitizeDeck(d) {
   out.style = Object.assign({}, DEFAULT_STYLE, out.style || {});
   out.export = Object.assign(defaultExport(), out.export || {});
   out.cards = (Array.isArray(out.cards) ? out.cards : []).map(c => {
-    const nc = newCard(); nc.id = c && c.id || uid();
+    const nc = newCard(); nc.id = c && c.id || uid(); if (c && Number(c.score) > 0) nc.score = Number(c.score);
     nc.sides = [0, 1].map(si => {
       const src = c && c.sides && c.sides[si] || {};
       const q = newQuestion(TYPE_BY_ID[src.type] ? src.type : 'ovrigt');
-      q.text = String(src.text || ''); q.ring = src.ring || '';
+      q.text = String(src.text || ''); q.ring = src.ring || ''; if (Number(src.score) > 0) q.score = Number(src.score); if (src.pack) q.pack = String(src.pack);
       for (let i = 0; i < 10; i++) {
         const a = src.alts && src.alts[i] || {}, f = src.ans && src.ans[i] || {};
         q.alts[i] = { text: String(a.text || ''), img: a.img || '' };
@@ -1852,14 +2102,15 @@ function listItemHTML(ci) {
 }
 function renderList() {
   const ol = $('#cardList');
-  ol.innerHTML = state.deck.cards.map((c, ci) => `<li data-i="${ci}"${ci === state.cur ? ' class="sel"' : ''}>${listItemHTML(ci)}</li>`).join('');
+  ol.innerHTML = state.deck.cards.map((c, ci) => `<li data-i="${ci}" class="${ci === state.cur ? 'sel' : ''}${cardSel.ids.has(c.id) ? ' mk' : ''}">${csCk(ci)}${listItemHTML(ci)}</li>`).join('');
   $('#cardCount').textContent = `(${state.deck.cards.length} st, ${state.deck.cards.length * 2} frågor)`;
   const sel = ol.querySelector('li.sel'); if (sel) sel.scrollIntoView({ block: 'nearest' });
+  csRender();
 }
 function refreshListItem() {
   const li = $(`#cardList li[data-i="${state.cur}"]`);
   cardStatus(state.cur);
-  if (li) li.innerHTML = listItemHTML(state.cur);
+  if (li) li.innerHTML = csCk(state.cur) + listItemHTML(state.cur);
 }
 function selectCard(i, side) {
   state.cur = Math.max(0, Math.min(state.deck.cards.length - 1, i));
@@ -1875,7 +2126,7 @@ function renderEditor() {
   $('#qType').value = q.type;
   $('#qRing').value = ringColor(q);
   $('#qRingReset').disabled = !q.ring;
-  $('#typeHelp').textContent = TYPE_BY_ID[q.type].help;
+  $('#typeHelp').textContent = TYPE_BY_ID[q.type].help; csRenderScore();
   $('#qText').value = q.text;
   const tb = $('#rows');
   tb.innerHTML = '';
@@ -1972,6 +2223,7 @@ function renderPreview() {
     $('#warnings').innerHTML = warns.length
       ? `<b class="bad">Att kontrollera</b><ul>${warns.map(w => `<li>${esc(w)}</li>`).join('')}</ul>`
       : `<span class="ok">✓ Kortet är komplett på båda sidor.</span>`;
+    { const ew = $('#edWarn'); if (ew) { ew.innerHTML = warns.length ? $('#warnings').innerHTML : ''; ew.hidden = !warns.length; } }
   });
 }
 // Mobil: alla kort under varandra + ett tomt ”plus-kort” sist.
@@ -2287,7 +2539,7 @@ function resetLayout() {
 
 /* ---------- Kortlistans knappar ---------- */
 function bindCards() {
-  $('#cardList').addEventListener('click', e => { const li = e.target.closest('li'); if (li) { selectCard(Number(li.dataset.i)); if (isMobile()) setView('editor'); } });
+  $('#cardList').addEventListener('click', csListClick);
   $('#cardList').addEventListener('keydown', e => {
     if (e.key === 'ArrowDown') { e.preventDefault(); selectCard(state.cur + 1); }
     if (e.key === 'ArrowUp') { e.preventDefault(); selectCard(state.cur - 1); }
@@ -2958,7 +3210,7 @@ async function init() {
   try { const fs = await DB.get('file'); if (fs) { fileState.handle = fs.handle || null; fileState.name = fs.name || ''; fileState.dirty = !!fs.dirty; } } catch (e) { /* ingen lagring */ }
   updateFileLabel();
   bindTheme(); bindLayout(); bindMobile(); bindApp(); bindSync();
-  bindEditor(); bindPreview(); bindCards(); bindFiles(); bindImport(); bindSettings(); bindCropper(); bindPdf(); bindLibrary();
+  bindEditor(); bindPreview(); bindCards(); bindFiles(); bindImport(); bindSettings(); bindCropper(); bindPdf(); bindLibrary(); bindCardSelect();
   selectCard(0, 0);
   setStatus(d ? 'Kortleken är hämtad från webbläsaren' : 'Exempelkort – skriv över det eller lägg till nya');
   window.addEventListener('beforeunload', () => { if (saveTimer) saveNow(); });
