@@ -75,6 +75,7 @@
 .listbar label{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
 .listbar select{flex:1;min-width:0}
 .selbar{display:flex;align-items:center;gap:6px;margin:0 0 6px;padding:4px 6px;background:#f3edd8;border:1px solid var(--lo);font-size:13px}
+.selbar[hidden]{display:none !important}
 .selbar span{flex:1}
 .edwarn{display:none}
 @media (max-width:720px){
@@ -93,4 +94,8 @@
 @media (max-width:720px){
   .sidetabs .cardscore{flex-basis:100%;order:4;margin:0;padding:2px 2px 4px}
   .cardscore .cs-star{font-size:27px;padding:0 5px}
+}
+/* ---------- Mobil: sista raden ska gå att scrolla fram ovanför menyn längst ner ---------- */
+@media (max-width:720px){
+  .layout>.panel{padding-bottom:calc(84px + env(safe-area-inset-bottom)) !important}
 }

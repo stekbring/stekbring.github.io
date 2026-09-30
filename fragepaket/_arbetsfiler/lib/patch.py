@@ -128,7 +128,7 @@ if __name__ == '__main__':
     (out / 'egna20').mkdir(parents=True, exist_ok=True)
     (out / 'egna10/index.html').write_text(build10())
     (out / 'egna20/index.html').write_text(build20())
-    (out / 'egna10/sw.js').write_text(sw('orig10/sw.js', 'egna10-v8'))
-    (out / 'egna20/sw.js').write_text(sw('orig20/sw.js', 'egna20-v5'))
+    (out / 'egna10/sw.js').write_text(sw('orig10/sw.js', 'egna10-v10'))
+    (out / 'egna20/sw.js').write_text(sw('orig20/sw.js', 'egna20-v7'))
     for f in ['egna10/index.html', 'egna20/index.html', 'egna10/sw.js', 'egna20/sw.js']:
         print(f, (out / f).stat().st_size)
