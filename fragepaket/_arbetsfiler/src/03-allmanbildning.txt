@@ -1,0 +1,1204 @@
+title: Allmänbildning
+file: 03-allmanbildning
+color: #3f7fd1
+desc: Kemi, rymden, kroppen, språk, konst, böcker, myter och historia – en blandning som i grundspelet.
+===
+sant 5 | Är det ett grundämne?
+Neon | ja
+Volfram | ja
+Plutonium | ja
+Kisel | ja
+Kvicksilver | ja
+Brons | nej
+Stål | nej
+Mässing | nej
+Kryptonit | nej
+Vatten | nej
+
+sant 5 | Är grundämnet uppkallat efter en plats?
+Yttrium | ja
+Polonium | ja
+Francium | ja
+Americium | ja
+Germanium | ja
+Helium | nej
+Einsteinium | nej
+Titan | nej
+Kobolt | nej
+Curium | nej
+
+ovrigt 5 | Vilket grundämne har kemiska tecknet?
+Fe | Järn
+Au | Guld
+Ag | Silver
+Pb | Bly
+Sn | Tenn
+Cu | Koppar
+Hg | Kvicksilver
+K | Kalium
+Na | Natrium
+W | Volfram
+
+farg 5 | Vilken färg har den?
+Mars | röd
+Neptunus | blå
+Solen, sedd från rymden | vit
+Månens yta | grå
+Diset runt månen Titan | orange
+Stjärnan Betelgeuse | röd
+Solnedgången på Mars | blå
+Vanligast i norrsken | grön
+Ett svart hål | svart
+Jupiters stora fläck | röd
+
+ordning 4 | Rangordna efter avstånd till solen (1 = närmast)
+Merkurius | 1
+Venus | 2
+Jorden | 3
+Mars | 4
+Asteroidbältet | 5
+Jupiter | 6
+Saturnus | 7
+Uranus | 8
+Neptunus | 9
+Pluto | 10
+
+sant 4 | Har himlakroppen ringar?
+Saturnus | ja
+Jupiter | ja
+Uranus | ja
+Neptunus | ja
+Dvärgplaneten Haumea | ja
+Merkurius | nej
+Venus | nej
+Jorden | nej
+Mars | nej
+Månen | nej
+
+ovrigt 5 | Vilken planet söker vi?
+Närmast solen | Merkurius
+Hetast av alla | Venus
+Har månarna Phobos och Deimos | Mars
+Kortast dygn, knappt 10 timmar | Jupiter
+Så lätt att den kunde flyta | Saturnus
+Snurrar liggande på sidan | Uranus
+Hittades med matematik | Neptunus
+Längst ut av de åtta | Neptunus
+Den enda med hav på ytan | Jorden
+Uppkallad efter krigsguden | Mars
+
+sant 5 | Stämmer det om rymden?
+Venus snurrar åt ”fel” håll | ja
+Jupiter väger mer än alla andra planeter ihop | ja
+Mars har två månar | ja
+Solljuset tar ungefär 8 minuter hit | ja
+Solen är en stjärna | ja
+Man kan höra ljud i rymden | nej
+Merkurius är den varmaste planeten | nej
+Kinesiska muren syns från månen | nej
+Venus är närmast solen | nej
+Solen är Vintergatans största stjärna | nej
+
+siffra 5 | Hur många har människan?
+Ben i kroppen (vuxen) | 206
+Tänder hos en vuxen | 32
+Kromosomer i en cell | 46
+Halskotor | 7
+Revbenspar | 12
+Lober i högra lungan | 3
+Hörselben i ett öra | 3
+Mjölktänder (barn) | 20
+Förmak i hjärtat | 2
+Klassiska sinnen | 5
+
+sant 5 | Heter benet så i människokroppen?
+Hammaren | ja
+Städet | ja
+Stigbygeln | ja
+Plogbenet | ja
+Båtbenet | ja
+Okbenet | ja
+Tången | nej
+Släggan | nej
+Hästskon | nej
+Önskebenet | nej
+
+sant 4 | Stämmer det om kroppen?
+Lårbenet är kroppens längsta ben | ja
+Stigbygeln är kroppens minsta ben | ja
+Huden är kroppens största organ | ja
+Levern kan växa ut igen | ja
+Hornhinnan saknar blodkärl | ja
+Vuxna har fler ben än nyfödda | nej
+Vi använder bara 10 % av hjärnan | nej
+Naglarna växer efter döden | nej
+Tungan är kroppens starkaste muskel | nej
+Blodet i venerna är blått | nej
+
+farg 3 | Vilken färg har den?
+Blodet i venerna | röd
+Blodet i artärerna | röd
+Blodplasma | gul
+Hjärnans grå substans | grå
+Hjärnans vita substans | vit
+Pupillen | svart
+Ögonvitan | vit
+Friskt tandkött | rosa
+Brunt fett | brun
+Gula fläcken i ögat | gul
+
+ovrigt 3 | Var i kroppen finns den?
+Näthinnan | Ögat
+Trumhinnan | Örat
+Alveolerna | Lungorna
+Nefronerna | Njurarna
+Menisken | Knät
+Rotatorkuffen | Axeln
+Karpaltunneln | Handleden
+Hippocampus | Hjärnan
+Mandlarna | Halsen
+Langerhanska öarna | Bukspott~körteln
+
+sant 2 | Har vi två av dem i kroppen?
+Njurar | ja
+Lungor | ja
+Binjurar | ja
+Nyckelben | ja
+Knäskålar | ja
+Trumhinnor | ja
+Levern | nej
+Mjälten | nej
+Hjärtat | nej
+Blindtarmen | nej
+
+sant 4 | Är det ett primtal?
+2 | ja
+13 | ja
+17 | ja
+97 | ja
+101 | ja
+1 | nej
+9 | nej
+51 | nej
+57 | nej
+91 | nej
+
+sant 3 | Stämmer räkningen?
+7 × 8 = 56 | ja
+12² = 144 | ja
+Noll är ett jämnt tal | ja
+111 × 111 = 12 321 | ja
+En miljard är tusen miljoner | ja
+2 upphöjt till 10 = 1 000 | nej
+Pi är exakt 22/7 | nej
+1 + 2 + … + 10 = 50 | nej
+Minus gånger minus blir minus | nej
+0,5 är en femtedel | nej
+
+siffra 3 | Hur många?
+Hörn på en kub | 8
+Kanter på en kub | 12
+Sidor på en D20-tärning | 20
+Sidor på en heptagon | 7
+Grader i en triangel (summan) | 180
+Grader i en fyrhörning (summan) | 360
+Nollor i en miljard | 9
+Nollor i en googol | 100
+Prickar på en tärning totalt | 21
+Platonska kroppar | 5
+
+siffra 2 | Hur mycket blir det?
+Centimeter i en tum | 2,54
+Meter i en sjömil | 1852
+Kvadratmeter i en hektar | 10000
+Liter i en kubikmeter | 1000
+Styck i ett gross | 144
+Styck i ett tjog | 20
+Fot i en yard | 3
+Tum i en fot | 12
+Kilo i ett ton | 1000
+Milliliter i en deciliter | 100
+
+ordning 4 | Rangordna efter storlek (1 = störst)
+Googol | 1
+Biljon | 2
+Miljard | 3
+Miljon | 4
+Tusen | 5
+Gross | 6
+Hundra | 7
+Tjog | 8
+Dussin | 9
+Par | 10
+
+ovrigt 2 | Vad heter det i matten?
+Längsta sidan i en rätvinklig triangel | Hypotenusa
+Svaret på en division | Kvot
+Svaret på en multiplikation | Produkt
+Svaret på en subtraktion | Differens
+Talet under bråkstrecket | Nämnare
+Talet över bråkstrecket | Täljare
+Vinkel större än 90° | Trubbig
+Vinkel mindre än 90° | Spetsig
+Från cirkelns mitt till kanten | Radie
+Bara delbart med 1 och sig självt | Primtal
+
+ordning 5 | Rangordna efter storlek (1 = störst)
+Solen | 1
+Jupiter | 2
+Saturnus | 3
+Uranus | 4
+Neptunus | 5
+Jorden | 6
+Mars | 7
+Jupitermånen Ganymedes | 8
+Merkurius | 9
+Månen | 10
+
+siffra 5 | Hur många?
+Planeter i solsystemet | 8
+Månar runt Mars | 2
+Människor som gått på månen | 12
+Apolloresor som landade på månen | 6
+Stjärnor i Karlavagnen | 7
+Stjärnor i Orions bälte | 3
+Dvärgplaneter enligt IAU | 5
+Planeter med ringar | 4
+Astronauter i Apollo 11 | 3
+Planeter närmare solen än jorden | 2
+
+sant 4 | Syns den med blotta ögat från jorden?
+Venus | ja
+Jupiter | ja
+Saturnus | ja
+Merkurius | ja
+Mars | ja
+Andromeda~galaxen | ja
+Neptunus | nej
+Pluto | nej
+Proxima Centauri | nej
+Saturnus ringar | nej
+
+ovrigt 4 | Vad kallas det i rymden?
+Vår galax | Vintergatan
+Närmaste stora granngalax | Andromeda
+Närmaste stjärnan efter solen | Proxima Centauri
+Natthimlens klaraste stjärna | Sirius
+En stjärna som exploderar | Supernova
+Kometen som kommer var 76:e år | Halleys komet
+Första satelliten i omloppsbana | Sputnik
+Teleskop i rymden sedan 1990 | Hubble
+Gränsen runt ett svart hål | Händelse~horisont
+Stjärnbilden med ett bälte | Orion
+
+tid 2 | Från vilket århundrade kommer upptäckten?
+Kopernikus bok om solen i mitten | 1500-talet
+Jupiters fyra stora månar | 1600-talet
+Månen Titan | 1600-talet
+Planeten Uranus | 1700-talet
+Dvärgplaneten Ceres | 1800-talet
+Planeten Neptunus | 1800-talet
+Mars två månar | 1800-talet
+Pluto | 1900-talet
+Plutos måne Charon | 1900-talet
+Dvärgplaneten Eris | 2000-talet
+
+farg 4 | Vilken färg blir det?
+Svavel | gul
+Kopparsulfat | blå
+Joddamp | lila
+Kvicksilver | silver
+Flytande syre | ljusblå
+Strontium i fyrverkerier | röd
+Barium i fyrverkerier | grön
+Fenolftalein i en bas | rosa
+Ärg på ett koppartak | grön
+Lackmus i en bas | blå
+
+sant 2 | Är det en ädelgas?
+Helium | ja
+Neon | ja
+Argon | ja
+Krypton | ja
+Xenon | ja
+Radon | ja
+Väte | nej
+Kväve | nej
+Klor | nej
+Fluor | nej
+
+sant 3 | Stämmer det om kemi?
+Vatten består av väte och syre | ja
+Diamant består av kol | ja
+Luften är mest kväve | ja
+Guld rostar inte | ja
+Helium är lättare än luft | ja
+Luften är mest syre | nej
+Vatten kokar alltid vid 100 °C | nej
+Salt är ett grundämne | nej
+Glas är egentligen en vätska | nej
+Kvicksilver är en gas | nej
+
+ovrigt 3 | Vilket grundämne söker vi?
+Vanligast i universum | Väte
+Vanligast i luften | Kväve
+Får ballonger att sväva | Helium
+Diamanter består av det | Kol
+Bränsle i kärnkraftverk | Uran
+Finns i tandkräm för tänderna | Fluor
+Bygger upp skelettet | Kalcium
+Datorchip görs av det | Kisel
+Finns i hemoglobinet | Järn
+Tändsticks~askens plån | Fosfor
+
+siffra 2 | Vilket atomnummer har grundämnet?
+Väte | 1
+Helium | 2
+Kol | 6
+Kväve | 7
+Syre | 8
+Neon | 10
+Natrium | 11
+Järn | 26
+Guld | 79
+Uran | 92
+
+ordning 2 | Rangordna efter hårdhet (1 = hårdast)
+Diamant | 1
+Korund | 2
+Topas | 3
+Kvarts | 4
+Fältspat | 5
+Apatit | 6
+Fluorit | 7
+Kalkspat | 8
+Gips | 9
+Talk | 10
+
+ovrigt 4 | Vad mäts i enheten?
+Watt | Effekt
+Volt | Spänning
+Ampere | Ström
+Newton | Kraft
+Hertz | Frekvens
+Joule | Energi
+Pascal | Tryck
+Ohm | Resistans
+Decibel | Ljudnivå
+Ljusår | Avstånd
+
+ordning 4 | Rangordna efter våglängd (1 = längst)
+Radiovågor | 1
+Mikrovågor | 2
+Infrarött | 3
+Rött ljus | 4
+Grönt ljus | 5
+Blått ljus | 6
+Violett ljus | 7
+Ultraviolett | 8
+Röntgen | 9
+Gamma~strålning | 10
+
+ordning 3 | Rangordna efter storlek (1 = störst)
+Tera | 1
+Giga | 2
+Mega | 3
+Kilo | 4
+Hekto | 5
+Deci | 6
+Centi | 7
+Milli | 8
+Mikro | 9
+Nano | 10
+
+farg 3 | Vilken färg har stenen?
+Rubin | röd
+Smaragd | grön
+Safir (den klassiska) | blå
+Ametist | lila
+Rosenkvarts | rosa
+Citrin | gul
+Obsidian | svart
+Kattguld (pyrit) | guld
+Jade | grön
+Lapis lazuli | blå
+
+ovrigt 5 | Vad heter det i nordisk mytologi?
+Tors hammare | Mjölner
+Odens åttafotade häst | Sleipner
+Asarnas hem | Asgård
+Världsträdet | Yggdrasil
+Regnbågsbron till Asgård | Bifrost
+Gudarnas undergång | Ragnarök
+Hallen för stupade krigare | Valhall
+Gudinnan med äpplena | Idun
+Vaktar bron till Asgård | Heimdall
+Ormen runt jorden | Midgårds~ormen
+
+sant 3 | Hör det till nordisk mytologi?
+Heimdall | ja
+Balder | ja
+Fenrisulven | ja
+Sleipner | ja
+Idun | ja
+Mimer | ja
+Kerberos | nej
+Pegasos | nej
+Osiris | nej
+Minotauros | nej
+
+ovrigt 5 | Vem är det i grekisk mytologi?
+Hjälten med den sårbara hälen | Akilles
+Kvinnan med ormar i håret | Medusa
+Flög för nära solen | Ikaros
+Öppnade asken med allt ont | Pandora
+Blev kär i sin spegelbild | Narkissos
+Bär himlen på sina axlar | Atlas
+Stal elden från gudarna | Prometheus
+Rullar en sten uppför ett berg | Sisyfos
+Halvtjur i labyrinten | Minotauros
+Allt han rörde blev guld | Midas
+
+ovrigt 4 | Vad var den grekiska guden gud för?
+Poseidon | Havet
+Hades | Dödsriket
+Ares | Kriget
+Afrodite | Kärleken
+Hefaistos | Smidet
+Demeter | Skörden
+Dionysos | Vinet
+Hestia | Härden
+Nike | Segern
+Hypnos | Sömnen
+
+ovrigt 3 | Vad hette guden hos romarna?
+Zeus | Jupiter
+Hera | Juno
+Ares | Mars
+Afrodite | Venus
+Hermes | Merkurius
+Poseidon | Neptunus
+Athena | Minerva
+Artemis | Diana
+Hefaistos | Vulcanus
+Dionysos | Bacchus
+
+sant 2 | Är hon en av de nio muserna?
+Klio | ja
+Kalliope | ja
+Terpsichore | ja
+Urania | ja
+Thalia | ja
+Medusa | nej
+Pandora | nej
+Athena | nej
+Nike | nej
+Hera | nej
+
+siffra 5 | Hur många?
+Dagar i Jorden runt på … dagar | 80
+Nätter i Tusen och en natt | 1001
+Herakles stordåd | 12
+Kerberos huvuden | 3
+Fahrenheit i Bradburys boktitel | 451
+Året i Orwells boktitel | 1984
+Ringens brödraskap, medlemmar | 9
+Världar i nordisk mytologi | 9
+Sleipners ben | 8
+Kyklopens ögon | 1
+
+ovrigt 2 | Vilken religion hör det till?
+Koranen | Islam
+Toran | Judendom
+Bhagavad Gita | Hinduism
+Dalai lama | Buddhism
+Guru Nanak | Sikhism
+Tao te ching | Taoism
+Torii-portar | Shinto
+Påven | Kristendom
+Bar mitzva | Judendom
+Guden Ganesha | Hinduism
+
+farg 4 | Vilken färg förknippas med det?
+Påvens dräkt | vit
+Kardinalernas dräkt | röd
+Sorg i Sverige | svart
+Sorg i Kina | vit
+Brudklänning i Kina, traditionellt | röd
+Kinesiska kejsaren | gul
+Romerska kejsarens purpur | lila
+Islam | grön
+Rosa bandet | rosa
+Röda halvmånen | röd
+
+sant 5 | Är ordet egentligen en förkortning?
+Laser | ja
+Radar | ja
+Taser | ja
+Scuba | ja
+Aids | ja
+SOS | nej
+Golf | nej
+Posh | nej
+News | nej
+Tips | nej
+
+sant 3 | Kommer ordet från arabiskan?
+Algebra | ja
+Alkohol | ja
+Magasin | ja
+Zenit | ja
+Amiral | ja
+Kajak | nej
+Balett | nej
+Karaoke | nej
+Tomat | nej
+Djungel | nej
+
+ovrigt 4 | Från vilket språk har vi lånat ordet?
+Tsunami | Japanska
+Robot | Tjeckiska
+Schampo | Hindi
+Safari | Swahili
+Choklad | Nahuatl
+Yoga | Sanskrit
+Konfetti | Italienska
+Tabu | Tonganska
+Kitsch | Tyska
+Kung fu | Kinesiska
+
+ovrigt 4 | Vad kallas det?
+Läses likadant baklänges | Palindrom
+Bokstäverna omkastade: ros – sor | Anagram
+Mening med alfabetets alla bokstäver | Pangram
+Ord av första bokstäverna | Akronym
+Ord med samma betydelse | Synonym
+Ord med motsatt betydelse | Antonym
+”Öronbe~dövande tystnad” | Oxymoron
+Ord efter en person, t.ex. bojkott | Eponym
+Samma stavning, olika betydelse | Homonym
+Överdrift som stilfigur | Hyperbol
+
+ovrigt 4 | Vad står den latinska förkortningen för?
+P.S. | Post scriptum
+N.B. | Nota bene
+etc. | Et cetera
+a.m. | Ante meridiem
+CV | Curriculum vitae
+AD | Anno Domini
+RIP | Requiescat in pace
+vs. | Versus
+ca | Circa
+i.e. | Id est
+
+sant 2 | Är det en bokstav i grekiska alfabetet?
+Alfa | ja
+Delta | ja
+Sigma | ja
+Omega | ja
+Lambda | ja
+Kappa | ja
+Alef | nej
+Gimel | nej
+Nabla | nej
+Vega | nej
+
+siffra 3 | Hur många bokstäver har alfabetet?
+Engelska | 26
+Svenska | 29
+Grekiska | 24
+Ryska | 33
+Hebreiska | 22
+Arabiska | 28
+Italienska | 21
+Runor i yngre futharken | 16
+Runor i äldre futharken | 24
+Japanska hiragana | 46
+
+siffra 3 | Vilket tal är det?
+XIV | 14
+XL | 40
+XC | 90
+CD | 400
+LXXX | 80
+DCCC | 800
+XLII | 42
+MM | 2000
+MCMLXIX | 1969
+MDC | 1600
+
+ovrigt 4 | Vem målade tavlan?
+Skriet | Edvard Munch
+Guernica | Pablo Picasso
+Nattvakten | Rembrandt
+Flickan med pärlörhänget | Vermeer
+Venus födelse | Botticelli
+Kyssen | Gustav Klimt
+Näckrosorna | Claude Monet
+Arnolfinis bröllop | Jan van Eyck
+Nattugglor (Nighthawks) | Edward Hopper
+American Gothic | Grant Wood
+
+ovrigt 5 | Vilken konstnär söker vi?
+Skar av sig en bit av örat | Van Gogh
+Målade Sixtinska kapellets tak | Michelangelo
+Mexikanska med självporträtten | Frida Kahlo
+Soppburkar och Marilyn | Andy Warhol
+Smältande klockor | Salvador Dalí
+Stänkte och droppade färg | Jackson Pollock
+Rutor i rött, gult och blått | Piet Mondrian
+Målade balettdansöser | Edgar Degas
+Hemlig gatukonstnär från Bristol | Banksy
+Skulpterade Tänkaren | Auguste Rodin
+
+sant 3 | Målade Vincent van Gogh tavlan?
+Solrosor | ja
+Potatisätarna | ja
+Sovrummet i Arles | ja
+Caféterrassen om natten | ja
+Irisar | ja
+Skriet | nej
+Näckrosor | nej
+Mona Lisa | nej
+Nattvakten | nej
+Kyssen | nej
+
+sant 4 | Stämmer det om Leonardo da Vinci?
+Han målade Mona Lisa | ja
+Han var vänsterhänt | ja
+Han skrev ofta spegelvänt | ja
+Han ritade flygmaskiner | ja
+Han målade Nattvarden | ja
+Han målade Sixtinska kapellets tak | nej
+Han föddes i Frankrike | nej
+Han levde på 1700-talet | nej
+Han skulpterade David | nej
+Han var gift med Mona Lisa | nej
+
+farg 5 | Vilken färg har den?
+Picassos period 1901–1904 | blå
+Perioden som följde | rosa
+Van Goghs Solrosor | gul
+Klimts Kyssen | guld
+Äpplet i Magrittes tavla | grön
+Malevitjs berömda kvadrat | svart
+Michelangelos David | vit
+Yves Kleins egen färg | blå
+Monets japanska bro | grön
+Warhols banan (skivomslag) | gul
+
+tid 4 | Från vilket århundrade är konstverket?
+Leonardos Nattvarden | 1400-talet
+Mona Lisa | 1500-talet
+Bruegels Babels torn | 1500-talet
+Velázquez Las Meninas | 1600-talet
+Hokusais Den stora vågen | 1800-talet
+Friheten på barrikaderna | 1800-talet
+Van Goghs Stjärnenatt | 1800-talet
+Duchamps urinoar Fontän | 1900-talet
+Warhols soppburkar | 1900-talet
+Broadway Boogie-Woogie | 1900-talet
+
+ovrigt 5 | Vem skrev boken?
+Stolthet och fördom | Jane Austen
+Brott och straff | Dostojevskij
+Förvandlingen | Franz Kafka
+Den gamle och havet | Hemingway
+Madame Bovary | Flaubert
+Ulysses | James Joyce
+Anna Karenina | Lev Tolstoj
+Den store Gatsby | F. Scott Fitzgerald
+Odysséen | Homeros
+De tre musketörerna | Alexandre Dumas
+
+tid 3 | Från vilket århundrade kommer boken?
+Den gudomliga komedin | 1300-talet
+Decamerone | 1300-talet
+Don Quijote | 1600-talet
+Robinson Crusoe | 1700-talet
+Gullivers resor | 1700-talet
+Frankenstein | 1800-talet
+Moby Dick | 1800-talet
+Krig och fred | 1800-talet
+1984 | 1900-talet
+Hundra år av ensamhet | 1900-talet
+
+sant 4 | Skrev William Shakespeare pjäsen?
+Hamlet | ja
+Macbeth | ja
+Stormen | ja
+Othello | ja
+Tretton~dagsafton | ja
+Faust | nej
+Ett dockhem | nej
+Doktor Faustus | nej
+Cyrano de Bergerac | nej
+Fröken Julie | nej
+
+sant 3 | Skrev Charles Dickens boken?
+Oliver Twist | ja
+David Copperfield | ja
+En julsaga | ja
+Lysande utsikter | ja
+Pickwick~klubben | ja
+Jane Eyre | nej
+Svindlande höjder | nej
+Dorian Grays porträtt | nej
+Alice i Underlandet | nej
+Emma | nej
+
+sant 3 | Är huvudpersonen en detektiv?
+Hercule Poirot | ja
+Sherlock Holmes | ja
+Miss Marple | ja
+Philip Marlowe | ja
+Auguste Dupin | ja
+Don Quijote | nej
+Gulliver | nej
+Kapten Ahab | nej
+Jean Valjean | nej
+Greve Dracula | nej
+
+sant 5 | Var författaren en kvinna?
+George Eliot | ja
+George Sand | ja
+Mary Shelley | ja
+Agatha Christie | ja
+Virginia Woolf | ja
+Harper Lee | ja
+George Orwell | nej
+Mark Twain | nej
+Lewis Carroll | nej
+Oscar Wilde | nej
+
+ovrigt 5 | Vem sa det?
+”Veni, vidi, vici” | Julius Caesar
+”Jag tänker, alltså finns jag” | Descartes
+”Heureka!” | Arkimedes
+”Jag vet att jag ingenting vet” | Sokrates
+”Ett litet steg för en människa …” | Neil Armstrong
+”I have a dream” | Martin Luther King
+”Gud är död” | Nietzsche
+”Ich bin ein Berliner” | John F. Kennedy
+”Att vara eller inte vara” | Hamlet
+”Religionen är folkets opium” | Karl Marx
+
+sant 4 | Är det ett av antikens sju underverk?
+Pyramiderna i Giza | ja
+Babylons hängande trädgårdar | ja
+Kolossen på Rhodos | ja
+Fyren på Faros | ja
+Mausoleet i Halikarnassos | ja
+Zeusstatyn i Olympia | ja
+Artemis~templet i Efesos | ja
+Kinesiska muren | nej
+Colosseum | nej
+Stonehenge | nej
+
+ovrigt 3 | I vilken stad står den?
+Taj Mahal | Agra
+Sagrada Família | Barcelona
+Hagia Sofia | Istanbul
+Alhambra | Granada
+Förbjudna staden | Peking
+Kristusstatyn | Rio de Janeiro
+Burj Khalifa | Dubai
+Atomium | Bryssel
+Branden~burger Tor | Berlin
+Lutande tornet | Pisa
+
+sant 2 | Står byggnaden i Paris?
+Eiffeltornet | ja
+Louvren | ja
+Notre-Dame | ja
+Sacré-Coeur | ja
+Triumfbågen | ja
+Big Ben | nej
+Colosseum | nej
+Akropolis | nej
+Tower Bridge | nej
+Neuschwan~stein | nej
+
+ordning 4 | Rangordna efter när den stod klar (1 = först)
+Stora pyramiden i Giza | 1
+Parthenon | 2
+Colosseum | 3
+Hagia Sofia | 4
+Notre-Dame i Paris | 5
+Taj Mahal | 6
+Frihets~gudinnan | 7
+Eiffeltornet | 8
+Empire State Building | 9
+Operahuset i Sydney | 10
+
+farg 4 | Vilken färg har den?
+Frihetsgudinnan | grön
+Golden Gate-bron | orange
+Eiffeltornet | brun
+Kremls murar | röd
+Taj Mahal | vit
+Förbjudna stadens tak | gul
+Gyllene paviljongen i Kyoto | guld
+Sydney~operans tak | vit
+Vita huset | vit
+Kaklet i Blå moskén | blå
+
+ovrigt 2 | Vem ritade eller byggde den?
+Eiffeltornet | Gustave Eiffel
+Sagrada Família | Antoni Gaudí
+Operahuset i Sydney | Jørn Utzon
+Louvrens glas~pyramid | I. M. Pei
+Domens kupol i Florens | Brunelleschi
+Fallingwater | Frank Lloyd Wright
+Villa Savoye | Le Corbusier
+Guggenheim i Bilbao | Frank Gehry
+Frihets~gudinnan (skulptör) | Bartholdi
+Taj Mahal (lät bygga) | Shah Jahan
+
+tid 3 | Från vilket århundrade är byggnaden?
+Vita tornet i Tower of London | 1000-talet
+Angkor Wat | 1100-talet
+Lutande tornet (påbörjat) | 1100-talet
+Machu Picchu | 1400-talet
+Petersdomen (invigd) | 1600-talet
+Slottet i Versailles | 1600-talet
+Big Ben | 1800-talet
+Kölnerdomen (färdig) | 1800-talet
+Golden Gate-bron | 1900-talet
+Burj Khalifa | 2000-talet
+
+ovrigt 4 | Vilken naturformation söker vi?
+Världens högsta vattenfall | Angelfallet
+Största varma öknen | Sahara
+Havens djupaste punkt | Marianer~graven
+Största korallrevet | Stora barriär~revet
+Lägsta punkten på land | Döda havet
+Världens djupaste sjö | Bajkalsjön
+Världens största ö | Grönland
+Längsta bergskedjan på land | Anderna
+Vulkanen som begravde Pompeji | Vesuvius
+Floden i Grand Canyon | Colorado
+
+ordning 3 | Rangordna efter höjd (1 = högst)
+Mount Everest | 1
+K2 | 2
+Aconcagua | 3
+Denali | 4
+Kilimanjaro | 5
+Elbrus | 6
+Mont Blanc | 7
+Matterhorn | 8
+Olympos | 9
+Ben Nevis | 10
+
+farg 2 | Vilken färg har den?
+Himlen en klar dag | blå
+Regnbågens yttersta färg | röd
+Regnbågens innersta färg | lila
+Nysnö | vit
+Klorofyll | grön
+Uluru i Australien | röd
+Stenkol | svart
+Vulkanaska | grå
+Kritklipporna i Dover | vit
+Karibiska havet | turkos
+
+sant 4 | Uppfanns det före år 1900?
+Telefonen | ja
+Glödlampan | ja
+Bensinbilen | ja
+Dynamiten | ja
+Fotografiet | ja
+Motorflygplanet | nej
+Televisionen | nej
+Penicillinet | nej
+Transistorn | nej
+Mikrovågs~ugnen | nej
+
+sant 3 | Kom uppfinningen från Kina?
+Krutet | ja
+Papperet | ja
+Kompassen | ja
+Porslinet | ja
+Papperspengar | ja
+Glasögonen | nej
+Teleskopet | nej
+Dynamiten | nej
+Tryckpressen | nej
+Ångmaskinen | nej
+
+ordning 3 | Rangordna uppfinningarna (1 = äldst)
+Hjulet | 1
+Papperet | 2
+Krutet | 3
+Glasögonen | 4
+Gutenbergs tryckpress | 5
+Teleskopet | 6
+Ångmaskinen | 7
+Motor~flygplanet | 8
+Transistorn | 9
+Mikro~processorn | 10
+
+tid 4 | Från vilket århundrade kommer uppfinningen?
+Glasögonen | 1200-talet
+Tryckpressen | 1400-talet
+Barometern | 1600-talet
+Pendelklockan | 1600-talet
+Luftballongen | 1700-talet
+Blixtledaren | 1700-talet
+Fotografiet | 1800-talet
+Stetoskopet | 1800-talet
+Mikrovågs~ugnen | 1900-talet
+Internet | 1900-talet
+
+ovrigt 3 | Vem upptäckte eller uppfann det?
+Dynamiten | Alfred Nobel
+Gravitations~lagen | Isaac Newton
+Periodiska systemet | Mendelejev
+Röntgen~strålningen | Wilhelm Röntgen
+Vaccin mot smittkoppor | Edward Jenner
+Pastörisering | Louis Pasteur
+Blodomloppet | William Harvey
+Relativitets~teorin | Albert Einstein
+Penicillinet | Alexander Fleming
+Elektro~magnetisk induktion | Michael Faraday
+
+sant 5 | Fick personen Nobelpriset?
+Marie Curie | ja
+Albert Einstein | ja
+Winston Churchill | ja
+Ernest Hemingway | ja
+Dalai lama | ja
+Mahatma Gandhi | nej
+Lev Tolstoj | nej
+Thomas Edison | nej
+Stephen Hawking | nej
+Dmitrij Mendelejev | nej
+
+siffra 4 | Vilket år hände det?
+Slaget vid Hastings | 1066
+Magna Carta skrevs | 1215
+Konstanti~nopel föll | 1453
+Columbus nådde Amerika | 1492
+Luther spikade upp sina teser | 1517
+Newtons Principia kom ut | 1687
+USA blev självständigt | 1776
+Bastiljen stormades | 1789
+Slaget vid Waterloo | 1815
+Kommunis~tiska manifestet | 1848
+
+siffra 5 | Vilket år hände det på 1900-talet?
+Bröderna Wrights första flygning | 1903
+Titanic sjönk | 1912
+Första världskriget bröt ut | 1914
+Ryska revolutionen | 1917
+Börskraschen på Wall Street | 1929
+Mount Everest bestegs första gången | 1953
+Kubakrisen | 1962
+Kennedy mördades | 1963
+Mån~landningen | 1969
+Sovjetunionen upplöstes | 1991
+
+siffra 3 | Vilket år hände det kring sekelskiftet?
+Darwins Om arternas uppkomst | 1859
+Suezkanalen öppnade | 1869
+Telefonen patenterades | 1876
+Edison visade sin glödlampa | 1879
+Vulkanen Krakatau exploderade | 1883
+Benz patenterade sin bil | 1886
+Eiffeltornet invigdes | 1889
+Nobel skrev sitt testamente | 1895
+Första Nobelpriset delades ut | 1901
+Marie Curies första Nobelpris | 1903
+
+siffra 4 | Hur många?
+Fruar som Henrik VIII hade | 6
+Columbus skepp på första resan | 3
+År som hundraåriga kriget varade | 116
+Teser som Luther spikade upp | 95
+Nr på Ludvig som halshöggs 1793 | 16
+Antikens underverk | 7
+Jesu apostlar | 12
+Budord | 10
+Islams pelare | 5
+Plågor i Egypten | 10
+
+ordning 3 | Rangordna efter när de levde (1 = tidigast)
+Tutankhamon | 1
+Sokrates | 2
+Alexander den store | 3
+Julius Caesar | 4
+Karl den store | 5
+Djingis khan | 6
+Leonardo da Vinci | 7
+Isaac Newton | 8
+Napoleon | 9
+Albert Einstein | 10
+
+tid 5 | Under vilket århundrade föddes personen?
+Martin Luther | 1400-talet
+Kopernikus | 1400-talet
+Galileo Galilei | 1500-talet
+William Shakespeare | 1500-talet
+Rembrandt | 1600-talet
+George Washington | 1700-talet
+Charles Darwin | 1800-talet
+Marie Curie | 1800-talet
+Pablo Picasso | 1800-talet
+Neil Armstrong | 1900-talet
+
+tid 3 | Från vilket decennium kommer händelsen?
+Allmänna relativitetsteorin | 1910-talet
+Tutankha~mons grav | 1920-talet
+Lindbergh flög över Atlanten | 1920-talet
+Gandhis saltmarsch | 1930-talet
+Luftskeppet Hindenburg brann | 1930-talet
+DNA-spiralen upptäcktes | 1950-talet
+Berlinmuren byggdes | 1960-talet
+Första hjärt~transplan~tationen | 1960-talet
+Watergate~skandalen | 1970-talet
+Första provrörs~barnet | 1970-talet
+
+tid 4 | Från vilket århundrade kommer händelsen?
+Västrom föll | 400-talet
+Muhammed föddes | 500-talet
+Vikingarna plundrade Lindisfarne | 700-talet
+Karl den store kröntes till kejsare | 800-talet
+Första korståget | 1000-talet
+Saladin intog Jerusalem | 1100-talet
+Marco Polo reste till Kina | 1200-talet
+Digerdöden | 1300-talet
+Jeanne d'Arc brändes | 1400-talet
+Magellans världs~omsegling | 1500-talet
+
+sant 3 | Hände det före Kristi födelse?
+Pyramiderna i Giza byggdes | ja
+Julius Caesar mördades | ja
+Alexander den store dog | ja
+Hannibal korsade Alperna | ja
+Kleopatra dog | ja
+Colosseum invigdes | nej
+Pompeji begravdes av aska | nej
+Muhammed föddes | nej
+Hadrianus mur byggdes | nej
+Västrom föll | nej
+
+sant 5 | Var han romersk kejsare?
+Nero | ja
+Caligula | ja
+Hadrianus | ja
+Marcus Aurelius | ja
+Konstantin den store | ja
+Julius Caesar | nej
+Cicero | nej
+Spartacus | nej
+Pompejus | nej
+Hannibal | nej
+
+ovrigt 5 | Vem var det?
+Första människan i rymden | Jurij Gagarin
+Första kvinnan i rymden | Valentina Teresjkova
+Roms förste kejsare | Augustus
+Hunnernas kung | Attila
+Kinas förste kejsare | Qin Shi Huang
+Kallades Solkungen | Ludvig XIV
+Damen med lampan | Florence Nightingale
+Besteg Everest med Tenzing | Edmund Hillary
+Först till sydpolen | Roald Amundsen
+Ledde mordet på Caesar | Brutus
+
+ovrigt 3 | Vem var upptäcktsresanden?
+Fann sjövägen till Indien | Vasco da Gama
+Seglade med Endeavour | James Cook
+Nådde Amerika runt år 1000 | Leif Eriksson
+Gav namn åt Amerika | Amerigo Vespucci
+Erövrade aztekernas rike | Hernán Cortés
+Erövrade inkornas rike | Francisco Pizarro
+Först runt Godahopps~udden | Bartolomeu Dias
+Förste europén på Nya Zeeland | Abel Tasman
+Reste 1300-talet, från Marocko | Ibn Battuta
+Venetianaren hos Kublai khan | Marco Polo
+
+sant 5 | Stämmer det om historien?
+Kleopatra levde närmare oss än pyramidbygget | ja
+Oxford är äldre än aztekernas rike | ja
+Titanic sjönk på sin första resa | ja
+Nikolaj II och Georg V var kusiner | ja
+Marie Curie fick två Nobelpris | ja
+Vikingarnas hjälmar hade horn | nej
+Napoleon var ovanligt kort | nej
+Einstein var underkänd i matte | nej
+Medeltiden trodde på en platt jord | nej
+Galileo brändes på bål | nej
+
+sant 4 | Stämmer det om kalendern?
+År 2000 var ett skottår | ja
+Juli heter så efter Caesar | ja
+Mars var romarnas första månad | ja
+Onsdag är uppkallad efter Oden | ja
+Torsdag är uppkallad efter Tor | ja
+År 1900 var ett skottår | nej
+September betyder ”den nionde” | nej
+År 2100 blir ett skottår | nej
+Januari är uppkallad efter Juno | nej
+Lördag är uppkallad efter Loke | nej
+
+siffra 3 | Hur många?
+Dagar i ett skottår | 366
+Hela veckor på ett år | 52
+Månader med 31 dagar | 7
+Timmar på en vecka | 168
+Minuter på ett dygn | 1440
+Djur i kinesiska zodiaken | 12
+Dagar i en engelsk ”fortnight” | 14
+Dagar i en fransk vecka 1794 | 10
+Månader i romarnas första kalender | 10
+Dagar som Storbritannien hoppade över 1752 | 11
+
+ovrigt 3 | Vad kallas det?
+Dag och natt är lika långa | Dagjämning
+Årets längsta dag | Sommar~solstånd
+Kalendern vi använder | Gregorianska
+Kalendern före den | Julianska
+Den 29 februari | Skottdag
+Tusen år | Millennium
+Solen går inte ner på natten | Midnattssol
+Något som följer dygnsrytmen | Cirkadiskt
+Tiden vid Greenwich (förk.) | GMT
+Andra fullmånen samma månad | Blå måne
+
+sant 2 | Är det ett av de tolv stjärntecknen?
+Väduren | ja
+Kräftan | ja
+Skorpionen | ja
+Vattumannen | ja
+Stenbocken | ja
+Jungfrun | ja
+Ormbäraren | nej
+Draken | nej
+Svanen | nej
+Orion | nej
+
+ovrigt 2 | Vilket stjärntecken har den som föds…
+på nyårsdagen | Stenbocken
+på alla hjärtans dag | Vattumannen
+den 1 april | Väduren
+den 1 maj | Oxen
+den 5 juni | Tvillingarna
+den 10 juli | Kräftan
+den 15 augusti | Lejonet
+den 15 september | Jungfrun
+den 10 oktober | Vågen
+på halloween (31 okt) | Skorpionen
+
+siffra 4 | Hur många?
+Hörn på Pentagon | 5
+Sidor på en stoppskylt | 8
+Uddar på Frihets~gudinnans krona | 7
+Rutor på ett schackbräde | 64
+Rutor i ett sudoku | 81
+Punkter i en punktskriftscell | 6
+Armar på en snöflinga | 6
+Streck i tecknet # | 4
+Siffror på en vanlig urtavla | 12
+Kort i en kortlek utan jokrar | 52

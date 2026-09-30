@@ -1,0 +1,75 @@
+
+/* ---------- Bibliotek ---------- */
+#dlgLib:not([style*="width"]){width:min(1120px,97vw)}
+#dlgLib:not([style*="height"]){height:min(840px,92vh)}
+.libbody{display:grid;grid-template-columns:270px minmax(0,1fr);gap:0;padding:0 !important;overflow:hidden !important;min-height:0}
+.libside{overflow:auto;min-height:0;padding:14px 14px 18px;border-right:1px solid var(--border);background:var(--surface-2)}
+.libmain{overflow:auto;min-height:0;padding:14px 18px 18px}
+.libside input[type=search]{width:100%;background:var(--field);color:var(--text);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:7px 10px;min-height:36px}
+.libside input[type=search]:focus{outline:none;border-color:var(--accent);box-shadow:var(--focus)}
+.libgh{font-size:11.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:16px 4px 6px}
+.libplist{list-style:none;margin:0;padding:0}
+.libp{display:grid;grid-template-columns:10px minmax(0,1fr) auto auto auto;gap:9px;align-items:center;padding:8px 9px;border-radius:var(--radius-sm);cursor:pointer;font-size:14px}
+.libp:hover{background:var(--row-hover,var(--btn-hover))}
+.libp.cur{background:var(--list-sel);box-shadow:inset 3px 0 0 var(--accent)}
+.libp-dot{display:inline-block;width:10px;height:10px;border-radius:3px;flex:none}
+.libp-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.libp-n{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.libp-sel{background:var(--accent);color:var(--accent-ink);border-radius:999px;font-size:11px;font-weight:700;padding:1px 7px;font-variant-numeric:tabular-nums}
+.libp-x{min-height:0;padding:0 6px;border:0;background:transparent;color:var(--muted);font-size:16px;line-height:1}
+.libp-x:hover{color:var(--danger);background:transparent}
+.libp-empty{color:var(--muted);font-size:13px;padding:6px 9px}
+.libnote{margin:6px 4px 0;font-size:12.5px;color:var(--warn)}
+.libside-btns{display:grid;grid-template-columns:1fr;gap:6px;margin-top:10px}
+.libside-btns button{padding:6px 8px;font-size:13px}
+.libside-btns #libSaveDeck{grid-column:1 / -1}
+#libInfo{margin:8px 4px 0;font-size:12.5px}
+.libback{display:none}
+.libhead{position:sticky;top:-14px;z-index:2;background:var(--surface);padding:0 0 10px;margin:-2px 0 4px;border-bottom:1px solid var(--border)}
+.lib-title{display:flex;align-items:center;gap:9px;margin:0 0 2px;font-family:var(--font-head);font-weight:var(--head-weight);font-size:20px}
+.lib-desc{margin:0 0 10px;color:var(--muted);font-size:13.5px}
+.lib-desc b{color:var(--text)}
+.lib-desc .bad{color:var(--warn)}
+.libpick{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.libpick-l{font-size:13px;color:var(--muted);margin-right:2px}
+.libpick button{padding:5px 11px;min-height:32px;font-size:13.5px}
+.libpick small{font-size:11.5px;opacity:.7;margin-left:3px;font-variant-numeric:tabular-nums}
+.libqs{list-style:none;margin:0;padding:0}
+.libq{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:4px 10px;padding:9px 8px;border-bottom:1px solid var(--border);border-radius:6px}
+.libq:hover{background:var(--row-hover,var(--btn-hover))}
+.libq.sel{background:var(--list-sel)}
+.libq-main{display:flex;gap:11px;align-items:flex-start;cursor:pointer;min-width:0;margin:0 !important;color:var(--text) !important;font-size:14px !important;font-weight:400 !important}
+.libq-main input[type=checkbox]{margin:3px 0 0;flex:none;width:17px;height:17px}
+.libq-body{display:flex;flex-direction:column;gap:2px;min-width:0}
+.libq-top{display:flex;flex-wrap:wrap;align-items:center;gap:3px 10px;font-size:11.5px;color:var(--muted)}
+.libq-type{display:inline-flex;align-items:center;gap:5px}
+.libq-type i{display:inline-block;width:8px;height:8px;border-radius:50%}
+.libq-stars{color:var(--accent);letter-spacing:1px;font-size:11px}
+.libq-stars i{font-style:normal;opacity:.22}
+.libq-pack{font-weight:600;color:var(--text)}
+.libq-in{background:var(--ok-soft);color:var(--ok);border-radius:999px;padding:0 7px;font-weight:600}
+.libq-text{font-weight:600;font-size:14.5px;line-height:1.35}
+.libq-alts{font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.libq.indeck .libq-text,.libq.indeck .libq-alts{opacity:.55}
+.libq-peek{padding:3px 10px;min-height:28px;font-size:12.5px;margin-top:2px}
+.libq-pv{grid-column:1 / -1;max-width:320px;padding:6px 0 4px 28px}
+.libq-pv svg{display:block;width:100%;height:auto;filter:var(--card-shadow)}
+.libq-empty{color:var(--muted);padding:16px 8px}
+.libfoot{flex-wrap:wrap;align-items:center}
+.libcount{flex:1 1 280px;font-size:13px;color:var(--muted);min-width:0}
+.libcount b{color:var(--text)}
+.libshuf{display:inline-flex;align-items:center;font-size:13.5px;color:var(--muted);margin-right:4px;white-space:nowrap}
+@media (max-width:720px){
+  #dlgLib{height:100dvh !important;max-height:100dvh}
+  .libbody{grid-template-columns:1fr}
+  .libside{border-right:0}
+  .libbody .libmain{display:none}
+  .libbody.showq .libside{display:none}
+  .libbody.showq .libmain{display:block}
+  .libback{display:inline-flex;margin:0 0 8px}
+  .libhead{top:-14px}
+  .libpick button{flex:1 1 40%}
+  .libq-pv{padding-left:0;max-width:none}
+  .libcount{flex-basis:100%}
+  .libfoot button{flex:1}
+}

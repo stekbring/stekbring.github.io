@@ -1,0 +1,30 @@
+{
+ "format": "egna10-bibliotek",
+ "version": 1,
+ "packs": [
+  {
+   "file": "01-80-talet.egna10",
+   "name": "80-talet",
+   "description": "Musik, filmer, tv-serier, prylar, spel och händelser – i Sverige och ute i världen.",
+   "color": "#e0508f",
+   "questions": 100,
+   "cards": 50
+  },
+  {
+   "file": "02-andra-varldskriget.egna10",
+   "name": "Andra världskriget",
+   "description": "Länder, ledare, slag, kodnamn och vapen 1939–1945 – plus Sverige och Norden under krigsåren.",
+   "color": "#7a8450",
+   "questions": 100,
+   "cards": 50
+  },
+  {
+   "file": "03-allmanbildning.egna10",
+   "name": "Allmänbildning",
+   "description": "Kemi, rymden, kroppen, språk, konst, böcker, myter och historia – en blandning som i grundspelet.",
+   "color": "#3f7fd1",
+   "questions": 100,
+   "cards": 50
+  }
+ ]
+}

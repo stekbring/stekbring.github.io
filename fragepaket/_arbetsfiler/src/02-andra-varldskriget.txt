@@ -1,0 +1,1204 @@
+title: Andra världskriget
+file: 02-andra-varldskriget
+color: #7a8450
+desc: Länder, ledare, slag, kodnamn och vapen 1939–1945 – plus Sverige och Norden under krigsåren.
+===
+sant 4 | Var landet en av axelmakterna?
+Tyskland | ja
+Italien | ja
+Japan | ja
+Ungern | ja
+Rumänien | ja
+Frankrike | nej
+Kina | nej
+Polen | nej
+Grekland | nej
+Sverige | nej
+
+sant 4 | Var landet neutralt under hela kriget?
+Sverige | ja
+Schweiz | ja
+Irland | ja
+Portugal | ja
+Norge | nej
+Danmark | nej
+Nederlän~derna | nej
+Turkiet | nej
+Brasilien | nej
+Belgien | nej
+
+ovrigt 5 | Vad var kodnamnet?
+Anfallet på Sovjet 1941 | Barbarossa
+Invasionen i Normandie | Overlord
+Tysk plan att invadera England | Sjölejonet
+Evakueringen från Dunkerque | Dynamo
+Anfallet på Norge och Danmark | Weserübung
+USA:s atom~bombsprojekt | Manhattan
+Fallskärms~anfallet vid Arnhem | Market Garden
+Invasionen av Nordafrika | Torch
+Invasionen av Sicilien | Husky
+Attentatet mot Hitler 1944 | Valkyria
+
+ovrigt 5 | Vem hade smeknamnet?
+Ökenräven | Erwin Rommel
+Monty | Montgomery
+Ike | Eisenhower
+Il Duce | Mussolini
+Farbror Joe | Stalin
+Old Blood and Guts | George Patton
+Bomber Harris | Arthur Harris
+Vinegar Joe | Joseph Stilwell
+Den brittiska bulldoggen | Churchill
+Caudillo | Franco
+
+siffra 5 | Vilken dag i månaden hände det?
+D-dagen i juni 1944 | 6
+Pearl Harbor i december 1941 | 7
+Anfallet på Polen i september | 1
+Anfallet på Norge i april 1940 | 9
+Segerdagen i Västeuropa i maj | 8
+Hiroshima i augusti 1945 | 6
+Nagasaki i augusti 1945 | 9
+Barbarossa i juni 1941 | 22
+Hitlers död i april 1945 | 30
+Japans kapitulation (sept.) | 2
+
+ordning 4 | Rangordna efter datum (1 = först)
+Anschluss | 1
+München~avtalet | 2
+Tyskland tar Prag | 3
+Pakten Hitler–Stalin | 4
+Tyskland anfaller Polen | 5
+Sovjet anfaller Polen | 6
+Vinterkriget börjar | 7
+Italien går in i kriget | 8
+Operation Barbarossa | 9
+Pearl Harbor | 10
+
+sant 4 | Stred befälhavaren på de allierades sida?
+Montgomery | ja
+Patton | ja
+Nimitz | ja
+Konev | ja
+William Slim | ja
+Omar Bradley | ja
+Rommel | nej
+Guderian | nej
+von Manstein | nej
+Kesselring | nej
+
+ovrigt 5 | Vilket land ledde personen?
+Churchill | Storbritannien
+Roosevelt | USA
+Stalin | Sovjetunionen
+Mussolini | Italien
+Tojo | Japan
+Chiang Kai-shek | Kina
+Per Albin Hansson | Sverige
+Pétain | Vichyfrankrike
+Horthy | Ungern
+Risto Ryti | Finland
+
+farg 5 | Vilken färg har den?
+Bakgrunden i Japans flagga | vit
+Solen i Japans flagga | röd
+Korset i Finlands flagga | blå
+Mitten i RAF:s kokard | röd
+Stjärnan på amerikanska plan | vit
+Fältet runt USA-stjärnan | blå
+Korset på tyska plan (mitten) | svart
+Kronorna i flygvapnets märke | gul
+Hakkorset på finska plan | blå
+Stjärten på Tuskegee-plan | röd
+
+farg 4 | Vilken färg har den?
+Barbarossa betyder …skägg | röd
+Purple Heart-medaljen | lila
+Järnkorset | svart
+Rosie the Riveters skjorta | blå
+Korset i Schweiz flagga | vit
+Stjärnorna på en US-general | silver
+Stjärnan på en US-jeep | vit
+Korset i Sveriges flagga | gul
+Minnesmärket över USS Arizona | vit
+Strålarna i Japans marinflagga | röd
+
+sant 4 | Ockuperade Tyskland landet?
+Norge | ja
+Danmark | ja
+Nederlän~derna | ja
+Belgien | ja
+Grekland | ja
+Sverige | nej
+Schweiz | nej
+Finland | nej
+Spanien | nej
+Island | nej
+
+sant 5 | Stämmer det om Sverige under kriget?
+Sverige hade ransonering | ja
+Tyska soldater transiterades | ja
+Per Albin var statsminister | ja
+Sverige tog emot danska judar | ja
+Gustav V var kung hela kriget | ja
+Sverige förklarade krig mot Tyskland | nej
+Sverige var med i Nato | nej
+Sverige hade högertrafik | nej
+Wallenberg verkade i Warszawa | nej
+Sverige ockuperades | nej
+
+ovrigt 5 | Vem var det under kriget?
+Diplomat som räddade judar i Budapest | Raoul Wallenberg
+Ledde de vita bussarna | Folke Bernadotte
+Sveriges statsminister | Per Albin Hansson
+Sveriges kung | Gustav V
+Svensk utrikes~minister | Christian Günther
+Norrman vars namn blev ett ord | Quisling
+Finlands över~befälhavare | Mannerheim
+Norges kung som sa nej | Haakon VII
+Danmarks kung | Christian X
+Norsk sabotör (film 2008) | Max Manus
+
+sant 5 | Är det ett tyskt pansarfordon?
+Tiger | ja
+Panther | ja
+Elefant | ja
+Nashorn | ja
+Maus | ja
+Stuart | nej
+Cromwell | nej
+KV-1 | nej
+Valentine | nej
+Chi-Ha | nej
+
+sant 2 | Var flygplanet brittiskt?
+Spitfire | ja
+Hurricane | ja
+Lancaster | ja
+Mosquito | ja
+Wellington | ja
+Focke-Wulf 190 | nej
+Heinkel 111 | nej
+B-24 Liberator | nej
+Corsair | nej
+Fiat CR.42 | nej
+
+ovrigt 4 | Vilket land byggde flygplanet?
+P-38 Lightning | USA
+Zero | Japan
+Stuka | Tyskland
+Lavotjkin La-5 | Sovjetunionen
+B-25 Mitchell | USA
+Me 262 | Tyskland
+J 22 | Sverige
+Macchi C.202 | Italien
+VL Myrsky | Finland
+Hawker Typhoon | Storbritannien
+
+ovrigt 5 | Vad hette den?
+Hiroshima~bomben | Little Boy
+Nagasaki~bomben | Fat Man
+Planet över Hiroshima | Enola Gay
+Hitlers bunker i Berlin | Führerbunkern
+Hitlers högkvarter i Ostpreussen | Vargskansen
+Tysklands kodmaskin | Enigma
+Kod~knäckarnas gods | Bletchley Park
+Franska försvarslinjen | Maginotlinjen
+Finska linjen på Karelska näset | Mannerheim~linjen
+Tyska kustförsvaret i väst | Atlantvallen
+
+ovrigt 5 | Vad kallades det?
+B-17 | Flygande fästningen
+Katjusja (av tyskarna) | Stalinorgel
+Me 262 (på tyska) | Schwalbe
+V1 (av britterna) | Doodlebug
+Willys MB | Jeep
+Ubåtarnas grupptaktik | Vargflockar
+Hitlers Tyskland | Tredje riket
+Striderna i Stalingrad (tyska) | Rattenkrieg
+Rommels armé i Nordafrika | Afrikakåren
+London bombas 1940–41 | Blitzen
+
+siffra 5 | Hur många?
+Dagar som vinterkriget varade | 105
+Länder i trepartspakten 1940 | 3
+Dagar Leningrad var belägrat | 872
+Finlands krig 1939–1945 | 3
+Stränder på D-dagen | 5
+Zoner i ockuperade Tyskland | 4
+Dödsdomar i Nürnberg 1946 | 12
+FN-länder från start | 51
+Dagar mellan atom~bomberna | 3
+Atom~bomber som fällts i krig | 2
+
+sant 4 | Stämmer det om Norden?
+Finland förlorade mark i vinterkriget | ja
+Danmark ockuperades 9 april 1940 | ja
+Norges kung flydde till London | ja
+Norges guld fördes ut ur landet | ja
+Tungt vatten tillverkades i Norge | ja
+Finland ockuperades av Sovjet | nej
+Danmark förklarade krig mot Tyskland | nej
+Norge var neutralt hela kriget | nej
+Vinterkriget var mot Tyskland | nej
+Lapplands~kriget var mot Sovjet | nej
+
+sant 5 | Var det en landstigningsstrand på D-dagen?
+Utah | ja
+Omaha | ja
+Gold | ja
+Juno | ja
+Sword | ja
+Silver | nej
+Ohio | nej
+Ruby | nej
+Dieppe | nej
+Anzio | nej
+
+ovrigt 4 | I vilket nuvarande land ligger platsen?
+Stalingrad | Ryssland
+El Alamein | Egypten
+Tobruk | Libyen
+Monte Cassino | Italien
+Arnhem | Nederländerna
+Bastogne | Belgien
+Narvik | Norge
+Dunkerque | Frankrike
+Kohima | Indien
+Peenemünde | Tyskland
+
+ovrigt 4 | Vem sa det?
+”Blod, möda, tårar och svett” | Churchill
+”…will live in infamy” | Roosevelt
+”I shall return” | MacArthur
+”Fred i vår tid” | Chamberlain
+”Nu har jag blivit döden” | Oppenheimer
+”Nuts!” (vid Bastogne) | McAuliffe
+”Frankrike har förlorat ett slag…” | de Gaulle
+”Brinner Paris?” | Hitler
+”Aldrig har så många…” | Churchill
+”…uthärda det outhärdliga” | Hirohito
+
+tid 3 | Från vilket decennium kommer uppfinningen?
+Stridsvagnen (i strid) | 1910-talet
+Enigma (patent) | 1910-talet
+Penicillinet (upptäckt) | 1920-talet
+Tv-apparaten (Baird) | 1920-talet
+Nylon | 1930-talet
+Radarn (Watson-Watt) | 1930-talet
+Första jetplanet flög | 1930-talet
+Atombomben | 1940-talet
+Datorn ENIAC | 1940-talet
+Transistorn | 1940-talet
+
+tid 4 | Från vilket decennium kommer filmen?
+Diktatorn (Chaplin) | 1940-talet
+Mrs. Miniver | 1940-talet
+Bron över floden Kwai | 1950-talet
+Örnnästet | 1960-talet
+En bro för mycket | 1970-talet
+Das Boot | 1980-talet
+Solens rike | 1980-talet
+Den tunna röda linjen | 1990-talet
+Dunkirk | 2010-talet
+Jojo Rabbit | 2010-talet
+
+tid 3 | Från vilket decennium kommer händelsen?
+Versaillesfreden | 1910-talet
+Hitlers ölkällarkupp | 1920-talet
+Börskraschen i New York | 1920-talet
+Spanska inbördeskriget | 1930-talet
+Kristallnatten | 1930-talet
+Nato bildas | 1940-talet
+Koreakriget börjar | 1950-talet
+Stalin dör | 1950-talet
+Ungern~revolten | 1950-talet
+Berlinmuren byggs | 1960-talet
+
+sant 3 | Var personen med på Potsdamkonferensen?
+Truman | ja
+Stalin | ja
+Churchill | ja
+Attlee | ja
+Molotov | ja
+Roosevelt | nej
+de Gaulle | nej
+Chiang Kai-shek | nej
+Mussolini | nej
+Mannerheim | nej
+
+sant 4 | Hände det år 1940?
+Evakueringen från Dunkerque | ja
+Slaget om England | ja
+Norge ockuperades | ja
+Frankrike kapitulerade | ja
+Moskvafreden | ja
+Pearl Harbor | nej
+Slaget vid Stalingrad | nej
+D-dagen | nej
+Anfallet på Polen | nej
+Operation Barbarossa | nej
+
+sant 3 | Stred Japan i slaget?
+Guadalcanal | ja
+Iwo Jima | ja
+Okinawa | ja
+Korallhavet | ja
+Filippinerna | ja
+Slaget om England | nej
+Kursk | nej
+Anzio | nej
+Leningrad | nej
+Kreta | nej
+
+sant 3 | Var landet med och grundade FN 1945?
+USA | ja
+Storbritannien | ja
+Frankrike | ja
+Norge | ja
+Danmark | ja
+Sverige | nej
+Finland | nej
+Tyskland | nej
+Italien | nej
+Schweiz | nej
+
+sant 2 | Hörde personen till Hitlers närmaste krets?
+Göring | ja
+Himmler | ja
+Goebbels | ja
+Hess | ja
+Bormann | ja
+Mussolini | nej
+Franco | nej
+Quisling | nej
+Tojo | nej
+Pétain | nej
+
+sant 3 | Kontrollerade Japan området sommaren 1942?
+Korea | ja
+Taiwan | ja
+Filippinerna | ja
+Singapore | ja
+Nederländska Ostindien | ja
+Hawaii | nej
+Nya Zeeland | nej
+Sri Lanka | nej
+Madagaskar | nej
+Kalifornien | nej
+
+sant 5 | Sänktes fartyget under andra världskriget?
+Bismarck | ja
+Tirpitz | ja
+Hood | ja
+Arizona | ja
+Royal Oak | ja
+Missouri | nej
+Titanic | nej
+Vasa | nej
+HMS Victory | nej
+USS Enterprise | nej
+
+sant 5 | Stämmer det om hemmafronten?
+Brittiska barn evakuerades | ja
+Kvinnor byggde vapen i USA | ja
+London mörklades nattetid | ja
+Gengas drev bilar i Sverige | ja
+Tyskland ransonerade mat | ja
+Fotbolls-VM spelades 1942 | nej
+OS hölls i Tokyo 1940 | nej
+Kaffe ransonerades aldrig | nej
+Svensk tv sände krigsnyheter | nej
+UK slutade ransonera 1945 | nej
+
+sant 2 | Fick landet en ockupationszon i Tyskland?
+USA | ja
+Storbritannien | ja
+Sovjetunionen | ja
+Frankrike | ja
+Kina | nej
+Sverige | nej
+Italien | nej
+Japan | nej
+Spanien | nej
+Grekland | nej
+
+sant 5 | Stämmer det om Wallenberg och Bernadotte?
+Wallenberg arbetade i Budapest | ja
+Wallenberg delade ut skyddspass | ja
+Bernadotte ledde de vita bussarna | ja
+Bussarna hämtade lägerfångar | ja
+Bernadotte förhandlade med Himmler | ja
+Wallenberg var statsminister | nej
+Wallenberg kom hem 1945 | nej
+De vita bussarna var röda | nej
+Bernadotte var kung | nej
+Bussarna åkte till Italien | nej
+
+sant 3 | Stred landets soldater i Normandie 1944?
+USA | ja
+Storbritannien | ja
+Kanada | ja
+Frankrike | ja
+Polen | ja
+Sovjetunionen | nej
+Sverige | nej
+Italien | nej
+Japan | nej
+Kina | nej
+
+sant 4 | Stämmer det om Adolf Hitler?
+Han föddes i Österrike | ja
+Han blev rikskansler 1933 | ja
+Han överlevde bomben 1944 | ja
+Han ville bli konstnär | ja
+Han dog i Berlin | ja
+Han var general i första världskriget | nej
+Han föddes i Berlin | nej
+Han fick Nobels fredspris | nej
+Han var gift med Eva Braun i åratal | nej
+Han var tysk medborgare hela livet | nej
+
+sant 2 | Var det ett nazistiskt koncentrationsläger?
+Auschwitz | ja
+Treblinka | ja
+Dachau | ja
+Bergen-Belsen | ja
+Ravensbrück | ja
+Colditz | nej
+Alcatraz | nej
+Tower of London | nej
+Robben Island | nej
+Gulag | nej
+
+sant 2 | Var planet ett bombplan?
+B-17 | ja
+B-29 | ja
+Stuka | ja
+Junkers Ju 88 | ja
+Dornier Do 17 | ja
+Zero | nej
+Mustang | nej
+Messerschmitt Bf 109 | nej
+Hellcat | nej
+Hawker Tempest | nej
+
+sant 5 | Fanns operationen på riktigt?
+Operation Pied Piper | ja
+Operation Mincemeat | ja
+Operation Paperclip | ja
+Operation Bernhard | ja
+Operation Chastise | ja
+Operation Surströmming | nej
+Operation Kanelbulle | nej
+Operation Köttbulle | nej
+Operation Lussekatt | nej
+Operation Glögg | nej
+
+sant 2 | Blev landet en del av Sovjetunionen?
+Estland | ja
+Lettland | ja
+Litauen | ja
+Ukraina | ja
+Vitryssland | ja
+Finland | nej
+Polen | nej
+Rumänien | nej
+Ungern | nej
+Östtyskland | nej
+
+sant 3 | Var personen svensk?
+Raoul Wallenberg | ja
+Folke Bernadotte | ja
+Per Albin Hansson | ja
+Ulla Billquist | ja
+Gustav V | ja
+Oskar Schindler | nej
+Vidkun Quisling | nej
+Christian X | nej
+Tito | nej
+Winston Churchill | nej
+
+sant 3 | Var det ett sovjetiskt vapen?
+Katjusja | ja
+Il-2 | ja
+IS-2 | ja
+Mosin-Nagant | ja
+Jak-3 | ja
+M1 Garand | nej
+Bren | nej
+Bofors 40 mm | nej
+Panzerschreck | nej
+Fairey Swordfish | nej
+
+sant 4 | Hörde det till Manhattanprojektet?
+Oppenheimer | ja
+Los Alamos | ja
+Enrico Fermi | ja
+Oak Ridge | ja
+Trinity-provet | ja
+Bletchley Park | nej
+Peenemünde | nej
+Vemork | nej
+Wernher von Braun | nej
+Enigma | nej
+
+sant 2 | Var personen brittisk premiärminister?
+Chamberlain | ja
+Churchill | ja
+Attlee | ja
+Anthony Eden | ja
+Stanley Baldwin | ja
+Montgomery | nej
+Mountbatten | nej
+Arthur Harris | nej
+Lord Halifax | nej
+Lord Haw-Haw | nej
+
+sant 2 | Blev personen USA:s president?
+Franklin D. Roosevelt | ja
+Harry Truman | ja
+Dwight Eisenhower | ja
+John F. Kennedy | ja
+Richard Nixon | ja
+George Marshall | nej
+Douglas MacArthur | nej
+Charles Lindbergh | nej
+J. Edgar Hoover | nej
+Henry Ford | nej
+
+sant 4 | Intogs staden av Röda armén?
+Warszawa | ja
+Budapest | ja
+Wien | ja
+Berlin | ja
+Königsberg | ja
+Paris | nej
+Rom | nej
+Amsterdam | nej
+Bryssel | nej
+Köpenhamn | nej
+
+sant 5 | Stämmer det om krigsslutet?
+Hitler dog före kapitulationen | ja
+Japan gav upp efter Tyskland | ja
+Mussolini dog 1945 | ja
+Kejsaren talade i radio | ja
+Stalin levde vid krigsslutet | ja
+Tyskland kapitulerade i Paris | nej
+Nagasaki bombades först | nej
+Roosevelt fick se segern i Europa | nej
+Churchill var PM när Japan föll | nej
+Hirohito avsattes | nej
+
+sant 3 | Var personen spion under kriget?
+Richard Sorge | ja
+Juan Pujol (Garbo) | ja
+Kim Philby | ja
+Virginia Hall | ja
+Noor Inayat Khan | ja
+Mata Hari | nej
+James Bond | nej
+Jesse Owens | nej
+Glenn Miller | nej
+Nicholas Winton | nej
+
+ovrigt 4 | Vilket land söker vi?
+Anfölls av Tyskland 1 sept. 1939 | Polen
+Anföll Finland i vinterkriget | Sovjetunionen
+Italien anföll landet 1935 | Etiopien
+Japan anföll landet 1937 | Kina
+Anslöts till Tyskland 1938 | Österrike
+Britterna ockuperade det 1940 | Island
+Kapitulerade efter fem dagar 1940 | Nederländerna
+Gick in i kriget efter Pearl Harbor | USA
+Bytte sida 1943 | Italien
+Styrdes från Vichy | Frankrike
+
+ovrigt 5 | Vilket ord fattas?
+Operation … Garden | Market
+Anne Franks … | dagbok
+”Vår beredskap är …” | god
+En svensk … | tiger
+”En … har sänkt sig” (1946) | järnridå
+Lili … | Marleen
+De vita … | bussarna
+Min … (Ulla Billquist) | soldat
+Förenta … | nationerna
+…-dagen (6 juni 1944) | D
+
+ovrigt 4 | Vilken stad söker vi?
+Första atombomben | Hiroshima
+Andra atombomben | Nagasaki
+Rättegångarna 1945–1946 | Nürnberg
+Konferensen på Krim 1945 | Jalta
+Den franska regeringen 1940–44 | Vichy
+Wallenberg arbetade här | Budapest
+Dit gick luftbron 1948–49 | Berlin
+Tysk kapitulation 7 maj 1945 | Reims
+Tungt vatten tillverkades här | Rjukan
+FN-stadgan skrevs under här | San Francisco
+
+ovrigt 4 | Vem var det?
+Ledde Fria Frankrike från London | de Gaulle
+Beslutade om atombomben | Truman
+Tog emot Tysklands kapitulation i Berlin | Zjukov
+Amiralen bakom Pearl Harbor | Yamamoto
+Ledde de allierade på D-dagen | Eisenhower
+Tysklands propaganda~minister | Goebbels
+Brittisk kung under kriget | Georg VI
+Jugoslavisk partisanledare | Tito
+Kodknäckare vid Bletchley Park | Alan Turing
+Tysk fabrikör som räddade judar | Oskar Schindler
+
+ovrigt 3 | Vad hette det?
+Tysklands flygvapen | Luftwaffe
+Tysklands väpnade styrkor | Wehrmacht
+Tysklands flotta | Kriegsmarine
+Sovjets hemliga polis | NKVD
+Brittisk sabotage~organisation | SOE
+Norges motstånds~rörelse | Milorg
+Frankrikes motstånds~rörelse | Résistance
+Japanska självmords~piloter | Kamikaze
+Hitlers ungdoms~rörelse | Hitlerjugend
+Sovjets ”Död åt spioner” | Smersj
+
+ovrigt 2 | Vad står förkortningen för?
+SS | Schutzstaffel
+Gestapo | Geheime Staats~polizei
+RAF | Royal Air Force
+Flak | Flugabwehr~kanone
+Radar | Radio Detection and Ranging
+U-båt (U) | Unterseeboot
+Stuka | Sturzkampf~flugzeug
+OSS | Office of Strategic Services
+FN | Förenta nationerna
+V (i V1) | Vergeltungs~waffe
+
+ovrigt 3 | Vilket land kom vapnet från?
+T-34 | Sovjetunionen
+Sherman | USA
+Panzer IV | Tyskland
+Churchill | Storbritannien
+Strv m/40 | Sverige
+Lee-Enfield | Storbritannien
+Bazooka | USA
+Panzerfaust | Tyskland
+Suomi-kpist | Finland
+Arisaka-geväret | Japan
+
+ovrigt 2 | Vilken sorts vapen eller fordon var det?
+Spitfire | Jaktplan
+Lancaster | Bombplan
+Tiger | Stridsvagn
+Tirpitz | Slagskepp
+Seehund | Miniubåt
+Katjusja | Raketartilleri
+USS Enterprise | Hangarfartyg
+Sten | Kulsprute~pistol
+V2 | Raket
+88:an | Luftvärns~kanon
+
+ovrigt 3 | Vem skrev boken?
+Moment 22 | Joseph Heller
+Slakthus 5 | Kurt Vonnegut
+Är detta en människa? | Primo Levi
+Natten | Elie Wiesel
+Schindlers ark | Thomas Keneally
+De nakna och de döda | Norman Mailer
+Rid i natt! | Vilhelm Moberg
+Okänd soldat | Väinö Linna
+Andra världskriget (memoarer) | Churchill
+Boktjuven | Markus Zusak
+
+ovrigt 4 | Vad kallades det i Sverige?
+Gasgenerator som drev bilen | Gengas
+Ersättning för kaffe | Kaffesurrogat
+Frivilligt försvar från 1940 | Hemvärnet
+Kvinnornas frivilliga försvar | Lottakåren
+Kort för att få köpa mat | Ransonerings~kort
+Tyska soldater på tåg genom Sverige | Permittent~trafiken
+Tysk division som fick åka 1941 | Engelbrecht~divisionen
+Försvarslinjen i Skåne | Per Albin-linjen
+Släckta fönster mot bombplan | Mörkläggning
+Svenskarna i vinterkriget | Frivilligkåren
+
+ovrigt 4 | Vem låg bakom det?
+Enigma-maskinen | Arthur Scherbius
+Penicillinet | Alexander Fleming
+V2-raketen | Wernher von Braun
+Laboratoriet i Los Alamos | Oppenheimer
+Studsbomben | Barnes Wallis
+Spitfire | R.J. Mitchell
+Folkvagnen ”Bubblan” | Ferdinand Porsche
+Knäckte Geheim~schreiber 1940 | Arne Beurling
+Brittiska radarn | Watson-Watt
+Brittiska jetmotorn | Frank Whittle
+
+ovrigt 5 | Vad betyder det på svenska?
+Blitzkrieg | Blixtkrig
+Lebensraum | Livsrum
+Anschluss | Anslutning
+Kamikaze | Gudomlig vind
+Reichstag | Riksdag
+Panzer | Pansar
+Adlertag | Örnens dag
+Ersatz | Ersättning
+Endsieg | Slutseger
+Volkssturm | Folkstorm
+
+ovrigt 5 | Vad hette platsen under kriget?
+Kaliningrad | Königsberg
+Gdansk | Danzig
+Volgograd | Stalingrad
+Sankt Petersburg | Leningrad
+Wroclaw | Breslau
+Jakarta | Batavia
+Myanmar | Burma
+Sri Lanka | Ceylon
+Taiwan | Formosa
+Ghana | Guldkusten
+
+ovrigt 4 | Vilket land vann slaget?
+Slaget om England | Storbritannien
+Midway | USA
+Stalingrad | Sovjetunionen
+Kursk | Sovjetunionen
+Slaget om Frankrike 1940 | Tyskland
+Market Garden | Tyskland
+Kreta 1941 | Tyskland
+Singapore 1942 | Japan
+Leytebukten | USA
+Río de la Plata 1939 | Storbritannien
+
+ovrigt 3 | Vad hette fartyget?
+Sänktes vid Nordkap 1943 | Scharnhorst
+Sänktes själv vid Montevideo | Graf Spee
+Sänktes i Oslofjorden 1940 | Blücher
+Japanskt jätteskepp sänkt 1945 | Yamato
+Churchills fartyg till Atlantmötet | Prince of Wales
+Svensk ubåt som minsprängdes 1943 | Ulven
+Bar Doolittles bombplan 1942 | Hornet
+Färja med tungt vatten, sänkt 1944 | Hydro
+Japans flaggskepp vid Pearl Harbor | Akagi
+Där Japan kapitulerade | Missouri
+
+ovrigt 4 | Vilket land kom personen eller gruppen från?
+Holger Danske | Danmark
+Armia Krajowa | Polen
+Maquis | Frankrike
+Titos partisaner | Jugoslavien
+Simo Häyhä | Finland
+Gunnar Sønsteby | Norge
+Chiune Sugihara | Japan
+Audie Murphy | USA
+Nicholas Winton | Storbritannien
+Aristides de Sousa Mendes | Portugal
+
+ovrigt 5 | Varifrån kom soldaterna?
+Tommies | Storbritannien
+GI | USA
+Jerries | Tyskland
+Ivan | Sovjetunionen
+Kiwis | Nya Zeeland
+Canucks | Kanada
+Gurkhas | Nepal
+Flygande tigrarna | USA
+Blå divisionen | Spanien
+Ökenråttorna | Storbritannien
+
+ovrigt 4 | Vad hette avtalet eller planen?
+Freden efter första världskriget | Versailles~freden
+Gav Hitler Sudetlandet 1938 | Münchenavtalet
+Tyskland och Sovjet 1939 | Molotov-Ribbentrop
+Avslutade vinterkriget | Moskvafreden
+Axel~makternas pakt 1940 | Trepartspakten
+Churchill och Roosevelt 1941 | Atlant~deklarationen
+USA:s vapenlån före Pearl Harbor | Lend-Lease
+USA:s hjälp till Europa efter kriget | Marshallplanen
+Västs försvarsallians 1949 | Nato
+Östblockets allians 1955 | Warszawapakten
+
+ovrigt 3 | Vilken flod eller vilket vatten?
+Bron vid Remagen gick över | Rhen
+Floden vid Stalingrad | Volga
+Här möttes USA och Sovjet 1945 | Elbe
+Danska judar flydde över | Öresund
+”Livets väg” till Leningrad gick över | Ladoga
+Polens gräns: Oder och … | Neisse
+Floden genom Warszawa | Wisla
+Floden genom Kiev | Dnepr
+Här sänktes färjan Hydro | Tinnsjön
+Pegasus Bridge gick över | Caen-kanalen
+
+ovrigt 4 | Vem spelade huvudrollen?
+Rädda menige Ryan | Tom Hanks
+Schindlers lista | Liam Neeson
+Oppenheimer | Cillian Murphy
+Den stora flykten | Steve McQueen
+Casablanca | Humphrey Bogart
+Pianisten | Adrien Brody
+Darkest Hour (Churchill) | Gary Oldman
+The Imitation Game | Benedict Cumberbatch
+Patton | George C. Scott
+Kellys hjältar | Clint Eastwood
+
+siffra 5 | Vilket år hände det?
+Hitler blev rikskansler | 1933
+Italien anföll Etiopien | 1935
+Rhenlandet åter~militariserades | 1936
+Japan anföll Kina fullt ut | 1937
+Kriget bröt ut | 1939
+Hess flög till Skottland | 1941
+Doolittle-räden mot Tokyo | 1942
+Tyskarna gav upp i Stalingrad | 1943
+D-dagen | 1944
+Atom~bomberna fälldes | 1945
+
+siffra 3 | Vilket år hände det efter kriget?
+Nürnberg~domarna | 1946
+Indien blev självständigt | 1947
+Japans nya grundlag började gälla | 1947
+Marshall~planen startade | 1948
+Berlin~blockaden började | 1948
+Västtyskland bildades | 1949
+Sovjets första atombomb | 1949
+Kina blev folkrepublik | 1949
+Churchill premiär~minister igen | 1951
+Fredsavtalet med Japan | 1951
+
+siffra 3 | Hur gammal blev personen?
+Hitler | 56
+Churchill | 90
+Roosevelt | 63
+Mussolini | 61
+de Gaulle | 79
+Eisenhower | 78
+Hirohito | 87
+Mannerheim | 83
+Per Albin Hansson | 60
+Truman | 88
+
+siffra 3 | Hur många?
+Motorer på en B-17 | 4
+Motorer på en Spitfire | 1
+Motorer på en Mosquito | 2
+Motorer på en Ju 52 | 3
+Motorer på en Me 262 | 2
+Besättning i en Tiger | 5
+Kalibern på ”88:an” (mm) | 88
+38 cm-kanoner på Bismarck | 8
+Yamatos kanonkaliber (cm) | 46
+Rotorer i marinens Enigma | 4
+
+siffra 2 | Vilket år gick landet in i kriget?
+Storbritannien | 1939
+Italien | 1940
+Grekland | 1940
+Norge | 1940
+Jugoslavien | 1941
+USA | 1941
+Brasilien | 1942
+Mexiko | 1942
+Turkiet | 1945
+Argentina | 1945
+
+siffra 4 | Vilket år hände det i Sverige eller Norden?
+Vinterkriget började | 1939
+Hemvärnet bildades | 1940
+Midsommar~krisen | 1941
+Danska judar flydde till Sverige | 1943
+Permittent~trafiken upphörde | 1943
+Wallenberg kom till Budapest | 1944
+Lapplands~kriget började | 1944
+De vita bussarna | 1945
+Sverige gick med i FN | 1946
+Bernadotte mördades | 1948
+
+siffra 3 | Hur många?
+Punkter i Wilsons fredsplan | 14
+Friheter i Roosevelts tal 1941 | 4
+Punkter i Atlant~deklarationen | 8
+Permanenta länder i säkerhetsrådet | 5
+Gånger Roosevelt valdes | 4
+Prickar i morsekodens V | 3
+Ockupations~zoner i Österrike | 4
+Sektorer i Berlin | 4
+Natos grundarländer | 12
+Warszawa~paktens länder 1955 | 8
+
+siffra 5 | Vilket nummer?
+Dambusters-skvadronen | 617
+”Screaming Eagles”-divisionen | 101
+”All American”-divisionen | 82
+Tyska armén i Stalingrad | 6
+Ubåten i Das Boot (U …) | 96
+Turings barack på Bletchley | 8
+Stuka: Junkers Ju … | 87
+… riket | 3
+Beethovens symfoni i V-signalen | 5
+Filmen Stalag … (1953) | 17
+
+siffra 3 | Vilket år hände det i kultur och sport?
+Jesse Owens tog fyra OS-guld | 1936
+Fotbolls-VM i Frankrike | 1938
+Glenn Miller spelade in In the Mood | 1939
+Casablanca hade premiär | 1942
+Kalle Anka-filmen Der Fuehrer's Face | 1943
+Glenn Miller försvann | 1944
+Anne Franks dagbok gavs ut | 1947
+OS i London | 1948
+Fotbolls-VM i Brasilien | 1950
+Churchill fick Nobelpriset | 1953
+
+siffra 4 | Hur många?
+Strålar i Japans krigsflagga | 16
+Strålar i Kuomintangs sol | 12
+Ränder i USA:s flagga | 13
+Stjärnor i USA:s flagga 1945 | 48
+Kronor i flygvapnets märke | 3
+Stjärnor på Eisenhowers axel | 5
+Stjärnor i Sovjets flagga | 1
+Stjärnor i Kinas flagga 1949 | 5
+Fingrar i Churchills V-tecken | 2
+Armar på Järnkorset | 4
+
+siffra 3 | Vilken dag i månaden hände det?
+Vinterkriget började i november | 30
+Norge befriades i maj | 8
+Kristallnatten i november | 9
+Attentatet mot Hitler i juli | 20
+Paris befriades i augusti | 25
+Roosevelt dog i april | 12
+FN-stadgan skrevs i juni | 26
+Tyskland gav upp i Reims (maj) | 7
+Mussolini avsattes i juli | 25
+Jalta~konferensen började i feb. | 4
+
+siffra 4 | Vilket år syftar siffran i namnet på?
+Zero (Typ 0) | 1940
+Chi-Ha (Typ 97) | 1937
+Strv m/42 | 1942
+MG 42 | 1942
+PPSj-41 | 1941
+Colt M1911 | 1911
+Luger P08 | 1908
+Walther P38 | 1938
+Kar98k | 1898
+Thompson M1928 | 1928
+
+siffra 3 | Vilket år hände det långt efter kriget?
+Britterna slutade ransonera | 1954
+Österrikes statsfördrag | 1955
+Japan gick med i FN | 1956
+Anne Frank-huset öppnade | 1960
+Churchill dog | 1965
+Onoda gav upp i djungeln | 1974
+Rudolf Hess dog i Spandau | 1987
+Tyskland återförenades | 1990
+Sovjetunionen upplöstes | 1991
+Wallenberg död~förklarades | 2016
+
+ordning 4 | Rangordna efter datum (1 = först)
+Singapore faller | 1
+Slaget vid Midway | 2
+Slaget vid El Alamein | 3
+Slaget vid Kursk | 4
+Italien kapitulerar | 5
+Leningrads belägring hävs | 6
+De allierade intar Rom | 7
+Warszawa~upproret | 8
+Ardenner~offensiven | 9
+Slaget om Iwo Jima | 10
+
+ordning 3 | Rangordna efter födelse (1 = äldst)
+Pétain | 1
+Mannerheim | 2
+von Rundstedt | 3
+MacArthur | 4
+Yamamoto | 5
+Patton | 6
+Montgomery | 7
+Eisenhower | 8
+Rommel | 9
+Zjukov | 10
+
+ordning 3 | Rangordna efter kapitulation (1 = först)
+Danmark | 1
+Nederlän~derna | 2
+Belgien | 3
+Norge | 4
+Frankrike | 5
+Jugoslavien | 6
+Grekland | 7
+Italien | 8
+Tyskland | 9
+Japan | 10
+
+ordning 5 | Rangordna efter när de tillträdde (1 = först)
+Mussolini | 1
+Hirohito | 2
+Per Albin Hansson | 3
+Hitler | 4
+Roosevelt | 5
+Chamberlain | 6
+Churchill | 7
+Tojo | 8
+Truman | 9
+Attlee | 10
+
+ordning 2 | Rangordna efter första flygning (1 = först)
+Messerschmitt Bf 109 | 1
+Hurricane | 2
+Spitfire | 3
+Zero | 4
+Mustang | 5
+Lancaster | 6
+Hellcat | 7
+B-29 | 8
+Gloster Meteor | 9
+Saab 21 | 10
+
+ordning 2 | Rangordna konferenserna (1 = först)
+München | 1
+Atlantmötet | 2
+Casablanca | 3
+Kairo | 4
+Teheran | 5
+Bretton Woods | 6
+Dumbarton Oaks | 7
+Jalta | 8
+San Francisco | 9
+Potsdam | 10
+
+ordning 4 | Rangordna händelserna i Norden (1 = först)
+Vinterkriget börjar | 1
+Moskvafreden | 2
+Danmark och Norge anfalls | 3
+Britterna tar Island | 4
+Haakon VII lämnar Norge | 5
+Fortsättnings~kriget börjar | 6
+Tungtvattens~sabotaget | 7
+Danska judarna flyr | 8
+Lapplands~kriget börjar | 9
+Danmark befrias | 10
+
+ordning 2 | Rangordna huvudstäderna (1 = nordligast)
+Helsingfors | 1
+Oslo | 2
+Stockholm | 3
+Köpenhamn | 4
+Berlin | 5
+Warszawa | 6
+London | 7
+Paris | 8
+Rom | 9
+Tokyo | 10
+
+ordning 5 | Rangordna efter när de dog (1 = först)
+Chamberlain | 1
+Yamamoto | 2
+Rommel | 3
+Roosevelt | 4
+Mussolini | 5
+Hitler | 6
+Stalin | 7
+Churchill | 8
+de Gaulle | 9
+Hirohito | 10
+
+tid 3 | Från vilket århundrade kommer uppfinningen?
+Krutet | 800-talet
+Kikaren | 1600-talet
+Varmlufts~ballongen | 1700-talet
+Första fallskärms~hoppet | 1700-talet
+Morsekoden | 1800-talet
+Dynamiten | 1800-talet
+Taggtråden | 1800-talet
+Maxim-kulsprutan | 1800-talet
+Motor~flygplanet | 1900-talet
+Kulspets~pennan | 1900-talet
+
+tid 3 | Från vilket decennium kommer låten?
+It's a Long Way to Tipperary | 1910-talet
+Over There | 1910-talet
+We'll Meet Again | 1930-talet
+Lili Marleen | 1930-talet
+Chattanooga Choo Choo | 1940-talet
+Boogie Woogie Bugle Boy | 1940-talet
+Min soldat | 1940-talet
+The White Cliffs of Dover | 1940-talet
+Enola Gay (OMD) | 1980-talet
+Night Witches (Sabaton) | 2010-talet
+
+tid 3 | Från vilket decennium kommer tv-serien?
+Hogans hjältar | 1960-talet
+Dad's Army | 1960-talet
+Någonstans i Sverige | 1970-talet
+The World at War | 1970-talet
+Holocaust | 1970-talet
+'Allo 'Allo! | 1980-talet
+Krigets vindar | 1980-talet
+The Pacific | 2010-talet
+Kampen om tungtvannet | 2010-talet
+Masters of the Air | 2020-talet
+
+tid 2 | Från vilket decennium flög planet första gången?
+Fokker Dr.I (Röde baronen) | 1910-talet
+Junkers Ju 52 | 1930-talet
+DC-3 | 1930-talet
+Il-2 | 1930-talet
+Me 262 | 1940-talet
+Saab 29 Tunnan | 1940-talet
+Saab 35 Draken | 1950-talet
+Boeing 747 | 1960-talet
+Concorde | 1960-talet
+JAS 39 Gripen | 1980-talet
+
+tid 5 | Från vilket decennium kommer det?
+Pez | 1920-talet
+Marskakan | 1930-talet
+Spam | 1930-talet
+Stålmannen | 1930-talet
+Fanta | 1940-talet
+Kapten Amerika | 1940-talet
+M&M's | 1940-talet
+Silvertejp | 1940-talet
+Bikinin | 1940-talet
+Mr. Potato Head | 1950-talet
+
+farg 3 | Vilken färg har fältet i flaggan?
+Sovjetunionens bakgrund | röd
+Norges inre kors | blå
+Polens övre fält | vit
+Italiens vänstra fält | grön
+Frankrikes vänstra fält | blå
+Belgiens mittfält | gul
+Nederlän~dernas övre fält | röd
+Ungerns nedre fält | grön
+Estlands mittfält | svart
+Solen i Kinas flagga 1945 | vit
+
+farg 4 | Vilken färg har den?
+Bombplanet Enola Gay | silver
+Finska soldaters vinterdräkt | vit
+Lorrainekorset hos Fria Frankrike | röd
+Korset på de vita bussarna | röd
+Royal Navys uniform | mörkblå
+Amerikanska sjömansmössan | vit
+Bersaglieris hattfjädrar | svart
+Flygarjackan A-2 | brun
+Tyska arméns fältuniform | grå
+Falangisternas skjortor | blå
+
+farg 4 | Vilken färg fattas i namnet?
+…skjortorna (Mussolinis) | svart
+…skjortorna (SA) | brun
+Den … rosen | vit
+… divisionen (Spanien) | blå
+Fall … (Frankrike 1940) | gul
+Fall … (Tjeckoslo~vakien) | grön
+… Ball Express | röd
+War Plan … (mot Japan) | orange
+… kapellet (spionnät) | röd
+… armén (Sovjet) | röd

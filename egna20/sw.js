@@ -1,5 +1,5 @@
 /* egna10 – service worker: gör appen installerbar och användbar utan nät. */
-const VERSION = 'egna20-v2';
+const VERSION = 'egna20-v3';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 const JSPDF = 'https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js';
 
@@ -24,11 +24,20 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   // Sidan själv: hämta ny version när det finns nät, annars sparad kopia.
-  if (req.mode === 'navigate' || (url.origin === location.origin && /\/(index\.html)?$/.test(url.pathname))) {
+  if (req.mode === 'navigate' || (url.origin === location.origin && !url.pathname.includes('/fragepaket/') && /\/(index\.html)?$/.test(url.pathname))) {
     e.respondWith((async () => {
       const c = await caches.open(VERSION);
       try { const r = await fetch(req); if (r.ok) c.put(req, r.clone()); return r; }
       catch (err) { return (await c.match(req, { ignoreSearch: true })) || (await c.match('./index.html')) || Response.error(); }
+    })());
+    return;
+  }
+  // Frågepaketen i biblioteket: alltid senaste versionen när det finns nät, annars sparad kopia.
+  if (url.origin === location.origin && url.pathname.includes('/fragepaket/')) {
+    e.respondWith((async () => {
+      const c = await caches.open(VERSION);
+      try { const r = await fetch(req); if (r.ok) c.put(req, r.clone()); return r; }
+      catch (err) { return (await c.match(req)) || Response.error(); }
     })());
     return;
   }
