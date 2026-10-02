@@ -3253,6 +3253,7 @@ function setView(v, opts){
   for (const l of [rowsLayer, plantsLayer, passLayer, editGroup]) on(v === 'plan', l);
   if (v === 'plan') applyVisibility();
   if (v === 'farm') { if (tool) setTool(tool); renderFarm(); if (!opts || !opts.keepView) fitFarm(); }
+  if (roadEdit) stopRoadEdit(true);
   updMobNav(); applyFarmOrthos();
   document.title = v === 'farm' ? 'Odlingsverktyget' : `${CU().name} · ${plan ? plan.name : ''}`;
 }
@@ -3577,9 +3578,12 @@ function setupRoadClip(){
   return 'roadClip';
 }
 function refreshRoads(){
+  // vägen som håller på att ändras ska fortsätta vara i ändringsläge när kartan ritas om
+  const keepEdit = roadEdit;
   if (roadEdit) stopRoadEdit(false);
   roadsLayer.clearLayers(); roadViews = [];
   if (!roadsVisible()) return;
+  if (keepEdit) setTimeout(() => { const r = roadById(keepEdit); if (r && !roadEdit && roadViews.some(g => g.road === r)) startRoadEdit(r, true); }, 0);
   const clip = setupRoadClip();
   for (const r of store.roads || []) {
     if (!okRoad(r)) continue;
@@ -3644,8 +3648,10 @@ async function recalcRoadPlans(){
   if (!todo.length) return;
   for (const p of todo) { await new Promise(res => setTimeout(res, 0)); if (!p.summary) p.summary = planSummary(p); }
   persist();
-  if (view === 'farm') renderFarm();
+  // medan en väg ändras väntar listan tills man är klar, annars stängs ändringsläget av omritningen
+  if (view === 'farm') { if (roadEdit) farmRenderPending = true; else renderFarm(); }
 }
+let farmRenderPending = false;
 function startRoadDraw(){
   if (roadEdit) stopRoadEdit(true);
   if (tool) setTool(tool);
@@ -3704,7 +3710,7 @@ function openRoadPopup(g, latlng, isNew){
   L.popup({maxWidth: 320, minWidth: 250, className: 'road-popup', autoPanPaddingTopRight: [view === 'plan' && !isMobile() ? 310 : 20, 20]}).setLatLng(latlng).setContent(div).openOn(map);
   if (isNew) setTimeout(() => nm.focus(), 60);
 }
-function startRoadEdit(r){
+function startRoadEdit(r, silent){
   if (roadEdit) stopRoadEdit(true);
   const g = roadViews.find(x => x.road === r);
   if (!g) return msg('Vägen syns inte just nu. Slå på "Fält & hinder" under Visa.');
@@ -3718,7 +3724,7 @@ function startRoadEdit(r){
     placeRoadLabel(g); roadsChanged([r.line, JSON.parse(g.before)]); g.before = JSON.stringify(r.line);
   });
   renderRoadList();
-  msg('Dra i punkterna för att ändra vägen. Mittpunkterna blir nya knäckar, klick på en punkt tar bort den. Klicka på vägen eller tryck Esc när du är klar.', 15000);
+  if (!silent) msg('Dra i punkterna för att ändra vägen. Mittpunkterna blir nya knäckar, klick på en punkt tar bort den. Klicka på vägen eller tryck Esc när du är klar.', 15000);
 }
 function stopRoadEdit(announce){
   const g = roadViews.find(x => x.road.id === roadEdit);
@@ -3726,6 +3732,7 @@ function stopRoadEdit(announce){
   if (g) { g.line.editing.disable(); g.line.off('editdrag edit'); }
   persistRoads(); renderRoadList();
   if (announce) msg('Vägen är sparad.');
+  if (announce && farmRenderPending) { farmRenderPending = false; if (view === 'farm') renderFarm(); }
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && roadEdit) stopRoadEdit(true); });
 
