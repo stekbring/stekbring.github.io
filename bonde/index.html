@@ -300,6 +300,14 @@ body.tool-on path.road-hit{cursor:crosshair}
 .roadrow .rbtns button{padding:3px 10px;min-height:28px;font-size:12.5px}
 .road-sw{flex:none;width:18px;height:10px;border-radius:2px;background:linear-gradient(#c9ced4 0 3px,#111 3px 3.6px,#fdf6e3 3.6px 6.4px,#111 6.4px 7px,#c9ced4 7px)}
 #roadList{margin-top:4px}
+#farmOrthoList{margin-top:4px}
+.orow{border-top:1px solid var(--border);padding:6px 0 4px}
+.orow:first-child{border-top:0}
+.orow .r{margin:4px 0}
+.orow .oname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.orow .rbtns{gap:6px}
+.orow .rbtns .hint{flex:1;margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.orow .rbtns button{padding:3px 10px;min-height:28px;font-size:12.5px}
 
 /* ---------- Mobil ---------- */
 .mobnav{display:none}
@@ -392,6 +400,14 @@ body.tool-on path.road-hit{cursor:crosshair}
         <div class="r" style="margin-top:2px"><button id="btnRoadFarm" style="flex:1" title="Rita vägens mittlinje på kartan"><svg class="ic" aria-hidden="true"><use href="#i-road"/></svg><span>Rita väg</span></button><label for="roadWFarm" style="flex:none;margin-left:6px">Bredd</label><input type="number" id="roadWFarm" min="0.5" step="0.5" title="Bredd på nästa väg du ritar"><span class="u">m</span></div>
         <div id="roadList"></div>
         <div class="hint">Rita vägens mittlinje på kartan. Inne i ett fält visas bredden runt linjen och där sätts inget. Utanför fälten visas bara linjen. Klicka på en väg för att ge den ett namn.</div>
+      </fieldset>
+      <fieldset>
+        <legend>Ortofoton</legend>
+        <div class="r" style="margin-top:2px"><button id="btnFarmOrtho" style="flex:1" title="Lägg ett eget flygfoto eller en drönarbild ovanpå kartan"><svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg><span>Läs in ortofoto…</span></button></div>
+        <input type="file" id="farmOrthoIn" multiple accept=".tif,.tiff,.jpg,.jpeg,.png,.jgw,.pgw,.tfw,.wld,.jpgw,.pngw" hidden>
+        <div class="r"><label for="farmOrthoCrs" style="flex:none">Koordinatsystem</label><select id="farmOrthoCrs"></select></div>
+        <div id="farmOrthoList"></div>
+        <div class="hint">GeoTIFF, eller JPG/PNG tillsammans med sin world-fil (.jgw/.pgw) – markera båda filerna samtidigt, eller dra dem till kartan. Gårdens ortofoton syns också i odlingarna. Bilderna sparas i webbläsaren.</div>
       </fieldset>
       <fieldset><legend>Totalt</legend><div id="farmTotals"></div></fieldset>
     </div>
@@ -499,6 +515,7 @@ body.tool-on path.road-hit{cursor:crosshair}
         <input type="file" id="orthoIn" multiple accept=".tif,.tiff,.jpg,.jpeg,.png,.jgw,.pgw,.tfw,.wld,.jpgw,.pngw" hidden>
         <div class="r"><label for="orthoCrs" style="flex:none">Koordinatsystem</label><select id="orthoCrs"></select></div>
         <div class="r"><label for="orthoOp" style="flex:none">Täckning</label><input type="range" id="orthoOp" min="0" max="100" value="100"><label style="flex:none"><input type="checkbox" id="orthoShow" checked> Visa</label></div>
+        <div class="r"><label for="farmOrthoInPlan" style="white-space:normal"><input type="checkbox" id="farmOrthoInPlan" checked> Visa gårdens ortofoton här också</label></div>
         <div class="hint" id="orthoInfo"></div>
       </fieldset>
     </div>
@@ -1235,7 +1252,7 @@ document.addEventListener('drop', async e => {
   const files = [...e.dataTransfer.files];
   const orthoFiles = files.filter(f => /\.(tiff?|jpe?g|png|jgw|pgw|tfw|wld|jpgw|pngw)$/i.test(f.name));
   try {
-    if (orthoFiles.length) { $('orthoIn').onchange({target: {files: orthoFiles, value: ''}}); return; }
+    if (orthoFiles.length) { if (view === 'farm') addFarmOrtho(orthoFiles); else $('orthoIn').onchange({target: {files: orthoFiles, value: ''}}); return; }
     importMode = 'any'; await importFile(files[0]);
   } catch (err) { msg('Kunde inte läsa filen: ' + err.message, 0); }
 });
@@ -2180,7 +2197,7 @@ async function showOrtho(rec, fit){
   const layer = L.imageOverlay(url, rec.bounds, {pane: 'orthoPane', opacity: op / 100, interactive: false});
   ortho = {layer, img, url, bounds: rec.bounds, name: rec.name, opacity: op};
   $('orthoOp').value = op;
-  if ($('orthoShow').checked) layer.addTo(map);
+  if ($('orthoShow').checked && view === 'plan') layer.addTo(map);
   $('orthoInfo').textContent = `${rec.name} · ${rec.w} × ${rec.h} px${rec.crsName ? ' · ' + rec.crsName : ''}`;
   if (fit) map.fitBounds(rec.bounds);
 }
@@ -2217,7 +2234,7 @@ $('orthoIn').onchange = async e => {
 const MAXPX = 4000;
 const W0 = ll => L.CRS.EPSG3857.latLngToPoint(L.latLng(ll[0], ll[1]), 0);   // världspixlar vid zoom 0
 const W2LL = (x, y) => L.CRS.EPSG3857.pointToLatLng(L.point(x, y), 0);
-async function buildOrtho(files){
+async function buildOrtho(files, crsVal = $('orthoCrs').value){
   const tif = files.find(f => /\.tiff?$/i.test(f.name));
   const pic = files.find(f => /\.(jpe?g|png)$/i.test(f.name));
   const wld = files.find(f => /\.(jgw|pgw|tfw|wld|jpgw|pngw)$/i.test(f.name));
@@ -2226,7 +2243,7 @@ async function buildOrtho(files){
   else if (pic && wld) { world = await readWorldFile(wld); src = await readWorldImage(pic, world); }
   else if (pic) throw new Error('bilden saknar world-fil (.jgw/.pgw). Markera båda filerna samtidigt.');
   else throw new Error('välj en GeoTIFF (.tif) eller en JPG/PNG med world-fil');
-  const code = $('orthoCrs').value ? +$('orthoCrs').value : src.epsg;
+  const code = crsVal ? +crsVal : src.epsg;
   if (!code) throw new Error('filen anger inget koordinatsystem. Välj det i listan och läs in igen.');
   await need('proj4');
   const def = await crsDef(code);
@@ -2685,7 +2702,7 @@ function pdfTree(){
   if (nearRoads(plan.field).length) mapKids.push({key: 'map.roads', label: 'Vägar och vägnamn'});
   mapKids.push({key: 'map.rows', label: 'Rader'}, {key: 'map.plants', label: 'Sättpunkter'});
   if (S().machine && passInfo && passInfo.passes.length) mapKids.push({key: 'map.passes', label: 'Körspår och START/SLUT'});
-  if (ortho) mapKids.push({key: 'map.ortho', label: 'Eget ortofoto'});
+  if (PO()) mapKids.push({key: 'map.ortho', label: ortho ? 'Eget ortofoto' : 'Gårdens ortofoto'});
   mapKids.push({key: 'map.legend', label: 'Teckenförklaring'}, {key: 'map.north', label: 'Norrpil'}, {key: 'map.scale', label: 'Skalstock'}, {key: 'map.attr', label: 'Källa för bakgrundskarta'});
   const notes = [...m.warnings, ...m.infos];
   return [
@@ -3025,8 +3042,8 @@ function renderPreview(){
   pdfK = Math.max(1.4, Math.min(3.2, (box.clientWidth - 30) / PG.W));
   box.innerHTML = '';
   const P = new CanvasPainter(box, pdfK);
-  const oimg = ortho && pdfOn('map.ortho') ? orthoWorldImg() : null;
-  pdfFrame = layoutReport(P, {view: pv, bg: pdfBg, ortho: oimg ? {...oimg, alpha: ortho.opacity / 100} : null});
+  const po = PO(), oimg = po && pdfOn('map.ortho') ? orthoWorldImg(po) : null;
+  pdfFrame = layoutReport(P, {view: pv, bg: pdfBg, ortho: oimg ? {...oimg, alpha: po.opacity / 100} : null});
   box.scrollTop = keep;
   const first = P.pages[0].c;
   first.style.cursor = pdfFrame ? 'grab' : 'default';
@@ -3035,9 +3052,9 @@ function renderPreview(){
   const n = P.pageCount();
   $('pdfPagesInfo').textContent = n > 1 ? `${n} sidor` : '1 sida';
 }
-function orthoWorldImg(){
-  const [[s_, w_], [n_, e_]] = ortho.bounds, a = W0([n_, w_]), b = W0([s_, e_]);
-  return {el: ortho.img, wx0: a.x, wy0: a.y, wx1: b.x, wy1: b.y};
+function orthoWorldImg(po = PO()){
+  const [[s_, w_], [n_, e_]] = po.bounds, a = W0([n_, w_]), b = W0([s_, e_]);
+  return {el: po.img, wx0: a.x, wy0: a.y, wx1: b.x, wy1: b.y};
 }
 function inFrame(e){
   if (!pdfFrame) return false;
@@ -3084,12 +3101,13 @@ async function openPdfDialog(){
   $('pdfDlg').hidden = false;
   document.body.classList.add('dlg-open');
   renderPdfTree(); syncLookInputs();
-  let rec = null; try { rec = ortho ? await idb.get(plan.id) : null; } catch {}
+  const po = PO();
+  let rec = null; try { rec = po ? await idb.get(po.key) : null; } catch {}
   const q = $('pdfOrthoQ');
-  q.disabled = !ortho;
+  q.disabled = !po;
   q.querySelectorAll('option[data-orig]').forEach(op => op.disabled = !(rec && rec.orig));
   q.value = (ui.orthoQ && !(q.querySelector(`option[value="${ui.orthoQ}"]`) || {}).disabled) ? ui.orthoQ : 'normal';
-  $('pdfOrthoHint').textContent = !ortho ? 'Inget ortofoto är inläst i den här planen.'
+  $('pdfOrthoHint').textContent = !po ? 'Inget ortofoto är inläst i den här planen eller på gården.'
     : rec && rec.orig ? `Originalet är ${fmt(rec.fullW || rec.w)} × ${fmt(rec.fullH || rec.h)} px. Högsta kvalitet ger större PDF.`
     : 'Läs in ortofotot igen för att kunna välja högre kvalitet (originalfilen sparades inte i tidigare version).';
   fitPdfView();
@@ -3120,7 +3138,7 @@ async function savePdf(){
       const c = document.createElement('canvas'); c.width = Math.round(sw); c.height = Math.round(sh);
       c.getContext('2d').drawImage(bg.el, sx, sy, sw, sh, 0, 0, c.width, c.height);
       bgImg = {el: c, dataUrl: c.toDataURL('image/jpeg', 0.9), fmt: 'JPEG', alias: 'bg', wx0: fw.x0, wy0: fw.y0, wx1: fw.x1, wy1: fw.y1};
-      if (ortho && pdfOn('map.ortho')) {
+      if (PO() && pdfOn('map.ortho')) {
         status('Förbereder ortofoto…');
         orthoImg = await orthoForPdf(view, fw, bgImg.el, $('pdfOrthoQ').value);
       }
@@ -3142,31 +3160,31 @@ async function savePdf(){
 $('pdfSave').onclick = savePdf;
 /* Ortofotot läggs i PDF:en som en färdig bild ovanpå bakgrunden (behåller genomskinlighet och vald täckning) */
 async function orthoForPdf(view, fw, bgCanvas, quality){
-  const ow = orthoWorldImg();
+  const po = PO(), ow = orthoWorldImg(po);
   const x0 = Math.max(fw.x0, ow.wx0), y0 = Math.max(fw.y0, ow.wy0), x1 = Math.min(fw.x1, ow.wx1), y1 = Math.min(fw.y1, ow.wy1);
   if (x1 <= x0 || y1 <= y0) return null;
   const regionMM = (x1 - x0) * view.s;
   let img = null, W;
   if (quality !== 'normal') {
-    let rec = null; try { rec = await idb.get(plan.id); } catch {}
+    let rec = null; try { rec = await idb.get(po.key); } catch {}
     if (rec && rec.orig) {
       const needW = quality === 'max' ? Infinity : Math.round(regionMM / 25.4 * 300);
       try { img = await orthoRegionFromOriginal(rec, x0, y0, x1, y1, needW); } catch (err) { console.error(err); }
     }
   }
   if (img) W = img.width;
-  else { W = Math.max(1, Math.round((x1 - x0) / (ow.wx1 - ow.wx0) * ortho.img.naturalWidth)); W = Math.min(W, 4000); }
+  else { W = Math.max(1, Math.round((x1 - x0) / (ow.wx1 - ow.wx0) * po.img.naturalWidth)); W = Math.min(W, 4000); }
   const H = Math.max(1, Math.round(W * (y1 - y0) / (x1 - x0)));
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const ctx = c.getContext('2d');
   // bakgrunden under, så att genomskinliga kanter blir rätt
   const bw = bgCanvas.width / (fw.x1 - fw.x0);
   ctx.drawImage(bgCanvas, (x0 - fw.x0) * bw, (y0 - fw.y0) * bw, (x1 - x0) * bw, (y1 - y0) * bw, 0, 0, W, H);
-  ctx.globalAlpha = ortho.opacity / 100;
+  ctx.globalAlpha = po.opacity / 100;
   if (img) ctx.drawImage(img, 0, 0, W, H);
   else {
-    const nw = ortho.img.naturalWidth / (ow.wx1 - ow.wx0), nh = ortho.img.naturalHeight / (ow.wy1 - ow.wy0);
-    ctx.drawImage(ortho.img, (x0 - ow.wx0) * nw, (y0 - ow.wy0) * nh, (x1 - x0) * nw, (y1 - y0) * nh, 0, 0, W, H);
+    const nw = po.img.naturalWidth / (ow.wx1 - ow.wx0), nh = po.img.naturalHeight / (ow.wy1 - ow.wy0);
+    ctx.drawImage(po.img, (x0 - ow.wx0) * nw, (y0 - ow.wy0) * nh, (x1 - x0) * nw, (y1 - y0) * nh, 0, 0, W, H);
   }
   return {el: c, dataUrl: c.toDataURL('image/jpeg', 0.92), fmt: 'JPEG', alias: 'ortho', wx0: x0, wy0: y0, wx1: x1, wy1: y1, alpha: 1};
 }
@@ -3235,7 +3253,7 @@ function setView(v, opts){
   for (const l of [rowsLayer, plantsLayer, passLayer, editGroup]) on(v === 'plan', l);
   if (v === 'plan') applyVisibility();
   if (v === 'farm') { if (tool) setTool(tool); renderFarm(); if (!opts || !opts.keepView) fitFarm(); }
-  updMobNav();
+  updMobNav(); applyFarmOrthos();
   document.title = v === 'farm' ? 'Odlingsverktyget' : `${CU().name} · ${plan ? plan.name : ''}`;
 }
 function fitFarm(){
@@ -3313,7 +3331,7 @@ function renderFarm(){
     f.name = inp.value; persist(); drawFarm();
   });
   $('fieldList').querySelectorAll('.fieldcard').forEach(el => el.onmousedown = () => { selField = el.dataset.f; });
-  drawFarm(); renderRoadList();
+  drawFarm(); renderRoadList(); renderFarmOrthos();
 }
 function drawFarm(){
   farmLayer.clearLayers();
@@ -3781,6 +3799,98 @@ function drawRoadsPdf(P, llMM, mPerMM){
   }
 }
 
+/* =================== Gårdens ortofoton (overlay i gårdsvyn och i odlingarna) =================== */
+/* Bilden sparas i webbläsarens databas (nyckel "farm:<id>"), uppgifterna om den i store.orthos. */
+map.createPane('farmOrthoPane').style.zIndex = 245;   // under odlingens eget ortofoto (250)
+const farmOrtho = new Map();   // id -> {layer, img, url}
+const farmOrthoById = id => (store.orthos || []).find(o => o.id === id);
+$('farmOrthoCrs').innerHTML = $('orthoCrs').innerHTML;
+if (ui.farmOrthoInPlan === false) $('farmOrthoInPlan').checked = false;
+const farmOrthoVisible = o => o.show !== false && (view === 'farm' || $('farmOrthoInPlan').checked);
+let farmOrthoT = null;
+function applyFarmOrthos(){
+  for (const o of store.orthos || []) {
+    const e = farmOrtho.get(o.id); if (!e) continue;
+    e.layer.setOpacity((o.opacity ?? 100) / 100);
+    if (farmOrthoVisible(o)) { if (!map.hasLayer(e.layer)) e.layer.addTo(map); }
+    else map.removeLayer(e.layer);
+  }
+  // odlingens eget ortofoto visas bara inne i odlingen
+  if (ortho) {
+    if (view === 'plan' && $('orthoShow').checked) { if (!map.hasLayer(ortho.layer)) ortho.layer.addTo(map); }
+    else map.removeLayer(ortho.layer);
+  }
+}
+async function farmOrthoEntry(o, rec){
+  const url = URL.createObjectURL(rec.blob), img = new Image(); img.src = url;
+  await img.decode().catch(() => {});
+  const e = {layer: L.imageOverlay(url, rec.bounds, {pane: 'farmOrthoPane', opacity: (o.opacity ?? 100) / 100, interactive: false}), img, url};
+  farmOrtho.set(o.id, e);
+  return e;
+}
+async function loadFarmOrthos(){
+  for (const o of store.orthos || []) {
+    if (farmOrtho.has(o.id)) continue;
+    let rec = null; try { rec = await idb.get('farm:' + o.id); } catch {}
+    if (rec && rec.blob) { delete o.missing; await farmOrthoEntry(o, rec); } else o.missing = true;
+  }
+  applyFarmOrthos(); renderFarmOrthos();
+}
+function renderFarmOrthos(){
+  const box = $('farmOrthoList'); if (!box) return;
+  const list = store.orthos || [];
+  box.innerHTML = list.map(o => `<div class="orow" data-o="${o.id}">
+      <div class="r"><b class="oname" title="${esc(o.name)}">${esc(o.name)}</b><label class="oshow" style="flex:none"><input type="checkbox" data-oshow="${o.id}"${o.show !== false ? ' checked' : ''}> Visa</label></div>
+      ${o.missing ? '<div class="hint" style="margin:0">Bilden finns inte i den här webbläsaren. Läs in filen igen.</div>'
+        : `<div class="r"><label style="flex:none" for="oop-${o.id}">Täckning</label><input type="range" id="oop-${o.id}" data-oop="${o.id}" min="0" max="100" value="${o.opacity ?? 100}"><span class="u" style="width:38px">${o.opacity ?? 100} %</span></div>`}
+      <div class="r rbtns"><span class="hint">${o.w ? `${fmt(o.w)} × ${fmt(o.h)} px` : ''}${o.crsName ? ' · ' + esc(o.crsName) : ''}</span>
+        <button type="button" data-ozoom="${o.id}">Visa</button><button type="button" data-odel="${o.id}" class="danger">Ta bort</button></div>
+    </div>`).join('');
+  box.querySelectorAll('input[data-oshow]').forEach(cb => cb.onchange = () => { const o = farmOrthoById(cb.dataset.oshow); if (!o) return; o.show = cb.checked; persist(); applyFarmOrthos(); });
+  box.querySelectorAll('input[data-oop]').forEach(r => r.oninput = () => {
+    const o = farmOrthoById(r.dataset.oop); if (!o) return;
+    o.opacity = +r.value; r.nextElementSibling.textContent = o.opacity + ' %'; applyFarmOrthos();
+    clearTimeout(farmOrthoT); farmOrthoT = setTimeout(persist, 400);
+  });
+  box.querySelectorAll('button[data-ozoom]').forEach(b => b.onclick = () => { const o = farmOrthoById(b.dataset.ozoom); if (o) { showMapOnMobile(); map.fitBounds(o.bounds); } });
+  box.querySelectorAll('button[data-odel]').forEach(b => b.onclick = async () => {
+    const o = farmOrthoById(b.dataset.odel); if (!o || !confirm(`Ta bort ortofotot "${o.name}"?`)) return;
+    const e = farmOrtho.get(o.id);
+    if (e) { map.removeLayer(e.layer); URL.revokeObjectURL(e.url); farmOrtho.delete(o.id); }
+    try { await idb.del('farm:' + o.id); } catch {}
+    store.orthos = (store.orthos || []).filter(x => x !== o); persist(); renderFarmOrthos();
+  });
+}
+async function addFarmOrtho(files){
+  const btn = $('btnFarmOrtho'); btn.disabled = true;
+  try {
+    msg('Läser in ortofotot… stora filer kan ta en stund.', 0);
+    const rec = await buildOrtho(files, $('farmOrthoCrs').value);
+    const o = {id: uid(), name: rec.name, bounds: rec.bounds, w: rec.w, h: rec.h, crsName: rec.crsName, opacity: 100, show: true};
+    let saved = true;
+    try { await idb.put('farm:' + o.id, rec); } catch { saved = false; }
+    store.orthos = [...(store.orthos || []), o]; persist();
+    await farmOrthoEntry(o, rec);
+    applyFarmOrthos(); renderFarmOrthos();
+    showMapOnMobile(); map.fitBounds(rec.bounds);
+    msg(saved ? 'Ortofotot är inläst och syns på kartan.' : 'Ortofotot visas men kunde inte sparas i webbläsaren.');
+  } catch (err) {
+    console.error(err); msg('Kunde inte läsa ortofotot: ' + err.message, 0);
+  } finally { btn.disabled = false; }
+}
+$('btnFarmOrtho').onclick = () => $('farmOrthoIn').click();
+$('farmOrthoIn').onchange = e => { const files = [...e.target.files]; e.target.value = ''; if (files.length) addFarmOrtho(files); };
+$('farmOrthoInPlan').onchange = () => { ui.farmOrthoInPlan = $('farmOrthoInPlan').checked; saveUI(); applyFarmOrthos(); };
+/* Ortofotot som PDF:en använder: odlingens eget, annars översta synliga av gårdens som täcker fältet */
+function PO(){
+  if (ortho) return {img: ortho.img, bounds: ortho.bounds, opacity: ortho.opacity, key: plan.id};
+  if (!plan || !plan.field) return null;
+  const fb = L.latLngBounds(plan.field[0]);
+  const list = (store.orthos || []).filter(o => farmOrthoVisible(o) && farmOrtho.has(o.id) && L.latLngBounds(o.bounds).intersects(fb));
+  const o = list[list.length - 1]; if (!o) return null;
+  return {img: farmOrtho.get(o.id).img, bounds: o.bounds, opacity: o.opacity ?? 100, key: 'farm:' + o.id};
+}
+
 /* =================== Mobil: en vy i taget och meny längst ner (som i Egna10) =================== */
 const mobileMQ = window.matchMedia('(max-width:720px)');
 const isMobile = () => mobileMQ.matches;
@@ -3861,6 +3971,7 @@ loadPlan(store.plans.find(p => p.id === store.current) || store.plans[0] || newP
 setView('farm');
 renderFarm();
 if (store.fields.length) fitFarm();
+loadFarmOrthos();
 openSharedLink();
 </script>
 </body>
