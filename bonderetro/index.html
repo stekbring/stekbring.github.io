@@ -2,396 +2,140 @@
 <html lang="sv">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Planera fält, grödor, rader, sättpunkter och vägar på satellitkarta.">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Odling">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Odlingsverktyget</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cmask id='m'%3E%3Crect width='24' height='24' fill='%23fff'/%3E%3Cg stroke='%23000' stroke-width='1.1' stroke-linecap='round'%3E%3Cpath d='M7.5 5v14M12 5v14M16.5 5v14'/%3E%3C/g%3E%3Cg fill='%23000'%3E%3Ccircle cx='7.5' cy='7' r='1.8'/%3E%3Ccircle cx='7.5' cy='12' r='1.8'/%3E%3Ccircle cx='7.5' cy='17' r='1.8'/%3E%3Ccircle cx='12' cy='7' r='1.8'/%3E%3Ccircle cx='12' cy='12' r='1.8'/%3E%3Ccircle cx='12' cy='17' r='1.8'/%3E%3Ccircle cx='16.5' cy='7' r='1.8'/%3E%3Ccircle cx='16.5' cy='12' r='1.8'/%3E%3Ccircle cx='16.5' cy='17' r='1.8'/%3E%3C/g%3E%3C/mask%3E%3Crect x='1' y='1' width='22' height='22' rx='5.5' fill='%23f4b63f' mask='url%28%23m%29'/%3E%3C/svg%3E">
-<meta name="theme-color" content="#14171b">
-<script>(function(){var t;try{t=JSON.parse(localStorage.getItem('potatisplaneraren.ui')||'{}').theme;}catch(e){}if(t!=='light'&&t!=='dark')t=window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=t;document.querySelector('meta[name="theme-color"]').content=t==='light'?'#ffffff':'#14171b';})();</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
 <style>
-/* ===== Odlingsverktyget – samma design som Egna10 (egna20): ”Kväll” = mörk arbetsyta med bärnstensgul accent.
-   Ljust läge finns som alternativ (html[data-theme="light"]). Alla färger styrs av variablerna nedan. ===== */
-:root{
-  color-scheme:dark;
-  --bg:#101216; --surface:#181b20; --surface-2:#1e2228; --sunken:#0e1013;
-  --border:#262b32; --border-strong:#353b44;
-  --text:#e8eaee; --muted:#96a0ac;
-  --accent:#f4b63f; --accent-hover:#ffc65c; --accent-ink:#1b1405; --accent-soft:rgba(244,182,63,.14); --accent-fg:#f4b63f;
-  --ok:#52c98d; --ok-soft:rgba(82,201,141,.14); --warn:#f2a25c; --danger:#f06a5f; --danger-soft:rgba(240,106,95,.14);
-  --radius-sm:8px; --radius-btn:7px;
-  --shadow-lg:0 30px 80px rgba(0,0,0,.6); --shadow-float:0 10px 30px rgba(0,0,0,.5);
-  --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  --topbar:#14171b; --topbar-ink:#e8eaee; --topbar-border:#23272e; --tb-btn-ink:#cfd4dc; --tb-btn-hover:#20242b;
-  --field:#12151a; --btn:#22262d; --btn-ink:#e3e6eb; --btn-border:#343a43; --btn-hover:#2a2f37;
-  --stage:#0b0c0f; --stage-img:radial-gradient(circle at 1px 1px,rgba(255,255,255,.05) 1px,transparent 0);
-  --list-sel:rgba(244,182,63,.12); --row-hover:#1f2329;
-  --map-glass:rgba(24,27,32,.82);
-  --focus:0 0 0 3px color-mix(in srgb,var(--accent) 28%,transparent);
-}
-html[data-theme="light"]{
-  color-scheme:light;
-  --bg:#eceef1; --surface:#ffffff; --surface-2:#f6f7f9; --sunken:#e8ebef;
-  --border:#dfe2e7; --border-strong:#cbd0d8;
-  --text:#1a1d22; --muted:#626b77;
-  --accent:#f4b63f; --accent-hover:#eaa928; --accent-ink:#1b1405; --accent-soft:rgba(244,182,63,.22); --accent-fg:#94600a;
-  --ok:#1d8a4b; --ok-soft:#e1f3e8; --warn:#b45309; --danger:#cc3a2f; --danger-soft:#fbe7e5;
-  --shadow-lg:0 30px 80px rgba(20,24,32,.25); --shadow-float:0 8px 24px rgba(20,30,50,.18);
-  --topbar:#ffffff; --topbar-ink:#1a1d22; --topbar-border:#e1e4e9; --tb-btn-ink:#2b3038; --tb-btn-hover:#eef0f3;
-  --field:#ffffff; --btn:#ffffff; --btn-ink:#1f242b; --btn-border:#d2d7de; --btn-hover:#f1f3f6;
-  --stage:#e3e6eb; --stage-img:radial-gradient(circle at 1px 1px,rgba(20,30,50,.09) 1px,transparent 0);
-  --list-sel:rgba(244,182,63,.2); --row-hover:#f3f5f8;
-  --map-glass:rgba(255,255,255,.86);
-}
-*{box-sizing:border-box}
-html,body{margin:0;height:100%}
-body{display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
-button,input,select,textarea{font:inherit;color:inherit}
-[hidden]{display:none !important}
-
-/* ---------- Knappar ---------- */
-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--btn);color:var(--btn-ink);border:1px solid var(--btn-border);border-radius:var(--radius-btn);padding:5px 11px;min-height:32px;cursor:pointer;font-weight:500;line-height:1.2;transition:background .12s,border-color .12s,color .12s,box-shadow .12s;white-space:nowrap}
-button:hover{background:var(--btn-hover)}
-button:active{transform:translateY(1px)}
-button:disabled{opacity:.45;cursor:default;transform:none}
-button:disabled:hover{background:var(--btn)}
-button.default{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-button.default:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
-button.danger:hover{color:var(--danger);border-color:var(--danger);background:var(--danger-soft)}
-button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-fg);font-weight:600}
-.ic{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-
-/* ---------- Fält ---------- */
-input[type=number],input[type=text],input[type=search],select,textarea{background:var(--field);color:var(--text);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:4px 8px;min-height:32px;transition:border-color .12s,box-shadow .12s}
-input[type=number]:focus,input[type=text]:focus,input[type=search]:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:var(--focus)}
-input:disabled,select:disabled,textarea:disabled{opacity:.55}
-input[type=number]{width:66px;text-align:right;font-variant-numeric:tabular-nums}
-input[type=text]{flex:1;min-width:0}
-select{flex:1;min-width:0}
-input[type=checkbox],input[type=radio]{accent-color:var(--accent);width:16px;height:16px;margin:0 6px 0 0;vertical-align:-3px}
-input[type=range]{flex:1;min-width:0;margin:2px 0;accent-color:var(--accent)}
-input[type=color]{width:40px;height:32px;padding:3px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:var(--field);cursor:pointer;flex:none}
-textarea{resize:vertical;width:100%;line-height:1.4}
-::placeholder{color:var(--muted);opacity:.75}
-
-/* ---------- Toppfält ---------- */
-/* Toppfältet ligger överst i vänsterpanelen så att kartan når hela vägen upp */
-.toolbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:10px 10px 10px 14px;min-height:55px;background:var(--topbar);color:var(--topbar-ink);border-bottom:1px solid var(--topbar-border)}
-.toolbar .brand{display:inline-flex;align-items:center;gap:9px;font-size:20px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
-.toolbar .brand .logo{width:28px;height:28px;color:var(--accent);flex:none}
-html[data-theme="light"] .toolbar .brand .logo{color:#1a1d22}
-.toolbar .tagline{color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;margin:3px 0 0 2px}
-.toolbar button{background:transparent;color:var(--tb-btn-ink);border-color:transparent}
-.toolbar button:hover{background:var(--tb-btn-hover)}
-.toolbar .tb-space{flex:1;min-width:0}
-#btnTheme,#btnInstall{flex:none}
-#btnTheme .ic-sun{display:none}
-html[data-theme="light"] #btnTheme .ic-sun{display:block}
-html[data-theme="light"] #btnTheme .ic-moon{display:none}
-@container side (max-width: 540px){ .toolbar .tagline{display:none} }
-@container side (max-width: 340px){ #btnTheme>span,#btnInstall>span{display:none} }
-@container side (max-width: 470px){ #btnInstall>span{display:none} }
-/* Meddelanden visas som en ruta nere på kartan */
-.status{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);z-index:1100;width:max-content;max-width:min(560px,calc(100% - 140px));padding:9px 16px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;box-shadow:var(--shadow-float);font-size:13.5px;line-height:1.4;pointer-events:none;animation:statusIn .18s ease-out}
-.status:empty{display:none}
-@keyframes statusIn{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}
-
-/* ---------- Panel och karta ---------- */
-#app{display:flex;flex:1 1 auto;min-height:0;overflow:hidden}
-#side{width:580px;flex:none;overflow-y:auto;overflow-x:hidden;background:var(--surface);container-type:inline-size;container-name:side;font-size:13.5px}
-#side.collapsed{display:none}
-body.farmview .stats-box, body.farmview .leaflet-draw{display:none}
-#side .inner{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start;padding:14px 12px 22px}
-@container side (max-width: 520px){ #side .inner{grid-template-columns:1fr} }
-#side .col{display:flex;flex-direction:column;gap:12px;min-width:0}
-#split{flex:none;width:8px;cursor:col-resize;background:var(--surface);border-left:1px solid var(--border);border-right:1px solid var(--border);position:relative;z-index:1001;touch-action:none;transition:background .12s}
-#split:hover{background:var(--surface-2)}
-#split::after{content:'';position:absolute;left:50%;top:calc(50% + 34px);width:4px;height:44px;margin-left:-2px;border-radius:4px;background:var(--border-strong);opacity:0;transition:opacity .15s}
-#split:hover::after{opacity:1;background:var(--accent)}
-#splitBtn{position:absolute;top:50%;left:50%;width:16px;height:48px;min-height:0;padding:0;font-size:9px;line-height:1;transform:translate(-50%,-50%);border-radius:6px;color:var(--muted);box-shadow:0 1px 4px rgba(0,0,0,.25)}
-#splitBtn:hover{color:var(--text)}
-#side.collapsed + #split #splitBtn{left:12px}
-#splitBtn:active{transform:translate(-50%,calc(-50% + 1px))}
-#mapwrap{flex:1;position:relative;min-width:0}
-#map{position:absolute;inset:0;background:var(--stage)}
-.title{grid-column:1/-1;display:flex;align-items:baseline;gap:10px;padding:0 2px;min-width:0}
-.title b{font-size:12px;font-weight:650;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
-.title span{color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.8}
-
-/* ---------- Grupper (som Egna10:s rutor) ---------- */
-fieldset{border:1px solid var(--border);border-radius:var(--radius-sm);margin:0;padding:8px 11px 11px;min-width:0}
-legend{padding:0 6px;font-weight:650;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
-.r{display:flex;align-items:center;gap:6px;margin:6px 0}
-.r label{flex:1;min-width:0;line-height:1.3;overflow-wrap:anywhere}
-.u{width:28px;color:var(--muted);font-size:12.5px;flex:none}
-.b{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.b button{flex:1 1 auto}
-.hint{font-size:12.5px;color:var(--muted);line-height:1.4;margin-top:6px}
-.ang{display:flex;gap:12px;align-items:center}
-.ang svg{flex:none}
-.ang>div{flex:1;min-width:0}
-.compass .c-ring{fill:var(--field);stroke:var(--border-strong)}
-.compass text{fill:var(--muted);font-family:var(--font)}
-.compass .c-n{fill:var(--text)}
-.compass line{stroke:var(--accent)}
-.chk{display:flex;flex-wrap:wrap;gap:4px 14px;margin:2px 0 4px}
-.chk label{white-space:nowrap}
-.radio{display:flex;gap:16px;margin:2px 0 6px}
-.radio label{display:inline-flex;align-items:center}
-.sep{border-top:1px solid var(--border);margin:10px 0 6px}
-body.manual .machine-only{display:none}
-body:not(.manual) .manual-only{display:none}
-#msg,#msg2{display:none}
-#partsList a{color:var(--accent-fg);text-decoration:none;font-weight:600}
-#partsList a:hover{text-decoration:underline}
-.dot{display:inline-block;width:9px;height:9px;border-radius:50%;border:1px solid rgba(0,0,0,.45);vertical-align:middle;flex:none}
-
-/* ---------- Gården: fältkort och totaler ---------- */
-.fieldcard{border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-2);margin:0 0 8px;padding:6px 9px 8px;transition:background .12s}
-.fieldcard button{padding:4px 10px}
-.fieldcard:last-child{margin-bottom:0}
-.fieldcard.sel{background:var(--list-sel);border-color:color-mix(in srgb,var(--accent) 45%,var(--border));box-shadow:inset 3px 0 0 var(--accent)}
-.fieldcard>legend{float:left;width:100%;display:flex;align-items:center;gap:6px;padding:0;margin:0 0 2px;text-transform:none;letter-spacing:normal;color:var(--text)}
-.fieldcard>legend+*{clear:both}
-.fieldcard legend .dot{width:11px;height:11px}
-.fieldcard legend input.fname{flex:1;width:auto;min-height:30px;font-weight:650;font-size:14.5px;background:transparent;border-color:transparent;padding:3px 6px;margin-left:-2px}
-.fieldcard legend input.fname:hover{border-color:var(--border-strong)}
-.fieldcard legend input.fname:focus{background:var(--field);border-color:var(--accent)}
-.fieldcard .cropline{border-top:1px solid var(--border);padding-top:6px;margin-top:6px}
-.fieldcard .cropline label b{font-weight:650}
-.fieldcard .cropline{flex-wrap:wrap;row-gap:4px}
-.fieldcard .cropline label{flex:1 1 70% !important}   /* etiketten har flex:1 i style-attributet */
-.fieldcard .cropline button[data-open]{margin-left:auto}
-table.tot{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px;font-variant-numeric:tabular-nums}
-table.tot+table.tot{margin-top:12px}
-table.tot td{padding:5px 0;border-bottom:1px solid var(--border)}
-table.tot td+td{text-align:right;padding-left:8px}
-table.tot tr.h td{font-weight:600;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:left}
-table.tot tr.h td+td{text-align:right}
-
-/* ---------- Resultatrutan på kartan ---------- */
-.stats-box{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-float);
-      font-size:13px;width:280px;max-height:calc(100vh - 120px);overflow-y:auto}
-.stats-box .hd{position:sticky;top:0;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:6px;padding:7px 8px 7px 14px;background:var(--surface-2);border-bottom:1px solid var(--border)}
-.stats-box .hd span{flex:1;font-weight:650;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
-.stats-box .hd button{min-height:28px;padding:2px 10px;font-size:12.5px}
-.stats-box .hd #statsToggle{width:30px;padding:0;font-size:15px}
-.stats-box .bd{padding:4px 14px 12px}
-.stats-box table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-.stats-box td{padding:3px 0;vertical-align:top}
-.stats-box td+td{text-align:right;padding-left:8px;white-space:nowrap}
-.stats-box tr.h td{padding:12px 0 4px;font-weight:600;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}
-.stats-box tr.h+tr td{padding-top:6px}
-.stats-box .warn{color:var(--warn);margin-top:8px;line-height:1.35}
-.stats-box .info{color:var(--muted);margin-top:8px;line-height:1.35}
-.lg{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
-.lg i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:4px}
-.lg i.dot{width:8px;height:8px;border-radius:50%}
-.lg i.lg-road{width:16px;height:9px;background:linear-gradient(#c9ced4 0 3px,#111 3px 3.5px,#fdf6e3 3.5px 5.5px,#111 5.5px 6px,#c9ced4 6px);opacity:.9}
-
-/* ---------- Etiketter på kartan ---------- */
-.pass-icon{background:none;border:0}
-.pass-icon div{font:700 11px var(--font);color:#fff;text-shadow:0 0 3px #000,0 0 2px #000,0 0 1px #000;white-space:nowrap;display:flex;align-items:center;gap:2px;justify-content:center}
-.pass-icon .arr{display:inline-block;color:#8fd6ff}
-.hide-pl .pass-icon{display:none}
-.leaflet-tooltip.field-label{background:rgba(16,18,22,.7);color:#fff;border:0;border-radius:6px;padding:3px 8px;font:600 11.5px var(--font);box-shadow:none}
-.field-label::before{display:none}
-.part-icon div{background:rgba(16,18,22,.7);color:#fff;border:1px solid rgba(255,255,255,.85);font:700 10.5px var(--font);padding:1px 5px;text-align:center;white-space:nowrap;border-radius:5px}
-.se-icon div{background:var(--surface);color:var(--text);border:1px solid var(--border-strong);border-radius:5px;font:700 10.5px var(--font);letter-spacing:.05em;padding:1px 5px;text-align:center;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.35)}
-body.tool-on #map{cursor:crosshair}
-body.dragging, body.dragging *{cursor:col-resize !important;user-select:none}
-.fb-tile img{position:absolute;max-width:none;user-select:none}
-.leaflet-div-icon.pp-vertex{background:radial-gradient(circle,#fff 0 2.6px,#1a1a1a 2.9px 4.6px,rgba(0,0,0,0) 5px) !important;border:0 !important;border-radius:50% !important;box-shadow:none !important;cursor:move}
-.leaflet-div-icon.pp-vertex:hover{background:radial-gradient(circle,#ffe27a 0 2.9px,#1a1a1a 3.2px 5px,rgba(0,0,0,0) 5.4px) !important}
-
-/* ---------- Kartans kontroller i samma stil ---------- */
-.leaflet-container{background:var(--stage);font-family:var(--font);font-size:12.5px}
-.leaflet-container a{color:var(--accent-fg)}
-.leaflet-bar,.leaflet-touch .leaflet-bar{border:1px solid var(--btn-border);border-radius:var(--radius-btn);box-shadow:var(--shadow-float);overflow:hidden;background-clip:padding-box}
-.leaflet-bar a,.leaflet-touch .leaflet-bar a{background-color:var(--btn);color:var(--btn-ink);border-bottom:1px solid var(--btn-border);width:32px;height:32px;line-height:32px}
-.leaflet-bar a:hover,.leaflet-bar a:focus{background-color:var(--btn-hover);color:var(--text)}
-.leaflet-bar a:first-child,.leaflet-bar a:last-child,.leaflet-touch .leaflet-bar a:first-child,.leaflet-touch .leaflet-bar a:last-child{border-radius:0}
-.leaflet-bar a:last-child{border-bottom:0}
-.leaflet-bar a.leaflet-disabled{background-color:var(--btn);color:var(--muted);opacity:.5}
-.leaflet-control-zoom a{font:600 18px/32px var(--font)}
-.leaflet-touch .leaflet-control-zoom-in,.leaflet-touch .leaflet-control-zoom-out{font-size:18px}
-/* Ritverktygens ikoner är mörka bilder – i mörkt läge inverteras knappen så att ikonen blir ljus på mörk botten */
-html:not([data-theme="light"]) .leaflet-draw-toolbar a{background-color:#d6dae1;border-bottom-color:#c0c6cf;filter:invert(1) hue-rotate(180deg)}
-html:not([data-theme="light"]) .leaflet-draw-toolbar a:hover{background-color:#ccd1d9}
-.leaflet-draw-section{margin-bottom:2px}
-.leaflet-draw-actions a,.leaflet-touch .leaflet-draw-actions a{background:var(--btn);color:var(--btn-ink);border-left:1px solid var(--btn-border);font:500 12.5px/30px var(--font);height:32px;line-height:32px;padding:0 12px}
-.leaflet-draw-actions a:hover{background:var(--btn-hover)}
-.leaflet-draw-actions li:first-child a{border-left:1px solid var(--btn-border)}
-.leaflet-draw-actions-top{margin-top:1px}
-.leaflet-draw-actions li:last-child a{border-radius:0 var(--radius-btn) var(--radius-btn) 0}
-.leaflet-draw-actions{box-shadow:var(--shadow-float);border-radius:0 var(--radius-btn) var(--radius-btn) 0}
-.leaflet-draw-tooltip{font-family:var(--font);border-radius:6px}
-.leaflet-control-layers,.leaflet-touch .leaflet-control-layers{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-float)}
-.leaflet-control-layers-expanded{padding:8px 14px 8px 10px;color:var(--text);background:var(--surface)}
-.leaflet-control-layers label{margin:3px 0;font-size:13px}
-.leaflet-control-layers-separator{border-top-color:var(--border)}
-html:not([data-theme="light"]) .leaflet-control-layers-toggle{filter:invert(1) hue-rotate(180deg) brightness(.95)}
-.leaflet-control-scale-line{border-color:var(--muted);color:var(--text);background:var(--map-glass);font-size:11px}
-.leaflet-container .leaflet-control-attribution{background:var(--map-glass);color:var(--muted);border-radius:6px 0 0 0;padding:1px 8px;font-size:11px}
-.leaflet-control-attribution a{color:var(--accent-fg)}
-.leaflet-popup-content-wrapper{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-float)}
-.leaflet-popup-tip{background:var(--surface);box-shadow:none}
-.leaflet-popup-content{margin:12px 16px;font-size:13.5px;line-height:1.45}
-.leaflet-popup-content button{margin-top:6px}
-.leaflet-container a.leaflet-popup-close-button{color:var(--muted)}
-.leaflet-container a.leaflet-popup-close-button:hover{color:var(--text)}
-.leaflet-tooltip{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:6px;box-shadow:var(--shadow-float);font-size:12px}
-.leaflet-tooltip-top:before{border-top-color:var(--surface)}
-.leaflet-tooltip-bottom:before{border-bottom-color:var(--surface)}
-.leaflet-tooltip-left:before{border-left-color:var(--surface)}
-.leaflet-tooltip-right:before{border-right-color:var(--surface)}
-
-/* ---------- PDF-dialogen (som Egna10:s dialoger) ---------- */
-.dlg-back{position:fixed;inset:0;background:rgba(12,14,18,.42);backdrop-filter:blur(2px);z-index:5000;display:flex;align-items:center;justify-content:center}
-.dlg-back[hidden]{display:none}
-.dlg{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-lg);width:min(1180px,97vw);height:min(940px,95vh);display:flex;flex-direction:column;overflow:hidden;font-size:13.5px}
-.dlg-title{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px 10px 18px;background:var(--surface-2);border-bottom:1px solid var(--border);font-weight:650;font-size:17px}
-.dlg-title button{min-height:32px;width:34px;padding:0;background:transparent;border-color:transparent;color:var(--muted)}
-.dlg-title button:hover{background:var(--btn-hover);color:var(--text)}
-.dlg-body{flex:1;display:flex;min-height:0}
-.dlg-opts{width:370px;flex:none;overflow:auto;padding:14px 16px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:12px}
-.dlg-prev{flex:1;display:flex;flex-direction:column;min-width:0;padding:12px 16px 16px;gap:8px}
-.dlg-prev .ptitle{flex:1;font-weight:650;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
-#pdfPages{flex:1;overflow:auto;background:var(--stage);background-image:var(--stage-img);background-size:16px 16px;border-radius:var(--radius-sm);padding:18px;display:flex;flex-direction:column;align-items:center;gap:18px}
-.pdf-page{box-shadow:0 4px 14px rgba(0,0,0,.35);background:#fff;flex:none}
-body.pdf-dragging, body.pdf-dragging *{cursor:grabbing !important;user-select:none}
-.tree ul{list-style:none;margin:0;padding-left:20px}
-.tree>ul{padding-left:0}
-.tree li{margin:3px 0}
-.tree label{white-space:normal}
-.tree label.dis{color:var(--muted);opacity:.7}
-.tree input.ren{width:190px;min-height:28px;font-weight:600;margin-left:2px;padding:2px 8px}
-.tree textarea{width:100%;font:inherit}
-.dlg-foot{display:flex;gap:8px;justify-content:flex-end;align-items:center;padding:12px 18px;border-top:1px solid var(--border);background:var(--surface-2)}
-.dlg-foot #pdfStatus{flex:1;color:var(--muted)}
-.dlg-foot button{min-width:96px}
-
-/* ---------- Vägar ---------- */
-.road-label{width:0;height:0;border:0;background:none}
-.road-label span{position:absolute;left:0;top:0;white-space:nowrap;font:600 12px/1.1 var(--font);letter-spacing:.03em;color:#fff;
-  text-shadow:0 0 3px #000,0 0 2px #000,0 0 1px #000;pointer-events:none}
-path.road-hit{cursor:pointer}
-body.tool-on path.road-hit{cursor:crosshair}
-.road-popup .leaflet-popup-content{margin:12px 14px}
-.road-pop b{display:block;font-size:12px;font-weight:650;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
-.road-pop .r{margin:6px 0}
-.road-pop input[type=number]{width:70px}
-.road-pop .b{margin-top:10px}
-.roadrow{border-top:1px solid var(--border);padding:6px 0 4px}
-.roadrow:first-child{border-top:0;padding-top:0}
-.roadrow .r{margin:4px 0}
-.roadrow input.rname{font-weight:600}
-.roadrow input.rw{width:58px}
-.roadrow .rbtns{gap:6px}
-.roadrow .rbtns .hint{flex:1;margin:0;white-space:nowrap}
-.roadrow .rbtns button{padding:3px 10px;min-height:28px;font-size:12.5px}
-.road-sw{flex:none;width:18px;height:10px;border-radius:2px;background:linear-gradient(#c9ced4 0 3px,#111 3px 3.6px,#fdf6e3 3.6px 6.4px,#111 6.4px 7px,#c9ced4 7px)}
-#roadList{margin-top:4px}
-
-/* ---------- Mobil ---------- */
-.mobnav{display:none}
-@media (max-width:720px){
-  html,body{height:100%;overflow:hidden}
-  body{height:100dvh;padding-bottom:calc(64px + env(safe-area-inset-bottom))}
-  #app{flex-direction:column}
-  #split{display:none}
-  #side,#side.collapsed{display:block;width:auto !important;flex:1 1 auto;min-height:0;font-size:14px}
-  #mapwrap{flex:1 1 auto;min-height:0}
-  body[data-mv="panel"] #mapwrap{display:none}
-  body[data-mv="map"] #side,body[data-mv="result"] #side{flex:none;overflow:visible}
-  body[data-mv="map"] #side .inner,body[data-mv="result"] #side .inner{display:none !important}
-  .toolbar{padding:8px 10px 8px 12px;min-height:52px}
-  .toolbar .brand{font-size:18px}
-  .toolbar .brand .logo{width:26px;height:26px}
-  .toolbar button>span{display:none}
-  .toolbar button{padding:5px 9px;min-height:38px}
-  #side .inner{padding:12px 10px 24px}
-  button{min-height:40px}
-  input[type=number],input[type=text],input[type=search],select,textarea{min-height:40px;font-size:16px}
-  input[type=color]{height:40px}
-  .stats-box .hd button{min-height:34px}
-  .roadrow .rbtns button{min-height:36px}
-  body[data-mv="map"] .stats-box{display:none}
-  body[data-mv="result"] .stats-box{position:fixed;left:8px;right:8px;bottom:calc(72px + env(safe-area-inset-bottom));width:auto;max-height:60dvh;margin:0;z-index:1200}
-  .status{bottom:16px;max-width:calc(100% - 24px)}
-  .mobnav{display:flex;gap:6px;position:fixed;left:0;right:0;bottom:0;z-index:2000;background:var(--topbar);border-top:1px solid var(--topbar-border);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
-  .mobnav button{flex:1;flex-direction:column;gap:2px;min-height:52px;font-size:11.5px;background:transparent;border-color:transparent;color:var(--muted)}
-  .mobnav button .ic{width:22px;height:22px}
-  .mobnav button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-fg)}
-  body.farmview .mobnav button[data-mv="result"]{display:none}
-  .dlg{width:100vw;height:100dvh;border-radius:0;border:0}
-  .dlg-back{z-index:5000}
-  .dlg-body{flex-direction:column;overflow:auto}
-  .dlg-opts{width:auto;flex:none;overflow:visible;border-right:0;border-bottom:1px solid var(--border)}
-  .dlg-prev{flex:none;min-height:70vh}
-  .dlg-foot{padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
-  .leaflet-control-layers-expanded{max-height:50vh;overflow:auto}
-}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:Georgia,"Times New Roman",serif;font-size:13px;color:#000;background:#ececec}
+  #app{display:flex;height:100vh;overflow:hidden}
+  #side{width:580px;flex:none;overflow-y:auto;overflow-x:hidden;background:#ececec;container-type:inline-size;container-name:side}
+  #side.collapsed{display:none}
+  [hidden]{display:none !important}
+  body.farmview .stats-box, body.farmview .leaflet-draw{display:none}
+  #side .inner{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;align-content:start;padding:6px 8px 10px}
+  @container side (max-width: 520px){ #side .inner{grid-template-columns:1fr} }
+  #side .col{display:flex;flex-direction:column;gap:4px;min-width:0}
+  #split{flex:none;width:9px;cursor:col-resize;background:#e1e1e1;border-left:1px solid #fff;border-right:1px solid #808080;position:relative;touch-action:none}
+  #split:hover{background:#d6d6d6}
+  #splitBtn{position:absolute;top:50%;left:-1px;width:9px;height:54px;padding:0;font-size:8px;transform:translateY(-50%)}
+  #map{flex:1;background:#222;min-width:0}
+  .title{grid-column:1/-1;display:flex;align-items:baseline;justify-content:space-between;padding:2px 2px 0;gap:8px}
+  .title b{font-size:18px;font-weight:normal}
+  .title span{color:#555;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  fieldset{border:2px groove #f7f7f7;margin:0;padding:4px 7px 7px;min-width:0}
+  legend{padding:0 4px}
+  .r{display:flex;align-items:center;gap:6px;margin:3px 0}
+  .r label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .u{width:28px;color:#444;font-size:12px}
+  input[type=number],input[type=text],select{font:inherit;background:#fff;color:#000;border:1px solid;border-color:#808080 #fff #fff #808080;
+        box-shadow:inset 1px 1px #404040;padding:2px 4px;height:22px}
+  input[type=number]{width:64px;text-align:right}
+  input[type=text]{flex:1;min-width:0}
+  select{flex:1;min-width:0}
+  input[type=range]{flex:1;min-width:0;margin:2px 0}
+  button{font:inherit;color:#000;background:#e1e1e1;border:1px solid;border-color:#fff #555 #555 #fff;
+        box-shadow:inset -1px -1px #a0a0a0,inset 1px 1px #f4f4f4;padding:2px 8px;height:24px;cursor:pointer;white-space:nowrap}
+  button:active,button.on{border-color:#555 #fff #fff #555;box-shadow:inset 1px 1px #a0a0a0;background:#d2d2d2}
+  button:disabled{color:#888;cursor:default}
+  button:focus-visible{outline:1px dotted #000;outline-offset:-4px}
+  .b{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+  .b button{flex:1 1 auto}
+  .hint{font-size:11.5px;color:#444;line-height:1.35;margin-top:4px}
+  .ang{display:flex;gap:8px;align-items:center}
+  .ang svg{flex:none}
+  .ang>div{flex:1;min-width:0}
+  .chk{display:flex;flex-wrap:wrap;gap:2px 12px}
+  .chk label{white-space:nowrap}
+  .radio{display:flex;gap:14px;margin:2px 0 4px}
+  .sep{border-top:1px solid #aaa;border-bottom:1px solid #fff;margin:6px 0 4px}
+  body.manual .machine-only{display:none}
+  body:not(.manual) .manual-only{display:none}
+  #msg{grid-column:1/-1;min-height:16px;color:#8a1c00}
+  .stats-box{background:#ececec;border:1px solid;border-color:#fff #555 #555 #fff;box-shadow:1px 1px 4px rgba(0,0,0,.45);
+        font-family:Georgia,serif;font-size:12.5px;width:268px;max-height:calc(100vh - 110px);overflow-y:auto}
+  .stats-box .hd{display:flex;justify-content:space-between;align-items:center;gap:4px;padding:3px 4px 3px 7px;background:#dcdcdc;border-bottom:1px solid #aaa}
+  .stats-box .hd span{flex:1}
+  .stats-box .hd button{height:19px;padding:0 6px;font-size:11px}
+  .stats-box .bd{padding:4px 8px 6px}
+  .stats-box table{width:100%;border-collapse:collapse}
+  .stats-box td{padding:1.5px 0;vertical-align:top}
+  .stats-box td+td{text-align:right;font-variant-numeric:tabular-nums;padding-left:6px}
+  .stats-box tr.h td{padding-top:6px;font-weight:bold;border-bottom:1px solid #aaa}
+  .stats-box .warn{color:#8a1c00;margin-top:5px;line-height:1.3}
+  .stats-box .info{color:#333;margin-top:5px;line-height:1.3}
+  .lg{display:flex;flex-wrap:wrap;gap:3px 10px;margin-top:6px;font-size:11.5px;color:#333}
+  .lg i{display:inline-block;width:14px;height:3px;vertical-align:middle;margin-right:3px}
+  .lg i.dot{width:7px;height:7px;border-radius:50%}
+  .pass-icon{background:none;border:0}
+  .pass-icon div{font:bold 11px Georgia,serif;color:#fff;text-shadow:0 0 3px #000,0 0 2px #000,0 0 1px #000;white-space:nowrap;display:flex;align-items:center;gap:2px;justify-content:center}
+  .pass-icon .arr{display:inline-block;color:#8fd6ff}
+  .hide-pl .pass-icon{display:none}
+  .fieldcard{border:2px groove #f7f7f7;margin:0 0 6px;padding:3px 7px 6px}
+  .fieldcard.sel{border-color:#c9d8ea;background:#f4f7fb}
+  .fieldcard legend input.fname{width:150px;height:20px;font-weight:bold}
+  .fieldcard .cropline{border-top:1px dotted #bbb;padding-top:3px}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;border:1px solid #555;vertical-align:middle}
+  table.tot{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+  table.tot td{padding:1.5px 0;border-bottom:1px dotted #bbb}
+  table.tot td+td{text-align:right;font-variant-numeric:tabular-nums}
+  table.tot tr.h td{font-weight:bold;border-bottom:1px solid #999;text-align:left}
+  .field-label{background:rgba(0,0,0,.55);color:#fff;border:0;font:bold 11px Georgia,serif;box-shadow:none}
+  .field-label::before{display:none}
+  #msg2{grid-column:1/-1;min-height:16px;color:#8a1c00}
+  .part-icon div{background:rgba(0,0,0,.55);color:#fff;border:1px solid #fff;font:bold 10px Georgia,serif;padding:1px 4px;text-align:center;white-space:nowrap;border-radius:3px}
+  #partsList a{color:#004a9f}
+  .se-icon div{background:#fff;border:1px solid #000;font:bold 11px Georgia,serif;padding:1px 4px;text-align:center;white-space:nowrap}
+  body.tool-on #map{cursor:crosshair}
+  body.dragging, body.dragging *{cursor:col-resize !important;user-select:none}
+  .leaflet-container{font-family:Georgia,serif}
+  .leaflet-popup-content button{margin-top:4px}
+  .fb-tile img{position:absolute;max-width:none;user-select:none}
+  .dlg-back{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:5000;display:flex;align-items:center;justify-content:center}
+  .dlg-back[hidden]{display:none}
+  .dlg{background:#ececec;border:1px solid;border-color:#fff #555 #555 #fff;box-shadow:2px 3px 14px rgba(0,0,0,.5);width:min(1180px,97vw);height:min(940px,95vh);display:flex;flex-direction:column}
+  .dlg-title{background:#dcdcdc;padding:3px 4px 3px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #aaa;font-weight:bold}
+  .dlg-title button{height:20px;padding:0 7px}
+  .dlg-body{flex:1;display:flex;min-height:0}
+  .dlg-opts{width:360px;flex:none;overflow:auto;padding:8px;border-right:2px groove #fff;display:flex;flex-direction:column;gap:6px}
+  .dlg-prev{flex:1;display:flex;flex-direction:column;min-width:0;padding:8px;gap:4px}
+  #pdfPages{flex:1;overflow:auto;background:#8f8f8f;padding:14px;display:flex;flex-direction:column;align-items:center;gap:14px;border:1px solid;border-color:#808080 #fff #fff #808080}
+  .pdf-page{box-shadow:0 1px 6px rgba(0,0,0,.45);background:#fff;flex:none}
+  body.pdf-dragging, body.pdf-dragging *{cursor:grabbing !important;user-select:none}
+  .tree ul{list-style:none;margin:0;padding-left:18px}
+  .tree>ul{padding-left:0}
+  .tree li{margin:1px 0}
+  .tree label{white-space:normal}
+  .tree label.dis{color:#999}
+  .tree input.ren{width:190px;height:20px;font-weight:bold;margin-left:2px}
+  input[type=color]{width:34px;height:22px;padding:0 1px;border:1px solid;border-color:#808080 #fff #fff #808080;background:#fff}
+  .tree textarea{width:100%;font:inherit;border:1px solid;border-color:#808080 #fff #fff #808080;box-shadow:inset 1px 1px #404040;padding:3px}
+  .dlg-foot{display:flex;gap:6px;justify-content:flex-end;align-items:center;padding:6px 8px;border-top:1px solid #aaa}
+  .dlg-foot #pdfStatus{flex:1;color:#333}
+  .dlg-foot button{min-width:96px}
+  .leaflet-div-icon.pp-vertex{background:radial-gradient(circle,#fff 0 2.6px,#1a1a1a 2.9px 4.6px,rgba(0,0,0,0) 5px) !important;border:0 !important;border-radius:50% !important;box-shadow:none !important;cursor:move}
+  .leaflet-div-icon.pp-vertex:hover{background:radial-gradient(circle,#ffe27a 0 2.9px,#1a1a1a 3.2px 5px,rgba(0,0,0,0) 5.4px) !important}
 </style>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-<symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></symbol>
-<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></symbol>
-<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
-<symbol id="i-save" viewBox="0 0 24 24"><path d="M5 3h11l3 3v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8V3"/><path d="M7 21v-7h10v7"/></symbol>
-<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></symbol>
-<symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
-<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1"/><path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1"/></symbol>
-<symbol id="i-locate" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="7.5"/><path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3"/></symbol>
-<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></symbol>
-<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
-<symbol id="i-road" viewBox="0 0 24 24"><path d="M8 3 5 21M16 3l3 18"/><path d="M12 4v2.5M12 10.5v3M12 17.5V20"/></symbol>
-<symbol id="i-install" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></symbol>
-<symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
-<symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></symbol>
-<symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M6 17v-5M11 17V6M16 17V9M21 17v-3"/></symbol>
-<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
-<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
-</defs></svg>
 <div id="app">
-  <aside id="side">
-  <header class="toolbar">
-    <span class="brand" title="Odlingsverktyget – fält, grödor och planering"><svg class="logo" viewBox="0 0 24 24" aria-hidden="true"><mask id="logoMask"><rect width="24" height="24" fill="#fff"/><g stroke="#000" stroke-width="1.1" stroke-linecap="round"><path d="M7.5 5v14M12 5v14M16.5 5v14"/></g><g fill="#000"><circle cx="7.5" cy="7" r="1.8"/><circle cx="7.5" cy="12" r="1.8"/><circle cx="7.5" cy="17" r="1.8"/><circle cx="12" cy="7" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="17" r="1.8"/><circle cx="16.5" cy="7" r="1.8"/><circle cx="16.5" cy="12" r="1.8"/><circle cx="16.5" cy="17" r="1.8"/></g></mask><rect x="1" y="1" width="22" height="22" rx="5.5" fill="currentColor" mask="url(#logoMask)"/></svg><span class="brand-text">Odlingsverktyget</span></span>
-    <span class="tagline">fält · grödor · planering</span>
-    <span class="tb-space"></span>
-    <button id="btnInstall" type="button" hidden title="Installera Odlingsverktyget som en app på datorn eller mobilen"><svg class="ic" aria-hidden="true"><use href="#i-install"/></svg><span>Installera</span></button>
-    <button id="btnTheme" type="button" title="Byt till ljust läge"><svg class="ic ic-moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="ic ic-sun" aria-hidden="true"><use href="#i-sun"/></svg><span>Ljust läge</span></button>
-  </header>
-  <div class="inner" id="farmPanel">
+  <aside id="side"><div class="inner" id="farmPanel">
+    <div class="title"><b>Odlingsverktyget</b><span>fält · grödor · planering</span></div>
     <div class="col">
       <fieldset>
         <legend>Gården</legend>
         <div class="r"><label for="farmName" style="flex:none">Namn</label><input type="text" id="farmName" placeholder="Min gård"></div>
         <div class="b" style="margin-top:6px">
-          <button id="btnDrawField" class="default"><svg class="ic" aria-hidden="true"><use href="#i-pen"/></svg><span>Rita fält</span></button>
-          <button id="btnImportField"><svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg><span>Importera fält…</span></button>
+          <button id="btnDrawField">Rita fält</button>
+          <button id="btnImportField">Importera fält…</button>
         </div>
         <div class="b">
-          <button id="btnFarmSave" title="Sparar alla fält och odlingar i en fil"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg><span>Spara gården</span></button>
-          <button id="btnFarmOpen"><svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg><span>Öppna gårdsfil…</span></button>
-          <button id="btnCalcAll" title="Beräknar rader och skörd för alla odlingar"><svg class="ic" aria-hidden="true"><use href="#i-refresh"/></svg><span>Räkna om alla</span></button>
+          <button id="btnFarmSave" title="Sparar alla fält och odlingar i en fil">Spara gården</button>
+          <button id="btnFarmOpen">Öppna gårdsfil…</button>
+          <button id="btnCalcAll" title="Beräknar rader och skörd för alla odlingar">Räkna om alla</button>
         </div>
         <div class="hint">Rita dina fält på kartan. Öppna sedan ett fält och lägg till en odling för potatis, morötter, lök eller något annat. Samma fält kan ha flera odlingar.</div>
-      </fieldset>
-      <fieldset>
-        <legend>Vägar</legend>
-        <div class="r" style="margin-top:2px"><button id="btnRoadFarm" style="flex:1" title="Rita vägens mittlinje på kartan"><svg class="ic" aria-hidden="true"><use href="#i-road"/></svg><span>Rita väg</span></button><label for="roadWFarm" style="flex:none;margin-left:6px">Bredd</label><input type="number" id="roadWFarm" min="0.5" step="0.5" title="Bredd på nästa väg du ritar"><span class="u">m</span></div>
-        <div id="roadList"></div>
-        <div class="hint">Rita vägens mittlinje på kartan. Inne i ett fält visas bredden runt linjen och där sätts inget. Utanför fälten visas bara linjen. Klicka på en väg för att ge den ett namn.</div>
       </fieldset>
       <fieldset><legend>Totalt</legend><div id="farmTotals"></div></fieldset>
     </div>
@@ -405,14 +149,14 @@ body.tool-on path.road-hit{cursor:crosshair}
     <div class="col">
       <fieldset>
         <legend>Odling</legend>
-        <div class="b" style="margin-top:0"><button id="btnToFarm"><svg class="ic" aria-hidden="true"><use href="#i-left"/></svg><span>Till gården</span></button></div>
+        <div class="b" style="margin-top:0"><button id="btnToFarm">◀ Till gården</button></div>
         <div class="r"><label for="planName" style="flex:none">Namn</label><input type="text" id="planName"></div>
         <div class="r"><label for="cropSel" style="flex:none">Gröda</label><select id="cropSel"></select></div>
         <div class="hint" id="planWhere"></div>
         <div class="b">
-          <button id="btnSaveProj" title="Sparar planen med allt inlagt, även ortofotot, i en fil som du kan skicka till någon"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg><span>Spara projektfil</span></button>
-          <button id="btnOpenProj" title="Öppnar en projektfil. Du kan också dra filen och släppa den på sidan."><svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg><span>Öppna projektfil…</span></button>
-          <button id="btnShare" title="Skapar en länk som öppnar planen i mottagarens webbläsare"><svg class="ic" aria-hidden="true"><use href="#i-link"/></svg><span>Dela länk</span></button>
+          <button id="btnSaveProj" title="Sparar planen med allt inlagt, även ortofotot, i en fil som du kan skicka till någon">Spara projektfil</button>
+          <button id="btnOpenProj" title="Öppnar en projektfil. Du kan också dra filen och släppa den på sidan.">Öppna projektfil…</button>
+          <button id="btnShare" title="Skapar en länk som öppnar planen i mottagarens webbläsare">Dela länk</button>
         </div>
       </fieldset>
 
@@ -423,16 +167,15 @@ body.tool-on path.road-hit{cursor:crosshair}
           <button id="btnDraw" title="Rita en mindre yta inne i fältet för den här odlingen">Rita yta</button>
           <button id="btnImport">Importera fil…</button>
           <button id="btnExcl" title="Rita ett område som inte ska sättas (sten, brunn, blöt svacka)">Rita hinderzon</button>
-          <button id="btnRoad" title="Rita vägens mittlinje. Vägen hör till gården och syns i alla odlingar. Inget sätts på den, men sättaren får köra och vända där.">Rita väg</button>
+          <button id="btnRoad" title="Rita en väg: inget sätts där, men sättaren får köra och vända på den">Rita väg</button>
           <button id="btnFit">Visa ytan</button>
-          <button id="btnClear" class="danger">Radera ytan</button>
+          <button id="btnClear">Radera ytan</button>
         </div>
-        <div class="r"><label for="roadW" title="Bredd på nästa väg du ritar">Bredd på ny väg</label><input type="number" id="roadW" min="0.5" step="0.5"><span class="u">m</span></div>
         <input type="file" id="fileIn" accept=".geojson,.json,.kml,.kmz" hidden>
         <div class="r" style="margin-top:5px">
           <input type="text" id="search" placeholder="Sök plats…">
           <button id="btnSearch">Sök</button>
-          <button id="btnLocate" title="Min position" aria-label="Min position" style="padding:5px 8px"><svg class="ic" aria-hidden="true"><use href="#i-locate"/></svg></button>
+          <button id="btnLocate" title="Min position">◎</button>
         </div>
       </fieldset>
 
@@ -451,9 +194,9 @@ body.tool-on path.road-hit{cursor:crosshair}
       <fieldset>
         <legend>Radriktning</legend>
         <div class="ang">
-          <svg class="compass" width="66" height="66" viewBox="0 0 100 100" aria-label="Kompass">
-            <circle class="c-ring" cx="50" cy="50" r="45" fill="#fff" stroke="#808080" stroke-width="2"/>
-            <text class="c-n" x="50" y="18" text-anchor="middle" font-size="14" font-family="Georgia" font-weight="bold">N</text>
+          <svg width="62" height="62" viewBox="0 0 100 100" aria-label="Kompass">
+            <circle cx="50" cy="50" r="45" fill="#fff" stroke="#808080" stroke-width="2"/>
+            <text x="50" y="17" text-anchor="middle" font-size="14" font-family="Georgia" font-weight="bold">N</text>
             <text x="50" y="94" text-anchor="middle" font-size="12" font-family="Georgia" fill="#555">S</text>
             <text x="89" y="55" text-anchor="middle" font-size="12" font-family="Georgia" fill="#555">Ö</text>
             <text x="11" y="55" text-anchor="middle" font-size="12" font-family="Georgia" fill="#555">V</text>
@@ -494,7 +237,7 @@ body.tool-on path.road-hit{cursor:crosshair}
         <div class="b" style="margin-top:0">
           <button id="btnOrtho">Läs in ortofoto…</button>
           <button id="btnOrthoFit">Visa</button>
-          <button id="btnOrthoDel" class="danger">Ta bort</button>
+          <button id="btnOrthoDel">Ta bort</button>
         </div>
         <input type="file" id="orthoIn" multiple accept=".tif,.tiff,.jpg,.jpeg,.png,.jgw,.pgw,.tfw,.wld,.jpgw,.pngw" hidden>
         <div class="r"><label for="orthoCrs" style="flex:none">Koordinatsystem</label><select id="orthoCrs"></select></div>
@@ -559,7 +302,7 @@ body.tool-on path.road-hit{cursor:crosshair}
           <button id="btnResetEdits">Återställ alla</button>
         </div>
         <div class="b" id="editFoot" hidden>
-          <button id="btnEditSave" class="default">Spara ändringar</button>
+          <button id="btnEditSave">Spara ändringar</button>
           <button id="btnEditCancel">Avbryt</button>
         </div>
         <div class="hint" id="editHint"></div>
@@ -605,17 +348,12 @@ body.tool-on path.road-hit{cursor:crosshair}
     <div id="msg"></div>
   </div></aside>
   <div id="split" title="Dra för att ändra panelens bredd. Dubbelklicka för att dölja eller visa."><button id="splitBtn" title="Dölj/visa panelen">◀</button></div>
-  <div id="mapwrap"><div id="map"></div><div id="status" class="status" role="status" aria-live="polite"></div></div>
+  <div id="map"></div>
 </div>
-<nav class="mobnav" id="mobNav" aria-label="Välj vy">
-  <button type="button" data-mv="panel"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg><span id="mnPanel">Gården</span></button>
-  <button type="button" data-mv="map"><svg class="ic" aria-hidden="true"><use href="#i-map"/></svg><span>Karta</span></button>
-  <button type="button" data-mv="result"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg><span>Resultat</span></button>
-</nav>
 
 <div id="pdfDlg" class="dlg-back" hidden>
   <div class="dlg" role="dialog" aria-label="PDF-rapport" tabindex="-1">
-    <div class="dlg-title"><span>PDF-rapport</span><button id="pdfClose" title="Stäng" aria-label="Stäng"><svg class="ic" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+    <div class="dlg-title"><span>PDF-rapport</span><button id="pdfClose" title="Stäng">✕</button></div>
     <div class="dlg-body">
       <div class="dlg-opts">
         <fieldset>
@@ -639,11 +377,11 @@ body.tool-on path.road-hit{cursor:crosshair}
         </fieldset>
       </div>
       <div class="dlg-prev">
-        <div class="r" style="margin:0"><span class="ptitle">Förhandsvisning</span><span id="pdfPagesInfo" class="hint" style="margin:0"></span></div>
+        <div class="r" style="margin:0"><b style="flex:1">Förhandsvisning</b><span id="pdfPagesInfo" class="hint" style="margin:0"></span></div>
         <div id="pdfPages"></div>
       </div>
     </div>
-    <div class="dlg-foot"><span id="pdfStatus"></span><button id="pdfSave" class="default"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg><span>Spara PDF</span></button><button id="pdfCancel">Avbryt</button></div>
+    <div class="dlg-foot"><span id="pdfStatus"></span><button id="pdfSave">Spara PDF</button><button id="pdfCancel">Avbryt</button></div>
   </div>
 </div>
 
@@ -658,7 +396,7 @@ const DEG = Math.PI / 180;
 const fmt = (x, d = 0) => (+x).toLocaleString('sv-SE', {minimumFractionDigits: d, maximumFractionDigits: d});
 let msgTimer = null;
 function msg(t, ms = 6000){
-  for (const id of ['msg', 'msg2', 'status']) { const el = $(id); if (el) { el.textContent = t || ''; el.title = t || ''; } }
+  for (const id of ['msg', 'msg2']) { const el = $(id); if (el) el.textContent = t || ''; }
   clearTimeout(msgTimer); if (t && ms) msgTimer = setTimeout(() => msg(''), ms);
 }
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;'}[c]));
@@ -690,24 +428,6 @@ try { ui = {...ui, ...JSON.parse(localStorage.getItem(UI_KEY) || '{}')}; } catch
 const saveUI = () => { try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch {} };
 const PDF_DEFAULT_OFF = ['memo', 'sec:Konfiguration|Sättmetod', 'sec:Utsäde|Säckar à kg', 'sec:Uppskattad skörd|Förökningsgrad'];
 if (ui.pdfDefaultsV !== 2) { ui.pdfOff = [...PDF_DEFAULT_OFF]; ui.pdfNames = {}; ui.pdfDefaultsV = 2; saveUI(); }
-
-/* =================== Mörkt / ljust läge (som i Egna10) =================== */
-/* Utan eget val följer sidan datorns inställning (mörkt om datorn inte säger något). */
-const sysLight = window.matchMedia ? matchMedia('(prefers-color-scheme: light)') : null;
-const sysTheme = () => sysLight && sysLight.matches ? 'light' : 'dark';
-const curTheme = () => ui.theme === 'light' || ui.theme === 'dark' ? ui.theme : sysTheme();
-function applyTheme(){
-  const t = curTheme();
-  document.documentElement.dataset.theme = t;
-  const m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = t === 'light' ? '#ffffff' : '#14171b';
-  const b = $('btnTheme');
-  if (b) { b.querySelector('span').textContent = t === 'light' ? 'Mörkt läge' : 'Ljust läge';
-    b.title = (t === 'light' ? 'Byt till mörkt läge' : 'Byt till ljust läge') + (ui.theme ? '' : ' (just nu följer sidan datorns inställning)'); }
-}
-// Byter läge. Blir det samma som datorns inställning sparas inget val, så att sidan följer datorn igen.
-$('btnTheme').onclick = () => { const next = curTheme() === 'light' ? 'dark' : 'light'; if (next === sysTheme()) delete ui.theme; else ui.theme = next; applyTheme(); saveUI(); };
-if (sysLight) { if (sysLight.addEventListener) sysLight.addEventListener('change', applyTheme); else if (sysLight.addListener) sysLight.addListener(applyTheme); }
-applyTheme();
 
 /* =================== Sorter (riktvärden, t/ha) =================== */
 const VARIETIES = [
@@ -767,7 +487,6 @@ function loadStore(){
   try { const s = JSON.parse(localStorage.getItem(STORE) || 'null'); if (s && Array.isArray(s.plans)) store = s; } catch {}
   store.fields = store.fields || [];
   store.farmName = store.farmName || '';
-  store.roads = (store.roads || []).filter(r => r && Array.isArray(r.line) && r.line.length >= 2);
   // planer från den fristående Potatisplaneraren tas med om de finns
   if (!store.plans.length && !store.fields.length) {
     try {
@@ -999,7 +718,6 @@ L.drawLocal.draw.toolbar.actions = {title: 'Avbryt', text: 'Avbryt'};
 L.drawLocal.draw.toolbar.finish = {title: 'Klar', text: 'Klar'};
 L.drawLocal.draw.toolbar.undo = {title: 'Ta bort sista punkten', text: 'Ta bort sista punkten'};
 L.drawLocal.draw.handlers.polygon.tooltip = {start: 'Klicka för att börja rita', cont: 'Klicka för att lägga till hörn', end: 'Klicka på första punkten för att stänga'};
-L.drawLocal.draw.handlers.polyline.tooltip = {start: 'Klicka där vägen börjar', cont: 'Klicka för att fortsätta vägen', end: 'Klicka på sista punkten igen för att avsluta'};
 L.drawLocal.edit.toolbar.buttons = {edit: 'Redigera fält och hinder', editDisabled: 'Inget att redigera', remove: 'Radera fält eller hinder', removeDisabled: 'Inget att radera'};
 L.drawLocal.edit.toolbar.actions = {save: {title: 'Spara', text: 'Spara'}, cancel: {title: 'Avbryt', text: 'Avbryt'}, clearAll: {title: 'Rensa', text: 'Rensa allt'}};
 L.drawLocal.edit.handlers.edit.tooltip = {text: 'Dra i hörnen. Mittpunkt = nytt hörn. Klick på hörn = ta bort.', subtext: 'Spara behåller, Avbryt ångrar'};
@@ -1025,7 +743,6 @@ map.on('draw:drawstop draw:deletestop', () => { drawing = false; drawKind = 'fie
 map.on('draw:editstop', () => { drawing = false; syncFromGroup(); regenerate(); save(); });
 map.on(L.Draw.Event.CREATED, e => {
   const rings = layerRings(e.layer);
-  if (drawKind === 'roadline') { drawKind = 'field'; addRoad(rings[0]); return; }
   if (drawKind === 'newfield') { drawKind = 'field'; newField(rings); drawFarm(); fitFarm(); return; }
   if (drawKind === 'field' && plan) plan.wholeField = false;
   if (drawKind === 'excl' || drawKind === 'road') { pushUndo(); plan.zones.push({ring: rings[0], type: drawKind === 'road' ? 'vag' : 'hinder'}); }
@@ -1052,12 +769,11 @@ function rebuildEditGroup(){
     const t = document.createElement('button');
     t.textContent = z.type === 'vag' ? 'Gör om till hinderzon' : 'Gör om till väg';
     t.onclick = () => { pushUndo(); z.type = z.type === 'vag' ? 'hinder' : 'vag'; map.closePopup(); rebuildEditGroup(); regenerate(); save(); };
-    const b = document.createElement('button'); b.textContent = 'Ta bort'; b.className = 'danger';
+    const b = document.createElement('button'); b.textContent = 'Ta bort';
     b.onclick = () => { pushUndo(); plan.zones = plan.zones.filter(q => q !== z); map.closePopup(); rebuildEditGroup(); regenerate(); save(); };
     div.appendChild(t); div.appendChild(document.createTextNode(' ')); div.appendChild(b); x.bindPopup(div);
     editGroup.addLayer(x);
   });
-  refreshRoads();
 }
 function syncFromGroup(){
   let field = null; const zones = [];
@@ -1101,7 +817,6 @@ async function importFile(file){
   }
   if (!res || !res.field || !res.field[0] || res.field[0].length < 3) throw new Error('hittade ingen polygon');
   const clean = r => { const a = r[0], b = r[r.length - 1]; return (a[0] === b[0] && a[1] === b[1]) ? r.slice(0, -1) : r; };
-  if (res.roads && mergeRoads(res.roads)) persist();
   if (importMode === 'newfield' || view === 'farm') {
     const f = newField(res.field.map(clean), file.name.replace(/\.[^.]+$/, ''));
     f.zones = (res.zones || []).map(z => ({ring: clean(z.ring), type: z.type}));
@@ -1119,13 +834,12 @@ async function importFile(file){
   msg(res.count > 1 ? `Filen innehöll ${res.count} polygoner, den första användes som fält.` : 'Fältet importerades.');
 }
 function fromGeoJSON(g){
-  const polys = [], excl = [], roads = [];
+  const polys = [], excl = [];
   (function walk(o, props){
     if (!o) return;
     if (o.type === 'FeatureCollection') o.features.forEach(f => walk(f));
     else if (o.type === 'Feature') walk(o.geometry, o.properties || {});
     else if (o.type === 'GeometryCollection') o.geometries.forEach(x => walk(x, props));
-    else if (o.type === 'LineString' && props && props.typ === 'vag') roads.push({line: o.coordinates.map(c => [c[1], c[0]]), width: +props.bredd_m || 4, name: props.namn || ''});
     else if (o.type === 'Polygon' || o.type === 'MultiPolygon') {
       const t = props && (props.typ === 'hinder' || props.typ === 'vag') ? props.typ : null;
       const list = o.type === 'Polygon' ? [o.coordinates] : o.coordinates;
@@ -1134,7 +848,7 @@ function fromGeoJSON(g){
   })(g);
   const conv = poly => poly.map(r => r.map(c => [c[1], c[0]]));
   if (!polys.length) return null;
-  return {field: conv(polys[0]), zones: excl.map(z => ({ring: conv(z.coords)[0], type: z.type})), roads, count: polys.length};
+  return {field: conv(polys[0]), zones: excl.map(z => ({ring: conv(z.coords)[0], type: z.type})), count: polys.length};
 }
 function fromKML(text){
   const doc = new DOMParser().parseFromString(text, 'text/xml');
@@ -1179,7 +893,6 @@ async function importProject(d, source){
     else { q.id = uid(); q.name = (q.name || 'Plan') + ' (delad)'; }
   }
   store.plans.push(q);
-  mergeRoads(d.roads);
   renderFarm();
   if (d.ortho && d.ortho.dataUrl) {
     try { const blob = await (await fetch(d.ortho.dataUrl)).blob(); const rec = {...d.ortho, blob}; delete rec.dataUrl; await idb.put(q.id, rec); }
@@ -1189,7 +902,7 @@ async function importProject(d, source){
   msg(`Odlingen "${q.name}" är öppnad${d.ortho ? ' med ortofoto' : ''}.`);
 }
 $('btnSaveProj').onclick = async () => {
-  const d = {app: 'potatisplaneraren', type: 'projekt', version: 4, saved: new Date().toISOString(), plan: JSON.parse(JSON.stringify(plan)), roads: nearRoads(plan.field)};
+  const d = {app: 'potatisplaneraren', type: 'projekt', version: 4, saved: new Date().toISOString(), plan: JSON.parse(JSON.stringify(plan))};
   try { const rec = await idb.get(plan.id); if (rec && rec.blob) { d.ortho = {...rec, dataUrl: await blobToDataUrl(rec.blob)}; delete d.ortho.blob; delete d.ortho.orig; } } catch {}
   download(slug() + '.potatis', JSON.stringify(d), 'application/json');
   msg('Projektfilen är sparad. Mottagaren öppnar den med "Öppna projektfil…" eller genom att dra filen till sidan.' + (d.ortho ? ' Ortofotot följer med.' : ''), 12000);
@@ -1197,7 +910,7 @@ $('btnSaveProj').onclick = async () => {
 const toB64url = buf => { const u8 = new Uint8Array(buf); let bin = ''; for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
 const fromB64url = str => { const bin = atob(str.replace(/-/g, '+').replace(/_/g, '/')); const u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); return u8; };
 async function encodePlan(p){
-  const stream = new Blob([JSON.stringify({v: 4, plan: p, roads: nearRoads(p.field)})]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+  const stream = new Blob([JSON.stringify({v: 4, plan: p})]).stream().pipeThrough(new CompressionStream('deflate-raw'));
   return toB64url(await new Response(stream).arrayBuffer());
 }
 async function decodePlan(str){
@@ -1223,7 +936,7 @@ async function openSharedLink(){
   const m = location.hash.match(/^#plan=([A-Za-z0-9_-]+)/);
   if (!m) return;
   history.replaceState(null, '', location.href.split('#')[0]);
-  try { const d = await decodePlan(m[1]); await importProject({plan: d.plan, roads: d.roads}, 'länken'); }
+  try { const d = await decodePlan(m[1]); await importProject({plan: d.plan}, 'länken'); }
   catch (err) { console.error(err); msg('Länken gick inte att öppna. Den kan ha blivit avklippt när den skickades.', 0); }
 }
 window.addEventListener('hashchange', openSharedLink);
@@ -1247,6 +960,11 @@ $('btnExcl').onclick = () => {
   drawKind = 'excl'; new L.Draw.Polygon(map, {...polyOpts, shapeOptions: drawExclStyle}).enable();
   msg('Rita hinderzonen. Klicka på första punkten för att stänga den.');
 };
+$('btnRoad').onclick = () => {
+  if (!plan.field) return msg('Rita eller importera ett fält först.');
+  drawKind = 'road'; new L.Draw.Polygon(map, {...polyOpts, shapeOptions: drawRoadStyle}).enable();
+  msg('Rita vägen som ett område. Inget sätts på vägen, men sättaren får köra och vända där.');
+};
 $('btnFit').onclick = () => { if (plan.field) map.fitBounds(L.polygon(plan.field).getBounds(), {padding: [30, 30]}); };
 $('btnClear').onclick = () => {
   if (!plan.field) return;
@@ -1257,7 +975,6 @@ $('btnClear').onclick = () => {
 $('btnLocate').onclick = () => map.locate({setView: true, maxZoom: 17});
 map.on('locationerror', () => msg('Kunde inte hämta din position.'));
 async function doSearch(){
-  showMapOnMobile();
   const q = $('search').value.trim(); if (!q) return;
   try {
     const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q));
@@ -1458,7 +1175,6 @@ function applyVisibility(){
   const t = (on, layer) => on ? map.addLayer(layer) : map.removeLayer(layer);
   t($('showRows').checked, rowsLayer); t($('showPlants').checked, plantsLayer);
   t($('showPasses').checked, passLayer); t($('showField').checked, editGroup);
-  refreshRoads();
 }
 
 /* =================== Geometri =================== */
@@ -1515,11 +1231,10 @@ function baseCtx(){
   const toM = p => ({u: (p[1] - lo) * kx, v: (p[0] - la) * ky});
   const field = plan.field.map(r => r.map(toM));
   const obst = zonesOf('hinder').map(r => r.map(toM));
-  const roads = [...zonesOf('vag').map(r => r.map(toM)), ...farmRoadRings(toM, field)];
-  const fieldE = edgesOf(field);
+  const roads = zonesOf('vag').map(r => r.map(toM));
   return {la, lo, ky, kx, toM, field, obst, roads,
-    fieldE, fieldArea: ringArea(field[0]) - field.slice(1).reduce((t, r) => t + ringArea(r), 0),
-    obstArea: obst.reduce((t, r) => t + ringArea(r), 0), roadArea: areaInside(fieldE, field[0], roads)};
+    fieldE: edgesOf(field), fieldArea: ringArea(field[0]) - field.slice(1).reduce((t, r) => t + ringArea(r), 0),
+    obstArea: obst.reduce((t, r) => t + ringArea(r), 0), roadArea: roads.reduce((t, r) => t + ringArea(r), 0)};
 }
 /* Rutnät över den sättbara ytan, för att hitta delområden som hinder eller vägar delar upp fältet i */
 function buildMask(ctx){
@@ -1602,7 +1317,6 @@ function buildPartGeo(ctx, mask, part, s, angle){
   const fR = conv(ctx.field), oR = conv(ctx.obst), rR = conv(ctx.roads);
   const fE = edgesOf(fR), oE = edgesOf(oR), rE = edgesOf(rR);
   const oEach = oR.map(r => edgesOf([r])), rEach = rR.map(r => edgesOf([r]));
-  const rEachV = rR.map(r => { let a = Infinity, b = -Infinity; for (const p of r) { a = Math.min(a, p.v); b = Math.max(b, p.v); } return [a, b]; });
   const {rs, ps, edge, endM, m2, mRoad} = s;
 
   // delens utbredning i v-led
@@ -1619,12 +1333,7 @@ function buildPartGeo(ctx, mask, part, s, angle){
   for (let v = vStart; v < vmax; v += rs, line++) {
     let ints = scan(fE, v).map(([x0, x1]) => [x0 + endM, x1 - endM]).filter(([x0, x1]) => x1 >= x0);
     for (const ee of oEach) { const cut = scan(ee, v).map(([x0, x1]) => [x0 - m2, x1 + m2]); if (cut.length) ints = subtract(ints, cut); }
-    for (let ri = 0; ri < rEach.length; ri++) {
-      if (v < rEachV[ri][0] || v > rEachV[ri][1]) continue;
-      const cut = scan(rEach[ri], v).map(([x0, x1]) => [x0 - mRoad, x1 + mRoad]); if (cut.length) ints = subtract(ints, cut);
-    }
-    // bara vägkanter i närheten av raden behöver kontrolleras för avståndet till väg
-    const rEv = mRoad > 0 && rE.length ? rE.filter(([p, q]) => Math.min(p.v, q.v) - mRoad <= v && Math.max(p.v, q.v) + mRoad >= v) : rE;
+    for (const ee of rEach) { const cut = scan(ee, v).map(([x0, x1]) => [x0 - mRoad, x1 + mRoad]); if (cut.length) ints = subtract(ints, cut); }
     const lineRows = [];
     for (const [s0, e0] of ints) {
       if (e0 < s0) continue;
@@ -1637,7 +1346,7 @@ function buildPartGeo(ctx, mask, part, s, angle){
         const [e, nn] = rot(u, v);
         let bad = mask.at(e, nn) !== part.id;
         if (!bad) bad = (edge > 0 && nearEdge(u, v, fE, edge - 1e-6)) || (m2 > 0 && oE.length && nearEdge(u, v, oE, m2 - 1e-6))
-          || (mRoad > 0 && rEv.length && nearEdge(u, v, rEv, mRoad - 1e-6));
+          || (mRoad > 0 && rE.length && nearEdge(u, v, rE, mRoad - 1e-6));
         if (bad) { flush(); continue; }
         if (!cnt) u0 = u;
         cnt++;
@@ -1781,14 +1490,14 @@ function buildPartPasses(g, s, no0){
       const prev = passes[j - 1];
       const t = turnPath(prev.end[0], prev.end[1], a, P.v, prev.dir, s.r);
       t.g = g;
-      // Vändningen får gå inne i fältet eller på en väg, även en väg utanför fältet
+      // Vändningen får gå på en väg, men inte utanför fältet
       t.outside = false; t.onRoad = false;
       for (let i = 0; i < t.pts.length; i += 2) {
         const [pu, pv] = t.pts[i];
         const inField = pointInRings(g.fR, pu, pv);
-        const inRoad = g.rR.length > 0 && g.rR.some(r => pointInRings([r], pu, pv));
+        const inRoad = g.rR.length && pointInRings(g.rR, pu, pv);
         if (inRoad) t.onRoad = true;
-        if (!inField && !inRoad) t.outside = true;
+        if (!inField) t.outside = true;
       }
       turns.push(t); turnDist += t.len; maxReach = Math.max(maxReach, t.reach);
       if (t.omega) omegas++;
@@ -1820,7 +1529,7 @@ function run(){
   try {
     if (!plan.field) { geo = null; geoKey = ''; geoCtx = geoMask = null; passInfo = null; render(); updateStats(); renderParts(); return; }
     const s = S();
-    const key = JSON.stringify([plan.field, plan.zones, roadsKey(), plan.partAngles, s.rs, s.ps, s.edge, s.endM, s.m2, s.mRoad, s.off, s.angle]);
+    const key = JSON.stringify([plan.field, plan.zones, plan.partAngles, s.rs, s.ps, s.edge, s.endM, s.m2, s.mRoad, s.off, s.angle]);
     if (key !== geoKey) { geo = buildGeo(s); geoKey = key; }
     if (geo.tooMany) { passInfo = null; render(); updateStats(); renderParts(); return; }
     applyEdits();
@@ -1948,8 +1657,7 @@ function settingsModel(){
     ['Avstånd från kant', `${fmt(s.edge, 2)} m`]];
   const nz = t => (plan.zones || []).filter(z => z.type === t).length;
   if (nz('hinder')) rows.push(['Hinderzoner', `${nz('hinder')} st, ${fmt(s.m2, 1)} m avstånd`]);
-  const nv = nz('vag') + nearRoads(plan.field).length;
-  if (nv) rows.push(['Vägar', `${nv} st, ${fmt(s.mRoad, 1)} m avstånd`]);
+  if (nz('vag')) rows.push(['Vägar', `${nz('vag')} st, ${fmt(s.mRoad, 1)} m avstånd`]);
   if (geo && geo.parts && geo.parts.length > 1) rows.push(['Delområden', geo.parts.map(g => `del ${g.part.no}: ${fmt(g.angle, 1)}°`).join(', ')]);
   if (s.machine) rows.push(['Rader per drag', `${s.N} st (${fmt(s.N * s.rs, 2)} m)`], ['Minsta vändradie', `${fmt(s.r, 1)} m`],
     ['Vändteg', s.inside ? `${fmt(s.headland, 1)} m innanför ytan` : 'utanför ytan'], ['Hastighet', `${fmt(s.speed, 1)} km/h`]);
@@ -1978,11 +1686,10 @@ function updateStats(){
   box.innerHTML = `<table>${m.sections.map(sec => `<tr class="h"><td colspan="2">${esc(sec.title)}</td></tr>` +
       sec.rows.map(([a, b]) => `<tr><td>${esc(a)}</td><td>${esc(b)}</td></tr>`).join('')).join('')}</table>
     ${m.warnings.map(w => `<div class="warn">${esc(w)}</div>`).join('')}${m.infos.map(w => `<div class="info">${esc(w)}</div>`).join('')}
-    <div class="lg">${legendItems(k => ({field: $('showField').checked, roads: $('showField').checked, rows: $('showRows').checked, plants: $('showPlants').checked, passes: $('showPasses').checked})[k]).map(it =>
+    <div class="lg">${legendItems(k => ({field: $('showField').checked, rows: $('showRows').checked, plants: $('showPlants').checked, passes: $('showPasses').checked})[k]).map(it =>
       it.kind === 'dot' && !(geo.ps && !pointsVisible(geo.ps / metersPerPixel())) ? `<span><i class="dot" style="background:${ui.ptColor || '#fff'};border:1.5px solid #111"></i>${it.label}</span>`
       : it.kind === 'dot' ? ''
       : it.kind === 'field' ? `<span><i style="background:repeating-linear-gradient(90deg,#666 0 3px,#bbb 3px 5px)"></i>${it.label}</span>`
-      : it.kind === 'road' ? `<span><i class="lg-road"></i>${it.label}</span>`
       : it.kind === 'fill' ? `<span><i style="background:${it.color};opacity:.6;height:8px"></i>${it.label}</span>`
       : `<span><i style="opacity:${it.alpha ?? 1};background:${it.dash ? `repeating-linear-gradient(90deg,${it.color} 0 4px,transparent 4px 6px)` : it.color}"></i>${it.label}</span>`).join('')}</div>
     ${geo.ps && $('showPlants').checked && !pointsVisible(geo.ps / metersPerPixel())
@@ -2450,7 +2157,6 @@ $('btnGeo').onclick = () => {
   const F = (props, geometry) => ({type: 'Feature', properties: props, geometry});
   const feats = [F({typ: 'falt', namn: plan.name, sattmetod: s.machine ? 'maskin' : 'manuell', radavstand_cm: s.rs * 100, sattavstand_cm: s.ps * 100, vinkel_grader: s.angle, vikt_g: s.weight, rader_per_drag: s.machine ? s.N : null}, {type: 'Polygon', coordinates: plan.field.map(ring)})];
   (plan.zones || []).forEach((z, i) => feats.push(F({typ: z.type, nr: i + 1}, {type: 'Polygon', coordinates: [ring(z.ring)]})));
-  nearRoads(plan.field).forEach(r => feats.push(F({typ: 'vag', namn: roadName(r), bredd_m: roadW(r), langd_m: +roadLength(r).toFixed(1)}, {type: 'LineString', coordinates: r.line.map(c)})));
   for (const r of geo.rows) {
     const pts = activePts(r);
     feats.push(F({typ: 'rad', rad: r.label, antal: pts.length, langd_m: +(r.u1 - r.u0).toFixed(2), borttagen: r.removed, drag: r.pass || null}, {type: 'LineString', coordinates: [c(r.ll0), c(r.ll1)]}));
@@ -2481,7 +2187,6 @@ function buildKML(withPoints){
 <Style id="falt"><LineStyle><color>ffffffff</color><width>2</width></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
 <Style id="hinder"><LineStyle><color>ff4040ff</color><width>2</width></LineStyle><PolyStyle><color>554040ff</color></PolyStyle></Style>
 <Style id="vag"><LineStyle><color>ffd8d8d8</color><width>2</width></LineStyle><PolyStyle><color>66c9c4bf</color></PolyStyle></Style>
-<Style id="vaglinje"><LineStyle><color>ffe3f6fd</color><width>3</width></LineStyle></Style>
 <Style id="rad"><LineStyle><color>ff2ba4e0</color><width>2</width></LineStyle></Style>
 <Style id="drag"><LineStyle><color>fff5a93f</color><width>3</width></LineStyle></Style>
 <Style id="vand"><LineStyle><color>c0ffc46c</color><width>2</width></LineStyle></Style>
@@ -2489,7 +2194,6 @@ function buildKML(withPoints){
 <Style id="pkt"><IconStyle><scale>0.35</scale><Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href></Icon></IconStyle><LabelStyle><scale>0</scale></LabelStyle></Style>\n`;
   x += '<Folder><name>Fält</name>' + pm(plan.name, 'falt', `<Polygon><outerBoundaryIs><LinearRing><coordinates>${ring(plan.field[0])}</coordinates></LinearRing></outerBoundaryIs>${plan.field.slice(1).map(h => `<innerBoundaryIs><LinearRing><coordinates>${ring(h)}</coordinates></LinearRing></innerBoundaryIs>`).join('')}</Polygon>`);
   (plan.zones || []).forEach((z, i) => { x += pm((z.type === 'vag' ? 'Väg ' : 'Hinder ') + (i + 1), z.type === 'vag' ? 'vag' : 'hinder', `<Polygon><outerBoundaryIs><LinearRing><coordinates>${ring(z.ring)}</coordinates></LinearRing></outerBoundaryIs></Polygon>`); });
-  nearRoads(plan.field).forEach(r => { x += pm(roadTitle(r), 'vaglinje', line(r.line), `Väg, ${fmt(roadW(r), 1)} m bred`); });
   x += '</Folder>\n<Folder><name>Rader</name>';
   for (const r of geo.rows) if (!r.removed && r.off.size < r.n) x += pm('Rad ' + r.label, 'rad', line([r.ll0, r.ll1]), `${r.n - r.off.size} sättpotatisar, ${fmt(r.u1 - r.u0, 1)} m`);
   x += '</Folder>\n';
@@ -2533,7 +2237,6 @@ $('btnIso').onclick = async () => {
   x += `<PFD A="PFD1" C="${esc(plan.name)}" D="${fieldM2}">\n`;
   x += `<PLN A="1" C="${fieldM2}">${lsg(plan.field[0], 1)}${plan.field.slice(1).map(h => lsg(h, 2)).join('')}</PLN>\n`;
   (plan.zones || []).forEach((z, i) => { x += `<PLN A="${z.type === 'vag' ? 5 : 6}" B="${z.type === 'vag' ? 'Väg' : 'Hinder'} ${i + 1}">${lsg(z.ring, 1)}</PLN>\n`; });
-  nearRoads(plan.field).forEach(r => { x += `<PLN A="5" B="${esc(roadTitle(r))}">${lsg(roadOutline(r), 1)}</PLN>\n`; });
   const abs = abLines();
   if (abs.length) x += `<GGP A="GGP1" B="Potatis ${S().N} rader">` +
     abs.map((ab, i) => `<GPN A="GPN${i + 1}" B="AB del ${ab.no} (${fmt(ab.angle, 1)} grader)" C="1" E="1" F="1"><LSG A="5">${P(ab.a, 6)}${P(ab.b, 7)}</LSG></GPN>`).join('') + '</GGP>\n';
@@ -2556,8 +2259,8 @@ $('btnWhole').onclick = () => {
 };
 $('btnBackup').onclick = () => {
   download(`potatisplaneraren_backup_${new Date().toISOString().slice(0, 10)}.json`,
-    JSON.stringify({app: 'odlingsverktyget', version: 1, saved: new Date().toISOString(), farmName: store.farmName, fields: store.fields, roads: store.roads || [], plans: store.plans}), 'application/json');
-  msg('Säkerhetskopian innehåller alla fält, vägar och odlingar. Ortofoton ingår inte, de ligger kvar i webbläsaren.');
+    JSON.stringify({app: 'odlingsverktyget', version: 1, saved: new Date().toISOString(), farmName: store.farmName, fields: store.fields, plans: store.plans}), 'application/json');
+  msg('Säkerhetskopian innehåller alla fält och odlingar. Ortofoton ingår inte, de ligger kvar i webbläsaren.');
 };
 
 /* =================== PDF-rapport =================== */
@@ -2589,7 +2292,7 @@ class CanvasPainter {
   _paint(mode){
     const c = this.ctx; c.save(); c.globalAlpha = this._alpha;
     if (mode.includes('F')) { c.fillStyle = this._fill; c.fill(); }
-    if (mode.includes('S') || mode.includes('D')) { c.strokeStyle = this._stroke; c.lineWidth = Math.max(this._lw, this.minLw || 0); c.setLineDash(this._dash); c.lineCap = this._cap || 'butt'; c.lineJoin = this._join || 'miter'; c.stroke(); }
+    if (mode.includes('S') || mode.includes('D')) { c.strokeStyle = this._stroke; c.lineWidth = Math.max(this._lw, this.minLw || 0); c.setLineDash(this._dash); c.stroke(); }
     c.restore();
   }
   rect(x, y, w, h, mode){ this.ctx.beginPath(); this.ctx.rect(x, y, w, h); this._paint(mode); }
@@ -2598,14 +2301,7 @@ class CanvasPainter {
   circles(pts, r, mode){ const c = this.ctx; c.beginPath(); for (const p of pts) { c.moveTo(p[0] + r, p[1]); c.arc(p[0], p[1], r, 0, 6.2832); } this._paint(mode); }
   image(img, x, y, w, h){ const c = this.ctx; c.save(); c.globalAlpha = this._alpha; c.drawImage(img.el, x, y, w, h); c.restore(); }
   clip(x, y, w, h){ this.ctx.save(); this.ctx.beginPath(); this.ctx.rect(x, y, w, h); this.ctx.clip(); }
-  clipPoly(rings){ const c = this.ctx; c.save(); c.beginPath(); for (const r of rings) { r.forEach((p, i) => i ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1])); c.closePath(); } c.clip('evenodd'); }
   unclip(){ this.ctx.restore(); }
-  cap(v){ this._cap = v; } join(v){ this._join = v; }
-  textAlong(s, x, y, deg){
-    const c = this.ctx; c.save(); c.translate(x, y); c.rotate(deg * DEG); c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.lineJoin = 'round'; c.strokeStyle = '#000000'; c.globalAlpha = 0.8; c.lineWidth = 0.7; c.strokeText(s, 0, 0);
-    c.globalAlpha = 1; c.fillStyle = '#ffffff'; c.fillText(s, 0, 0); c.restore();
-  }
 }
 class PdfPainter {
   constructor(doc){ this.doc = doc; this.gs = {}; }
@@ -2629,21 +2325,7 @@ class PdfPainter {
   circles(pts, r, mode){ for (const p of pts) this.doc.circle(p[0], p[1], r, mode); }
   image(img, x, y, w, h){ this.doc.addImage(img.dataUrl, img.fmt, x, y, w, h, img.alias, 'FAST'); }
   clip(x, y, w, h){ this.doc.saveGraphicsState(); this.doc.rect(x, y, w, h, null); this.doc.clip(); this.doc.discardPath(); }
-  clipPoly(rings){
-    this.doc.saveGraphicsState();
-    for (const r of rings) { const d = []; for (let i = 1; i < r.length; i++) d.push([r[i][0] - r[i - 1][0], r[i][1] - r[i - 1][1]]); this.doc.lines(d, r[0][0], r[0][1], [1, 1], null, true); }
-    this.doc.clipEvenOdd(); this.doc.discardPath();
-  }
   unclip(){ this.doc.restoreGraphicsState(); }
-  cap(v){ this.doc.setLineCap(v || 'butt'); } join(v){ this.doc.setLineJoin(v || 'miter'); }
-  textAlong(s, x, y, deg){
-    const d = this.doc, w = d.getTextWidth(s), h = d.getFontSize() * 0.3528, r = deg * DEG;
-    const sx = x - w / 2 * Math.cos(r) - 0.35 * h * Math.sin(r), sy = y - w / 2 * Math.sin(r) + 0.35 * h * Math.cos(r);
-    d.setLineJoin('round'); d.setDrawColor('#000000'); d.setLineWidth(0.7); this.alpha(0.8);
-    d.text(s, sx, sy, {angle: -deg, renderingMode: 'stroke'});
-    this.alpha(1); d.setTextColor('#ffffff'); d.text(s, sx, sy, {angle: -deg, renderingMode: 'fill'});
-    d.setLineJoin('miter');
-  }
 }
 function wrapText(P, s, w){
   const out = []; let line = '';
@@ -2662,8 +2344,7 @@ function legendItems(on, forPdf){
   const s = S();
   if (on('field') && plan.field) items.push({label: 'fältgräns', kind: 'field'});
   if (on('field') && (plan.zones || []).some(z => z.type === 'hinder')) items.push({label: 'hinderzon', kind: 'fill', color: '#ff4040'});
-  if (on('roads') && nearRoads(plan.field).length) items.push({label: 'väg', kind: 'road'});
-  else if (on('field') && (plan.zones || []).some(z => z.type === 'vag')) items.push({label: 'väg', kind: 'fill', color: '#bfc4c9'});
+  if (on('field') && (plan.zones || []).some(z => z.type === 'vag')) items.push({label: 'väg', kind: 'fill', color: '#bfc4c9'});
   if (on('rows') && geo.rows.some(r => !r.removed)) items.push({label: 'rad', kind: 'line', color: ui.rowColor || '#e0a42b', alpha: (ui.rowOp ?? 90) / 100});
   if (on('rows') && editSession && !forPdf && geo.rows.some(r => r.removed)) items.push({label: 'borttagen rad', kind: 'line', color: '#9a9a9a', dash: true});
   if (on('plants') && geo.rows.some(r => !r.removed && r.off.size < r.n)) items.push({label: 'sättpunkt', kind: 'dot'});
@@ -2682,7 +2363,6 @@ function pdfTree(){
   const sec = s => ({key: 'sec:' + s.title, label: s.title, rename: s.title, children: s.rows.map(([a, b]) => ({key: keyOf(s.title, a), label: `${a}: ${b}`}))});
   const mapKids = [];
   if (plan.field) mapKids.push({key: 'map.field', label: 'Fältgräns och hinder'});
-  if (nearRoads(plan.field).length) mapKids.push({key: 'map.roads', label: 'Vägar och vägnamn'});
   mapKids.push({key: 'map.rows', label: 'Rader'}, {key: 'map.plants', label: 'Sättpunkter'});
   if (S().machine && passInfo && passInfo.passes.length) mapKids.push({key: 'map.passes', label: 'Körspår och START/SLUT'});
   if (ortho) mapKids.push({key: 'map.ortho', label: 'Eget ortofoto'});
@@ -2817,7 +2497,6 @@ function drawMap(P, f, o){
       P.poly(pts, true, 'S'); P.dash(null);
     }
   }
-  if (pdfOn('map.roads')) drawRoadsPdf(P, llMM, mPerMM);
   const rsMM = s.rs / mPerMM, psMM = s.ps / mPerMM;
   if (pdfOn('map.rows')) {
     const lw = Math.max(0.03, Math.min(ui.rowW * 0.11, rsMM * 0.8));
@@ -2904,7 +2583,6 @@ function drawMap(P, f, o){
 function drawSwatch(P, it, lx, ly){
   if (it.kind === 'field') { P.fillColor('#6b6b6b'); P.rect(lx, ly - 2.9, 5.5, 3.2, 'F'); P.strokeColor('#ffffff'); P.lineWidth(0.4); P.dash([0.9, 0.6]); P.rect(lx + 0.7, ly - 2.3, 4.1, 2, 'S'); P.dash(null); }
   else if (it.kind === 'fill') { P.fillColor(it.color); P.alpha(0.35); P.rect(lx, ly - 2.9, 5.5, 3.2, 'F'); P.alpha(1); P.strokeColor(it.color); P.lineWidth(0.35); P.rect(lx, ly - 2.9, 5.5, 3.2, 'S'); }
-  else if (it.kind === 'road') { P.fillColor('#c9ced4'); P.rect(lx, ly - 2.9, 5.5, 3.2, 'F'); P.cap('round'); P.strokeColor('#111111'); P.alpha(0.55); P.lineWidth(0.85); P.segs([[lx + 0.4, ly - 1.3, lx + 5.1, ly - 1.3]]); P.alpha(1); P.strokeColor('#fdf6e3'); P.lineWidth(0.4); P.segs([[lx + 0.4, ly - 1.3, lx + 5.1, ly - 1.3]]); P.cap(null); }
   else if (it.kind === 'dot') { P.fillColor(ui.ptColor || '#ffffff'); P.strokeColor('#111111'); P.lineWidth(0.35); P.circles([[lx + 2.75, ly - 1.3]], 1.2, 'FD'); }
   else { P.strokeColor(it.color); P.lineWidth(0.7); P.alpha(it.alpha ?? 1); if (it.dash) P.dash([1, 0.7]); P.segs([[lx, ly - 1.3, lx + 5.5, ly - 1.3]]); P.dash(null); P.alpha(1); }
 }
@@ -3235,7 +2913,6 @@ function setView(v, opts){
   for (const l of [rowsLayer, plantsLayer, passLayer, editGroup]) on(v === 'plan', l);
   if (v === 'plan') applyVisibility();
   if (v === 'farm') { if (tool) setTool(tool); renderFarm(); if (!opts || !opts.keepView) fitFarm(); }
-  updMobNav();
   document.title = v === 'farm' ? 'Odlingsverktyget' : `${CU().name} · ${plan ? plan.name : ''}`;
 }
 function fitFarm(){
@@ -3261,12 +2938,12 @@ function renderFarm(){
       <div class="b" style="margin-top:0">
         <button data-zoom="${f.id}" title="Zooma till fältet">Visa</button>
         <button data-shape="${f.id}" title="Dra i hörnen på kartan">Ändra form</button>
-        <button data-delf="${f.id}" class="danger" title="Ta bort fältet och dess odlingar">Ta bort</button></div>
+        <button data-delf="${f.id}" title="Ta bort fältet och dess odlingar">Ta bort</button></div>
       ${ps.map(p => {
         const c = CROPS[p.crop] || CROPS.potatis, su = p.summary;
         return `<div class="r cropline"><span class="dot" style="background:${c.color}"></span>
           <label style="flex:1"><b>${esc(p.name)}</b> · ${esc(c.name)}${su && su.tooMany ? ' · för tät för att räknas ut' : su ? ` · ${fArea(su.plantedM2)} · ${fmt(su.plants)} ${c.unit === 'frö' ? 'frön' : c.unit + (su.plants === 1 ? '' : 'ar')}` : ' · ej beräknad'}</label>
-          <button data-open="${p.id}">Öppna</button><button data-delp="${p.id}" class="danger">Ta bort</button></div>`;
+          <button data-open="${p.id}">Öppna</button><button data-delp="${p.id}">Ta bort</button></div>`;
       }).join('')}
       <div class="r"><label style="flex:none">Ny odling</label>${cropSelect('crop_' + f.id, 'potatis')}
         <button data-newp="${f.id}">Lägg till</button></div>
@@ -3313,7 +2990,7 @@ function renderFarm(){
     f.name = inp.value; persist(); drawFarm();
   });
   $('fieldList').querySelectorAll('.fieldcard').forEach(el => el.onmousedown = () => { selField = el.dataset.f; });
-  drawFarm(); renderRoadList();
+  drawFarm();
 }
 function drawFarm(){
   farmLayer.clearLayers();
@@ -3329,7 +3006,6 @@ function drawFarm(){
       farmLayer.addLayer(L.polygon(p.field, {color: c.color, weight: 2, fillColor: c.color, fillOpacity: 0.3, dashArray: '5 3'}).bindTooltip(p.name));
     }
   }
-  refreshRoads();
 }
 /* fältets form: dra i hörnen direkt i gårdsvyn */
 let shapeField = null;
@@ -3409,13 +3085,13 @@ $('btnCalcAll').onclick = async () => {
 /* ---------- import av hela gården ---------- */
 $('btnFarmSave').onclick = () => {
   download((store.farmName || 'garden').replace(/[^\w\-]+/g, '_') + '.odling',
-    JSON.stringify({app: 'odlingsverktyget', version: 1, saved: new Date().toISOString(), farmName: store.farmName, fields: store.fields, roads: store.roads || [], plans: store.plans}), 'application/json');
+    JSON.stringify({app: 'odlingsverktyget', version: 1, saved: new Date().toISOString(), farmName: store.farmName, fields: store.fields, plans: store.plans}), 'application/json');
   msg('Gården är sparad som fil. Ortofoton ingår inte.');
 };
 $('btnFarmOpen').onclick = () => { importMode = 'farm'; $('fileIn').accept = '.odling,.json'; $('fileIn').click(); };
 function importFarm(d){
   if (!confirm('Läsa in gården från filen? Det som finns här nu ersätts.')) return;
-  store.farmName = d.farmName || ''; store.fields = d.fields || []; store.plans = (d.plans || []).map(p => ({...p})); store.roads = (d.roads || []).filter(okRoad);
+  store.farmName = d.farmName || ''; store.fields = d.fields || []; store.plans = (d.plans || []).map(p => ({...p}));
   store.current = null; persist(); setView('farm'); renderFarm(); fitFarm();
   msg(`Gården är inläst: ${store.fields.length} fält och ${store.plans.length} odlingar.`);
 }
@@ -3442,415 +3118,6 @@ $('cropSel').onchange = () => {
   }
   applyCrop(); updateMethodUI(); geoKey = ''; regenerate(); save();
 };
-
-/* =================== Vägar (gemensamma för hela gården) =================== */
-/* En väg är en mittlinje med en bredd. Inne i ett fält visas bredden runt linjen (och där sätts inget),
-   utanför fälten visas bara linjen, som på en vanlig karta. Sättaren får köra och vända på vägen. */
-const ROAD_NEAR = 100;   // vägar inom så här många meter från fältet räknas med i odlingens beräkning
-const roadsLayer = L.layerGroup().addTo(map);
-let roadViews = [], roadEdit = null, clipSeq = 0, roadSaveT = null, roadSumT = null;
-const roadDirty = new Set();
-const roadW = r => { const w = parseFloat(String(r.width).replace(',', '.')); return isFinite(w) && w > 0 ? w : 4; };
-const roadName = r => (r.name || '').trim();
-const roadTitle = r => roadName(r) || 'Väg ' + ((store.roads || []).indexOf(r) + 1);
-const fLen = m => m >= 1000 ? fmt(m / 1000, 2) + ' km' : fmt(m) + ' m';
-function roadLength(r){ let t = 0; for (let i = 1; i < r.line.length; i++) t += map.distance(r.line[i - 1], r.line[i]); return t; }
-const okRoad = r => r && Array.isArray(r.line) && r.line.length >= 2;
-
-/* Vägens yta som ringar i en plan projektion (meter): en rektangel per sträcka och en rund led i varje knäck */
-function roadRingsM(line, w, toM){
-  const h = w / 2, pts = line.map(toM), rings = [];
-  for (let i = 1; i < pts.length; i++) {
-    const p = pts[i - 1], q = pts[i], du = q.u - p.u, dv = q.v - p.v, len = Math.hypot(du, dv);
-    if (len < 1e-6) continue;
-    const nu = -dv / len * h, nv = du / len * h;
-    rings.push([{u: p.u + nu, v: p.v + nv}, {u: q.u + nu, v: q.v + nv}, {u: q.u - nu, v: q.v - nv}, {u: p.u - nu, v: p.v - nv}]);
-  }
-  for (let i = 1; i < pts.length - 1; i++) {
-    const c = pts[i], ring = [];
-    for (let k = 0; k < 12; k++) { const a = k / 12 * 2 * Math.PI; ring.push({u: c.u + h * Math.cos(a), v: c.v + h * Math.sin(a)}); }
-    rings.push(ring);
-  }
-  return rings;
-}
-/* Gårdens vägar nära fältet, som ringar i fältets projektion */
-function farmRoadRings(toM, field){
-  let u0 = Infinity, u1 = -Infinity, v0 = Infinity, v1 = -Infinity;
-  for (const p of field[0]) { u0 = Math.min(u0, p.u); u1 = Math.max(u1, p.u); v0 = Math.min(v0, p.v); v1 = Math.max(v1, p.v); }
-  u0 -= ROAD_NEAR; u1 += ROAD_NEAR; v0 -= ROAD_NEAR; v1 += ROAD_NEAR;
-  const out = [];
-  for (const r of store.roads || []) {
-    if (!okRoad(r)) continue;
-    for (const ring of roadRingsM(r.line, roadW(r), toM))
-      if (ring.some(p => p.u > u0 && p.u < u1 && p.v > v0 && p.v < v1)) out.push(ring);
-  }
-  return out;
-}
-/* Hur stor del av fältet som täcks av ringarna (överlapp räknas en gång) */
-function areaInside(fieldE, field0, rings){
-  if (!rings.length) return 0;
-  let v0 = Infinity, v1 = -Infinity; for (const p of field0) { v0 = Math.min(v0, p.v); v1 = Math.max(v1, p.v); }
-  const n = 800, dv = (v1 - v0) / n || 1, edges = rings.map(r => edgesOf([r]));
-  let sum = 0;
-  for (let i = 0; i < n; i++) {
-    const v = v0 + (i + 0.5) * dv, f = scan(fieldE, v); if (!f.length) continue;
-    const cuts = []; for (const e of edges) for (const c of scan(e, v)) cuts.push(c);
-    if (!cuts.length) continue;
-    let all = 0, rest = 0;
-    for (const [a, b] of f) all += b - a;
-    for (const [a, b] of subtract(f, cuts)) rest += b - a;
-    sum += (all - rest) * dv;
-  }
-  return sum;
-}
-/* Går vägen nära fältet/ytan (rings i lat/lng)? */
-function roadNear(r, rings, margin = ROAD_NEAR){
-  if (!okRoad(r) || !rings || !rings[0] || !rings[0].length) return false;
-  let la0 = Infinity, la1 = -Infinity, lo0 = Infinity, lo1 = -Infinity;
-  for (const p of rings[0]) { la0 = Math.min(la0, p[0]); la1 = Math.max(la1, p[0]); lo0 = Math.min(lo0, p[1]); lo1 = Math.max(lo1, p[1]); }
-  const dla = (margin + roadW(r)) / 111320, dlo = dla / Math.max(0.1, Math.cos((la0 + la1) / 2 * DEG));
-  la0 -= dla; la1 += dla; lo0 -= dlo; lo1 += dlo;
-  for (let i = 1; i < r.line.length; i++) {
-    const a = r.line[i - 1], b = r.line[i];
-    if (Math.max(a[0], b[0]) >= la0 && Math.min(a[0], b[0]) <= la1 && Math.max(a[1], b[1]) >= lo0 && Math.min(a[1], b[1]) <= lo1) return true;
-  }
-  return false;
-}
-const nearRoads = rings => (store.roads || []).filter(r => roadNear(r, rings));
-const roadsKey = () => (store.roads || []).map(r => [r.line, roadW(r)]);
-
-/* Vägens kontur som en enda polygon (för ISOXML) */
-function roadOutline(r){
-  const la = r.line[0][0], lo = r.line[0][1], ky = R * DEG, kx = ky * Math.cos(la * DEG);
-  const P = r.line.map(p => [(p[1] - lo) * kx, (p[0] - la) * ky]), h = roadW(r) / 2;
-  const nrm = (p0, p1) => { const dx = p1[0] - p0[0], dy = p1[1] - p0[1], l = Math.hypot(dx, dy) || 1; return [-dy / l, dx / l]; };
-  const side = s => P.map((p, i) => {
-    const n1 = i > 0 ? nrm(P[i - 1], p) : nrm(p, P[i + 1]), n2 = i < P.length - 1 ? nrm(p, P[i + 1]) : n1;
-    let mx = n1[0] + n2[0], my = n1[1] + n2[1]; const ml = Math.hypot(mx, my) || 1; mx /= ml; my /= ml;
-    const k = h / Math.max(0.35, mx * n1[0] + my * n1[1]);
-    return [p[0] + s * mx * k, p[1] + s * my * k];
-  });
-  return [...side(1), ...side(-1).reverse()].map(([x, y]) => [la + y / ky, lo + x / kx]);
-}
-
-/* ---------- Visning på kartan ---------- */
-const ROAD_CORR = {color: '#c9ced4', opacity: 0.5, lineCap: 'butt', lineJoin: 'round', interactive: false};
-const ROAD_CASE = {color: '#111111', opacity: 0.55, weight: 5.5, lineCap: 'round', lineJoin: 'round', interactive: false};
-const ROAD_LINE = {color: '#fdf6e3', opacity: 1, weight: 2.5, lineCap: 'round', lineJoin: 'round', interactive: false};
-const ROAD_HIT = {color: '#000000', opacity: 0, weight: 18, lineCap: 'round', lineJoin: 'round', className: 'road-hit'};
-const pxPerM = lat => Math.pow(2, map.getZoom() + 8) / (40075016.686 * Math.cos(lat * DEG));
-const roadsVisible = () => view === 'farm' || $('showField').checked;
-/* Bredden ska bara synas inne i fälten: banan klipps med fältens egna polygoner (SVG clipPath som pekar på dem) */
-function setupRoadClip(){
-  const fl = view === 'farm' ? farmLayer.getLayers().filter(l => l._field)
-    : (map.hasLayer(editGroup) ? editGroup.getLayers().filter(l => l._kind === 'field') : []);
-  const paths = fl.map(l => l._path).filter(p => p && p.ownerSVGElement);
-  if (!paths.length) return null;
-  const svg = paths[0].ownerSVGElement, NS = 'http://www.w3.org/2000/svg';
-  let defs = svg.querySelector('defs');
-  if (!defs) { defs = document.createElementNS(NS, 'defs'); svg.insertBefore(defs, svg.firstChild); }
-  let cp = svg.querySelector('#roadClip');
-  if (!cp) { cp = document.createElementNS(NS, 'clipPath'); cp.id = 'roadClip'; cp.setAttribute('clip-rule', 'evenodd'); defs.appendChild(cp); }
-  while (cp.firstChild) cp.removeChild(cp.firstChild);
-  for (const p of paths) {
-    if (!p.id) p.id = 'fclip' + (++clipSeq);
-    const u = document.createElementNS(NS, 'use'); u.setAttribute('href', '#' + p.id); cp.appendChild(u);
-  }
-  return 'roadClip';
-}
-function refreshRoads(){
-  if (roadEdit) stopRoadEdit(false);
-  roadsLayer.clearLayers(); roadViews = [];
-  if (!roadsVisible()) return;
-  const clip = setupRoadClip();
-  for (const r of store.roads || []) {
-    if (!okRoad(r)) continue;
-    const g = {road: r, lat: r.line.reduce((t, p) => t + p[0], 0) / r.line.length};
-    if (clip) {
-      g.corr = L.polyline(r.line, {...ROAD_CORR, weight: roadW(r) * pxPerM(g.lat)});
-      roadsLayer.addLayer(g.corr);
-      if (g.corr._path) g.corr._path.setAttribute('clip-path', `url(#${clip})`);
-    }
-    g.cas = L.polyline(r.line, ROAD_CASE); g.line = L.polyline(r.line, ROAD_LINE); g.hit = L.polyline(r.line, ROAD_HIT);
-    g.lbl = L.marker(r.line[0], {interactive: false, keyboard: false, icon: L.divIcon({className: 'road-label', html: '', iconSize: null})});
-    roadsLayer.addLayer(g.cas); roadsLayer.addLayer(g.line); roadsLayer.addLayer(g.hit); roadsLayer.addLayer(g.lbl);
-    g.hit.on('click', e => onRoadClick(g, e.latlng));
-    placeRoadLabel(g);
-    roadViews.push(g);
-  }
-}
-/* Namnet mitt på vägen, vridet längs linjen och alltid läsbart (aldrig upp och ner) */
-function placeRoadLabel(g){
-  const r = g.road, nm = roadName(r), Z = 20, P = r.line.map(p => map.project(p, Z));
-  let tot = 0; const seg = [];
-  for (let k = 1; k < P.length; k++) { const d = P[k].distanceTo(P[k - 1]); seg.push(d); tot += d; }
-  let acc = 0, k = 0;
-  while (k < seg.length - 1 && acc + seg[k] < tot / 2) { acc += seg[k]; k++; }
-  const a = P[k], b = P[k + 1] || P[k], t = seg[k] ? (tot / 2 - acc) / seg[k] : 0;
-  let ang = Math.atan2(b.y - a.y, b.x - a.x) * 180 / Math.PI;
-  if (ang > 90) ang -= 180; else if (ang <= -90) ang += 180;
-  g.lbl.setLatLng(map.unproject(a.add(b.subtract(a).multiplyBy(t)), Z));
-  g.len20 = tot; g.nameW = nm.length * 7.2 + 10;
-  const el = g.lbl.getElement();
-  if (el) el.innerHTML = nm ? `<span style="transform:translate(-50%,-50%) rotate(${ang.toFixed(1)}deg)">${esc(nm)}</span>` : '';
-  roadLabelZoom(g);
-}
-function roadLabelZoom(g){
-  const el = g.lbl && g.lbl.getElement(); if (!el) return;
-  el.style.visibility = g.len20 * Math.pow(2, map.getZoom() - 20) >= Math.max(40, g.nameW) ? '' : 'hidden';
-}
-map.on('zoomend', () => {
-  for (const g of roadViews) { if (g.corr) g.corr.setStyle({weight: roadW(g.road) * pxPerM(g.lat)}); roadLabelZoom(g); }
-});
-function syncRoadView(g){
-  const ll = g.line.getLatLngs();
-  for (const l of [g.corr, g.cas, g.hit]) if (l) l.setLatLngs(ll);
-}
-
-/* ---------- Ändringar ---------- */
-function persistRoads(){ clearTimeout(roadSaveT); roadSaveT = setTimeout(persist, 300); }
-/* Vägen har ändrats: odlingar i närheten räknas om (den öppna direkt, övriga i bakgrunden) */
-function roadsChanged(lines){
-  persistRoads();
-  for (const p of store.plans) {
-    if (!p.field || !lines.some(line => roadNear({line, width: 0}, p.field, ROAD_NEAR + 50))) continue;
-    if (view === 'plan' && p === plan) continue;
-    p.summary = null; roadDirty.add(p.id);
-  }
-  if (view === 'plan' && plan && plan.field) regenerate();
-  clearTimeout(roadSumT); roadSumT = setTimeout(recalcRoadPlans, 700);
-}
-async function recalcRoadPlans(){
-  const todo = store.plans.filter(p => roadDirty.has(p.id) && !(view === 'plan' && p === plan));
-  roadDirty.clear();
-  if (!todo.length) return;
-  for (const p of todo) { await new Promise(res => setTimeout(res, 0)); if (!p.summary) p.summary = planSummary(p); }
-  persist();
-  if (view === 'farm') renderFarm();
-}
-function startRoadDraw(){
-  if (roadEdit) stopRoadEdit(true);
-  if (tool) setTool(tool);
-  drawKind = 'roadline';
-  new L.Draw.Polyline(map, {shapeOptions: {color: '#fdf6e3', weight: 3, opacity: 1}, metric: true, feet: false, nautic: false, showLength: true}).enable();
-  msg(`Rita vägens mittlinje, ${fmt(roadW({width: ui.roadW}), 1)} m bred. Klicka på sista punkten igen för att avsluta.`, 15000);
-}
-function addRoad(line){
-  if (!line || line.length < 2) return msg('En väg behöver minst två punkter.');
-  const r = {id: uid(), line, width: roadW({width: ui.roadW}), name: ''};
-  store.roads = [...(store.roads || []), r];
-  roadsChanged([line]); refreshRoads(); renderRoadList();
-  msg('Vägen är ritad. Skriv ett namn om du vill – det visas längs vägen på kartan.');
-  // öppna rutan för namn och bredd när ritverktyget har stängts helt
-  setTimeout(() => { const g = roadViews.find(x => x.road === r); if (g) openRoadPopup(g, g.lbl.getLatLng(), true); }, 60);
-}
-function deleteRoad(r){
-  if (!confirm(`Ta bort ${roadName(r) ? `vägen "${roadName(r)}"` : 'vägen'}?`)) return;
-  map.closePopup();
-  store.roads = (store.roads || []).filter(x => x !== r);
-  roadsChanged([r.line]); refreshRoads(); renderRoadList();
-}
-function setRoadWidth(r, w){
-  w = parseFloat(String(w).replace(',', '.'));
-  if (!isFinite(w) || w <= 0) return;
-  r.width = Math.min(200, w);
-  const g = roadViews.find(x => x.road === r);
-  if (g && g.corr) g.corr.setStyle({weight: roadW(r) * pxPerM(g.lat)});
-  roadsChanged([r.line]);
-}
-function setRoadName(r, name){
-  r.name = name;
-  const g = roadViews.find(x => x.road === r); if (g) placeRoadLabel(g);
-  persistRoads();
-}
-function onRoadClick(g, latlng){
-  if (tool || drawing) return;
-  if (roadEdit === g.road.id) return stopRoadEdit(true);
-  openRoadPopup(g, latlng);
-}
-function openRoadPopup(g, latlng, isNew){
-  const r = g.road, div = document.createElement('div');
-  div.className = 'road-pop';
-  div.innerHTML = `<b>${isNew ? 'Ny väg' : 'Väg'}</b>
-    <div class="r"><label style="flex:none;width:44px">Namn</label><input type="text" class="rp-name" placeholder="t.ex. Ladugårdsvägen"></div>
-    <div class="r"><label style="flex:none;width:44px">Bredd</label><input type="number" class="rp-w" min="0.5" step="0.5"><span class="u">m</span><span class="hint" style="margin:0 0 0 auto">${fLen(roadLength(r))} lång</span></div>
-    <div class="b"><button type="button" class="rp-shape">Ändra form</button><button type="button" class="rp-del danger">Ta bort</button></div>`;
-  const nm = div.querySelector('.rp-name'), w = div.querySelector('.rp-w');
-  nm.value = r.name || ''; w.value = roadW(r);
-  nm.oninput = () => { setRoadName(r, nm.value); renderRoadList(); };
-  nm.onkeydown = e => { if (e.key === 'Enter') map.closePopup(); };
-  w.onchange = () => { setRoadWidth(r, w.value); renderRoadList(); };
-  div.querySelector('.rp-shape').onclick = () => { map.closePopup(); startRoadEdit(r); };
-  div.querySelector('.rp-del').onclick = () => deleteRoad(r);
-  L.DomEvent.disableClickPropagation(div);
-  L.popup({maxWidth: 320, minWidth: 250, className: 'road-popup', autoPanPaddingTopRight: [view === 'plan' && !isMobile() ? 310 : 20, 20]}).setLatLng(latlng).setContent(div).openOn(map);
-  if (isNew) setTimeout(() => nm.focus(), 60);
-}
-function startRoadEdit(r){
-  if (roadEdit) stopRoadEdit(true);
-  const g = roadViews.find(x => x.road === r);
-  if (!g) return msg('Vägen syns inte just nu. Slå på "Fält & hinder" under Visa.');
-  if (tool) setTool(tool);
-  roadEdit = r.id; g.before = JSON.stringify(r.line);
-  g.line.editing.enable();
-  g.line.on('editdrag', () => syncRoadView(g));
-  g.line.on('edit', () => {
-    syncRoadView(g);
-    r.line = g.line.getLatLngs().map(p => [+p.lat.toFixed(9), +p.lng.toFixed(9)]);
-    placeRoadLabel(g); roadsChanged([r.line, JSON.parse(g.before)]); g.before = JSON.stringify(r.line);
-  });
-  renderRoadList();
-  msg('Dra i punkterna för att ändra vägen. Mittpunkterna blir nya knäckar, klick på en punkt tar bort den. Klicka på vägen eller tryck Esc när du är klar.', 15000);
-}
-function stopRoadEdit(announce){
-  const g = roadViews.find(x => x.road.id === roadEdit);
-  roadEdit = null;
-  if (g) { g.line.editing.disable(); g.line.off('editdrag edit'); }
-  persistRoads(); renderRoadList();
-  if (announce) msg('Vägen är sparad.');
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && roadEdit) stopRoadEdit(true); });
-
-/* ---------- Väglistan i gårdsvyn ---------- */
-function renderRoadList(){
-  const box = $('roadList'); if (!box) return;
-  const list = store.roads || [];
-  box.innerHTML = list.length ? list.map((r, i) => `<div class="roadrow" data-r="${r.id}">
-      <div class="r"><span class="road-sw" aria-hidden="true"></span><input type="text" class="rname" data-r="${r.id}" value="${esc(r.name || '')}" placeholder="Väg ${i + 1}" aria-label="Vägens namn">
-        <input type="number" class="rw" data-r="${r.id}" min="0.5" step="0.5" value="${roadW(r)}" title="Vägens bredd" aria-label="Bredd i meter"><span class="u">m</span></div>
-      <div class="r rbtns"><span class="hint">${fLen(roadLength(r))}</span>
-        <button type="button" data-rzoom="${r.id}">Visa</button><button type="button" data-rshape="${r.id}"${roadEdit === r.id ? ' class="on"' : ''}>${roadEdit === r.id ? 'Klar' : 'Ändra form'}</button><button type="button" data-rdel="${r.id}" class="danger">Ta bort</button></div>
-    </div>`).join('') : '<div class="hint" style="margin:0">Inga vägar ännu.</div>';
-  const get = el => roadById(el.dataset.r || el.dataset.rzoom || el.dataset.rshape || el.dataset.rdel);
-  box.querySelectorAll('input.rname').forEach(inp => inp.oninput = () => { const r = get(inp); if (r) setRoadName(r, inp.value); });
-  box.querySelectorAll('input.rw').forEach(inp => inp.onchange = () => { const r = get(inp); if (r) setRoadWidth(r, inp.value); });
-  box.querySelectorAll('button[data-rzoom]').forEach(b => b.onclick = () => { const r = get(b); if (r) { showMapOnMobile(); map.fitBounds(L.latLngBounds(r.line).pad(0.15)); } });
-  box.querySelectorAll('button[data-rshape]').forEach(b => b.onclick = () => { const r = get(b); if (!r) return; if (roadEdit === r.id) stopRoadEdit(true); else { showMapOnMobile(); startRoadEdit(r); } });
-  box.querySelectorAll('button[data-rdel]').forEach(b => b.onclick = () => { const r = get(b); if (r) deleteRoad(r); });
-}
-const roadById = id => (store.roads || []).find(r => r.id === id);
-function mergeRoads(list){
-  let n = 0;
-  for (const r of list || []) {
-    if (!okRoad(r)) continue;
-    const q = {id: r.id || uid(), line: r.line.map(p => [+p[0], +p[1]]), width: roadW(r), name: r.name || ''};
-    const same = (store.roads || []).find(x => x.id === q.id || JSON.stringify(x.line) === JSON.stringify(q.line));
-    if (same) { Object.assign(same, {line: q.line, width: q.width, name: q.name || same.name}); continue; }
-    store.roads = [...(store.roads || []), q]; n++;
-  }
-  return n;
-}
-for (const id of ['roadW', 'roadWFarm']) if ($(id)) {
-  $(id).value = roadW({width: ui.roadW});
-  $(id).onchange = () => { const w = parseFloat($(id).value.replace(',', '.')); if (isFinite(w) && w > 0) { ui.roadW = w; saveUI(); for (const x of ['roadW', 'roadWFarm']) if ($(x) && x !== id) $(x).value = w; } };
-}
-$('btnRoad').onclick = () => { showMapOnMobile(); startRoadDraw(); };
-$('btnRoadFarm').onclick = () => { showMapOnMobile(); startRoadDraw(); };
-
-/* ---------- Vägar i PDF:en ---------- */
-function midAlong(pts){
-  let tot = 0; const seg = [];
-  for (let k = 1; k < pts.length; k++) { const d = Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]); seg.push(d); tot += d; }
-  if (!tot) return null;
-  let acc = 0, k = 0;
-  while (k < seg.length - 1 && acc + seg[k] < tot / 2) { acc += seg[k]; k++; }
-  const a = pts[k], b = pts[k + 1], t = (tot / 2 - acc) / seg[k];
-  let ang = Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI;
-  if (ang > 90) ang -= 180; else if (ang <= -90) ang += 180;
-  return {x: a[0] + (b[0] - a[0]) * t, y: a[1] + (b[1] - a[1]) * t, ang, len: tot};
-}
-function drawRoadsPdf(P, llMM, mPerMM){
-  const list = nearRoads(plan.field); if (!list.length) return;
-  if (plan.field) {
-    P.clipPoly(plan.field.map(r => r.map(llMM)));
-    P.cap('butt'); P.join('round'); P.strokeColor('#c9ced4'); P.alpha(0.55);
-    for (const r of list) { P.lineWidth(roadW(r) / mPerMM); P.poly(r.line.map(llMM), false, 'S'); }
-    P.alpha(1); P.unclip();
-  }
-  P.cap('round'); P.join('round');
-  P.strokeColor('#111111'); P.alpha(0.55); P.lineWidth(0.85);
-  for (const r of list) P.poly(r.line.map(llMM), false, 'S');
-  P.alpha(1); P.strokeColor('#fdf6e3'); P.lineWidth(0.4);
-  for (const r of list) P.poly(r.line.map(llMM), false, 'S');
-  P.cap(null); P.join(null);
-  P.font('bold', 7);
-  for (const r of list) {
-    const nm = roadName(r); if (!nm) continue;
-    const m = midAlong(r.line.map(llMM));
-    if (m && m.len >= P.textWidth(nm) + 2) P.textAlong(nm, m.x, m.y, m.ang);
-  }
-}
-
-/* =================== Mobil: en vy i taget och meny längst ner (som i Egna10) =================== */
-const mobileMQ = window.matchMedia('(max-width:720px)');
-const isMobile = () => mobileMQ.matches;
-let mapShown = false;
-function setMobView(v){
-  if (v === 'result' && view !== 'plan') v = 'map';
-  document.body.dataset.mv = v;
-  document.querySelectorAll('#mobNav button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mv === v)));
-  if (v === 'panel' || !isMobile()) return;
-  setTimeout(() => {
-    map.invalidateSize({pan: false});
-    if (!mapShown) {   // kartan var dold när sidan startade och har ännu inte fått rätt storlek
-      mapShown = true;
-      if (view === 'farm') fitFarm(); else if (plan && plan.field) map.fitBounds(L.polygon(plan.field).getBounds(), {padding: [20, 20]});
-    }
-  }, 0);
-  if (v === 'result') { const b = $('statsBody'); if (b && b.style.display === 'none') $('statsToggle').click(); }
-}
-function showMapOnMobile(){ if (isMobile() && document.body.dataset.mv === 'panel') setMobView('map'); }
-function updMobNav(){
-  const l = $('mnPanel'); if (l) l.textContent = view === 'plan' ? 'Odlingen' : 'Gården';
-  $('side').scrollTop = 0;   // ny vy börjar överst i panelen
-  if (view !== 'plan' && document.body.dataset.mv === 'result') setMobView('map');
-}
-document.querySelectorAll('#mobNav button').forEach(b => b.onclick = () => setMobView(b.dataset.mv));
-/* Knappar i panelen som arbetar på kartan visar kartan direkt på mobilen */
-const MAP_BTNS = '#btnDrawField,#btnDraw,#btnExcl,#btnFit,#btnLocate,#btnSearch,#btnOrthoFit,#btnLongest,[data-tool],button[data-zoom],a[data-zoom],button[data-shape],#btnWhole';
-document.addEventListener('click', e => {
-  if (!isMobile() || !e.target.closest) return;
-  if (e.target.closest(MAP_BTNS) && e.target.closest('#side')) setTimeout(showMapOnMobile, 0);
-});
-mobileMQ.addEventListener('change', () => { setMobView(document.body.dataset.mv || 'panel'); setTimeout(() => map.invalidateSize({pan: false}), 50); });
-// mobiler förstår inte alltid egna filändelser i filväljaren
-if (window.matchMedia('(pointer:coarse)').matches) $('fileIn').removeAttribute('accept');
-setMobView('panel');
-if (!isMobile()) mapShown = true;
-
-/* =================== Installerbar app (PWA) =================== */
-(function bindApp(){
-  const btn = $('btnInstall');
-  const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  let prompt = null;
-  if (location.protocol.startsWith('http') && 'serviceWorker' in navigator) {
-    const hadController = !!navigator.serviceWorker.controller;   // första installationen räknas inte som ny version
-    navigator.serviceWorker.register('sw.js').catch(() => { /* fungerar ändå som vanlig sida */ });
-    let told = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (told || !hadController) return;
-      told = true; msg('En ny version av Odlingsverktyget finns – ladda om sidan för att använda den.', 0);
-    });
-  }
-  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); prompt = e; if (!standalone) btn.hidden = false; });
-  window.addEventListener('appinstalled', () => { btn.hidden = true; prompt = null; msg('Odlingsverktyget är installerat som app.'); });
-  if (isIOS && !standalone) btn.hidden = false;
-  btn.addEventListener('click', async () => {
-    if (prompt) { prompt.prompt(); try { await prompt.userChoice; } catch (e) { /* avbrutet */ } prompt = null; btn.hidden = true; return; }
-    if (isIOS) alert('Installera på iPhone/iPad: tryck på Dela-knappen (fyrkant med pil) i Safari och välj ”Lägg till på hemskärmen”.');
-    else alert('Öppna webbläsarens meny och välj ”Installera app” eller ”Lägg till på startskärmen”.');
-  });
-  // Öppna .odling- och .potatis-filer direkt från utforskaren när appen är installerad (Chrome/Edge)
-  if ('launchQueue' in window) {
-    window.launchQueue.setConsumer(async params => {
-      for (const h of params.files || []) {
-        try { importMode = 'any'; await importFile(await h.getFile()); }
-        catch (err) { msg('Kunde inte läsa filen: ' + err.message, 0); }
-      }
-    });
-  }
-})();
 
 /* =================== Start =================== */
 syncLookInputs();
