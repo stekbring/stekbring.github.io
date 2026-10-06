@@ -2,6 +2,7 @@
 <html lang="sv">
 <head>
 <meta charset="utf-8">
+<meta name="app-build" content="2026-10-06 19:52">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Logga vikt och kalorier, importera hälsodata och träningspass från klockan och följ planen mot målvikten.">
 <link rel="manifest" href="manifest.webmanifest">
@@ -101,6 +102,18 @@ html[data-theme="light"] #btnTheme .ic-moon{display:none}
 .syncpill.busy .dotx{background:var(--accent);animation:blink 1s infinite}
 .syncpill.fel .dotx{background:var(--danger)}
 .syncpill.fel{color:var(--danger) !important}
+.syncpill{min-width:34px}
+.syncpop{position:fixed;z-index:60;top:60px;right:12px;width:min(340px,calc(100vw - 24px));background:var(--surface);color:var(--text);border:1px solid var(--border-strong);border-radius:12px;box-shadow:var(--shadow-float);padding:10px 12px 14px 14px;animation:popin .14s ease-out}
+.syncpop .sp-head{display:flex;align-items:center;gap:9px;font-size:15px}
+.syncpop .sp-head button{min-height:30px;width:30px}
+.syncpop p{margin:4px 0 10px;font-size:13.5px;color:var(--muted);line-height:1.45}
+.syncpop .sp-kv{margin-top:10px;font-size:12.5px}
+.syncpop .b{margin-top:12px}
+.syncdot{width:10px;height:10px;border-radius:50%;background:var(--gray);flex:none}
+.syncdot.ok{background:var(--ok)}.syncdot.busy{background:var(--accent);animation:blink 1s infinite}.syncdot.fel{background:var(--danger)}
+.pbar.indet>i{animation:indet 1.3s ease-in-out infinite}
+@keyframes indet{0%{transform:translateX(-110%)}100%{transform:translateX(310%)}}
+@keyframes popin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 @keyframes blink{50%{opacity:.25}}
 
 /* ---------- Sidor och kort ---------- */
@@ -459,11 +472,12 @@ details ol,details ul{margin:6px 0;padding-left:20px}
     <button type="button" role="tab" data-tab="inst">Inställningar</button>
   </nav>
   <span class="tb-space"></span>
-  <button id="btnSync" type="button" class="syncpill"><span class="dotx"></span><span class="lbl2" id="syncTxt">Lokalt</span></button>
+  <button id="btnSync" type="button" class="syncpill" aria-haspopup="dialog" aria-controls="syncPop"><span class="dotx"></span><span class="lbl2" id="syncTxt">Lokalt</span></button>
   <button id="btnImport" type="button" title="Importera CSV-filer från klockan (hälsodata och träningspass)"><svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg><span class="lbl">Importera CSV</span></button>
   <button id="btnInstall" type="button" hidden title="Installera Olles Hälsa som en app på datorn eller mobilen"><svg class="ic" aria-hidden="true"><use href="#i-install"/></svg><span class="lbl">Installera</span></button>
   <button id="btnTheme" type="button" class="icon" title="Byt mellan mörkt och ljust läge"><svg class="ic ic-moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="ic ic-sun" aria-hidden="true"><use href="#i-sun"/></svg></button>
 </header>
+<div class="syncpop" id="syncPop" role="dialog" aria-label="Synkstatus" hidden></div>
 
 <main>
 <!-- ===================== IDAG ===================== -->
@@ -743,6 +757,7 @@ details ol,details ul{margin:6px 0;padding-left:20px}
    Data sparas lokalt (localStorage) och synkas via ett Google Apps Script
    till ett kalkylark. Allt räknas ut här i appen från dina loggar och CSV-filer.
    ===================================================================== */
+const BUILD = (document.querySelector('meta[name="app-build"]') || {}).content || 'dev';   // sätts av build.sh
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -826,74 +841,129 @@ function S() { const r = live('inst', 'alla') || {}; const s = { ...DEF }; for (
 function setS(patch) { const cur = S(); put('inst', 'alla', { ...cur, ...patch }); }
 
 /* ---------- Synk mot Google Apps Script ---------- */
+const CHUNK = 150;                 // så många poster skickas per förfrågan – ger förlopp och tål stora CSV-importer
 let syncing = false, syncAgain = false, syncTimer = null, syncState = 'av', syncErr = '';
+let syncProg = null;               // { fas: 'upp'|'sparar'|'hamtar', done, total }
 function scheduleSync(ms = 1500) {
   updateSyncUI();
   if (!lokal.url || !lokal.kod) return;
   clearTimeout(syncTimer);
   syncTimer = setTimeout(() => sync(), ms);
 }
+async function postSync(body) {
+  const ctrl = new AbortController(), to = setTimeout(() => ctrl.abort(), 120000);
+  try {
+    const res = await fetch(lokal.url, { method: 'POST', body: JSON.stringify({ kod: lokal.kod, ...body }), signal: ctrl.signal, redirect: 'follow' });
+    const txt = await res.text();
+    let j;
+    try { j = JSON.parse(txt); } catch (e) { throw new Error(res.ok ? 'Oväntat svar – kontrollera att adressen är webbappens URL (slutar på /exec) och att åtkomst är ”Alla”.' : 'Servern svarade ' + res.status); }
+    if (!j.ok) throw new Error(j.fel || 'Okänt fel');
+    return j;
+  } finally { clearTimeout(to); }
+}
 async function sync(opts = {}) {
   if (!lokal.url || !lokal.kod) { syncState = 'av'; updateSyncUI(); return false; }
   if (syncing) { syncAgain = true; return false; }
   if (!navigator.onLine) { syncState = 'offline'; updateSyncUI(); return false; }
   clearTimeout(syncTimer);
-  syncing = true; syncState = 'busy'; updateSyncUI();
+  syncing = true; syncState = 'busy';
   const push = Object.keys(lokal.dirty).map(key => {
     const i = key.indexOf('|'), t = key.slice(0, i), k = key.slice(i + 1), d = db[t] && db[t][k];
     return d ? { t, k, d, u: d.u } : null;
   }).filter(Boolean);
+  for (const key of Object.keys(lokal.dirty)) { const i = key.indexOf('|'); if (!db[key.slice(0, i)] || !db[key.slice(0, i)][key.slice(i + 1)]) delete lokal.dirty[key]; }
+  const delar = []; for (let i = 0; i < push.length; i += CHUNK) delar.push(push.slice(i, i + CHUNK));
+  if (!delar.length) delar.push([]);
+  syncProg = { fas: push.length ? 'upp' : 'hamtar', done: 0, total: push.length };
+  if (opts.visaRuta && push.length > CHUNK) openSyncPop(true);
+  updateSyncUI();
   let ok = false;
   try {
-    const ctrl = new AbortController(), to = setTimeout(() => ctrl.abort(), 90000);
-    const res = await fetch(lokal.url, { method: 'POST', body: JSON.stringify({ kod: lokal.kod, since: lokal.since || 0, push, vyer: !!opts.vyer }), signal: ctrl.signal, redirect: 'follow' });
-    clearTimeout(to);
-    const txt = await res.text();
-    let j;
-    try { j = JSON.parse(txt); } catch (e) { throw new Error(res.ok ? 'Oväntat svar – kontrollera att adressen är webbappens URL (slutar på /exec) och att åtkomst är ”Alla”.' : 'Servern svarade ' + res.status); }
-    if (!j.ok) throw new Error(j.fel || 'Okänt fel');
-    for (const p of push) { const key = p.t + '|' + p.k; if (lokal.dirty[key] === p.u) delete lokal.dirty[key]; }
-    let changed = 0;
-    for (const r of j.records || []) {
-      if (!TYPER.includes(r.t) || !r.d) continue;
-      const cur = db[r.t][r.k], key = r.t + '|' + r.k;
-      if (lokal.dirty[key] && cur && cur.u > r.u) continue;
-      if (!cur || r.u > (cur.u || 0)) { db[r.t][r.k] = { ...r.d, u: r.u }; changed++; }
+    for (let c = 0; c < delar.length; c++) {
+      const sista = c === delar.length - 1, del = delar[c];
+      syncProg.fas = !sista ? 'upp' : push.length ? 'sparar' : 'hamtar';
+      updateSyncUI();
+      // Mellanliggande delar: bara skicka (pull:false, bygg:false). Sista delen hämtar ändringar och bygger flikarna.
+      const j = await postSync({ since: lokal.since || 0, push: del, pull: sista, bygg: sista, vyer: sista && !!opts.vyer });
+      for (const p of del) { const key = p.t + '|' + p.k; if (lokal.dirty[key] === p.u) delete lokal.dirty[key]; }
+      syncProg.done += del.length;
+      saveLokal();
+      if (!sista) continue;
+      let changed = 0;
+      for (const r of j.records || []) {
+        if (!TYPER.includes(r.t) || !r.d) continue;
+        const cur = db[r.t][r.k], key = r.t + '|' + r.k;
+        if (lokal.dirty[key] && cur && cur.u > r.u) continue;
+        if (!cur || r.u > (cur.u || 0)) { db[r.t][r.k] = { ...r.d, u: r.u }; changed++; }
+      }
+      lokal.since = j.now; lokal.senastSynk = Date.now(); lokal.senastSynkAntal = push.length; lokal.senastHamtat = changed;
+      syncState = 'ok'; syncErr = j.vyFel ? 'Flikarna i kalkylarket kunde inte byggas: ' + j.vyFel : '';
+      if (changed) { version++; saveData(); render(); }
+      saveLokal();
+      ok = true;
+      if (opts.vyer) toast(j.vyFel ? syncErr : 'Flikarna i kalkylarket är uppdaterade.', j.vyFel ? 'fel' : 'ok');
     }
-    lokal.since = j.now; lokal.senastSynk = Date.now();
-    syncState = 'ok'; syncErr = j.vyFel ? 'Flikarna i kalkylarket kunde inte byggas: ' + j.vyFel : '';
-    if (changed) { version++; saveData(); render(); }
-    saveLokal();
-    ok = true;
-    if (opts.vyer) toast(j.vyFel ? syncErr : 'Flikarna i kalkylarket är uppdaterade.', j.vyFel ? 'fel' : 'ok');
   } catch (e) {
     syncState = 'fel';
-    syncErr = e.name === 'AbortError' ? 'Synken tog för lång tid.' : (e.message === 'Failed to fetch' ? 'Kunde inte nå Google – kontrollera adressen och nätet.' : e.message);
-    if (opts.visa) toast('Synkfel: ' + syncErr, 'fel');
+    syncErr = e.name === 'AbortError' ? 'Synken tog för lång tid.' : (e.message === 'Failed to fetch' || e.message === 'Load failed' ? 'Kunde inte nå Google – kontrollera adressen och nätet.' : e.message);
+    if (opts.visa && !syncPopOpen) toast('Synkfel: ' + syncErr, 'fel');
   } finally {
-    syncing = false; updateSyncUI();
+    syncing = false; syncProg = null; updateSyncUI();
+    if (ok && syncPopAuto) setTimeout(() => { if (syncPopAuto && !syncing) closeSyncPop(); }, 2500);
     if (syncAgain) { syncAgain = false; scheduleSync(400); }
   }
   return ok;
 }
-function updateSyncUI() {
-  const b = $('btnSync'), txt = $('syncTxt');
-  const pending = Object.keys(lokal.dirty).length;
-  let cls = '', t = 'Lokalt', title = 'Sparas bara på den här enheten. Koppla synk under Inställningar så finns allt på både dator och mobil.';
-  if (lokal.url && lokal.kod) {
-    if (syncState === 'busy') { cls = 'busy'; t = 'Synkar…'; title = 'Synkar med kalkylarket…'; }
-    else if (syncState === 'fel') { cls = 'fel'; t = 'Synkfel'; title = syncErr + ' – klicka för att försöka igen.'; }
-    else if (syncState === 'offline' || !navigator.onLine) { t = 'Offline'; title = 'Ingen anslutning – allt sparas här och synkas när nätet är tillbaka.'; }
-    else if (pending) { cls = 'busy'; t = 'Väntar'; title = `${pending} ändringar väntar på synk.`; }
-    else if (lokal.senastSynk) { cls = 'ok'; t = 'Synkad'; title = 'Senast synkad ' + new Date(lokal.senastSynk).toLocaleString('sv-SE', { dateStyle: 'short', timeStyle: 'short' }) + ' – klicka för att synka nu.'; }
-    else { t = 'Ej synkad'; }
+const tidStr = ms => { if (!ms) return ''; const d = new Date(ms), idag = ymd(d) === today(), igar = ymd(d) === addDays(today(), -1); const kl = d.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' }); return idag ? kl : igar ? 'igår ' + kl : `${d.getDate()} ${MON[d.getMonth()]} ${kl}`; };
+/** Läget för synken i en form som både knappen, rutan och Inställningar använder. */
+function syncInfo() {
+  const pending = Object.keys(lokal.dirty).length, kopplad = !!(lokal.url && lokal.kod);
+  if (!kopplad) return { cls: '', kort: 'Lokalt', rubrik: 'Inte kopplad', text: 'Allt sparas bara på den här enheten. Koppla Google-kalkylarket så finns allt på både dator och mobil.', pending };
+  if (syncState === 'busy' && syncProg) {
+    const p = syncProg, pct = p.total ? Math.round(p.done / p.total * 100) : null;
+    const text = p.fas === 'upp' ? `Laddar upp ${fmt(p.done)} av ${fmt(p.total)} ändringar…` : p.fas === 'sparar' ? (p.total > CHUNK ? `Laddar upp de sista ${fmt(p.total - p.done)} och uppdaterar flikarna i kalkylarket…` : `Skickar ${fmt(p.total)} ${p.total === 1 ? 'ändring' : 'ändringar'} och uppdaterar kalkylarket…`) : 'Hämtar ändringar från kalkylarket…';
+    return { cls: 'busy', kort: p.fas === 'upp' && pct != null ? `Synkar ${pct} %` : 'Synkar…', rubrik: 'Synkar', text, pct: p.fas === 'hamtar' ? null : pct, pending };
   }
-  b.className = 'syncpill ' + cls; txt.textContent = t; b.title = title;
-  const s2 = $('syncState2'); if (s2) s2.textContent = lokal.url && lokal.kod ? t : 'ej kopplad';
-  const si = $('syncInfo');
-  if (si) si.innerHTML = !lokal.url ? 'Inte kopplad ännu – allt sparas just nu bara i den här webbläsaren.'
-    : syncState === 'fel' ? `<span class="bad">${esc(syncErr)}</span>`
-    : lokal.senastSynk ? `Senast synkad ${esc(new Date(lokal.senastSynk).toLocaleString('sv-SE', { dateStyle: 'medium', timeStyle: 'short' }))}${pending ? ` · ${pending} ändringar väntar` : ''}.${syncErr ? `<br><span class="warn">${esc(syncErr)}</span>` : ''}` : 'Kopplad men inte synkad ännu.';
+  if (syncState === 'fel') return { cls: 'fel', kort: 'Synkfel', rubrik: 'Synken misslyckades', text: syncErr + (pending ? ` ${pending} ${pending === 1 ? 'ändring väntar' : 'ändringar väntar'} på att skickas.` : ''), pending };
+  if (syncState === 'offline' || !navigator.onLine) return { cls: '', kort: 'Offline', rubrik: 'Offline', text: pending ? `${pending} ${pending === 1 ? 'ändring' : 'ändringar'} sparas här och skickas när nätet är tillbaka.` : 'Ingen anslutning just nu. Allt sparas här och synkas när nätet är tillbaka.', pending };
+  if (pending) return { cls: 'busy', kort: 'Ej synkad', rubrik: 'Ej synkad än', text: `${pending} ${pending === 1 ? 'ändring väntar' : 'ändringar väntar'} på att skickas – det sker automatiskt om ett ögonblick.`, pending };
+  if (lokal.senastSynk) return { cls: 'ok', kort: 'Synkad', rubrik: `Synkad ${tidStr(lokal.senastSynk)}`, text: 'Allt är sparat i kalkylarket' + (lokal.senastSynkAntal ? ` – ${fmt(lokal.senastSynkAntal)} ${lokal.senastSynkAntal === 1 ? 'ändring' : 'ändringar'} skickades` : '') + (lokal.senastHamtat ? `, ${fmt(lokal.senastHamtat)} hämtades` : '') + '.', pending };
+  return { cls: '', kort: 'Ej synkad', rubrik: 'Ej synkad än', text: 'Kopplad men inte synkad ännu.', pending };
+}
+function updateSyncUI() {
+  const b = $('btnSync'), txt = $('syncTxt'), si = syncInfo();
+  b.className = 'syncpill ' + si.cls; txt.textContent = si.kort; b.title = si.rubrik + ' – klicka för mer information';
+  b.setAttribute('aria-expanded', syncPopOpen);
+  const s2 = $('syncState2'); if (s2) s2.textContent = lokal.url && lokal.kod ? si.kort : 'ej kopplad';
+  const inf = $('syncInfo');
+  if (inf) inf.innerHTML = `<b>${esc(si.rubrik)}.</b> ${esc(si.text)}`;
+  if (syncPopOpen) renderSyncPop();
+}
+
+/* ---------- Statusrutan under synk-knappen ---------- */
+let syncPopOpen = false, syncPopAuto = false;
+function openSyncPop(auto = false) {
+  syncPopOpen = true; syncPopAuto = auto;
+  const pop = $('syncPop'), r = $('btnSync').getBoundingClientRect();
+  const w = Math.min(340, innerWidth - 20);
+  pop.style.top = Math.round(r.bottom + 8) + 'px'; pop.style.right = Math.round(clamp(innerWidth - r.right - 6, 10, innerWidth - w - 10)) + 'px';
+  pop.hidden = false; renderSyncPop(); updateSyncUI();
+}
+function closeSyncPop() { syncPopOpen = false; syncPopAuto = false; $('syncPop').hidden = true; $('btnSync').setAttribute('aria-expanded', false); }
+function renderSyncPop() {
+  const si = syncInfo(), kopplad = !!(lokal.url && lokal.kod), pop = $('syncPop');
+  const busy = syncState === 'busy';
+  pop.innerHTML = `<div class="sp-head"><span class="syncdot ${si.cls}"></span><b>${esc(si.rubrik)}</b><span class="tb-space"></span><button type="button" class="ghost icon" data-sp="close" title="Stäng">${ic('i-x')}</button></div>
+    <p>${esc(si.text)}</p>
+    ${busy ? `<div class="pbar thin ${si.pct == null ? 'indet' : ''}"><i style="width:${si.pct == null ? 35 : Math.max(4, si.pct)}%"></i></div>` : ''}
+    <div class="kv sp-kv">
+      ${kopplad && lokal.senastSynk ? `<span>Senast synkad</span><span>${esc(tidStr(lokal.senastSynk))}</span>` : ''}
+      ${kopplad ? `<span>Väntar på att skickas</span><span>${fmt(si.pending)}</span>` : ''}
+      ${lokal.senastImport ? `<span>Senaste CSV-import</span><span>${esc(tidStr(lokal.senastImport))}</span>` : ''}
+      <span>Appversion</span><span>${esc(BUILD)}</span>
+    </div>
+    <div class="b">${kopplad ? `<button type="button" class="default" data-sp="sync" ${busy ? 'disabled' : ''}>${ic('i-refresh')}${syncState === 'fel' ? 'Försök igen' : 'Synka nu'}</button>` : `<button type="button" class="default" data-sp="setup">${ic('i-cloud')}Koppla synk</button>`}
+      <button type="button" data-sp="inst">${ic('i-settings')}Inställningar</button></div>`;
 }
 
 /* =====================================================================
@@ -981,7 +1051,8 @@ async function importFiles(files) {
     } catch (e) { toast(e.message, 'fel', 8000); }
   }
   if (!res.length) return;
-  saveData(); lokal.senastImport = Date.now(); saveLokal(); scheduleSync(500);
+  saveData(); lokal.senastImport = Date.now(); saveLokal(); updateSyncUI();
+  if (lokal.url && lokal.kod) { clearTimeout(syncTimer); setTimeout(() => sync({ visaRuta: true }), 300); }
   const txt = res.map(r => `${r.typ === 'pass' ? 'Träningspass' : 'Hälsodata'}: ${fmt(r.n)} rader – ${fmt(r.ny)} nya, ${fmt(r.upp)} uppdaterade`).join(' · ');
   render();
   toast(txt, 'ok', 6000);
@@ -1907,7 +1978,17 @@ function bind() {
     document.querySelector('meta[name="theme-color"]').content = t === 'light' ? '#ffffff' : '#14171b';
     render();
   };
-  $('btnSync').onclick = () => { if (!lokal.url || !lokal.kod) { setTab('inst'); setTimeout(() => $('sUrl').focus(), 50); } else sync({ visa: true }); };
+  $('btnSync').onclick = e => { e.stopPropagation(); if (syncPopOpen) { closeSyncPop(); return; } openSyncPop(); if (lokal.url && lokal.kod && !syncing) sync(); };   // visa läget och hämta det senaste
+  $('syncPop').onclick = e => {
+    e.stopPropagation(); syncPopAuto = false;
+    const b = e.target.closest('[data-sp]'); if (!b) return;
+    const a = b.dataset.sp;
+    if (a === 'close') closeSyncPop();
+    else if (a === 'sync') sync({ visa: true });
+    else { closeSyncPop(); setTab('inst'); if (a === 'setup') setTimeout(() => { $('sUrl').scrollIntoView({ block: 'center' }); $('sUrl').focus(); }, 60); }
+  };
+  document.addEventListener('click', e => { if (syncPopOpen && !e.target.closest('#syncPop')) closeSyncPop(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && syncPopOpen) closeSyncPop(); });
   $('btnImport').onclick = () => $('fileIn').click();
   $('fileIn').onchange = e => { const f = [...e.target.files]; e.target.value = ''; if (f.length) importFiles(f); };
   $('dz').onclick = () => $('fileIn').click();
@@ -2082,10 +2163,15 @@ function bindApp() {
   let prompt = null;
   if (location.protocol.startsWith('http') && 'serviceWorker' in navigator) {
     const had = !!navigator.serviceWorker.controller;
-    navigator.serviceWorker.register('sw.js').catch(() => { /* fungerar ändå som vanlig sida */ });
-    let told = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => { if (told || !had) return; told = true; toast('En ny version av Olles Hälsa finns.', '', 10000, { text: 'Ladda om', fn: () => location.reload() }); });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => { swReg = r; }).catch(() => { /* fungerar ändå som vanlig sida */ });
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (had) checkUpdate(true); });
   }
+  // Automatisk uppdatering: kolla om en ny version har pushats när appen öppnas/kommer tillbaka och var 10:e minut
+  if (lokal.uppdaterad && lokal.uppdaterad.build === BUILD && !lokal.uppdaterad.visad) { lokal.uppdaterad.visad = true; saveLokal(); setTimeout(() => toast(`Appen är uppdaterad till senaste versionen (${BUILD}).`, 'ok', 5000), 600); }
+  setTimeout(() => checkUpdate(), 4000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkUpdate(); });
+  window.addEventListener('online', () => checkUpdate(true));
+  setInterval(() => { if (document.visibilityState === 'visible') checkUpdate(true); }, 10 * 60 * 1000);
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); prompt = e; if (!standalone) btn.hidden = false; });
   window.addEventListener('appinstalled', () => { btn.hidden = true; prompt = null; toast('Olles Hälsa är installerad som app.', 'ok'); });
   if (isIOS && !standalone) btn.hidden = false;
@@ -2095,6 +2181,33 @@ function bindApp() {
     else alert('Öppna webbläsarens meny och välj ”Installera app” eller ”Lägg till på startskärmen”.');
   });
   if ('launchQueue' in window) window.launchQueue.setConsumer(async params => { const fs = []; for (const h of params.files || []) fs.push(await h.getFile()); if (fs.length) { setTab('halsa'); importFiles(fs); } });
+}
+
+/* ---------- Automatisk uppdatering ---------- */
+let swReg = null, lastCheck = 0, updWaiting = null;
+async function checkUpdate(force = false) {
+  if (!location.protocol.startsWith('http') || BUILD === 'dev' || BUILD.includes('__')) return;
+  if (!force && Date.now() - lastCheck < 90 * 1000) return;
+  lastCheck = Date.now();
+  if (swReg) swReg.update().catch(() => { });
+  try {
+    const url = location.pathname.replace(/[^/]*$/, '') + 'index.html?check=' + Date.now();
+    const r = await fetch(url, { cache: 'no-store', headers: { Range: 'bytes=0-4095' } });
+    if (!r.ok) return;
+    const m = (await r.text()).match(/name="app-build" content="([^"]+)"/);
+    if (m && m[1] !== BUILD) applyUpdate(m[1]);
+  } catch (e) { /* offline – försöker igen senare */ }
+}
+function applyUpdate(nyBuild) {
+  const f = lokal.uppdaterad;
+  if (f && f.build === nyBuild && Date.now() - f.at < 10 * 60 * 1000) return;     // har redan försökt nyss – undvik omladdningsloop
+  const typing = () => { const a = document.activeElement; return a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && (a.value || '').trim() !== ''; };
+  if (syncing || typing()) {                                                       // vänta tills du är klar med det du skriver
+    if (!updWaiting) { updWaiting = setInterval(() => { if (!syncing && !typing()) { clearInterval(updWaiting); updWaiting = null; applyUpdate(nyBuild); } }, 2000); }
+    return;
+  }
+  lokal.uppdaterad = { build: nyBuild, at: Date.now(), visad: false }; saveLokal(); saveData();
+  location.reload();
 }
 
 /* =====================================================================
