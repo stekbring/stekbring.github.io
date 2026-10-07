@@ -1,5 +1,5 @@
 /* egna10 – service worker: gör appen installerbar och användbar utan nät. */
-const VERSION = 'egna20-v8';
+const VERSION = 'egna20-v9';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 const JSPDF = 'https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js';
 

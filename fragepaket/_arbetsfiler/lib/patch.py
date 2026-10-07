@@ -1,8 +1,23 @@
 """Bygger egna10 och egna20 med biblioteket från originalfilerna (orig10/orig20)."""
 import pathlib, re, sys
 W = pathlib.Path('/home/claude/w')
-LIBJS = (W / 'lib/library.js').read_text() + '\n' + (W / 'lib/cards-extra.js').read_text() + '\n' + (W / 'lib/welcome.js').read_text()
+LIBJS = (W / 'lib/library.js').read_text() + '\n' + (W / 'lib/cards-extra.js').read_text() + '\n' + (W / 'lib/welcome.js').read_text() + '\n' + (W / 'lib/engine-ext.js').read_text()
+PROJS = (W / 'lib/pro-engine.js').read_text() + '\n' + (W / 'lib/pro-ui.js').read_text()
+import propatch
+OLLE20 = '''/* ===== Olle-märkning – ändra här =====
+   OLLE_WATERMARK = true  → svag Olle-logga nere till höger på varje kort (false = av)
+   OLLE_PDF_LOGO  = true  → svart Olle-logga nere till höger på PDF:ens framsidor (false = av) */
+const OLLE_WATERMARK = true;
+const OLLE_PDF_LOGO = true;
+'''
+OLLE10 = '''/* ===== Olle-märkning – ändra här =====
+   OLLE_PDF_LOGO = true → svart Olle-logga nere till höger på PDF:ens framsidor (false = av) */
+const OLLE_WATERMARK = false;
+const OLLE_PDF_LOGO = true;
+'''
 WELCOME = (W / 'lib/welcome.html').read_text()
+WELCOME10 = WELCOME.replace('<li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Kan installeras som app och funkar utan nät</li>', '<li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Kan installeras som app och funkar utan nät</li>\n          <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Pro: flytta och ändra storlek på allt, egna typsnitt, text, bilder och vattenstämpel</li>').replace('<h1>Egna<span class="wl-ten">10</span></h1>', '<h1>Egna<span class="wl-ten">10</span><span class="wl-pro">PRO</span></h1>').replace('<h2>Egna<span class="wl-ten">10</span></h2>', '<h2>Egna<span class="wl-ten">10</span><span class="wl-pro">PRO</span></h2>')
+assert WELCOME10.count('wl-pro') == 2 and 'Pro: flytta' in WELCOME10
 
 def ic(n):
     return f'<svg class="ic" aria-hidden="true"><use href="#i-{n}"/></svg>'
@@ -51,11 +66,16 @@ def sub1(s, old, new, label):
     assert s.count(old) >= 1, 'saknas: ' + label
     return s.replace(old, new, 1)
 
-def add_script_and_init(s):
+def add_script_and_init(s, pro=False):
     i = s.index('function bindCards()')
     j = s.rfind('<script>', 0, i)
-    s = s[:j] + '<script>\n' + LIBJS + '</script>\n' + s[j:]
-    s = sub1(s, 'bindCropper(); bindPdf();\n', 'bindCropper(); bindPdf(); bindLibrary(); bindCardSelect(); bindWelcome();\n', 'init')
+    js = (OLLE10 if pro else OLLE20) + LIBJS + ('\n' + PROJS if pro else '')
+    s = s[:j] + '<script>\n' + js + '</script>\n' + s[j:]
+    s = sub1(s, 'bindCropper(); bindPdf();\n', 'bindCropper(); bindPdf(); bindLibrary(); bindCardSelect(); bindWelcome(); patchSvgDoc(); bindCredit();' + (' bindPro();' if pro else '') + '\n', 'init')
+    # svart Olle-logga på PDF:ens framsidor
+    s = sub1(s, "pdfFooter(doc, H, `egna10 · ${deck.name || ''} · ark ${k + 1} av ${idx.length}`);", "pdfFooter(doc, H, `egna10 · ${deck.name || ''} · ark ${k + 1} av ${idx.length}`); ollePageMark(doc, W, H);", 'olle1')
+    s = sub1(s, "pdfFooter(doc, H, `egna10 · ${deck.name || ''} · ark ${sheet} av ${sheets} · framsida`);", "pdfFooter(doc, H, `egna10 · ${deck.name || ''} · ark ${sheet} av ${sheets} · framsida`); ollePageMark(doc, W, H);", 'olle2')
+    s = sub1(s, "pdfFooter(doc, H, 'egna10 · provutskrift, sida 1 (framsida)');", "pdfFooter(doc, H, 'egna10 · provutskrift, sida 1 (framsida)'); ollePageMark(doc, W, H);", 'olle3')
     s = common_js(s)
     return s
 
@@ -99,9 +119,24 @@ def build10():
     m = re.search(r'\n( *)<div class="btnrow"><button id="btnUp".*?</div>\n', s)
     assert m, 'btnrow'
     s = s[:m.end()] + m.group(1) + '<div class="btnrow"><button id="btnLibCards" class="js-lib" title="Hämta frågor från färdiga paket">Hämta från biblioteket…</button></div>\n' + s[m.end():]
-    s = sub1(s, '<div class="busy" id="busy">', dialog(False) + WELCOME + '<div class="busy" id="busy">', 'dialog')
-    s = sub1(s, '</style>', (W / 'lib/lib10.css').read_text() + (W / 'lib/welcome10.css').read_text() + '</style>', 'css')
-    s = add_script_and_init(s)
+    s = sub1(s, '<div class="busy" id="busy">', dialog(False) + WELCOME10 + '<div class="busy" id="busy">', 'dialog')
+    s = sub1(s, '</style>', (W / 'lib/lib10.css').read_text() + (W / 'lib/welcome10.css').read_text() + (W / 'lib/pro10.css').read_text() + '</style>', 'css')
+    # Pro: flikar i redigeringsrutan
+    s = sub1(s, '    <div class="form">\n', '''    <div class="protabs" id="proTabs" role="tablist" aria-label="Vad vill du ändra?">
+      <button type="button" role="tab" data-pt="content" aria-selected="true">Innehåll</button><button type="button" role="tab" data-pt="layout" aria-selected="false">Layout</button><button type="button" role="tab" data-pt="items" aria-selected="false">Text och bilder</button><button type="button" role="tab" data-pt="wm" aria-selected="false">Vattenstämpel</button><button type="button" role="tab" data-pt="fonts" aria-selected="false">Typsnitt</button>
+    </div>
+    <div class="pro-mini pro-cv" id="proMini" data-side="0"></div>
+    <div id="proPanes"></div>
+    <div class="form">\n''', 'protabs')
+    # Pro: namn och PRO vid loggan
+    s = re.sub(r'(<span class="brand" title=")egna10 – egna frågekort(">)(<svg class="logo".*?</svg>)egna10(</span>)', lambda m: m.group(1) + 'Egna10 Pro – egna frågekort' + m.group(2) + '<span class="logo-pro">' + m.group(3) + '<span class="pro-badge">PRO</span></span>Egna10' + m.group(4), s, count=1)
+    assert 'pro-badge' in s
+    s = sub1(s, '<title>Egna10</title>', '<title>Egna10 Pro</title>', 'title')
+    s = s.replace('<meta name="apple-mobile-web-app-title" content="Egna10">', '<meta name="apple-mobile-web-app-title" content="Egna10 Pro">')
+    s = add_script_and_init(s, pro=True)
+    s = propatch.pro_engine(s)
+    s = s.replace("pdfFooter(doc, H, `egna10 · ", "pdfFooter(doc, H, `Egna10 Pro · ").replace("pdfFooter(doc, H, 'egna10 · ", "pdfFooter(doc, H, 'Egna10 Pro · ")
+    s = s.replace("creator: 'egna10'", "creator: 'Egna10 Pro'")
     return s
 
 def sw(path, version):
@@ -130,7 +165,8 @@ if __name__ == '__main__':
     (out / 'egna20').mkdir(parents=True, exist_ok=True)
     (out / 'egna10/index.html').write_text(build10())
     (out / 'egna20/index.html').write_text(build20())
-    (out / 'egna10/sw.js').write_text(sw('orig10/sw.js', 'egna10-v11'))
-    (out / 'egna20/sw.js').write_text(sw('orig20/sw.js', 'egna20-v8'))
+    (out / 'egna10/sw.js').write_text(sw('orig10/sw.js', 'egna10pro-v1'))
+    (out / 'egna20/sw.js').write_text(sw('orig20/sw.js', 'egna20-v9'))
+    (out / 'egna10/manifest.webmanifest').write_text((W / 'orig10/manifest.webmanifest').read_text().replace('"name": "Egna10"', '"name": "Egna10 Pro"').replace('"short_name": "Egna10"', '"short_name": "Egna10 Pro"'))
     for f in ['egna10/index.html', 'egna20/index.html', 'egna10/sw.js', 'egna20/sw.js']:
         print(f, (out / f).stat().st_size)

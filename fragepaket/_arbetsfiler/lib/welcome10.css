@@ -77,3 +77,4 @@ body.wl-open{overflow:hidden}
   .wl-sbtns .wl-primary,.wl-sbtns .wl-second{width:100%;min-height:50px}
   .wl-sbtns .wl-never-l{justify-content:center;margin-top:2px}
 }
+.wl .wl-pro{display:inline-block;margin-left:10px;padding:2px 5px;font:700 .2em/1.2 Arial,Helvetica,sans-serif;letter-spacing:.08em;border:2px solid currentColor;vertical-align:.15em}
