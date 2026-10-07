@@ -1,7 +1,8 @@
 """Bygger egna10 och egna20 med biblioteket från originalfilerna (orig10/orig20)."""
 import pathlib, re, sys
 W = pathlib.Path('/home/claude/w')
-LIBJS = (W / 'lib/library.js').read_text() + '\n' + (W / 'lib/cards-extra.js').read_text()
+LIBJS = (W / 'lib/library.js').read_text() + '\n' + (W / 'lib/cards-extra.js').read_text() + '\n' + (W / 'lib/welcome.js').read_text()
+WELCOME = (W / 'lib/welcome.html').read_text()
 
 def ic(n):
     return f'<svg class="ic" aria-hidden="true"><use href="#i-{n}"/></svg>'
@@ -54,7 +55,7 @@ def add_script_and_init(s):
     i = s.index('function bindCards()')
     j = s.rfind('<script>', 0, i)
     s = s[:j] + '<script>\n' + LIBJS + '</script>\n' + s[j:]
-    s = sub1(s, 'bindCropper(); bindPdf();\n', 'bindCropper(); bindPdf(); bindLibrary(); bindCardSelect();\n', 'init')
+    s = sub1(s, 'bindCropper(); bindPdf();\n', 'bindCropper(); bindPdf(); bindLibrary(); bindCardSelect(); bindWelcome();\n', 'init')
     s = common_js(s)
     return s
 
@@ -85,8 +86,9 @@ def build20():
     m = re.search(r'\n( *)<div class="btnrow"><button id="btnUp".*?</div>\n', s)
     assert m, 'btnrow'
     s = s[:m.end()] + m.group(1) + '<div class="btnrow"><button id="btnLibCards" class="js-lib" title="Hämta frågor från färdiga paket">' + ic('books') + '<span>Hämta från biblioteket</span></button></div>\n' + s[m.end():]
-    s = sub1(s, '<div class="busy" id="busy">', dialog(True) + '<div class="busy" id="busy">', 'dialog')
-    s = sub1(s, '</style>', (W / 'lib/lib20.css').read_text() + '</style>', 'css')
+    s = sub1(s, '<div class="busy" id="busy">', dialog(True) + WELCOME + '<div class="busy" id="busy">', 'dialog')
+    s = sub1(s, '</style>', (W / 'lib/lib20.css').read_text() + (W / 'lib/welcome20.css').read_text() + '</style>', 'css')
+    s = sub1(s, '</head>', '<link rel="preconnect" href="https://fonts.googleapis.com">\n<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&display=swap">\n</head>', 'font')
     s = s.replace('#btnInstall>span,#btnTheme>span{display:none}', '#btnInstall>span,#btnTheme>span,#btnSettings>span,#btnOpen>span{display:none}',1)
     s = add_script_and_init(s)
     return s
@@ -97,8 +99,8 @@ def build10():
     m = re.search(r'\n( *)<div class="btnrow"><button id="btnUp".*?</div>\n', s)
     assert m, 'btnrow'
     s = s[:m.end()] + m.group(1) + '<div class="btnrow"><button id="btnLibCards" class="js-lib" title="Hämta frågor från färdiga paket">Hämta från biblioteket…</button></div>\n' + s[m.end():]
-    s = sub1(s, '<div class="busy" id="busy">', dialog(False) + '<div class="busy" id="busy">', 'dialog')
-    s = sub1(s, '</style>', (W / 'lib/lib10.css').read_text() + '</style>', 'css')
+    s = sub1(s, '<div class="busy" id="busy">', dialog(False) + WELCOME + '<div class="busy" id="busy">', 'dialog')
+    s = sub1(s, '</style>', (W / 'lib/lib10.css').read_text() + (W / 'lib/welcome10.css').read_text() + '</style>', 'css')
     s = add_script_and_init(s)
     return s
 
@@ -128,7 +130,7 @@ if __name__ == '__main__':
     (out / 'egna20').mkdir(parents=True, exist_ok=True)
     (out / 'egna10/index.html').write_text(build10())
     (out / 'egna20/index.html').write_text(build20())
-    (out / 'egna10/sw.js').write_text(sw('orig10/sw.js', 'egna10-v10'))
-    (out / 'egna20/sw.js').write_text(sw('orig20/sw.js', 'egna20-v7'))
+    (out / 'egna10/sw.js').write_text(sw('orig10/sw.js', 'egna10-v11'))
+    (out / 'egna20/sw.js').write_text(sw('orig20/sw.js', 'egna20-v8'))
     for f in ['egna10/index.html', 'egna20/index.html', 'egna10/sw.js', 'egna20/sw.js']:
         print(f, (out / f).stat().st_size)
