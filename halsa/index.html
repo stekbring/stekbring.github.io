@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
 <meta charset="utf-8">
-<meta name="app-build" content="2026-10-06 19:52">
+<meta name="app-build" content="2026-10-08 10:51">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Logga vikt och kalorier, importera hälsodata och träningspass från klockan och följ planen mot målvikten.">
 <link rel="manifest" href="manifest.webmanifest">
@@ -940,6 +940,9 @@ function updateSyncUI() {
   if (syncPopOpen) renderSyncPop();
 }
 
+/** När Garmin-programmet på datorn senast skickade hälsodata till molnet (ms) – eller null. */
+function garminTid() { let max = 0; for (const k in db.halsa) { const r = db.halsa[k]; if (r && r.kalla === 'garmin' && r.u > max) max = r.u; } return max || null; }
+
 /* ---------- Statusrutan under synk-knappen ---------- */
 let syncPopOpen = false, syncPopAuto = false;
 function openSyncPop(auto = false) {
@@ -959,6 +962,7 @@ function renderSyncPop() {
     <div class="kv sp-kv">
       ${kopplad && lokal.senastSynk ? `<span>Senast synkad</span><span>${esc(tidStr(lokal.senastSynk))}</span>` : ''}
       ${kopplad ? `<span>Väntar på att skickas</span><span>${fmt(si.pending)}</span>` : ''}
+      ${garminTid() ? `<span>Senast från Garmin</span><span>${esc(tidStr(garminTid()))}</span>` : ''}
       ${lokal.senastImport ? `<span>Senaste CSV-import</span><span>${esc(tidStr(lokal.senastImport))}</span>` : ''}
       <span>Appversion</span><span>${esc(BUILD)}</span>
     </div>
@@ -1035,6 +1039,7 @@ function importCSV(text, filnamn = '') {
     if (d >= t) rec.delvis = true;                       // dagen pågår fortfarande – räknas inte i snitten
     n++;
     const cur = live('halsa', d);
+    if (cur && cur.kalla === 'garmin' && !cur.delvis) continue;     // data direkt från Garmin-programmet går före CSV
     if (sameData(cur, rec)) continue;
     cur ? upp++ : ny++;
     put('halsa', d, rec, { batch: true });
@@ -1189,6 +1194,10 @@ function M() {
     if (r.kalla !== 'manuell' && typ === 'övrigt' && r.snittpuls == null && r.maxpuls == null) continue;   // t.ex. bilresa
     P.push({ ...r, key: k, dag: r.datum.slice(0, 10), cat: catOf(typ), min: (num(r.sek) || 0) / 60 });
   }
+  // Samma pass kan komma både från CSV och direkt från Garmin-programmet (ibland med olika typnamn) – behåll ett per starttid
+  const perStart = {};
+  for (const p of P) { if (p.kalla === 'manuell') continue; const b = perStart[p.datum]; if (!b || (p.kalla === 'garmin' && b.kalla !== 'garmin') || (p.kalla === b.kalla && (p.u || 0) > (b.u || 0))) perStart[p.datum] = p; }
+  for (let i = P.length - 1; i >= 0; i--) if (P[i].kalla !== 'manuell' && perStart[P[i].datum] !== P[i]) P.splice(i, 1);
   P.sort((a, b) => b.datum.localeCompare(a.datum));
   const fromWatch = new Set(P.filter(p => p.kalla !== 'manuell').map(p => p.dag + '|' + p.cat));
   P.forEach(p => { p.dubblett = p.kalla === 'manuell' && fromWatch.has(p.dag + '|' + p.cat); });
@@ -1837,6 +1846,7 @@ function renderHalsa() {
     <span>Hälsodata</span><span>${m.hDates.length ? `${fmt(m.hDates.length)} dagar` : 'ingen än'}</span>
     ${m.hDates.length ? `<span>Period</span><span>${fmtD(m.hDates[0])} ${parseYmd(m.hDates[0]).getFullYear()} – ${fmtD(m.hDates[m.hDates.length - 1])}</span>` : ''}
     <span>Träningspass från klockan</span><span>${fmt(nPass)}</span>
+    <span>Senast från Garmin-programmet</span><span>${garminTid() ? esc(tidStr(garminTid())) : '–'}</span>
     <span>Senaste import</span><span>${lokal.senastImport ? new Date(lokal.senastImport).toLocaleString('sv-SE', { dateStyle: 'short', timeStyle: 'short' }) : '–'}</span></div>
     <div class="hint">Du kan importera hela filen varje gång – bara nya och ändrade dagar sparas och synkas. Dagen som pågår räknas inte in i snitten förrän den är klar.</div>`;
   if (!full.length) {

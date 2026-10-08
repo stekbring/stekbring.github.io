@@ -1,0 +1,1204 @@
+title: Sverige
+file: 04-sverige
+color: #f2c230
+desc: Landskap, städer, kungar, historia, traditioner, uppfinningar, företag, språk och kända svenskar – allt om Sverige.
+===
+ovrigt 5 | Vilket landskap ligger orten i?
+Mora | Dalarna
+Ystad | Skåne
+Karlskrona | Blekinge
+Åre | Jämtland
+Sundsvall | Medelpad
+Gävle | Gästrikland
+Hudiksvall | Hälsingland
+Strömstad | Bohuslän
+Örnsköldsvik | Ångermanland
+Västerås | Västmanland
+
+sant 5 | Är det ett av Sveriges 25 landskap?
+Medelpad | ja
+Härjedalen | ja
+Gästrikland | ja
+Dalsland | ja
+Närke | ja
+Lappland | ja
+Bergslagen | nej
+Roslagen | nej
+Kolmården | nej
+Österlen | nej
+
+sant 5 | Ligger orten i Norrland?
+Sandviken | ja
+Bollnäs | ja
+Härnösand | ja
+Skellefteå | ja
+Östersund | ja
+Mora | nej
+Sälen | nej
+Falun | nej
+Torsby | nej
+Enköping | nej
+
+ovrigt 4 | I vilket län ligger orten?
+Kiruna | Norrbotten
+Sveg | Jämtland
+Karlskoga | Örebro
+Norrtälje | Stockholm
+Älmhult | Kronoberg
+Borgholm | Kalmar
+Lycksele | Västerbotten
+Söderhamn | Gävleborg
+Motala | Östergötland
+Kungsbacka | Halland
+
+ovrigt 3 | Vilken är residensstad i länet?
+Västernorrland | Härnösand
+Södermanland | Nyköping
+Kronoberg | Växjö
+Östergötland | Linköping
+Blekinge | Karlskrona
+Skåne | Malmö
+Halland | Halmstad
+Dalarna | Falun
+Gävleborg | Gävle
+Norrbotten | Luleå
+
+ovrigt 5 | Vilket vatten söker vi?
+Sveriges största sjö | Vänern
+Visingsö ligger i den | Vättern
+Strängnäs ligger vid den | Mälaren
+Storsjöodjuret bor där | Storsjön
+Rinner genom Göteborg | Göta älv
+Rinner genom Karlstad | Klarälven
+Sundet vid Helsingborg | Öresund
+Sveriges djupaste sjö | Hornavan
+Gränsälv mot Finland | Torne älv
+Har en Öster- och en Västerdel | Dalälven
+
+ovrigt 3 | Vilket vattendrag rinner genom staden?
+Uppsala | Fyrisån
+Linköping | Stångån
+Norrköping | Motala ström
+Halmstad | Nissan
+Borås | Viskan
+Kristianstad | Helge å
+Falkenberg | Ätran
+Örebro | Svartån
+Västerås | Svartån
+Umeå | Umeälven
+
+ovrigt 4 | Vilken ö söker vi?
+Sveriges största ö | Gotland
+Tycho Brahe hade sitt observatorium där | Ven
+Ingmar Bergman bodde där | Fårö
+Sveriges tredje största ö | Orust
+Göteborgs norra halva ligger på den | Hisingen
+Drottningholms slott ligger där | Lovön
+Gamla stan ligger på den | Stadsholmen
+Ligger mitt i Vättern | Visingsö
+Karlskronas centrum ligger där | Trossö
+Bron dit rasade 1980 | Tjörn
+
+ovrigt 5 | Vilken plats söker vi?
+Sveriges nordligaste punkt | Treriksröset
+Sveriges sydligaste punkt | Smygehuk
+Skånes ”Stonehenge” | Ales stenar
+Hotellet av is i Jukkasjärvi | Icehotel
+Världsarv med rekord i landhöjning | Höga kusten
+Leden från Abisko till Hemavan | Kungsleden
+Kallas Sveriges blå band | Göta kanal
+Nationalpark med Rapadalen | Sarek
+Sveriges högsta vattenfall | Njupeskär
+Ölands kala kalkslätt | Stora Alvaret
+
+ordning 4 | Rangordna sjöarna efter yta (1 = störst)
+Vänern | 1
+Vättern | 2
+Mälaren | 3
+Hjälmaren | 4
+Storsjön | 5
+Torneträsk | 6
+Siljan | 7
+Hornavan | 8
+Bolmen | 9
+Åsnen | 10
+
+ordning 5 | Rangordna från norr till söder (1 = nordligast)
+Kiruna | 1
+Luleå | 2
+Umeå | 3
+Östersund | 4
+Sundsvall | 5
+Falun | 6
+Uppsala | 7
+Linköping | 8
+Jönköping | 9
+Malmö | 10
+
+sant 4 | Har landskapet kust mot havet?
+Västergötland | ja
+Gästrikland | ja
+Medelpad | ja
+Blekinge | ja
+Ångermanland | ja
+Lappland | nej
+Dalsland | nej
+Värmland | nej
+Närke | nej
+Västmanland | nej
+
+sant 4 | Ligger staden vid Vänern?
+Karlstad | ja
+Lidköping | ja
+Mariestad | ja
+Vänersborg | ja
+Åmål | ja
+Kristinehamn | ja
+Jönköping | nej
+Motala | nej
+Hjo | nej
+Askersund | nej
+
+sant 4 | Stämmer det om Sveriges natur?
+Sverige är större än Tyskland | ja
+Högsta punkten ligger i Lappland | ja
+Vänern är EU:s största sjö | ja
+Gotland är Östersjöns största ö | ja
+Höga kusten har höjts mest i världen | ja
+Sverige saknar glaciärer | nej
+Kebnekaise är Nordens högsta berg | nej
+Mälaren är Sveriges största sjö | nej
+Sverige har aktiva vulkaner | nej
+Midnattssolen syns i Stockholm | nej
+
+sant 3 | Ligger ön i Sverige?
+Gotska Sandön | ja
+Holmön | ja
+Utö | ja
+Hanö | ja
+Stora Karlsö | ja
+Hallands Väderö | ja
+Bornholm | nej
+Åland | nej
+Anholt | nej
+Saaremaa | nej
+
+sant 3 | Är det en nationalpark?
+Abisko | ja
+Tyresta | ja
+Söderåsen | ja
+Kosterhavet | ja
+Fulufjället | ja
+Padjelanta | ja
+Kolmården | nej
+Kinnekulle | nej
+Kullaberg | nej
+Omberg | nej
+
+ovrigt 4 | Vilket landskap har landskapsdjuret?
+Ekoxe | Blekinge
+Lax | Halland
+Igelkott | Gotland
+Näktergal | Öland
+Hasselmus | Närke
+Knubbsäl | Bohuslän
+Älg | Jämtland
+Fjällräv | Lappland
+Varg | Värmland
+Kronhjort | Skåne
+
+sant 5 | Är landskapets landskapsdjur en fågel?
+Uppland | ja
+Dalarna | ja
+Gästrikland | ja
+Västergötland | ja
+Östergötland | ja
+Dalsland | ja
+Småland | nej
+Västmanland | nej
+Ångermanland | nej
+Medelpad | nej
+
+ovrigt 3 | Vilket landskap har landskapsblomman?
+Prästkrage | Skåne
+Linnea | Småland
+Kungsängslilja | Uppland
+Murgröna | Gotland
+Fjällsippa | Lappland
+Gullviva | Närke
+Vit näckros | Södermanland
+Liljekonvalj | Gästrikland
+Mistel | Västmanland
+Kung Karls spira | Västerbotten
+
+sant 2 | Är det en landskapsblomma?
+Blåklint | ja
+Ljung | ja
+Förgätmigej | ja
+Styvmorsviol | ja
+Lin | ja
+Skogsstjärna | ja
+Maskros | nej
+Tulpan | nej
+Solros | nej
+Vallmo | nej
+
+ovrigt 3 | Vilket djur söker vi?
+Kallas skogens konung | Älg
+Sveriges största rovdjur | Björn
+Sveriges nationalfågel | Koltrast
+Sveriges enda giftorm | Huggorm
+Kattdjur med tofsar på öronen | Lodjur
+Bygger dammar i bäckar | Bäver
+Sveriges största uggla | Berguv
+Sveriges minsta däggdjur | Dvärgnäbbmus
+Sveriges tyngsta fågel | Knölsvan
+Vit om vintern, hotad i fjällen | Fjällräv
+
+sant 3 | Lever djuret vilt i Sverige?
+Varg | ja
+Järv | ja
+Vildsvin | ja
+Utter | ja
+Dovhjort | ja
+Hermelin | ja
+Isbjörn | nej
+Visent | nej
+Vildren | nej
+Vildkatt | nej
+
+sant 4 | Är det tillåtet enligt allemansrätten?
+Plocka svamp och bär | ja
+Tälta en natt i skogen | ja
+Paddla kanot på sjön | ja
+Plocka vanliga blommor | ja
+Bada vid en strand utan tomt | ja
+Bryta kvistar från levande träd | nej
+Gå över någons tomt | nej
+Elda vid eldningsförbud | nej
+Köra bil i terrängen | nej
+Gräva upp fridlysta växter | nej
+
+ovrigt 4 | Vilket landskap har vapnet?
+Riksäpple | Uppland
+Vildman | Lappland
+Älg | Jämtland
+Ren | Västerbotten
+Bock | Hälsingland
+Bagge med fana | Gotland
+Tre laxar | Ångermanland
+Två korslagda pilar | Dalarna
+Hjort | Öland
+Lejon med armborst | Småland
+
+ovrigt 4 | Vilken stad har smeknamnet?
+Rosornas och ruinernas stad | Visby
+Lilla London | Göteborg
+Björkarnas stad | Umeå
+Parkernas stad | Malmö
+Solstaden | Karlstad
+Sveriges Manchester | Norrköping
+Nordens Venedig | Stockholm
+Trollywood | Trollhättan
+Gurkstaden | Västerås
+Textilstaden | Borås
+
+ovrigt 3 | Vad kallas den som kommer därifrån?
+Jämtland | Jämte
+Hälsingland | Hälsing
+Gästrikland | Gästrike
+Västergötland | Västgöte
+Närke | Närking
+Medelpad | Medelpading
+Härjedalen | Härjedaling
+Lund | Lundensare
+Uppsala | Upsaliensare
+Göteborg | Göteborgare
+
+ovrigt 4 | Vad betyder ortnamnsleden?
+-köping | Handelsplats
+-torp | Nybygge
+-ryd | Röjd mark
+-hult | Skogsdunge
+-näs | Udde
+-vik | Bukt
+-holm | Liten ö
+-löv | Arv
+-tuna | Inhägnad
+-hem | Boplats
+
+ordning 3 | Rangordna länen efter yta (1 = störst)
+Norrbotten | 1
+Västerbotten | 2
+Jämtland | 3
+Dalarna | 4
+Västra Götaland | 5
+Västernorrland | 6
+Gävleborg | 7
+Värmland | 8
+Jönköping | 9
+Gotland | 10
+
+siffra 4 | Hur många?
+Landskap | 25
+Län | 21
+Kommuner | 290
+Landskap i Norrland | 9
+Landskap i Svealand | 6
+Landsdelar | 3
+Stolar i Svenska Akademien | 18
+Valörer bland sedlarna | 6
+Valörer bland mynten | 4
+Stift i Svenska kyrkan | 13
+
+siffra 3 | Vilket E-nummer har vägen?
+Helsingborg – Haparanda | 4
+Göteborg – Malmö | 6
+Stockholm – Göteborg | 20
+Stockholm – Karlstad | 18
+Malmö – Ystad | 65
+Norrköping – Kalmar | 22
+Luleå – Kiruna | 10
+Sundsvall – Östersund | 14
+Gävle – Falun | 16
+Inlandsvägen | 45
+
+siffra 4 | Vilket tal söker vi?
+Sveriges landsnummer (+…) | 46
+Larmnumret | 112
+Sjukvårdsrådgivningen | 1177
+Polisen när det inte är akut | 11414
+Spärren till riksdagen (%) | 4
+Momsen på det mesta (%) | 25
+Rösträttsålder | 18
+Promillegränsen i trafiken | 0,2
+Högsta fart på motorväg | 120
+Ålder för moped klass I | 15
+
+ovrigt 5 | Vem i kungahuset söker vi?
+Flydde på skidor enligt sägnen | Gustav Vasa
+Abdikerade och flyttade till Rom | Kristina
+Unionsdrottning från 1397 | Margareta
+Regerade efter brodern Karl XII | Ulrika Eleonora
+Kungens pappa, dog i flygolycka | Gustaf Adolf
+Var OS-värdinna i München 1972 | Silvia
+Kronprinsessans man | Daniel
+Kungens son, hertig av Värmland | Carl Philip
+Kungens yngsta barn | Madeleine
+Victorias förstfödda | Estelle
+
+siffra 5 | Vilket nummer har kungen?
+Karl … som stupade 1718 | 12
+Gustav … Adolf, Lejonet från Norden | 2
+Gustav … som sköts på operan | 3
+Gustav … Adolf, avsatt 1809 | 4
+Gustaf … Adolf, arkeologkungen | 6
+Erik … som gifte sig med Karin | 14
+Karl … Johan, förste Bernadotte | 14
+Oscar … som förlorade Norge 1905 | 2
+Karl … som införde enväldet | 11
+Carl … Gustaf, dagens kung | 16
+
+ordning 4 | Rangordna regenterna (1 = först)
+Gustav Vasa | 1
+Erik XIV | 2
+Gustav II Adolf | 3
+Kristina | 4
+Karl XII | 5
+Gustav III | 6
+Karl XIV Johan | 7
+Oscar II | 8
+Gustaf VI Adolf | 9
+Carl XVI Gustaf | 10
+
+sant 5 | Stämmer det om kungahuset?
+Bernadotterna kommer från Frankrike | ja
+Drottning Silvia föddes i Tyskland | ja
+Kungarna Karl I–VI har aldrig funnits | ja
+Kungen saknar politisk makt | ja
+Kungen föddes på Haga slott | ja
+Kungen kröntes 1973 | nej
+Kungen bor på Stockholms slott | nej
+Sverige har bara haft manliga regenter | nej
+Kungen ärvde tronen efter sin pappa | nej
+Kungen har fyra barn | nej
+
+sant 4 | Har personen varit kung i Sverige?
+Erik den helige | ja
+Valdemar Birgersson | ja
+Kristian Tyrann | ja
+Sigismund | ja
+Albrekt av Mecklenburg | ja
+Birger jarl | nej
+Sten Sture den äldre | nej
+Engelbrekt | nej
+Axel Oxenstierna | nej
+Gustav Eriksson Trolle | nej
+
+sant 5 | Stämmer det om Gustav Vasa?
+Han valdes till kung den 6 juni | ja
+Han flydde till Dalarna | ja
+Han bröt med påven | ja
+Han var gift tre gånger | ja
+Han kröntes i Uppsala domkyrka | ja
+Han kallade sig själv Vasa | nej
+Han stupade i strid | nej
+Han grundade Göteborg | nej
+Han var en Bernadotte | nej
+Han var kung över Kalmarunionen | nej
+
+tid 3 | Under vilket århundrade regerade kungen?
+Magnus Ladulås | 1200-talet
+Magnus Eriksson | 1300-talet
+Karl Knutsson | 1400-talet
+Johan III | 1500-talet
+Karl XI | 1600-talet
+Fredrik I | 1700-talet
+Adolf Fredrik | 1700-talet
+Oscar I | 1800-talet
+Karl XV | 1800-talet
+Gustaf VI Adolf | 1900-talet
+
+siffra 5 | Hur gammal var personen?
+Kristina när hon blev drottning | 5
+Kristina när hon abdikerade | 27
+Gustav II Adolf när han stupade | 37
+Karl XII när han stupade | 36
+Gustav III när han dog | 46
+Carl XVI Gustaf när han blev kung | 27
+Gustaf VI Adolf när han blev kung | 67
+Victoria när hon gifte sig | 32
+Greta Thunberg vid första skolstrejken | 15
+Astrid Lindgren när hon dog | 94
+
+siffra 3 | Vilket år hände det i kungahuset?
+Bernadotte valdes till tronföljare | 1810
+Karl XIV Johan blev kung | 1818
+Prins Gustaf Adolf omkom | 1947
+Kungen föddes | 1946
+Kungen besteg tronen | 1973
+Kungen och Silvia gifte sig | 1976
+Victoria föddes | 1977
+Madeleine föddes | 1982
+Victoria och Daniel gifte sig | 2010
+Estelle föddes | 2012
+
+siffra 5 | Vilket år hände det i svensk historia?
+Kalmarunionen bildades | 1397
+Stockholms blodbad | 1520
+Gustav Vasa valdes till kung | 1523
+Regalskeppet Vasa sjönk | 1628
+Gustav II Adolf stupade vid Lützen | 1632
+Freden i Roskilde | 1658
+Slaget vid Poltava | 1709
+Karl XII sköts vid Fredriksten | 1718
+Gustav III sköts på operan | 1792
+Sverige förlorade Finland | 1809
+
+siffra 4 | Vilket år hände det i det moderna Sverige?
+Unionen med Norge upplöstes | 1905
+Kvinnor röstade i riksdagsval för första gången | 1921
+Sverige gick med i FN | 1946
+Riksdagen fick en enda kammare | 1971
+Svenska kyrkan skildes från staten | 2000
+Folkomröstningen om euron | 2003
+Första kvinnliga statsministern | 2021
+Sverige gick med i Nato | 2024
+Den gregorianska kalendern infördes | 1753
+Allmän folkskola infördes | 1842
+
+siffra 4 | Hur många år varade det?
+Unionen med Norge | 91
+Kalmarunionen | 126
+Stora nordiska kriget | 21
+Karl XII:s vistelse i Turkiet | 5
+Tage Erlander som statsminister | 23
+Gustav Vasa som kung | 37
+Gustav III som kung | 21
+Bygget av Göta kanal | 22
+Kristina som drottning | 22
+Vasaskeppet på havsbotten | 333
+
+tid 4 | Under vilket århundrade hände det?
+Ansgar kom till Birka | 800-talet
+Olof Skötkonung döptes | 1000-talet
+Stockholm nämns för första gången | 1200-talet
+Heliga Birgitta dog | 1300-talet
+Slaget på Brunkeberg | 1400-talet
+Uppsala universitet grundades | 1400-talet
+Lunds universitet grundades | 1600-talet
+Göteborg grundades | 1600-talet
+Linné gav ut Systema naturae | 1700-talet
+Göta kanal invigdes | 1800-talet
+
+ordning 4 | Rangordna tidsperioderna (1 = äldst)
+Stenåldern | 1
+Bronsåldern | 2
+Vikingatiden | 3
+Kalmarunionen | 4
+Vasatiden | 5
+Stormaktstiden | 6
+Frihetstiden | 7
+Gustavianska tiden | 8
+Unionen med Norge | 9
+Folkhemmet | 10
+
+sant 4 | Stämmer det om vikingatiden?
+Birka låg på en ö i Mälaren | ja
+Uppland har flest runstenar | ja
+Rökstenen står i Östergötland | ja
+Varjager var vikingar i öst | ja
+Gotland har flest silverskatter | ja
+Vikingatiden varade till 1500-talet | nej
+Förste kristne kungen var Gustav Vasa | nej
+Ordet viking betyder kung | nej
+Runstenar finns bara i Sverige | nej
+Birka låg på Gotland | nej
+
+sant 4 | Hörde det till Sverige under 1600-talet?
+Finland | ja
+Estland | ja
+Ingermanland | ja
+Riga | ja
+Delaware (Nya Sverige) | ja
+Gotland | ja
+Island | nej
+Grönland | nej
+Färöarna | nej
+Själland | nej
+
+ordning 5 | Rangordna efter ålder (1 = äldst)
+Kungshögarna i Gamla Uppsala | 1
+Birka | 2
+Uppsala domkyrka | 3
+Regalskeppet Vasa | 4
+Stockholms slott | 5
+Göta kanal | 6
+Stockholms stadshus | 7
+Kaknästornet | 8
+Globen | 9
+Turning Torso | 10
+
+siffra 3 | Vilket år öppnade det?
+Gröna Lund | 1883
+Skansen | 1891
+Liseberg | 1923
+Stockholms tunnelbana | 1950
+Kolmårdens djurpark | 1965
+Ölandsbron | 1972
+Astrid Lindgrens Värld | 1981
+Vasamuseet | 1990
+Högakustenbron | 1997
+Universeum | 2001
+
+sant 3 | Ligger det i Stockholm?
+Gröna Lund | ja
+Junibacken | ja
+Skansen | ja
+Sergels torg | ja
+Avicii Arena | ja
+Liseberg | nej
+Universeum | nej
+Turning Torso | nej
+Kalmar slott | nej
+Wadköping | nej
+
+sant 3 | Ligger slottet i Skåne?
+Glimmingehus | ja
+Malmöhus | ja
+Trolleholm | ja
+Bosjökloster | ja
+Vittskövle | ja
+Örebro slott | nej
+Vadstena slott | nej
+Kalmar slott | nej
+Borgholms slott | nej
+Gripsholm | nej
+
+sant 2 | Är det ett av statens kungliga slott?
+Drottningholm | ja
+Tullgarn | ja
+Strömsholm | ja
+Ulriksdal | ja
+Rosersberg | ja
+Solliden | nej
+Sofiero | nej
+Läckö | nej
+Skokloster | nej
+Tjolöholm | nej
+
+sant 3 | Är det ett världsarv?
+Grimeton radiostation | ja
+Skogskyrkogården | ja
+Hälsingegårdar | ja
+Tanums hällristningar | ja
+Engelsbergs bruk | ja
+Falu gruva | ja
+Vasaskeppet | nej
+Stockholms stadshus | nej
+Kalmar slott | nej
+Uppsala domkyrka | nej
+
+sant 3 | Har staden en domkyrka?
+Skara | ja
+Strängnäs | ja
+Härnösand | ja
+Luleå | ja
+Visby | ja
+Malmö | nej
+Norrköping | nej
+Örebro | nej
+Umeå | nej
+Jönköping | nej
+
+ovrigt 3 | Var ligger det?
+High Chaparral | Hillerstorp
+Furuvik | Gävle
+Bohus fästning | Kungälv
+Carlstens fästning | Marstrand
+Wadköping | Örebro
+Kulturen | Lund
+Gamla Linköping | Linköping
+Skara Sommarland | Skara
+Gripsholms slott | Mariefred
+Rökstenen | Rök
+
+ovrigt 4 | Vilken ort söker vi?
+Där Dalahästar snidas | Nusnäs
+Flyttas för gruvans skull | Kiruna
+Sveriges sydligaste stad | Trelleborg
+Granne med finska Torneå | Haparanda
+Har vintermarknad sedan 1605 | Jokkmokk
+Linnés födelseplats | Råshult
+Selma Lagerlöfs gård | Mårbacka
+Carl Larssons hem | Sundborn
+Anders Zorns hemstad | Mora
+Sveriges äldsta stad | Sigtuna
+
+tid 3 | Från vilket århundrade kommer staden?
+Sigtuna | 900-talet
+Lund | 900-talet
+Stockholm | 1200-talet
+Jönköping | 1200-talet
+Karlstad | 1500-talet
+Göteborg | 1600-talet
+Karlskrona | 1600-talet
+Östersund | 1700-talet
+Skellefteå | 1800-talet
+Kiruna | 1900-talet
+
+sant 5 | Stämmer det om svenska traditioner?
+Lucia var ett helgon från Sicilien | ja
+Påskkärringar flyger till Blåkulla | ja
+Valborg är uppkallad efter ett helgon | ja
+Midsommarstången kallas majstång | ja
+Knut var en dansk hertig | ja
+Midsommardagen är alltid 24 juni | nej
+Nationaldagen minns Vasas död | nej
+Allhelgonadagen är alltid 1 november | nej
+Gävlebocken har aldrig brunnit | nej
+Lucia är årets kortaste dag | nej
+
+ovrigt 4 | Vilken högtid söker vi?
+Man dansar små grodorna | Midsommar
+Man tänder majbrasor | Valborg
+Man kastar ut granen | Tjugondag Knut
+Ljuskrona på huvudet | Lucia
+Fjädrar på björkris | Påsk
+Ljus tänds på gravarna | Allhelgona
+Demonstrationståg | Första maj
+Ett nytt ljus tänds varje söndag | Advent
+Hette förr Svenska flaggans dag | Nationaldagen
+Tomten knackar på | Julafton
+
+siffra 5 | Vilket datum? (bara dagen i månaden)
+Luciadagen | 13
+Nationaldagen | 6
+Valborgsmässoafton | 30
+Kungens födelsedag | 30
+Tjugondag Knut | 13
+Trettondedag jul | 6
+Nobeldagen | 10
+Victoriadagen | 14
+Annandag jul | 26
+Gustav Adolfsdagen | 6
+
+tid 3 | Från vilket decennium kommer det?
+Svenska Turistföreningen | 1880-talet
+Svenska flaggans dag | 1910-talet
+Mors dag | 1910-talet
+Stockholms första lucia | 1920-talet
+Första maj blev helgdag | 1930-talet
+Ikea-katalogen | 1950-talet
+Midsommarafton alltid på fredag | 1950-talet
+Gävlebocken | 1960-talet
+Sommartid | 1980-talet
+Nationaldagen blev helgdag | 2000-talet
+
+tid 3 | Från vilket decennium kommer reformen?
+Kronan blev valuta | 1870-talet
+Folkpensionen | 1910-talet
+Två veckors semester | 1930-talet
+Personnummer | 1940-talet
+Momsen | 1960-talet
+Dödsstraffet avskaffades helt | 1970-talet
+Föräldraförsäkringen | 1970-talet
+Allemansrätten i grundlagen | 1990-talet
+Rökförbud på krogen | 2000-talet
+Samkönade äktenskap | 2000-talet
+
+farg 5 | Vilken färg har den?
+Falu rödfärg | röd
+Den klassiska Dalahästen | röd
+Knutarna på en röd stuga | vit
+Kronorna i riksvapnet | guld
+Bandet runt Lucias midja | röd
+Postens brevlådor | gul
+Det svenska passet | vinröd
+Varning för älg-skyltens botten | gul
+Studentmössans topp | vit
+Gotlands raukar | grå
+
+farg 4 | Vilken färg har den i svensk natur?
+Vitsippa | vit
+Smörblomma | gul
+Blåsippa | blå
+Flugsvampens hatt | röd
+Moget hjortron | orange
+Lingon | röd
+Domherrens bröst (hane) | röd
+Koltrasthanen | svart
+Koltrasthanens näbb | gul
+Fjällräven på vintern | vit
+
+farg 3 | Vilken färg har loggan?
+Spotify | grön
+H&M | röd
+Klarna | rosa
+Telia | lila
+Swedbank | orange
+SEB | grön
+Clas Ohlson | blå
+PostNord | blå
+Scandic | röd
+Apoteket | grön
+
+ovrigt 5 | Vem grundade företaget?
+Ikea | Ingvar Kamprad
+H&M | Erling Persson
+Tetra Pak | Ruben Rausing
+Ericsson | Lars Magnus Ericsson
+Volvo | Gabrielsson & Larson
+Spotify | Ek & Lorentzon
+Fjällräven | Åke Nordin
+Clas Ohlson | Clas Ohlson
+Stena | Sten A. Olsson
+Securitas | Erik Philip-Sörensen
+
+ovrigt 4 | Vilket svenskt företag söker vi?
+Gör lastbilar i Södertälje | Scania
+Kullager från Göteborg | SKF
+Motorsågar och robotgräsklippare | Husqvarna
+Kameran som var med på månen | Hasselblad
+Dammsugare och kylskåp | Electrolux
+Köp nu, betala sen | Klarna
+Stål i Borlänge och Luleå | SSAB
+Järnmalm i Kiruna | LKAB
+Spelet Candy Crush | King
+Stridsflygplanet Gripen | Saab
+
+sant 4 | Stämmer det om svenska företag?
+Husqvarna började med vapen | ja
+Ikea står för Ingvar Kamprad Elmtaryd Agunnaryd | ja
+Volvo betyder ”jag rullar” | ja
+H&M hette först Hennes | ja
+Saab byggde flygplan före bilar | ja
+Ikea grundades i Stockholm | nej
+Volvos första bil kom på 1950-talet | nej
+Electrolux började med bilar | nej
+H&M grundades i Malmö | nej
+Spotify grundades på 1990-talet | nej
+
+sant 3 | Grundades varumärket i Sverige?
+Thule | ja
+Daniel Wellington | ja
+Peak Performance | ja
+Nudie Jeans | ja
+Acne Studios | ja
+Häagen-Dazs | nej
+Helly Hansen | nej
+Ecco | nej
+Jabra | nej
+Marimekko | nej
+
+ordning 3 | Rangordna efter när de grundades (1 = först)
+Stora Kopparberg | 1
+Riksbanken | 2
+Husqvarna | 3
+Svenska Akademien | 4
+Ericsson | 5
+Volvo | 6
+Ikea | 7
+H&M | 8
+Tetra Pak | 9
+Spotify | 10
+
+ovrigt 4 | Vem står bakom det?
+Trepunktsbältet | Nils Bohlin
+Skiftnyckeln | J.P. Johansson
+Blixtlåset | Gideon Sundbäck
+Pansarskeppet Monitor | John Ericsson
+Gammakniven | Lars Leksell
+Minecraft | Markus Persson
+Solventilen för fyrar | Gustaf Dalén
+Kylskåpet utan kompressor | Platen & Munters
+Mjölkseparatorn | Gustaf de Laval
+Tetraedern för mjölk | Erik Wallenberg
+
+tid 4 | Från vilket århundrade kommer uppfinningen?
+Celsius~skalan | 1700-talet
+Säkerhets~tändstickan | 1800-talet
+Primusköket | 1800-talet
+Ångturbinen (de Laval) | 1800-talet
+Kullagret (SKF) | 1900-talet
+Pacemakern | 1900-talet
+Trepunkts~bältet | 1900-talet
+Bluetooth | 1900-talet
+Spotify | 2000-talet
+Minecraft | 2000-talet
+
+sant 4 | Kommer det engelska ordet från svenskan?
+Ombudsman | ja
+Moped | ja
+Tungsten | ja
+Rutabaga | ja
+Smorgasbord | ja
+Fjord | nej
+Slalom | nej
+Ski | nej
+Hygge | nej
+Kraken | nej
+
+ovrigt 5 | Vilket svenskt ord söker vi?
+Månens glittrande väg på vattnet | Mångata
+Gå ut tidigt för att höra fåglarna | Gökotta
+Inte för mycket, inte för lite | Lagom
+Ledig dag mellan helgdag och helg | Klämdag
+Onsdag, lite festligare | Lillördag
+Vill inte bada i kallt vatten | Badkruka
+Ens eget hemliga favoritställe | Smultronställe
+Dagarna mellan jul och nyår | Mellandagar
+Bor ihop utan att vara gifta | Sambo
+Kaffe och bulle med vänner | Fika
+
+ovrigt 4 | Var talas det?
+Älvdalska | Dalarna
+Gutamål | Gotland
+Meänkieli | Tornedalen
+Pitemål | Piteå
+Bondska | Skellefteå
+Jamska | Jämtland
+Gammalsvenska | Ukraina
+Estlandssvenska | Estland
+Finlandssvenska | Finland
+Skånska | Skåne
+
+sant 3 | Är det ett nationellt minoritetsspråk?
+Finska | ja
+Samiska | ja
+Meänkieli | ja
+Romani chib | ja
+Jiddisch | ja
+Engelska | nej
+Arabiska | nej
+Tyska | nej
+Norska | nej
+Estniska | nej
+
+sant 4 | Stämmer det om svenska språket?
+Svenska är största nordiska språket | ja
+Svenska är officiellt språk i Finland | ja
+W blev egen bokstav i ordlistan 2006 | ja
+Svenska blev huvudspråk i lag 2009 | ja
+Svenska är släkt med isländska | ja
+Svenska och finska är släktspråk | nej
+Standardsvenskan har tre genus | nej
+Älvdalska talas i Lappland | nej
+Svenska är officiellt språk i Norge | nej
+Å kom till svenskan från engelskan | nej
+
+ovrigt 5 | Vilken känd svensk söker vi?
+Gav växterna två latinska namn | Carl von Linné
+Ballongfärd mot nordpolen 1897 | S.A. Andrée
+Kallades Tändstickskungen | Ivar Kreuger
+Gav oss de kemiska tecknen | Berzelius
+Förste socialdemokratiske statsministern | Hjalmar Branting
+Kartlade Tibet | Sven Hedin
+Talade med änglar och andar | Emanuel Swedenborg
+Skolstrejkade för klimatet | Greta Thunberg
+Har en längdenhet uppkallad efter sig | Anders Ångström
+Seglade Nordostpassagen med Vega | A.E. Nordenskiöld
+
+ovrigt 4 | Vilken svensk konstnär söker vi?
+Målade Midvinterblot | Carl Larsson
+Målade Midsommardans | Anders Zorn
+Tomtar och troll i sagoskogen | John Bauer
+Rävar och fåglar i naturen | Bruno Liljefors
+Abstrakt före Kandinsky | Hilma af Klint
+Skulptör, Millesgården | Carl Milles
+Målade Strömkarlen | Ernst Josephson
+Ritade Tomtebobarnen | Elsa Beskow
+Gav jultomten hans utseende | Jenny Nyström
+Konstnärsprinsen på Waldemarsudde | Prins Eugen
+
+ovrigt 5 | Vem skrev boken?
+Hemsöborna | August Strindberg
+Kejsarn av Portugallien | Selma Lagerlöf
+Kallocain | Karin Boye
+Barabbas | Pär Lagerkvist
+Invandrarna | Vilhelm Moberg
+Mästerdetektiven Blomkvist | Astrid Lindgren
+En man som heter Ove | Fredrik Backman
+Pelle Svanslös | Gösta Knutsson
+Mördare utan ansikte | Henning Mankell
+Ondskan | Jan Guillou
+
+ordning 4 | Rangordna efter utgivning (1 = först)
+Röda rummet | 1
+Gösta Berlings saga | 2
+Doktor Glas | 3
+Nils Holgerssons underbara resa | 4
+Pippi Långstrump | 5
+Utvandrarna | 6
+Aniara | 7
+Bröderna Lejonhjärta | 8
+Män som hatar kvinnor | 9
+Hundraåringen som klev ut … | 10
+
+sant 4 | Skrev Astrid Lindgren boken?
+Emil i Lönneberga | ja
+Ronja Rövardotter | ja
+Mio, min Mio | ja
+Karlsson på taket | ja
+Madicken | ja
+Rasmus på luffen | ja
+Alfons Åberg | nej
+Pettson och Findus | nej
+Mumintrollen | nej
+Sune | nej
+
+sant 5 | Stämmer det om Astrid Lindgrens figurer?
+Pippis häst heter Lilla Gubben | ja
+Pippis apa heter Herr Nilsson | ja
+Mio heter egentligen Bo | ja
+Emil bor på Katthult | ja
+Karlsson har en propeller | ja
+Ronjas pappa heter Borka | nej
+Karlsson bor i Göteborg | nej
+Madicken bor i Bullerbyn | nej
+Emils lillasyster heter Lisa | nej
+Pippi bor i Villa Solgläntan | nej
+
+sant 5 | Har svensken fått Nobelpriset?
+Pär Lagerkvist | ja
+Erik Axel Karlfeldt | ja
+Eyvind Johnson | ja
+Manne Siegbahn | ja
+Arvid Carlsson | ja
+Tomas Lindahl | ja
+Astrid Lindgren | nej
+August Strindberg | nej
+Alfred Nobel | nej
+Ingvar Carlsson | nej
+
+siffra 4 | Vilket år fick svensken Nobelpriset?
+Svante Arrhenius | 1903
+Selma Lagerlöf | 1909
+Gustaf Dalén | 1912
+Verner von Heidenstam | 1916
+Hjalmar Branting | 1921
+Dag Hammarskjöld | 1961
+Harry Martinson | 1974
+Alva Myrdal | 1982
+Tomas Tranströmer | 2011
+Svante Pääbo | 2022
+
+tid 4 | Under vilket århundrade föddes svensken?
+Heliga Birgitta | 1300-talet
+Gustav Vasa | 1400-talet
+Drottning Kristina | 1600-talet
+Emanuel Swedenborg | 1600-talet
+Carl von Linné | 1700-talet
+Alfred Nobel | 1800-talet
+August Strindberg | 1800-talet
+Astrid Lindgren | 1900-talet
+Ingmar Bergman | 1900-talet
+Greta Thunberg | 2000-talet
+
+sant 4 | Föddes personen i Sverige?
+Alfred Nobel | ja
+Astrid Lindgren | ja
+Ingvar Kamprad | ja
+Carl von Linné | ja
+Greta Garbo | ja
+Anders Celsius | ja
+Drottning Silvia | nej
+Karl XIV Johan | nej
+Tove Jansson | nej
+J.L. Runeberg | nej
+
+ovrigt 4 | Vem finns på sedeln?
+20-lappen i dag | Astrid Lindgren
+Gamla 20-lappen | Selma Lagerlöf
+50-lappen i dag | Evert Taube
+Gamla 50-lappen | Jenny Lind
+100-lappen i dag | Greta Garbo
+Gamla 100-lappen | Carl von Linné
+200-lappen | Ingmar Bergman
+500-lappen i dag | Birgit Nilsson
+Gamla 500-lappen | Karl XI
+1000-lappen i dag | Dag Hammarskjöld
+
+sant 4 | Stämmer det om riksdagen och staten?
+Riksdagen har en kammare | ja
+Riksdagen har 349 ledamöter | ja
+Sverige fick tryckfrihet redan 1766 | ja
+Riksdagshuset ligger på Helgeandsholmen | ja
+Talmannen föreslår statsminister | ja
+Kungen utser statsministern | nej
+Sverige röstade ja till euron | nej
+Sverige är en republik | nej
+Riksdagsval hålls vart femte år | nej
+Statsministern bor på Stockholms slott | nej
+
+ovrigt 4 | Vad heter det i det svenska samhället?
+Riksdagens ordförande | Talmannen
+Regeringens hus | Rosenbad
+Statsministerns bostad | Sagerska huset
+Statsministerns lantställe | Harpsund
+Myndigheten som spår vädret | SMHI
+Sveriges centralbank | Riksbanken
+Myndigheten för studielån | CSN
+Myndigheten för statistik | SCB
+Grundlagen om statsskicket | Regeringsformen
+Månaden då riksdagsvalet hålls | September
+
+sant 3 | Har personen varit Sveriges statsminister?
+Louis De Geer | ja
+Arvid Lindman | ja
+Hjalmar Hammarskjöld | ja
+Ola Ullsten | ja
+Magdalena Andersson | ja
+Ulf Kristersson | ja
+Dag Hammarskjöld | nej
+Anna Lindh | nej
+Mona Sahlin | nej
+Jan Eliasson | nej
+
+ordning 3 | Rangordna statsministrarna (1 = först)
+Hjalmar Branting | 1
+Per Albin Hansson | 2
+Tage Erlander | 3
+Olof Palme | 4
+Thorbjörn Fälldin | 5
+Ingvar Carlsson | 6
+Carl Bildt | 7
+Göran Persson | 8
+Fredrik Reinfeldt | 9
+Stefan Löfven | 10
+
+siffra 4 | Hur många?
+Gubbar som Emil täljde | 369
+Barn i Bullerbyn | 6
+Slussar i Göta kanal | 58
+Stora kungshögar i Gamla Uppsala | 3
+Ljus i en elektrisk adventsstake | 7
+Siffror i ett postnummer | 5
+Tecken på en registreringsskylt | 6
+Ölandsbrons längd (km) | 6
+Kronor på Stadshustornet | 3
+Kanoner på regalskeppet Vasa | 64
+
+sant 5 | Är det en allmän flaggdag?
+Nyårsdagen | ja
+Första maj | ja
+Nationaldagen | ja
+Midsommardagen | ja
+Nobeldagen | ja
+Juldagen | ja
+Julafton | nej
+Midsommarafton | nej
+Luciadagen | nej
+Valborgsmässoafton | nej
+
+farg 4 | Vilken färg har den?
+Korset i Sveriges flagga | gul
+Bakgrunden i Sveriges flagga | blå
+Korset i Skånes flagga | gul
+Bakgrunden i Skånes flagga | röd
+Nobelmedaljen | guld
+Texten på registreringsskylten | svart
+Pippi Långstrumps hår | röd
+Emils mössa | blå
+Bakgrunden i Ikeas logga | blå
+Lucias klänning | vit
+
+ovrigt 3 | Var i Stockholm ligger det?
+Vasamuseet | Djurgården
+Stadshuset | Kungsholmen
+Fotografiska | Södermalm
+Moderna museet | Skeppsholmen
+Konserthuset | Hötorget
+Kaknästornet | Gärdet
+Avicii Arena | Johanneshov
+Centralstationen | Norrmalm
+Haga slott | Solna
+Nobelprismuseet | Gamla stan
+
+sant 3 | Ligger landskapet i Götaland?
+Dalsland | ja
+Bohuslän | ja
+Öland | ja
+Gotland | ja
+Halland | ja
+Östergötland | ja
+Närke | nej
+Värmland | nej
+Södermanland | nej
+Västmanland | nej
+
+ovrigt 4 | Vad heter Sveriges …?
+Högsta berg | Kebnekaise
+Största glaciär | Stuorrajekna
+Östligaste punkt | Kataja
+Äldsta universitet | Uppsala
+Största kyrka | Uppsala domkyrka
+Längsta bro | Ölandsbron
+Största slott | Stockholms slott
+Största ö i Vänern | Torsö
+Nordligaste stad | Kiruna
+Högsta byggnad | Karlatornet
+
+sant 3 | Ligger staden vid havet?
+Västervik | ja
+Oskarshamn | ja
+Söderhamn | ja
+Piteå | ja
+Varberg | ja
+Uddevalla | ja
+Eskilstuna | nej
+Borås | nej
+Växjö | nej
+Örebro | nej
+
+ordning 4 | Rangordna från väst till öst (1 = västligast)
+Strömstad | 1
+Göteborg | 2
+Halmstad | 3
+Karlstad | 4
+Jönköping | 5
+Örebro | 6
+Norrköping | 7
+Uppsala | 8
+Stockholm | 9
+Haparanda | 10

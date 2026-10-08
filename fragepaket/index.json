@@ -25,6 +25,22 @@
    "color": "#3f7fd1",
    "questions": 100,
    "cards": 50
+  },
+  {
+   "file": "04-sverige.egna10",
+   "name": "Sverige",
+   "description": "Landskap, städer, kungar, historia, traditioner, uppfinningar, företag, språk och kända svenskar – allt om Sverige.",
+   "color": "#f2c230",
+   "questions": 100,
+   "cards": 50
+  },
+  {
+   "file": "05-varldens-lander.egna10",
+   "name": "Världens länder",
+   "description": "Huvudstäder, flaggor, språk, valutor, floder, berg, öar och gränser – en resa jorden runt.",
+   "color": "#1fa6a0",
+   "questions": 100,
+   "cards": 50
   }
  ]
 }

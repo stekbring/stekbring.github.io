@@ -1,0 +1,1204 @@
+title: Världens länder
+file: 05-varldens-lander
+color: #1fa6a0
+desc: Huvudstäder, flaggor, språk, valutor, floder, berg, öar och gränser – en resa jorden runt.
+===
+sant 5 | Är staden landets huvudstad?
+Canberra | ja
+Sydney | nej
+Ottawa | ja
+Toronto | nej
+Wellington | ja
+Auckland | nej
+Rabat | ja
+Casablanca | nej
+Quito | ja
+Guayaquil | nej
+
+ovrigt 4 | Vad heter huvudstaden?
+Island | Reykjavik
+Irland | Dublin
+Portugal | Lissabon
+Ungern | Budapest
+Rumänien | Bukarest
+Bulgarien | Sofia
+Slovakien | Bratislava
+Slovenien | Ljubljana
+Lettland | Riga
+Albanien | Tirana
+
+sant 5 | Saknar landet kust mot havet?
+Bolivia | ja
+Mongoliet | ja
+Etiopien | ja
+Paraguay | ja
+Nepal | ja
+Uruguay | nej
+Bangladesh | nej
+Belgien | nej
+Slovenien | nej
+Bosnien-Hercegovina | nej
+
+farg 5 | Vilken färg har symbolen i flaggan?
+Kanadas lönnlöv | röd
+Brasiliens romb | gul
+Libanons ceder | grön
+Bangladesh skiva | röd
+Turkiets halvmåne | vit
+Kambodjas tempel | vit
+Algeriets halvmåne | röd
+Palaus cirkel | gul
+Laos cirkel | vit
+Kirgizistans sol | gul
+
+ovrigt 5 | Vad heter landet i dag?
+Siam | Thailand
+Persien | Iran
+Zaire | DR Kongo
+Dahomey | Benin
+Abessinien | Etiopien
+Nyasaland | Malawi
+Basutoland | Lesotho
+Swaziland | Eswatini
+Östpakistan | Bangladesh
+Brittiska Honduras | Belize
+
+sant 5 | Kör man på vänster sida av vägen?
+Japan | ja
+Thailand | ja
+Sydafrika | ja
+Irland | ja
+Malta | ja
+Indonesien | ja
+Kina | nej
+Brasilien | nej
+Kanada | nej
+Egypten | nej
+
+ovrigt 5 | Vilket land har internetdomänen?
+.hr | Kroatien
+.ee | Estland
+.is | Island
+.za | Sydafrika
+.tv | Tuvalu
+.me | Montenegro
+.ly | Libyen
+.ch | Schweiz
+.nz | Nya Zeeland
+.jp | Japan
+
+siffra 5 | Hur många finns det i flaggan?
+Ränder i USA:s flagga | 13
+Stjärnor i EU-flaggan | 12
+Stjärnor i Kinas flagga | 5
+Ekrar i hjulet i Indiens flagga | 24
+Uddar på Kanadas lönnlöv | 11
+Stjärnor i Australiens flagga | 6
+Stjärnor i Brasiliens flagga | 27
+Trianglar i Nepals flagga | 2
+Färger i Sydafrikas flagga | 6
+Ränder i Greklands flagga | 9
+
+sant 5 | Delar landet en ö med ett annat land?
+Haiti | ja
+Irland | ja
+Östtimor | ja
+Papua Nya Guinea | ja
+Brunei | ja
+Malaysia | ja
+Kuba | nej
+Madagaskar | nej
+Jamaica | nej
+Island | nej
+
+ovrigt 5 | I vilket land ligger sevärdheten?
+Machu Picchu | Peru
+Petra | Jordanien
+Chichén Itzá | Mexiko
+Borobudur | Indonesien
+Persepolis | Iran
+Moai-statyerna | Chile
+Ha Long-bukten | Vietnam
+Kappadokien | Turkiet
+Plitvicesjöarna | Kroatien
+Abu Simbel | Egypten
+
+farg 5 | Vilken färg har flaggans översta rand?
+Tyskland | svart
+Ryssland | vit
+Luxemburg | röd
+Litauen | gul
+Estland | blå
+Colombia | gul
+Indien | orange
+Bulgarien | vit
+Ungern | röd
+Sierra Leone | grön
+
+sant 5 | Gränsar landet till Frankrike?
+Brasilien | ja
+Andorra | ja
+Luxemburg | ja
+Monaco | ja
+Belgien | ja
+Surinam | ja
+Österrike | nej
+Portugal | nej
+Storbritannien | nej
+Liechtenstein | nej
+
+ovrigt 5 | Vilket land kallas så?
+Mittens rike | Kina
+Den uppgående solens land | Japan
+Down Under | Australien
+Tusen sjöars land | Finland
+Smaragdön | Irland
+Tulpanernas land | Nederländerna
+Örnarnas land | Albanien
+Tusen kullars land | Rwanda
+Midnatts~solens land | Norge
+Regnbågs~nationen | Sydafrika
+
+sant 5 | Stämmer det om flaggorna?
+Tchads och Rumäniens är nästan lika | ja
+Indonesiens och Monacos är nästan lika | ja
+Paraguays har olika fram- och baksida | ja
+Libyens var en gång helt grön | ja
+Schweiz flagga är kvadratisk | ja
+Kanadas har två lönnlöv | nej
+Italiens har en blå rand | nej
+Englands kors är blått | nej
+Brasiliens har en sol i mitten | nej
+Mexikos visar ett lejon | nej
+
+ovrigt 5 | Vilket land är uppkallat efter …?
+Simón Bolívar | Bolivia
+Kristoffer Columbus | Colombia
+Ekvatorn | Ecuador
+Kung Filip II | Filippinerna
+Saud-ätten | Saudiarabien
+Floden Indus | Indien
+”Lilla Venedig” | Venezuela
+Prins Maurits | Mauritius
+Frankerna | Frankrike
+Floden Senegal | Senegal
+
+ovrigt 5 | Vilket land söker vi?
+Ligger helt inuti Sydafrika | Lesotho
+Formad som en stövel | Italien
+Här ligger Kilimanjaro | Tanzania
+Världens längsta kustlinje | Kanada
+Afrikas största till ytan | Algeriet
+Afrikas folkrikaste land | Nigeria
+Flest forntida pyramider | Sudan
+Långt och smalt längs Anderna | Chile
+Världens största örike | Indonesien
+Ligger mellan Kanada och Mexiko | USA
+
+sant 5 | Stämmer det om huvudstäderna?
+Rom har ett annat land inuti sig | ja
+Sydafrika har tre huvudstäder | ja
+Bratislava gränsar mot två länder | ja
+Monaco är en stadsstat | ja
+Washington D.C. är ingen delstat | ja
+Kyoto är Japans huvudstad | nej
+Hollands regering sitter i Amsterdam | nej
+Lissabon ligger vid Medelhavet | nej
+Ottawa ligger i Québec | nej
+Dublin ligger i Storbritannien | nej
+
+ovrigt 5 | Vad heter landet på eget språk?
+Suomi | Finland
+Hellas | Grekland
+Nippon | Japan
+Magyarország | Ungern
+Lietuva | Litauen
+Bharat | Indien
+Sakartvelo | Georgien
+Éire | Irland
+Misr | Egypten
+Hayastan | Armenien
+
+ovrigt 5 | Vilket djur finns i flaggan?
+Sri Lanka | lejon
+Mexiko | örn
+Albanien | örn
+Uganda | trana
+Papua Nya Guinea | paradisfågel
+Dominica | papegoja
+Bhutan | drake
+Guatemala | quetzal
+Kiribati | fregattfågel
+Ecuador | kondor
+
+farg 5 | Vilken färg gömmer sig i namnet?
+Montenegro | svart
+Argentina | silver
+Kap Verde | grön
+Belgrad | vit
+Colorado | röd
+Rio Negro | svart
+Vitryssland | vit
+Grönland | grön
+Gula havet | gul
+Blå Nilen | blå
+
+sant 5 | Är det ett självständigt land?
+Nauru | ja
+Tuvalu | ja
+Andorra | ja
+Bhutan | ja
+Brunei | ja
+Grönland | nej
+Puerto Rico | nej
+Färöarna | nej
+Hongkong | nej
+Bermuda | nej
+
+sant 5 | Tillhör ön Frankrike?
+Korsika | ja
+Réunion | ja
+Martinique | ja
+Tahiti | ja
+Guadeloupe | ja
+Sardinien | nej
+Jersey | nej
+Sankt Helena | nej
+Mallorca | nej
+Dominica | nej
+
+siffra 5 | Vilket landsnummer har landet (telefon)?
+USA | 1
+Ryssland | 7
+Egypten | 20
+Frankrike | 33
+Italien | 39
+Storbritannien | 44
+Norge | 47
+Tyskland | 49
+Japan | 81
+Finland | 358
+
+ordning 5 | Rangordna efter yta (1 = störst)
+Ryssland | 1
+Kanada | 2
+Brasilien | 3
+Australien | 4
+Indien | 5
+Argentina | 6
+Mexiko | 7
+Egypten | 8
+Frankrike | 9
+Tyskland | 10
+
+tid 5 | Vilket århundrade blev landet självständigt?
+Portugal | 1100-talet
+USA | 1700-talet
+Haiti | 1800-talet
+Mexiko | 1800-talet
+Brasilien | 1800-talet
+Norge | 1900-talet
+Finland | 1900-talet
+Indien | 1900-talet
+Island | 1900-talet
+Sydsudan | 2000-talet
+
+sant 4 | Stämmer det om världens länder?
+Vatikanstaten är minst i världen | ja
+Frankrike har flest tidszoner | ja
+Nepals flagga är inte rektangulär | ja
+Bolivia har en flotta | ja
+Ryssland har större yta än Pluto | ja
+Schweiz är med i EU | nej
+Island har en egen armé | nej
+Egypten ligger helt i Afrika | nej
+Mexiko ligger i Sydamerika | nej
+Norge är med i EU | nej
+
+sant 4 | Är landet en monarki?
+Japan | ja
+Marocko | ja
+Bhutan | ja
+Kanada | ja
+Jordanien | ja
+Frankrike | nej
+Grekland | nej
+Italien | nej
+Portugal | nej
+Indien | nej
+
+sant 3 | Är spanska officiellt språk i landet?
+Mexiko | ja
+Argentina | ja
+Chile | ja
+Ekvatorial~guinea | ja
+Peru | ja
+Brasilien | nej
+Belize | nej
+Portugal | nej
+Filippinerna | nej
+Guyana | nej
+
+sant 4 | Har landet landgräns mot Ryssland?
+Nordkorea | ja
+Polen | ja
+Norge | ja
+Mongoliet | ja
+Azerbajdzjan | ja
+Litauen | ja
+Armenien | nej
+Turkiet | nej
+Moldavien | nej
+Iran | nej
+
+sant 4 | Går ekvatorn genom landet?
+Ecuador | ja
+Colombia | ja
+Brasilien | ja
+Kenya | ja
+Indonesien | ja
+Uganda | ja
+Tanzania | nej
+Kamerun | nej
+Singapore | nej
+Venezuela | nej
+
+sant 3 | Har landet kust mot Medelhavet?
+Libanon | ja
+Tunisien | ja
+Syrien | ja
+Marocko | ja
+Malta | ja
+Monaco | ja
+Portugal | nej
+Jordanien | nej
+Bulgarien | nej
+Saudiarabien | nej
+
+sant 4 | Rinner floden genom en huvudstad?
+Themsen | ja
+Tibern | ja
+Spree | ja
+Moldau | ja
+Nilen | ja
+Potomac | ja
+Loire | nej
+Volga | nej
+Ganges | nej
+Rhône | nej
+
+sant 4 | Ligger ö-staten i Stilla havet?
+Fiji | ja
+Samoa | ja
+Tonga | ja
+Vanuatu | ja
+Palau | ja
+Maldiverna | nej
+Seychellerna | nej
+Mauritius | nej
+Bahamas | nej
+Barbados | nej
+
+sant 3 | Är valutan en dollar?
+Kanada | ja
+Australien | ja
+Singapore | ja
+Jamaica | ja
+Namibia | ja
+Ecuador | ja
+Mexiko | nej
+Brasilien | nej
+Indien | nej
+Sydafrika | nej
+
+sant 3 | Har landet kust mot Stilla havet?
+Kanada | ja
+Mexiko | ja
+Colombia | ja
+Guatemala | ja
+Ryssland | ja
+Honduras | ja
+Venezuela | nej
+Brasilien | nej
+Kuba | nej
+Belize | nej
+
+sant 3 | Skrivs landets språk med kyrilliska?
+Bulgarien | ja
+Serbien | ja
+Nord~makedonien | ja
+Mongoliet | ja
+Vitryssland | ja
+Kroatien | nej
+Georgien | nej
+Grekland | nej
+Rumänien | nej
+Armenien | nej
+
+sant 4 | Är landet större än Tyskland?
+Japan | ja
+Zimbabwe | ja
+Paraguay | ja
+Irak | ja
+Kamerun | ja
+Finland | nej
+Italien | nej
+Vietnam | nej
+Nya Zeeland | nej
+Storbritannien | nej
+
+sant 4 | Är huvudstaden uppkallad efter en person?
+Washington | ja
+Monrovia | ja
+Wellington | ja
+Port Louis | ja
+São Tomé | ja
+Canberra | nej
+Ottawa | nej
+Brasília | nej
+Islamabad | nej
+Kairo | nej
+
+ovrigt 4 | Vad heter huvudstaden?
+Sydkorea | Seoul
+Vietnam | Hanoi
+Filippinerna | Manila
+Pakistan | Islamabad
+Mongoliet | Ulan Bator
+Nepal | Katmandu
+Saudiarabien | Riyadh
+Syrien | Damaskus
+Iran | Teheran
+Laos | Vientiane
+
+ovrigt 4 | Vad heter huvudstaden?
+Egypten | Kairo
+Kenya | Nairobi
+Mali | Bamako
+Nigeria | Abuja
+Etiopien | Addis Abeba
+Ghana | Accra
+Senegal | Dakar
+Uganda | Kampala
+Angola | Luanda
+Madagaskar | Antanana~rivo
+
+ovrigt 4 | Vad heter huvudstaden?
+Argentina | Buenos Aires
+Peru | Lima
+Colombia | Bogotá
+Venezuela | Caracas
+Chile | Santiago
+Costa Rica | San José
+Uruguay | Montevideo
+Paraguay | Asunción
+Kuba | Havanna
+Jamaica | Kingston
+
+ovrigt 5 | I vilket land är staden huvudstad?
+Doha | Qatar
+Abu Dhabi | Förenade arabemiraten
+Valletta | Malta
+Vaduz | Liechtenstein
+Tbilisi | Georgien
+Jerevan | Armenien
+Windhoek | Namibia
+Ouagadougou | Burkina Faso
+Paramaribo | Surinam
+Port Moresby | Papua Nya Guinea
+
+ovrigt 3 | Vilken bilkod har landet?
+Tyskland | D
+Österrike | A
+Spanien | E
+Ungern | H
+Liechtenstein | FL
+Vatikanstaten | V
+Malta | M
+Irland | IRL
+Neder~länderna | NL
+Portugal | P
+
+ovrigt 3 | Vad heter valutan?
+Japan | yen
+Storbritannien | pund
+Schweiz | franc
+Polen | zloty
+Ungern | forint
+Sydafrika | rand
+Brasilien | real
+Thailand | baht
+Sydkorea | won
+Indien | rupie
+
+ovrigt 4 | Vilket vatten ligger mellan …?
+Storbritannien och Frankrike | Engelska kanalen
+Spanien och Marocko | Gibraltar~sund
+Ryssland och Alaska | Berings sund
+Afrika och Arabiska halvön | Röda havet
+Italien och Balkan | Adriatiska havet
+Australien och Nya Zeeland | Tasmanhavet
+Danmark och Norge | Skagerrak
+Sydamerika och Antarktis | Drakes sund
+Grekland och Turkiet | Egeiska havet
+Europa och Asien i Istanbul | Bosporen
+
+ovrigt 3 | Vilken flod rinner genom staden?
+Bagdad | Tigris
+Budapest | Donau
+Köln | Rhen
+Lissabon | Tejo
+Florens | Arno
+Sankt Petersburg | Neva
+Dresden | Elbe
+Warszawa | Weichsel
+New Orleans | Mississippi
+Varanasi | Ganges
+
+ovrigt 3 | Vilket land hör ön till?
+Bali | Indonesien
+Kreta | Grekland
+Zanzibar | Tanzania
+Tasmanien | Australien
+Galápagos | Ecuador
+Azorerna | Portugal
+Sachalin | Ryssland
+Svalbard | Norge
+Phuket | Thailand
+Hokkaido | Japan
+
+ovrigt 4 | Vilket land ligger mellan …?
+Frankrike och Spanien | Andorra
+Österrike och Schweiz | Liechtenstein
+Peru och Colombia | Ecuador
+Rumänien och Ukraina | Moldavien
+Guyana och Franska Guyana | Surinam
+Nicaragua och Panama | Costa Rica
+Panama och Ecuador | Colombia
+Mexiko och Guatemala | Belize
+Spanien och Atlanten | Portugal
+Helt omsluten av Senegal | Gambia
+
+ovrigt 4 | Vilken stad var huvudstad förr?
+Brasilien | Rio de Janeiro
+Turkiet | Istanbul
+Australien | Melbourne
+Nigeria | Lagos
+Pakistan | Karachi
+Myanmar | Yangon
+Indien | Kolkata
+Elfenbens~kusten | Abidjan
+Belize | Belize City
+Malawi | Zomba
+
+farg 4 | Vilken färg har flaggans vänstra fält?
+Frankrike | blå
+Mali | grön
+Irland | grön
+Belgien | svart
+Rumänien | blå
+Elfenbens~kusten | orange
+Guinea | röd
+Mexiko | grön
+Peru | röd
+Tchad | blå
+
+farg 4 | Vilken färg har stjärnan i flaggan?
+Vietnam | gul
+Kina | gul
+Ghana | svart
+Marocko | grön
+Nordkorea | röd
+Chile | vit
+Israel | blå
+Senegal | grön
+Nya Zeeland | röd
+EU-flaggan | gul
+
+farg 4 | Vilken färg förknippas med det?
+Irlands klöver | grön
+Hollands landslag | orange
+Japans körsbärsblom | rosa
+Draken i Wales flagga | röd
+Skottlands tistel | lila
+Nya Zeelands All Blacks | svart
+Frankrikes Les Bleus | blå
+Brasiliens fotbollströja | gul
+Londons dubbeldäckare | röd
+New Yorks taxibilar | gul
+
+farg 4 | Vilken färg är platsen känd för?
+Pamukkale i Turkiet | vit
+Salar de Uyuni i Bolivia | vit
+Marrakech, röda staden | röd
+Röda fortet i Delhi | röd
+Jaipur, rosa staden | rosa
+Lake Hillier i Australien | rosa
+Jodhpur, blå staden | blå
+Chefchaouen i Marocko | blå
+Gyllene templet i Amritsar | guld
+Shwedagon~pagoden | guld
+
+farg 3 | Vilken färg har flaggans mittersta rand?
+Österrike | vit
+Lettland | vit
+Jemen | vit
+Spanien | gul
+Bolivia | gul
+Gabon | gul
+Etiopien | gul
+Armenien | blå
+Thailand | blå
+Malawi | röd
+
+farg 4 | Vilken färg har den?
+Brittiska telefonkiosker | röd
+Japanska brevlådor | röd
+Kanadas ridande polis (jackan) | röd
+Amerikanska skolbussar | gul
+Tyska brevlådor | gul
+Irländska brevlådor | grön
+Sydafrikas rugbytröja | grön
+Amerikanska brevlådor | blå
+Santorinis kyrkkupoler | blå
+Thailändska munkars dräkt | orange
+
+sant 2 | Ligger landet i Afrika?
+Eritrea | ja
+Malawi | ja
+Kap Verde | ja
+Mauritius | ja
+Djibouti | ja
+Guyana | nej
+Belize | nej
+Jemen | nej
+Oman | nej
+Papua Nya Guinea | nej
+
+sant 2 | Betalar man med euro i landet?
+Finland | ja
+Estland | ja
+Kroatien | ja
+Montenegro | ja
+Slovakien | ja
+Danmark | nej
+Polen | nej
+Tjeckien | nej
+Ungern | nej
+Schweiz | nej
+
+sant 3 | Rinner Donau genom eller längs landet?
+Tyskland | ja
+Österrike | ja
+Ungern | ja
+Serbien | ja
+Rumänien | ja
+Slovakien | ja
+Tjeckien | nej
+Schweiz | nej
+Polen | nej
+Slovenien | nej
+
+sant 2 | Är portugisiska officiellt språk?
+Brasilien | ja
+Angola | ja
+Moçambique | ja
+Kap Verde | ja
+Östtimor | ja
+Uruguay | nej
+Paraguay | nej
+Venezuela | nej
+Marocko | nej
+Spanien | nej
+
+sant 3 | Gränsar landet till Kina?
+Afghanistan | ja
+Nepal | ja
+Laos | ja
+Vietnam | ja
+Kirgizistan | ja
+Mongoliet | ja
+Thailand | nej
+Bangladesh | nej
+Kambodja | nej
+Sydkorea | nej
+
+sant 3 | Var landet en del av Jugoslavien?
+Slovenien | ja
+Kroatien | ja
+Serbien | ja
+Montenegro | ja
+Nord~makedonien | ja
+Bosnien-Hercegovina | ja
+Albanien | nej
+Bulgarien | nej
+Ungern | nej
+Grekland | nej
+
+sant 3 | Finns det en stjärna i flaggan?
+Turkiet | ja
+Brasilien | ja
+Kuba | ja
+Pakistan | ja
+Venezuela | ja
+Australien | ja
+Japan | nej
+Indien | nej
+Sydkorea | nej
+Mexiko | nej
+
+sant 3 | Ligger vulkanen i Italien?
+Etna | ja
+Vesuvius | ja
+Stromboli | ja
+Vulcano | ja
+Campi Flegrei | ja
+Hekla | nej
+Teide | nej
+Krakatau | nej
+Mauna Loa | nej
+Popocatépetl | nej
+
+sant 2 | Ligger landet i Sydamerika?
+Surinam | ja
+Ecuador | ja
+Paraguay | ja
+Uruguay | ja
+Colombia | ja
+Panama | nej
+Costa Rica | nej
+Nicaragua | nej
+Kuba | nej
+El Salvador | nej
+
+sant 2 | Ligger berget i Alperna?
+Matterhorn | ja
+Eiger | ja
+Jungfrau | ja
+Monte Rosa | ja
+Großglockner | ja
+Snöhettan | nej
+Olympos | nej
+Ben Nevis | nej
+Kilimanjaro | nej
+Mulhacén | nej
+
+siffra 4 | Hur många grannländer har landet?
+Portugal | 1
+Mongoliet | 2
+Schweiz | 5
+Bolivia | 5
+Italien | 6
+Ungern | 7
+Österrike | 8
+Tyskland | 9
+Brasilien | 10
+Kina | 14
+
+siffra 4 | Vilket år hände det?
+Italien enades | 1861
+Kanada bildades | 1867
+Tyskland enades | 1871
+Kvinnor fick rösta i Nya Zeeland | 1893
+Australien bildades | 1901
+Panama bröt sig ur Colombia | 1903
+Kubanska revolutionen | 1959
+Sovjetunionen upplöstes | 1991
+Mandela blev president | 1994
+Euron blev kontanter | 2002
+
+siffra 3 | Vilket år blev landet republik?
+Frankrike | 1792
+Portugal | 1910
+Kina | 1912
+Österrike | 1918
+Turkiet | 1923
+Italien | 1946
+Indien | 1950
+Sydafrika | 1961
+Nepal | 2008
+Barbados | 2021
+
+siffra 4 | Hur många länder ligger vid vattnet?
+Kaspiska havet | 5
+Victoriasjön | 3
+Bodensjön | 3
+Svarta havet | 6
+Titicacasjön | 2
+Tanganyikasjön | 4
+Aralsjön | 2
+Östersjön | 9
+Adriatiska havet | 6
+Genèvesjön | 2
+
+siffra 2 | Hur många delstater eller regioner?
+Tysklands förbundsländer | 16
+Schweiz kantoner | 26
+Kanadas provinser | 10
+Australiens delstater | 6
+USA:s delstater | 50
+Österrikes förbunds~länder | 9
+Länder i Storbritannien | 4
+Danmarks regioner | 5
+Spaniens autonoma regioner | 17
+Italiens regioner | 20
+
+siffra 3 | Hur många officiella språk har landet?
+Frankrike | 1
+Finland | 2
+Kanada | 2
+Irland | 2
+Belgien | 3
+Luxemburg | 3
+Schweiz | 4
+Singapore | 4
+Rwanda | 4
+Zimbabwe | 16
+
+siffra 3 | Hur många är det?
+Länder i Sydamerika | 12
+Länder i Centralamerika | 7
+Stora sjöarna i Nordamerika | 5
+Emirat i Förenade arabemiraten | 7
+-stan-länder i Centralasien | 5
+EU-länder (2026) | 27
+Länder i FN | 193
+Baltiska stater | 3
+Länder i G7 | 7
+Länder som delar Mount Everest | 2
+
+siffra 2 | Vilket år blev landet självständigt?
+Belgien | 1830
+Jordanien | 1946
+Kongo-Kinshasa | 1960
+Jamaica | 1962
+Malta | 1964
+Bahamas | 1973
+Vanuatu | 1980
+Kroatien | 1991
+Slovakien | 1993
+Montenegro | 2006
+
+siffra 3 | Vilket år blev staden huvudstad?
+Madrid | 1561
+Sankt Petersburg | 1712
+Washington | 1800
+Helsingfors | 1812
+Wellington | 1865
+Rom | 1871
+Moskva | 1918
+Bonn | 1949
+Berlin (återförenat) | 1990
+Astana | 1997
+
+siffra 2 | Hur många tidszoner har landet?
+Ryssland | 11
+Kanada | 6
+Brasilien | 4
+Mexiko | 4
+Indonesien | 3
+Mongoliet | 2
+Kina | 1
+Indien | 1
+Argentina | 1
+Japan | 1
+
+siffra 3 | Hur många uddar eller strålar?
+Kinas stora stjärna | 5
+Burundis stjärnor | 6
+Jordaniens stjärna | 7
+Azerbajdzjans stjärna | 8
+Naurus stjärna | 12
+Malaysias stjärna | 14
+Filippinernas sol | 8
+Uruguays sol | 16
+Argentinas sol | 32
+Kazakstans sol | 32
+
+ordning 4 | Rangordna efter yta (1 = minst)
+Vatikanstaten | 1
+Monaco | 2
+Nauru | 3
+Tuvalu | 4
+San Marino | 5
+Liechtenstein | 6
+Maldiverna | 7
+Malta | 8
+Andorra | 9
+Luxemburg | 10
+
+ordning 4 | Rangordna öarna efter yta (1 = störst)
+Grönland | 1
+Nya Guinea | 2
+Borneo | 3
+Madagaskar | 4
+Sumatra | 5
+Honshu | 6
+Storbritannien | 7
+Island | 8
+Irland | 9
+Sicilien | 10
+
+ordning 3 | Rangordna sjöarna efter yta (1 = störst)
+Kaspiska havet | 1
+Övre sjön | 2
+Victoriasjön | 3
+Huronsjön | 4
+Bajkalsjön | 5
+Ladoga | 6
+Onega | 7
+Titicacasjön | 8
+Genèvesjön | 9
+Loch Ness | 10
+
+ordning 3 | Rangordna floderna efter längd (1 = längst)
+Nilen | 1
+Yangtze | 2
+Gula floden | 3
+Kongofloden | 4
+Niger | 5
+Volga | 6
+Donau | 7
+Ganges | 8
+Rhen | 9
+Themsen | 10
+
+ordning 2 | Rangordna efter yta (1 = störst)
+Frankrike | 1
+Spanien | 2
+Tyskland | 3
+Finland | 4
+Polen | 5
+Italien | 6
+Storbritannien | 7
+Grekland | 8
+Island | 9
+Irland | 10
+
+ordning 2 | Rangordna bergen efter höjd (1 = högst)
+Kangchenjunga | 1
+Ojos del Salado | 2
+Chimborazo | 3
+Mount Logan | 4
+Mount Kenya | 5
+Ararat | 6
+Fuji | 7
+Zugspitze | 8
+Galdhøpiggen | 9
+Vesuvius | 10
+
+ordning 3 | Rangordna från väst till öst (1 = västligast)
+Reykjavik | 1
+Lissabon | 2
+Madrid | 3
+London | 4
+Paris | 5
+Oslo | 6
+Wien | 7
+Budapest | 8
+Aten | 9
+Moskva | 10
+
+ordning 2 | Rangordna huvudstäderna (1 = sydligast)
+Wellington | 1
+Canberra | 2
+Montevideo | 3
+Buenos Aires | 4
+Santiago | 5
+Windhoek | 6
+Brasília | 7
+Lima | 8
+Jakarta | 9
+Nairobi | 10
+
+tid 4 | Vilket decennium blev landet självständigt?
+Libyen | 1950-talet
+Marocko | 1950-talet
+Ghana | 1950-talet
+Nigeria | 1960-talet
+Algeriet | 1960-talet
+Kenya | 1960-talet
+Angola | 1970-talet
+Moçambique | 1970-talet
+Namibia | 1990-talet
+Eritrea | 1990-talet
+
+tid 4 | Vilket århundrade grundades staden?
+Bagdad | 700-talet
+Kairo | 900-talet
+Moskva | 1100-talet
+Lima | 1500-talet
+Kapstaden | 1600-talet
+Sydney | 1700-talet
+Sankt Petersburg | 1700-talet
+Melbourne | 1800-talet
+Canberra | 1900-talet
+Brasília | 1900-talet
+
+tid 4 | Från vilket decennium hände det?
+Alaska såldes till USA | 1860-talet
+Danmark sålde Jungfruöarna | 1910-talet
+Hawaii blev delstat | 1950-talet
+Tanganyika och Zanzibar blev Tanzania | 1960-talet
+Singapore lämnade Malaysia | 1960-talet
+Grönland fick hemstyre | 1970-talet
+Tjeckoslo~vakien delades | 1990-talet
+Hongkong blev kinesiskt | 1990-talet
+Makedonien bytte namn | 2010-talet
+Storbritannien lämnade EU | 2020-talet
+
+tid 4 | Från vilket decennium är stadens namn?
+Nya Amsterdam blev New York | 1660-talet
+Edo blev Tokyo | 1860-talet
+S:t Petersburg blev Petrograd | 1910-talet
+Kristiania blev Oslo | 1920-talet
+Konstanti~nopel blev Istanbul | 1930-talet
+Léopoldville blev Kinshasa | 1960-talet
+Saigon blev Ho Chi Minh-staden | 1970-talet
+Salisbury blev Harare | 1980-talet
+Bombay blev Mumbai | 1990-talet
+Madras blev Chennai | 1990-talet
+
+tid 3 | Från vilket århundrade är bygget?
+Kremls tegelmurar | 1400-talet
+Vasilijkatedralen i Moskva | 1500-talet
+Blå moskén i Istanbul | 1600-talet
+Rundetårn i Köpenhamn | 1600-talet
+Spanska trappan i Rom | 1700-talet
+Fontana di Trevi | 1700-talet
+Tower Bridge | 1800-talet
+Sydney Harbour Bridge | 1900-talet
+Mount Rushmore | 1900-talet
+Marina Bay Sands | 2000-talet
+
+tid 2 | Vilket decennium gick landet med i EG/EU?
+Italien | 1950-talet
+Neder~länderna | 1950-talet
+Danmark | 1970-talet
+Irland | 1970-talet
+Grekland | 1980-talet
+Spanien | 1980-talet
+Portugal | 1980-talet
+Finland | 1990-talet
+Österrike | 1990-talet
+Kroatien | 2010-talet
+
+tid 3 | Från vilket decennium är sevärdheten?
+Hollywood-skylten | 1920-talet
+Chrysler Building | 1930-talet
+Kristusstatyn i Rio | 1930-talet
+Space Needle i Seattle | 1960-talet
+Gateway Arch i S:t Louis | 1960-talet
+CN Tower i Toronto | 1970-talet
+Louvrens glaspyramid | 1980-talet
+Guggenheim i Bilbao | 1990-talet
+Petronas Towers | 1990-talet
+Burj Al Arab | 1990-talet
+
+tid 2 | Från vilket decennium är flaggan?
+Kanadas lönnlövsflagga | 1960-talet
+USA:s med 50 stjärnor | 1960-talet
+Kenyas | 1960-talet
+Kinas | 1940-talet
+Indiens | 1940-talet
+Libanons | 1940-talet
+Moçambiques | 1980-talet
+Sydafrikas | 1990-talet
+Bosnien-Hercegovinas | 1990-talet
+Myanmars | 2010-talet
+
+ovrigt 3 | Vilket är landets officiella språk?
+Österrike | tyska
+Andorra | katalanska
+Surinam | nederländska
+Guyana | engelska
+Elfenbens~kusten | franska
+Moldavien | rumänska
+Iran | persiska
+Mauretanien | arabiska
+Brunei | malajiska
+Kambodja | khmer
+
+ovrigt 2 | I vilket land ligger staden?
+Timbuktu | Mali
+Salzburg | Österrike
+Porto | Portugal
+Kraków | Polen
+Medellín | Colombia
+Durban | Sydafrika
+Chiang Mai | Thailand
+Mombasa | Kenya
+Manaus | Brasilien
+Antwerpen | Belgien
+
+ovrigt 3 | Vilken öken ligger i landet?
+Chile | Atacama
+Mongoliet | Gobi
+Namibia | Namib
+Botswana | Kalahari
+Kina (Xinjiang) | Taklamakan
+USA (Kalifornien) | Mojave
+Indien (vid Pakistan) | Thar
+Saudiarabien | Rub al-Khali
+Turkmenistan | Karakum
+Israel | Negev
+
+ovrigt 3 | I vilken bergskedja ligger berget?
+Mount Everest | Himalaya
+Mont Blanc | Alperna
+Aconcagua | Anderna
+Elbrus | Kaukasus
+K2 | Karakoram
+Toubkal | Atlas
+Pikes Peak | Klippiga bergen
+Aneto | Pyrenéerna
+Moldoveanu | Karpaterna
+Gerlachovský | Tatra
+
+ovrigt 2 | Vilket land var kolonialmakt?
+Kongo-Kinshasa | Belgien
+Indonesien | Nederländerna
+Brasilien | Portugal
+Libyen | Italien
+Indien | Storbritannien
+Algeriet | Frankrike
+Mexiko | Spanien
+Angola | Portugal
+Vietnam | Frankrike
+Surinam | Nederländerna
+
+ovrigt 3 | Vid vilket hav ligger staden?
+Barcelona | Medelhavet
+Rio de Janeiro | Atlanten
+Lima | Stilla havet
+Odessa | Svarta havet
+Gdansk | Östersjön
+Jeddah | Röda havet
+Baku | Kaspiska havet
+Bergen | Nordsjön
+Perth | Indiska oceanen
+Murmansk | Barents hav
+
+ovrigt 3 | Vilken flod går längs gränsen?
+USA – Mexiko | Rio Grande
+Tyskland – Polen | Oder
+Ryssland – Kina | Amur
+Kina – Nordkorea | Yalu
+Zambia – Zimbabwe | Zambezi
+Laos – Thailand | Mekong
+Sydafrika – Namibia | Oranje
+De två Kongo | Kongofloden
+Frankrike – Tyskland | Rhen
+Argentina – Uruguay | Uruguayfloden
+
+ovrigt 2 | Vad heter småstatens huvudstad?
+Monaco | Monaco
+Luxemburg | Luxemburg
+Andorra | Andorra la Vella
+Cypern | Nicosia
+Fiji | Suva
+Samoa | Apia
+Barbados | Bridgetown
+Bahrain | Manama
+Maldiverna | Malé
+Seychellerna | Victoria
