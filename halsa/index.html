@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
 <meta charset="utf-8">
-<meta name="app-build" content="2026-10-08 10:51">
+<meta name="app-build" content="2026-10-13 19:12">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Logga vikt och kalorier, importera hälsodata och träningspass från klockan och följ planen mot målvikten.">
 <link rel="manifest" href="manifest.webmanifest">
@@ -148,8 +148,8 @@ main{max-width:1260px;margin:0 auto;padding:16px 16px 48px}
 .datenav .ds{font-size:12.5px;color:var(--muted)}
 .datenav>div{min-width:140px;text-align:center}
 .goalbar{flex:1;min-width:220px}
-.goalbar .gt{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:6px;gap:8px}
-.goalbar .gt b{color:var(--text);font-weight:650}
+.goalbar .gt,.xpbar .gt{display:flex;justify-content:space-between;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-bottom:6px;gap:4px 8px}
+.goalbar .gt b,.xpbar .gt b{color:var(--text);font-weight:650}
 .pbar{height:10px;border-radius:99px;background:var(--sunken);overflow:hidden;position:relative}
 .pbar>i{display:block;height:100%;background:linear-gradient(90deg,#e9a52a,var(--accent) 60%,#ffd37c);border-radius:inherit;transition:width .7s cubic-bezier(.2,.8,.2,1)}
 .pbar.ok>i{background:var(--ok)}
@@ -162,7 +162,15 @@ main{max-width:1260px;margin:0 auto;padding:16px 16px 48px}
 .stat .sv{font-weight:700;font-size:15px;line-height:1.1}
 .stat .sl{font-size:11.5px;color:var(--muted);line-height:1.15}
 .stat.cold .sic{background:var(--sunken);color:var(--muted)}
-.lvlbar{width:90px;height:4px;border-radius:9px;background:var(--sunken);margin-top:3px;overflow:hidden}
+.stat .sv small{font-size:11.5px;font-weight:500;color:var(--muted)}
+button.stat{font:inherit;color:inherit;text-align:left;cursor:pointer}
+button.stat:hover{border-color:var(--accent)}
+#poangCard{scroll-margin-top:76px}
+.xpsum{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;margin-bottom:10px}
+.xpsum .kl{font-size:12px;color:var(--muted)}
+.xpsum .big{font-size:20px;font-weight:700}
+@media (max-width:640px){.xpsum{grid-template-columns:1fr 1fr}.xpsum .xpbar{grid-column:1/-1;order:3}}
+.lvlbar{width:100%;min-width:90px;height:4px;border-radius:9px;background:var(--sunken);margin-top:3px;overflow:hidden}
 .lvlbar i{display:block;height:100%;background:var(--accent)}
 
 /* ---------- Kalorier ---------- */
@@ -571,6 +579,12 @@ details ol,details ul{margin:6px 0;padding-left:20px}
     <div class="card w12">
       <h2><svg class="ic"><use href="#i-today"/></svg>Veckor</h2>
       <div class="tscroll" id="weekTable"></div>
+    </div>
+    <div class="card w12" id="poangCard">
+      <h2><svg class="ic"><use href="#i-trophy"/></svg>Poäng och nivå<span class="sp"></span><span class="cnt" id="xpCount"></span></h2>
+      <div id="xpSum"></div>
+      <div class="chart" id="xpChart"></div>
+      <div class="hint">Varje dag kan ge upp till 100 poäng: väg dig 15, logga maten 15, inom kalorimålet 20, protein 10, stegmålet 20 och ett träningspass 20. Dagens poäng börjar alltid på 0, men allt du samlar läggs ihop till totalen som ger dig nya nivåer. Stegpoängen kräver dagens hälsodata (Garmin-bryggan eller en CSV).</div>
     </div>
     <div class="card w12">
       <h2><svg class="ic"><use href="#i-trophy"/></svg>Utmärkelser<span class="sp"></span><span class="cnt" id="badgeCount"></span></h2>
@@ -1571,8 +1585,8 @@ function renderIdag() {
   const lv = m.level, lvPct = (lv.xp - lv.from) / (lv.to - lv.from);
   $('heroChips').innerHTML =
     `<div class="stat${m.streak ? '' : ' cold'}" title="Dagar i rad med loggad mat (bäst: ${m.bestStreak})"><span class="sic">${ic('i-flame')}</span><div><div class="sv">${m.streak} ${m.streak === 1 ? 'dag' : 'dagar'}</div><div class="sl">${m.streak ? (m.loggadIdag ? 'i rad – snyggt!' : 'i rad – logga idag') : 'logga idag och starta'}</div></div></div>` +
-    `<div class="stat" title="${fmt(lv.xp)} poäng totalt – ${fmt(lv.to - lv.xp)} kvar till nästa nivå"><span class="sic">${ic('i-trophy')}</span><div><div class="sv">Nivå ${lv.n}</div><div class="sl">${esc(lv.namn)}</div><div class="lvlbar"><i style="width:${(lvPct * 100).toFixed(0)}%"></i></div></div></div>` +
-    `<div class="stat" title="Dagens poäng"><span class="sic" style="background:none">${ring(ev.poang / 100, 30, 4, ev.poang >= 100 ? 'var(--ok)' : 'var(--accent)')}</span><div><div class="sv">${ev.poang} p</div><div class="sl">${d === t ? 'idag' : relDay(d)}</div></div></div>`;
+    `<button type="button" class="stat lvl" id="lvlChip" title="Nivå ${lv.n} ${esc(lv.namn)}: ${fmt(lv.xp)} poäng totalt sedan ${fmtD(s.startDatum)} – ${fmt(lv.to - lv.xp)} kvar till nivå ${lv.n + 1}. Klicka för poänghistorik."><span class="sic">${ic('i-trophy')}</span><div><div class="sv">Nivå ${lv.n} <small>${esc(lv.namn)}</small></div><div class="sl">${fmt(lv.xp)} av ${fmt(lv.to)} p totalt</div><div class="lvlbar"><i style="width:${Math.max(lvPct > 0 ? 4 : 0, lvPct * 100).toFixed(0)}%"></i></div></div></button>` +
+    `<div class="stat" title="Poäng för ${d === t ? 'idag' : fmtDL(d)} (max 100). Varje dag börjar på 0 och läggs sedan till din totalsumma."><span class="sic" style="background:none">${ring(ev.poang / 100, 30, 4, ev.poang >= 100 ? 'var(--ok)' : 'var(--accent)')}</span><div><div class="sv">${ev.poang} <small>av 100 p</small></div><div class="sl">poäng ${d === t ? 'idag' : relDay(d)}</div></div></div>`;
 
   // Kalorier
   const mal = ev.mal, kcal = ev.kcal || 0, over = kcal > mal + 50;
@@ -1747,6 +1761,22 @@ function renderFramsteg() {
       <td class="n ${w.trendDiff < -0.05 ? 'ok' : w.trendDiff > 0.05 ? 'warn' : ''}">${w.trendDiff != null ? sgn(w.trendDiff, 1) : '–'}</td><td class="n">${w.loggade}/${w.dagar}</td>
       <td class="n ${w.kcal != null && w.kcal > w.mal + 50 ? 'warn' : ''}">${w.kcal != null ? fmt(w.kcal) : '–'}</td><td class="n muted">${w.mal != null ? fmt(w.mal) : '–'}</td><td class="n">${w.protein != null ? fmt(w.protein) : '–'}</td>
       <td class="n">${w.steg != null ? fmt(w.steg) : '–'}</td><td class="n">${w.styrka}</td><td class="n">${w.kond}</td><td class="n">${w.min ? fmt(w.min) + ' min' : '–'}</td><td class="n">${w.somn ? fmt(w.somn, 1) + ' h' : '–'}</td><td class="n">${w.poang != null ? fmt(w.poang) : '–'}</td></tr>`).join('') + '</tbody></table>';
+
+  // Poäng och nivå
+  const lv = m.level, lvPct = (lv.xp - lv.from) / (lv.to - lv.from);
+  const xd = []; for (let i = 27; i >= 0; i--) xd.push(addDays(t, -i));
+  const xev = xd.map(d => d >= s.startDatum ? m.dag(d) : null);
+  const raknade = Math.max(0, daysBetween(s.startDatum, t) + 1);
+  $('xpCount').textContent = `${fmt(lv.xp)} p totalt`;
+  $('xpSum').innerHTML = `<div class="xpsum"><div><div class="kl">Nivå ${lv.n}</div><div class="big">${esc(lv.namn)}</div></div>
+    <div class="xpbar"><div class="gt"><span><b>${fmt(lv.xp)}</b> av ${fmt(lv.to)} p</span><span>${fmt(lv.to - lv.xp)} p kvar till nivå ${lv.n + 1}${lv.n < LEVELS.length ? ' – ' + esc(LEVELS[lv.n]) : ''}</span></div><div class="pbar"><i style="width:${(lvPct * 100).toFixed(1)}%"></i></div></div>
+    <div><div class="kl">Snitt per dag</div><div class="big">${raknade ? fmt(lv.xp / raknade) : '–'} <span style="font-size:14px;font-weight:500" class="muted">p</span></div><div class="muted" style="font-size:12px">${fmt(raknade)} dagar sedan ${fmtD(s.startDatum)}</div></div></div>`;
+  chart($('xpChart'), {
+    n: 28, h: 180, zero: true, label: 'Poäng per dag', maxBar: 18, yMax: 100,
+    xLab: i => i % 7 === 0 || i === 27 ? fmtD(xd[i]) : '', xEvery: i => i % 7 === 0 || i === 27,
+    bars: [{ v: xev.map(e => e ? e.poang : null), color: (i, v) => v >= 100 ? 'var(--ok)' : 'var(--accent)' }],
+    tip: i => { const e = xev[i]; if (!e) return `<b>${fmtDL(xd[i])}</b><br>Före startdatumet`; return `<b>${fmtDL(xd[i])}: ${e.poang} p</b><br>` + e.g.map(g => `${g.ok ? '✓' : '·'} ${esc(g.namn)}${g.ok ? ' +' + g.p : ''}`).join('<br>'); }
+  });
 
   // Utmärkelser
   const got = m.badges.filter(b => b.datum).length;
@@ -2012,6 +2042,7 @@ function bind() {
   window.addEventListener('drop', e => { if (!e.dataTransfer?.files?.length) return; e.preventDefault(); dragN = 0; $('drop').hidden = true; importFiles([...e.dataTransfer.files]); });
 
   // Idag
+  $('heroChips').onclick = e => { if (e.target.closest('#lvlChip')) { setTab('framsteg', false); setTimeout(() => $('poangCard').scrollIntoView({ block: 'start' }), 50); } };
   $('dPrev').onclick = () => { selDate = addDays(selDate, -1); render(); };
   $('dNext').onclick = () => { if (selDate < today()) { selDate = addDays(selDate, 1); render(); } };
   $('kcalForm').onsubmit = e => {
@@ -2129,6 +2160,8 @@ function bind() {
   window.addEventListener('online', () => sync());
   window.addEventListener('offline', updateSyncUI);
   setInterval(() => { if (document.visibilityState === 'visible') sync(); }, 5 * 60 * 1000);
+  // Ny dag medan appen är öppen: hoppa till idag om man stod på den gamla dagen
+  setInterval(() => { if (MC && today() !== MC.t && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '')) { if (selDate === MC.t) selDate = today(); render(); } }, 60 * 1000);
 }
 function markAllDirty() { for (const t of TYPER) for (const k of Object.keys(db[t])) lokal.dirty[t + '|' + k] = db[t][k].u || Date.now(); }
 function importBackup(text) {
