@@ -1,9 +1,10 @@
 /* Melodier: datamodell, kodning till mottagaren, RTTTL och uppspelning i webbläsaren.
-   Format i mottagaren (max 128 byte): [ver=1, upprepa, bpm, antal, (midi, steg) × antal]. midi 0 = paus. 1 steg = 1/16-not. */
+   Format i mottagaren (max 118 byte i ReceiverOS 2.1): [format=1, upprepa, bpm, antal, (midi, steg) × antal].
+   midi 0 = paus. 1 steg = 1/16-not. Mottagaren upprepar ljudet så länge larmet låter. */
 (function (g) {
   'use strict';
   const LOW = 76, HIGH = 100;            // E5 … E7, piezon låter bäst i den övre delen
-  const STEPS = 64, MAX_BYTES = 128, MAX_ENTRIES = Math.floor((MAX_BYTES - 4) / 2);
+  const STEPS = 64, MAX_BYTES = 118, MAX_ENTRIES = Math.floor((MAX_BYTES - 4) / 2);
   const NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
   const freq = (m) => 440 * Math.pow(2, (m - 69) / 12);
@@ -28,9 +29,9 @@
     }
     return out;
   }
-  function encode(mel) {
-    const e = entries(mel);
-    if (e.length > MAX_ENTRIES) throw new Error('För många toner och pauser (' + e.length + ', max ' + MAX_ENTRIES + ')');
+  function encode(mel, maxBytes) {
+    const e = entries(mel), max = Math.floor(((maxBytes || MAX_BYTES) - 4) / 2);
+    if (e.length > max) throw new Error('För många toner och pauser (' + e.length + ', max ' + max + ')');
     const b = [1, Math.max(0, Math.min(255, mel.rep | 0)), Math.max(40, Math.min(255, mel.bpm | 0)), e.length];
     for (const [m, l] of e) b.push(m, l);
     return Uint8Array.from(b);
@@ -128,8 +129,13 @@
     { id: 'mjuk', mel: () => seq([[79, 3], [0, 1], [84, 3], [0, 1], [88, 6], [0, 6]], 120, 'Mjuk väckning', 2) },
     { id: 'napp', mel: () => seq([[91, 1], [96, 1], [0, 1], [91, 1], [96, 1], [0, 1], [100, 4], [0, 6]], 180, 'Napp-napp') }
   ];
-  /* Förhandslyssning av mottagarens inbyggda ljud (Glassbilen spelas bara i mottagaren) */
-  const BUILTIN_PREVIEW = { 0: () => morse('FÄLL', 98, 220, 'Morse FÄLL'), 1: () => seq([[93, 3], [86, 3], [93, 3], [86, 3]], 150, 'Larm 2', 2) };
+  /* Förhandslyssning av mottagarens inbyggda ljud, så nära originalet som möjligt
+     (Glassbilen spelas bara i mottagaren) */
+  const BUILTIN_PREVIEW = {
+    0: () => morse('FÄLL', 84, 150, 'Morsekod'),
+    1: () => seq([[79, 4], [87, 4], [79, 4], [87, 4], [79, 4], [87, 4]], 200, 'Larm 2', 1),
+    3: () => seq([[99, 4], [103, 4], [99, 4], [103, 4], [99, 4], [103, 4]], 240, 'Brandlarm', 1)
+  };
 
   /* ---------- Uppspelning ---------- */
   let ctx = null;

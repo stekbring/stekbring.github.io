@@ -15,12 +15,13 @@
 
   /* Inbyggd versionslista, används om firmware/releases.json inte kan läsas (t.ex. när sidan öppnas som fil) */
   const DEFAULT_RELEASES = [
-    { version: '2.1.0', date: '2026-11-15', model: 'AR-RX', file: 'firmware/ReceiverOS-2.1.0.hex', notes: [
-      'Inställningar, sändare och egna ljud kan ändras härifrån via USB.',
-      'Räckviddstest under System, med live-procent och pip.',
-      'Namn på sändarna visas på skärmen vid larm.',
-      'Tre platser för egna larmljud.',
-      'Skärpta gränser för signalomdömen (95/80/50 %).'] },
+    { version: '2.1.0', date: '2026-10-14', model: 'AR-RX', file: 'firmware/ReceiverOS-2.1.0.hex', notes: [
+      'Ställ in mottagaren, döp sändarna och skapa egna larmljud här på sidan via USB.',
+      'Räckviddstest under System, med live-procent varje sekund och pip som följer signalen.',
+      'Namn på sändarna visas på skärmen vid larm och i sändarlistan.',
+      'Pausa sändare som inte används.',
+      'Två platser för egna larmljud.',
+      'QR-kod till den här sidan under System → Webbsida.'] },
     { version: '2.0.0', date: '2026-10-13', model: 'AR-RX', file: 'firmware/ReceiverOS-2.0.0.hex', notes: [
       'Mottagaren kan inte längre fastna i parningsläget.',
       'En fällning ger ett larm, även om sändaren upprepar koden.',
@@ -29,7 +30,9 @@
       'Larmet blockerar inte längre ratten eller radion.'] }
   ];
 
-  const DEFAULT_SETTINGS = { vol: 7, sig: 0, sigr: 1, alen: 0, beepno: 1, remind: 1, remints: 30, rush: 1, flash: 1, dim: 15, con: 3, flip: 0, btype: 0, lowbat: 1, relay: 0, dbl: 0 };
+  const DEFAULT_SETTINGS = { vol: 8, sig: 0, sigr: 1, alen: 5, beepno: 1, remind: 1, remints: 30, rush: 1, flash: 1, dim: 15, con: 3, flip: 0, btype: 0, lowbat: 1, relay: 0, dbl: 0 };
+  /* Vilka inställningar mottagaren klarar (INFO keys=). Saknas listan visas allt. */
+  const supported = (k) => !S.info || !S.info.keys || S.info.keys.includes(k);
   const PROFILES = {
     dag: { vol: 7, alen: 0, remind: 1, remints: 30, beepno: 1, flash: 1, con: 3 },
     natt: { vol: 4, alen: 0, remind: 1, remints: 30, beepno: 1, flash: 1, con: 1 },
@@ -205,10 +208,12 @@
     await guard(async () => {
       S.sounds = await d.sounds();
       S.saved = Object.assign({}, DEFAULT_SETTINGS, await d.getSettings());
+      S.melSlots = S.info.melSlots || 2;
       S.draft = { ...S.saved };
       S.tx = await d.listTx();
       S.log = await d.readLog();
-      for (let i = 1; i <= 3; i++) {
+      S.mel = {}; S.melNames = {};
+      for (let i = 1; i <= S.melSlots; i++) {
         const m = await d.readMelody(i);
         S.mel[i] = m.bytes && m.bytes.length ? m.bytes : null; S.melNames[i] = m.name || '';
       }
@@ -264,10 +269,10 @@
       $('#heroSub').textContent = S.mode === 'raw' ? 'Den här versionen av programvaran kan inte ändras härifrån. Uppdatera för att låsa upp allt.' : S.mode === 'sim' ? 'En låtsasmottagare med sju sändare. Prova inställningar, ljudstudion och räckviddstestet. Inget du gör här påverkar en riktig mottagare.' : 'Allt du ändrar här skickas till mottagaren när du sparar. Dra ur kabeln när du är klar.';
       $('#heroBtns').hidden = true; $('#heroChips').hidden = false;
       const latest = S.releases[0], newer = latest && i.fw && verCmp(latest.version, i.fw) > 0;
-      const pct = i.batMv ? (i.batPct != null ? i.batPct : batPct(i.batMv, S.saved ? S.saved.btype : i.batType)) : null;
+      const pct = i.usb ? null : i.batMv ? (i.batPct != null ? i.batPct : batPct(i.batMv, S.saved ? S.saved.btype : i.batType)) : null;
       $('#heroChips').innerHTML =
         chip('i-cpu', 'v' + esc(i.fw), 'Programvara', newer ? 'new' : 'good') +
-        (pct != null ? chip('i-bat', pct + ' %', (i.batMv / 1000).toFixed(2).replace('.', ',') + ' V', pct < 20 ? 'cold' : '') : '') +
+        (pct != null ? chip('i-bat', pct + ' %', (i.batMv / 1000).toFixed(2).replace('.', ',') + ' V', pct < 20 ? 'cold' : '') : i.usb ? chip('i-plug', 'USB', 'Inget batteri') : '') +
         (on ? chip('i-radio', S.tx.length + ' st', 'Sändare') : '') +
         (newer ? '<button type="button" class="stat" data-act="tab" data-tab="uppdatera" style="cursor:pointer"><span class="sic" style="background:var(--blue-soft);color:var(--blue)">' + icon('i-update') + '</span><span><span class="sv">v' + esc(latest.version) + ' finns</span><br><span class="sl">Uppdatera</span></span></button>' : '');
       if (on) oled('ANGELRADIO', S.tx.length + ' SANDARE', pct != null ? 'Batt ' + pct + ' %  v' + i.fw : 'v' + i.fw);
@@ -276,10 +281,10 @@
     /* Rutor */
     $('#devModel').textContent = i ? (i.name + (i.hw && i.hw !== '?' ? ' · kort v' + i.hw : '')) : '–';
     if (on) {
-      const pct = i.batPct != null ? i.batPct : batPct(i.batMv, S.draft.btype);
-      $('#tBat').innerHTML = pct + '<small> %</small>';
+      const pct = i.usb ? 0 : i.batPct != null ? i.batPct : batPct(i.batMv, S.draft.btype);
+      $('#tBat').innerHTML = i.usb ? 'USB' : pct + '<small> %</small>';
       const bar = $('#tBatBar'); bar.style.width = pct + '%'; bar.parentElement.className = 'pbar ' + (pct < 20 ? 'bad' : pct < 40 ? 'warn' : 'ok');
-      $('#tBatSub').textContent = (i.batMv / 1000).toFixed(2).replace('.', ',') + ' V · ' + ['Alkaliska', 'Laddbara', 'Litium'][S.draft.btype];
+      $('#tBatSub').textContent = i.usb ? 'Inget batteri i' : (i.batMv / 1000).toFixed(2).replace('.', ',') + ' V · ' + ['Alkaliska', 'Laddbara', 'Li-ion'][S.draft.btype];
       const act = S.tx.filter((t) => !t.paused).length;
       $('#tTx').innerHTML = S.tx.length + '<small> av ' + i.slots + '</small>';
       $('#tTxSub').textContent = act + ' aktiva' + (S.tx.length - act ? ', ' + (S.tx.length - act) + ' pausade' : '');
@@ -303,10 +308,10 @@
   }
   function renderLog() {
     const tb = $('#logBody');
-    if (!connected()) { tb.innerHTML = '<tr><td colspan="4" class="empty">' + (S.mode === 'raw' ? 'Loggen kan inte läsas från den här versionen.' : 'Anslut mottagaren för att se loggen.') + '</td></tr>'; return; }
-    if (!S.log.length) { tb.innerHTML = '<tr><td colspan="4" class="empty">Loggen är tom.</td></tr>'; return; }
+    if (!connected()) { tb.innerHTML = '<tr><td colspan="3" class="empty">' + (S.mode === 'raw' ? 'Loggen kan inte läsas från den här versionen.' : 'Anslut mottagaren för att se loggen.') + '</td></tr>'; return; }
+    if (!S.log.length) { tb.innerHTML = '<tr><td colspan="3" class="empty">Inga fällningar sedan mottagaren startade.</td></tr>'; return; }
     const TY = { fall: '<span class="pill acc">Fäll</span>', rush: '<span class="pill info">Rusning</span>', lowbat: '<span class="pill mitt">Lågt batteri</span>', start: '<span class="pill">Start</span>' };
-    tb.innerHTML = S.log.slice(0, 8).map((l) => '<tr' + (l.fresh ? ' class="flash"' : '') + '><td>' + ago(l.ago) + '</td><td>' + (l.slot ? '<span class="num">' + l.slot + '</span> ' + esc((S.tx.find((t) => t.slot === l.slot) || {}).name || '') : '<span class="muted">–</span>') + '</td><td>' + (TY[l.type] || esc(l.type)) + '</td><td class="n">' + (l.vol != null ? l.vol : '') + '</td></tr>').join('');
+    tb.innerHTML = S.log.slice(0, 8).map((l) => '<tr' + (l.fresh ? ' class="flash"' : '') + '><td>' + ago(l.ago) + '</td><td>' + (l.slot ? '<span class="num">' + l.slot + '</span> ' + esc((S.tx.find((t) => t.slot === l.slot) || {}).name || '') : '<span class="muted">–</span>') + '</td><td>' + (TY[l.type] || esc(l.type)) + '</td></tr>').join('');
     S.log.forEach((l) => { l.fresh = false; });
   }
   function renderBars() {
@@ -333,7 +338,22 @@
     sel.innerHTML = opts.map((s) => '<option value="' + s.idx + '"' + (s.empty ? ' disabled' : '') + '>' + esc(s.name) + '</option>').join('');
     if (val != null) sel.value = String(val);
   }
+  function applySupport() {
+    let hidden = 0;
+    for (const el of $$('#instGrid .set')) { const ok = supported(el.dataset.setting); el.hidden = !ok; if (!ok) hidden++; }
+    for (const c of $$('#instGrid [data-card]')) c.hidden = !$$('.set', c).some((x) => !x.hidden);
+    const more = $('#moreSettings');
+    more.hidden = !connected() || !hidden;
+    more.textContent = 'Fler inställningar (påminnelse, pip ut spöets nummer, blinkande skärm med mera) kommer i kommande versioner av mottagaren.';
+    $('#cardClone').hidden = connected() && !S.info.clone;
+    $$('#profiles button').forEach((b) => { b.hidden = connected() && !Object.keys(PROFILES[b.dataset.prof]).some(supported); });
+    const nl = (S.info && S.info.nameLen) || 10;
+    $$('[data-txname], #pairNameIn').forEach((el) => { el.maxLength = nl; });
+    $$('#slots .slot').forEach((b) => { const n = +b.dataset.slot; b.hidden = n > (S.melSlots || 2); });
+  }
+
   function renderSettings() {
+    applySupport();
     const on = connected(), d = S.draft || DEFAULT_SETTINGS;
     fillSoundSelect($('#sSig'), d.sig); fillSoundSelect($('#sSigR'), d.sigr);
     for (const el of $$('#p-inst [data-key]')) {
@@ -344,17 +364,17 @@
     }
     for (const g of $$('[data-seg]')) $$('button', g).forEach((b) => b.setAttribute('aria-selected', String(String(d[g.dataset.seg]) === b.dataset.v)));
     $('#sVolV').textContent = on ? d.vol : '–';
-    $('#sConV').textContent = on ? ['', 'Låg', 'Mellan', 'Hög', 'Max'][d.con] : '–';
+    $('#sConV').textContent = on ? ['', 'Svag', 'Mellan', 'Normal', 'Max'][d.con] : '–';
     $('#sRemindS').disabled = !on || !d.remind;
     $('#calNow').textContent = on && S.info.batMv ? (S.info.batMv / 1000).toFixed(2).replace('.', ',') + ' V' : '–';
-    const pk = Object.keys(PROFILES).find((p) => Object.entries(PROFILES[p]).every(([k, v]) => d[k] === v));
+    const pk = Object.keys(PROFILES).find((p) => Object.entries(PROFILES[p]).every(([k, v]) => !supported(k) || d[k] === v));
     $$('#profiles button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.prof === pk)));
     renderSaveBar();
   }
   function diff() {
     if (!S.saved || !S.draft) return {};
     const o = {};
-    for (const k of Object.keys(S.draft)) if (S.draft[k] !== S.saved[k]) o[k] = S.draft[k];
+    for (const k of Object.keys(S.draft)) if (supported(k) && S.draft[k] !== S.saved[k]) o[k] = S.draft[k];
     return o;
   }
   function renderSaveBar() {
@@ -393,7 +413,7 @@
       const r = S.rt.bySlot[t.slot], qv = r ? quality(r.pct) : null;
       return '<tr data-slot="' + t.slot + '" class="' + (t.paused ? 'paused' : '') + (t.fresh ? ' flash' : '') + '">' +
         '<td><span class="num">' + t.slot + '</span></td>' +
-        '<td class="grow"><input type="text" maxlength="12" value="' + esc(t.name) + '" placeholder="Namnlös" data-txname="' + t.slot + '" aria-label="Namn på sändare ' + t.slot + '"></td>' +
+        '<td class="grow"><input type="text" maxlength="' + ((S.info && S.info.nameLen) || 10) + '" value="' + esc(t.name) + '" placeholder="Namnlös" data-txname="' + t.slot + '" aria-label="Namn på sändare ' + t.slot + '"></td>' +
         '<td class="muted" data-seen>' + ago(t.seen) + '</td>' +
         '<td>' + (qv ? '<span class="pill ' + qv.cls + '" title="Räckviddstest ' + esc(r.when || '') + '">' + r.pct + ' %</span>' : '<span class="muted">–</span>') + '</td>' +
         '<td><span class="sw"><input type="checkbox" data-txon="' + t.slot + '"' + (t.paused ? '' : ' checked') + ' aria-label="Aktiv"><i></i></span></td>' +
@@ -408,7 +428,7 @@
     const res = await dialog({
       top: '<div class="radar" id="pairRadar">' + icon('i-radio') + '</div>',
       title: 'Fäll vippan på den nya sändaren',
-      html: '<p id="pairTxt">Mottagaren lyssnar. Den måste höra samma kod två gånger, så håll vippan fälld en sekund.</p><div id="pairName" hidden style="margin-top:12px"><input type="text" id="pairNameIn" maxlength="12" placeholder="Namn, t.ex. Djupa hålet" style="width:100%"></div>',
+      html: '<p id="pairTxt">Mottagaren lyssnar. Den måste höra samma kod två gånger, så håll vippan fälld en sekund.</p><div id="pairName" hidden style="margin-top:12px"><input type="text" id="pairNameIn" maxlength="10" placeholder="Namn, t.ex. Djupet" style="width:100%"></div>',
       buttons: [{ label: 'Avbryt', value: false }, { label: 'Spara', value: true, cls: 'default' }],
       onOpen(body) {
         const saveBtn = $$('.b button', body)[1]; saveBtn.disabled = true;
@@ -505,8 +525,9 @@
   }
   function roundRect(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
   function renderMeter() {
-    const mel = S.studio.mel, b = M.byteCount(mel), over = b > M.MAX_BYTES;
-    $('#melMeter').innerHTML = mel.notes.length + ' toner · <span class="' + (over ? 'bad' : '') + '">' + b + ' av ' + M.MAX_BYTES + ' byte</span> · ' + (M.lengthSteps(mel) * M.stepMs(mel.bpm) / 1000).toFixed(1).replace('.', ',') + ' s';
+    const max = (S.info && S.info.melBytes) || M.MAX_BYTES;
+    const mel = S.studio.mel, b = M.byteCount(mel), over = b > max;
+    $('#melMeter').innerHTML = mel.notes.length + ' toner · <span class="' + (over ? 'bad' : '') + '">' + b + ' av ' + max + ' byte</span> · ' + (M.lengthSteps(mel) * M.stepMs(mel.bpm) / 1000).toFixed(1).replace('.', ',') + ' s';
   }
   function cellAt(ev) {
     const r = $('#rollCv').getBoundingClientRect();
@@ -560,7 +581,7 @@
       $('span', b).textContent = !connected() ? 'Anslut för att läsa' : has ? (nm || 'Namnlöst') + ' · i mottagaren' : 'Tom';
     }
     $('#melName').value = S.studio.mel.name || '';
-    $('#melBpm').value = S.studio.mel.bpm; $('#melRep').value = String(S.studio.mel.rep);
+    $('#melBpm').value = S.studio.mel.bpm;
   }
   function selectSlot(s) {
     stopMel();
@@ -577,7 +598,7 @@
     const btn = $('#btnMelPlay');
     $('use', btn).setAttribute('href', '#i-stop'); $('span', btn).textContent = 'Stoppa';
     S.studio.stop = M.play(S.studio.mel, {
-      vol: (S.draft ? S.draft.vol : 7) / 10, reps: S.studio.mel.rep === 0 ? 2 : S.studio.mel.rep,
+      vol: (S.draft ? S.draft.vol : 7) / 10, reps: 2,
       onStep: (p) => { S.studio.playhead = p; drawRoll(); },
       onEnd: () => { S.studio.stop = null; $('use', btn).setAttribute('href', '#i-play'); $('span', btn).textContent = 'Spela'; }
     });
@@ -586,10 +607,11 @@
   async function saveMel() {
     const mel = S.studio.mel;
     if (!mel.notes.length) { toast('Melodin är tom.'); return; }
-    let bytes; try { bytes = M.encode(mel); } catch (e) { toast(esc(e.message), 'fel'); return; }
+    mel.rep = 0;   // mottagaren upprepar ljudet så länge larmet låter
+    let bytes; try { bytes = M.encode(mel, S.info.melBytes); } catch (e) { toast(esc(e.message), 'fel'); return; }
     let slot = S.studio.slot;
     if (slot === 0) {
-      slot = await dialog({ title: 'Var ska ljudet sparas?', html: '<p>Mottagaren har tre platser för egna ljud. Det som ligger på platsen skrivs över.</p>', buttons: [1, 2, 3].map((i) => ({ label: 'Plats ' + i + (S.mel[i] ? ' (' + (S.melNames[i] || 'upptagen') + ')' : ''), value: i, cls: S.mel[i] ? '' : 'default' })).concat([{ label: 'Avbryt', value: 0, cls: 'ghost' }]) });
+      slot = await dialog({ title: 'Var ska ljudet sparas?', html: '<p>Mottagaren har ' + S.melSlots + ' platser för egna ljud. Det som ligger på platsen skrivs över.</p>', buttons: Array.from({ length: S.melSlots }, (_, k) => k + 1).map((i) => ({ label: 'Plats ' + i + (S.mel[i] ? ' (' + (S.melNames[i] || 'upptagen') + ')' : ''), value: i, cls: S.mel[i] ? '' : 'default' })).concat([{ label: 'Avbryt', value: 0, cls: 'ghost' }]) });
       if (!slot) return;
     }
     const name = ($('#melName').value.trim() || ('Eget ' + slot)).slice(0, 12);
@@ -726,14 +748,14 @@
   async function makeBackup() {
     const d = S.dev;
     const b = { app: 'angelradio', format: 1, date: new Date().toISOString(), device: { model: S.info.model, fw: S.info.fw, hw: S.info.hw }, settings: await d.getSettings(), tx: (await d.listTx()).map((t) => ({ slot: t.slot, code: t.code, name: t.name, paused: t.paused })), melodies: {} };
-    for (let i = 1; i <= 3; i++) { const m = await d.readMelody(i); if (m.bytes && m.bytes.length) b.melodies[i] = { name: m.name, data: window.ArProto.bytesToHex(m.bytes) }; }
+    for (let i = 1; i <= (S.melSlots || 2); i++) { const m = await d.readMelody(i); if (m.bytes && m.bytes.length) b.melodies[i] = { name: m.name, data: window.ArProto.bytesToHex(m.bytes) }; }
     return b;
   }
   async function restoreBackup(b, opts) {
     const d = S.dev; opts = opts || {};
-    if (opts.settings !== false && b.settings) { const s = {}; for (const k of Object.keys(DEFAULT_SETTINGS)) if (k in b.settings) s[k] = b.settings[k]; await d.setSettings(s); }
+    if (opts.settings !== false && b.settings) { const s = {}; for (const k of Object.keys(b.settings)) if (supported(k)) s[k] = b.settings[k]; await d.setSettings(s); }
     if (opts.tx !== false && Array.isArray(b.tx)) for (const t of b.tx) await d.txSet(t);
-    if (opts.mel !== false && b.melodies) for (const k of Object.keys(b.melodies)) await d.writeMelody(+k, b.melodies[k].name || '', window.ArProto.hexToBytes(b.melodies[k].data));
+    if (opts.mel !== false && b.melodies) for (const k of Object.keys(b.melodies)) if (+k <= (S.melSlots || 2)) await d.writeMelody(+k, b.melodies[k].name || '', window.ArProto.hexToBytes(b.melodies[k].data));
   }
   async function flash() {
     const rel = S.releases.find((r) => r.version === $('#fwPick').value) || S.releases[0];
@@ -885,11 +907,11 @@
           if (connected() && S.mode === 'serial') { guard(() => S.dev.play(idx)); toast('Spelas i mottagaren.'); break; }
           const pv = M.BUILTIN_PREVIEW[idx];
           if (pv) M.play(pv(), { vol: (S.draft ? S.draft.vol : 7) / 10, reps: 1 });
-          else if (idx >= 3 && S.mel[idx - 2]) M.play(M.decode(S.mel[idx - 2]), { vol: (S.draft ? S.draft.vol : 7) / 10, reps: 1 });
+          else if (idx >= 4 && S.mel[idx - 3]) M.play(M.decode(S.mel[idx - 3]), { vol: (S.draft ? S.draft.vol : 7) / 10, reps: 2 });
           else if (connected()) { guard(() => S.dev.play(idx)); toast('Det här ljudet kan bara spelas i mottagaren.'); }
           break;
         }
-        case 'beep': guard(async () => { await S.dev.setSettings({ vol: S.draft.vol }); S.saved.vol = S.draft.vol; await S.dev.beep(); renderSaveBar(); }); break;
+        case 'beep': guard(async () => { await S.dev.setLive({ vol: S.draft.vol }); await S.dev.beep(); }); break;
         case 'save-settings': saveSettings(); break;
         case 'undo-settings': S.draft = { ...S.saved }; renderSettings(); renderQuick(); break;
         case 'defaults':
@@ -899,7 +921,7 @@
           break;
         case 'calibrate': {
           const v = parseFloat(String($('#calV').value).replace(',', '.'));
-          if (!(v > 2 && v < 6.5)) { toast('Skriv in spänningen du mätte, till exempel 4,15.', 'fel'); break; }
+          if (!(v > 2 && v < 9)) { toast('Skriv in spänningen du mätte, till exempel 4,15.', 'fel'); break; }
           await guard(async () => { await S.dev.calibrate(v * 1000); S.info = await S.dev.info(); renderAll(); toast('Kalibrerat. Mottagaren visar nu ' + (S.info.batMv / 1000).toFixed(2).replace('.', ',') + ' V.', 'ok'); });
           break;
         }
@@ -911,7 +933,10 @@
         }
         case 'mon-clear': monLines.length = 0; $('#mon').innerHTML = '<div class="x">Rensat.</div>'; break;
         case 'mel-play': playMel(); break;
-        case 'mel-play-dev': guard(async () => { await S.dev.playMelodyBytes(M.encode(S.studio.mel)); toast('Spelas i mottagaren.'); }); break;
+        case 'mel-play-dev':
+          if (!S.studio.slot || S.studio.dirty || !S.mel[S.studio.slot]) { toast('Spara ljudet till mottagaren först, så kan du spela det där.'); break; }
+          guard(async () => { await S.dev.play(3 + S.studio.slot); toast('Spelas i mottagaren.'); });
+          break;
         case 'mel-clear': S.studio.mel.notes = []; changedMel(); break;
         case 'mel-save': saveMel(); break;
         case 'rtttl-in':
@@ -954,7 +979,7 @@
     document.addEventListener('input', (e) => { if (e.target.matches('input[type=range][data-key]')) onField(e.target); });
     document.addEventListener('change', (e) => { if (e.target.matches('[data-key]:not([type=range])')) onField(e.target); });
     $$('[data-seg]').forEach((g) => g.addEventListener('click', (e) => { const b = e.target.closest('button[data-v]'); if (b && !b.disabled) setDraft(g.dataset.seg, Number(b.dataset.v)); }));
-    $('#profiles').addEventListener('click', (e) => { const b = e.target.closest('button[data-prof]'); if (!b || !S.draft) return; Object.assign(S.draft, PROFILES[b.dataset.prof]); renderSettings(); renderQuick(); toast('Profilen ' + b.textContent + ' är vald. Tryck på Spara för att skicka den.'); });
+    $('#profiles').addEventListener('click', (e) => { const b = e.target.closest('button[data-prof]'); if (!b || !S.draft) return; for (const [k, v] of Object.entries(PROFILES[b.dataset.prof])) if (supported(k)) S.draft[k] = v; renderSettings(); renderQuick(); toast('Profilen ' + b.textContent + ' är vald. Tryck på Spara för att skicka den.'); });
 
     /* Sändare */
     $('#txSearch').addEventListener('input', renderTx);
@@ -988,7 +1013,6 @@
     $('#melTool').addEventListener('click', (e) => { const b = e.target.closest('[data-tool]'); if (!b) return; S.studio.tool = b.dataset.tool; $$('#melTool button').forEach((x) => x.setAttribute('aria-selected', String(x === b))); });
     $('#melName').addEventListener('input', (e) => { S.studio.mel.name = e.target.value; if (S.studio.slot === 0) store.set('draftMel', S.studio.mel); });
     $('#melBpm').addEventListener('change', (e) => { S.studio.mel.bpm = Math.max(40, Math.min(255, +e.target.value || 160)); e.target.value = S.studio.mel.bpm; changedMel(); });
-    $('#melRep').addEventListener('change', (e) => { S.studio.mel.rep = +e.target.value; changedMel(); });
     $('#lib').addEventListener('click', (e) => {
       const b = e.target.closest('[data-preset]'); if (!b) return;
       stopMel();

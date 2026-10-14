@@ -511,14 +511,14 @@ dialog::backdrop{background:rgba(5,7,10,.55);backdrop-filter:blur(2px)}
       </div>
       <div class="sep"></div>
       <h2 style="margin-bottom:8px"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Senaste händelser<span class="sp"></span><button type="button" class="ghost sm" data-act="readlog">Läs om</button></h2>
-      <div class="tblwrap"><table class="tbl"><thead><tr><th>När</th><th>Sändare</th><th>Händelse</th><th class="n">Volym</th></tr></thead><tbody id="logBody"><tr><td colspan="4" class="empty">Anslut mottagaren för att se loggen.</td></tr></tbody></table></div>
+      <div class="tblwrap"><table class="tbl"><thead><tr><th>När</th><th>Sändare</th><th>Händelse</th></tr></thead><tbody id="logBody"><tr><td colspan="3" class="empty">Anslut mottagaren för att se loggen.</td></tr></tbody></table></div>
     </div>
 
     <div class="col w4">
     <div class="card">
       <h2><svg class="ic" aria-hidden="true"><use href="#i-fish"/></svg>Napp per spö<span class="sp"></span><span class="cnt" id="nappTot"></span></h2>
       <div class="bars" id="nappBars"><div class="empty">Ingen statistik än.</div></div>
-      <p class="hint">Räknas från mottagarens logg. Spara en säkerhetskopia om du vill behålla statistiken efter en fabriksåterställning.</p>
+      <p class="hint">Räknas från de senaste fällningarna i mottagaren. Mottagaren minns dem tills den stängs av.</p>
     </div>
 
     <div class="card">
@@ -540,7 +540,7 @@ dialog::backdrop{background:rgba(5,7,10,.55);backdrop-filter:blur(2px)}
       <p class="hint" id="lastBackup"></p>
     </div>
 
-    <div class="card w6">
+    <div class="card w6" id="cardClone">
       <h2><svg class="ic" aria-hidden="true"><use href="#i-handheld"/></svg>Handmottagaren</h2>
       <p class="muted" style="font-size:13.5px">Fickmottagaren lär sig dina sändare direkt från huvudmottagaren, så att spöna får samma nummer i båda.</p>
       <div class="b"><button type="button" data-act="clone" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg>Klona sändare till handmottagaren</button></div>
@@ -561,59 +561,72 @@ dialog::backdrop{background:rgba(5,7,10,.55);backdrop-filter:blur(2px)}
     </div></span>
   </div>
   <div class="grid masonry" id="instGrid">
-    <div class="card w6">
+    <div class="card w6" data-card>
       <h2><svg class="ic" aria-hidden="true"><use href="#i-vol"/></svg>Ljud</h2>
-      <div class="r"><label for="sVol">Volym<small>0 är tyst, 10 är max.</small></label><span class="tnum" id="sVolV" style="width:26px;text-align:right">–</span><button type="button" class="sm" data-act="beep" data-needs="conn" title="Pip i mottagaren">Testa</button></div>
-      <input type="range" id="sVol" min="0" max="10" step="1" data-key="vol">
-      <div class="r" style="margin-top:14px"><label for="sSig">Larmsignal<small>Det ljud som spelas när en vippa fäller.</small></label><select id="sSig" data-key="sig"></select><button type="button" class="icon" data-act="preview-sig" title="Lyssna här i datorn" aria-label="Lyssna"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg></button></div>
-      <div class="r"><label for="sSigR">Signal vid rusning<small>När rullen snurrar men vippan inte fällt.</small></label><select id="sSigR" data-key="sigr"></select></div>
-      <div class="r"><span class="lab">Larmets längd<small>Hur länge larmet låter innan det tystnar självt.</small></span></div>
-      <div class="seg small full" data-seg="alen">
-        <button type="button" data-v="5">5 s</button><button type="button" data-v="10">10 s</button><button type="button" data-v="30">30 s</button><button type="button" data-v="0">Tills jag klickar</button>
+      <div class="set" data-setting="vol">
+        <div class="r"><label for="sVol">Volym<small>0 är tystast, 10 är högst.</small></label><span class="tnum" id="sVolV" style="width:26px;text-align:right">–</span><button type="button" class="sm" data-act="beep" data-needs="conn" title="Pip i mottagaren med den här volymen">Testa</button></div>
+        <input type="range" id="sVol" min="0" max="10" step="1" data-key="vol">
+      </div>
+      <div class="set" data-setting="sig">
+        <div class="r" style="margin-top:14px"><label for="sSig">Larmsignal<small>Ljudet som spelas när en vippa fäller.</small></label><select id="sSig" data-key="sig"></select><button type="button" class="icon" data-act="preview-sig" title="Lyssna" aria-label="Lyssna"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg></button></div>
+      </div>
+      <div class="set" data-setting="sigr">
+        <div class="r"><label for="sSigR">Signal vid rusning<small>När rullen snurrar men vippan inte fällt.</small></label><select id="sSigR" data-key="sigr"></select></div>
+      </div>
+      <div class="set" data-setting="alen">
+        <div class="r"><span class="lab">Larmets längd<small>Hur länge larmet låter innan det tystnar självt.</small></span></div>
+        <div class="seg small full" data-seg="alen">
+          <button type="button" data-v="5">5 s</button><button type="button" data-v="10">10 s</button><button type="button" data-v="30">30 s</button><button type="button" data-v="0">Tills jag klickar</button>
+        </div>
       </div>
     </div>
 
-    <div class="card w6">
+    <div class="card w6" data-card>
       <h2><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg>Larm</h2>
-      <div class="r"><label for="sBeepNo">Pip ut spöets nummer<small>Tre korta pip efter larmet betyder spö 3.</small></label><span class="sw"><input type="checkbox" id="sBeepNo" data-key="beepno"><i></i></span></div>
-      <div class="r"><label for="sRemind">Påminn om okvitterat larm<small>Ett kort pip med jämna mellanrum tills du klickar.</small></label><span class="sw"><input type="checkbox" id="sRemind" data-key="remind"><i></i></span></div>
-      <div class="r"><label for="sRemindS">Påminnelse var</label><select id="sRemindS" data-key="remints" style="width:120px"><option value="15">15 sekund</option><option value="30">30 sekund</option><option value="60">minut</option><option value="120">2 minut</option></select></div>
-      <div class="r"><label for="sRush">Larma vid rusning<small>Larm när rullen snurrar, även om vippan inte fäller.</small></label><span class="sw"><input type="checkbox" id="sRush" data-key="rush"><i></i></span></div>
-      <div class="r"><label for="sFlash">Blinkande skärm vid larm<small>Syns bättre i mörker och på avstånd.</small></label><span class="sw"><input type="checkbox" id="sFlash" data-key="flash"><i></i></span></div>
+      <div class="set" data-setting="beepno"><div class="r"><label for="sBeepNo">Pip ut spöets nummer<small>Tre korta pip efter larmet betyder spö 3.</small></label><span class="sw"><input type="checkbox" id="sBeepNo" data-key="beepno"><i></i></span></div></div>
+      <div class="set" data-setting="remind"><div class="r"><label for="sRemind">Påminn om okvitterat larm<small>Ett kort pip med jämna mellanrum tills du klickar.</small></label><span class="sw"><input type="checkbox" id="sRemind" data-key="remind"><i></i></span></div></div>
+      <div class="set" data-setting="remints"><div class="r"><label for="sRemindS">Påminnelse var</label><select id="sRemindS" data-key="remints" style="width:120px"><option value="15">15:e sekund</option><option value="30">30:e sekund</option><option value="60">minut</option><option value="120">annan minut</option></select></div></div>
+      <div class="set" data-setting="rush"><div class="r"><label for="sRush">Larma vid rusning<small>Larm när rullen snurrar, även om vippan inte fäller.</small></label><span class="sw"><input type="checkbox" id="sRush" data-key="rush"><i></i></span></div></div>
+      <div class="set" data-setting="flash"><div class="r"><label for="sFlash">Blinkande skärm vid larm<small>Syns bättre i mörker och på avstånd.</small></label><span class="sw"><input type="checkbox" id="sFlash" data-key="flash"><i></i></span></div></div>
     </div>
 
-    <div class="card w6">
+    <div class="card w6" data-card>
       <h2><svg class="ic" aria-hidden="true"><use href="#i-screen"/></svg>Skärm</h2>
-      <div class="r"><label for="sDim">Släck skärmen efter<small>Sparar batteri. Den tänds när du vrider på ratten.</small></label><select id="sDim" data-key="dim" style="width:120px"><option value="10">10 s</option><option value="15">15 s</option><option value="30">30 s</option><option value="60">1 min</option><option value="0">Aldrig</option></select></div>
-      <div class="r"><label for="sCon">Ljusstyrka</label><span class="tnum" id="sConV" style="width:40px;text-align:right">–</span></div>
-      <input type="range" id="sCon" min="1" max="4" step="1" data-key="con">
-      <div class="r" style="margin-top:12px"><label for="sFlip">Vänd skärmen upp och ner<small>Om lådan står med ratten åt vänster.</small></label><span class="sw"><input type="checkbox" id="sFlip" data-key="flip"><i></i></span></div>
+      <div class="set" data-setting="dim"><div class="r"><label for="sDim">Släck skärmen efter<small>Sparar batteri. Den tänds när du vrider på ratten.</small></label><select id="sDim" data-key="dim" style="width:120px"><option value="10">10 s</option><option value="15">15 s</option><option value="30">30 s</option><option value="60">1 min</option><option value="0">Aldrig</option></select></div></div>
+      <div class="set" data-setting="con">
+        <div class="r"><label for="sCon">Ljusstyrka</label><span class="tnum" id="sConV" style="width:50px;text-align:right">–</span></div>
+        <input type="range" id="sCon" min="1" max="4" step="1" data-key="con">
+      </div>
+      <div class="set" data-setting="flip"><div class="r" style="margin-top:12px"><label for="sFlip">Vänd skärmen upp och ner<small>Om lådan står med ratten åt vänster.</small></label><span class="sw"><input type="checkbox" id="sFlip" data-key="flip"><i></i></span></div></div>
     </div>
 
     <div class="card w6">
       <h2><svg class="ic" aria-hidden="true"><use href="#i-bat"/></svg>Batteri</h2>
-      <div class="r"><span class="lab">Batterityp<small>Påverkar hur procenten räknas. Laddbara visar annars för lågt.</small></span></div>
-      <div class="seg small full" data-seg="btype">
-        <button type="button" data-v="0">Alkaliska</button><button type="button" data-v="1">Laddbara (NiMH)</button><button type="button" data-v="2">Litium</button>
+      <div class="set" data-setting="btype">
+        <div class="r"><span class="lab">Batterityp<small>Påverkar hur procenten räknas. Laddbara visar annars för lågt.</small></span></div>
+        <div class="seg small full" data-seg="btype">
+          <button type="button" data-v="0">3 × Alkaliska</button><button type="button" data-v="1">3 × Laddbara</button><button type="button" data-v="2">1 × Li-ion</button>
+        </div>
       </div>
-      <div class="r" style="margin-top:10px"><label for="sLow">Varna vid lågt batteri<small>Pip och text på skärmen under 15 %.</small></label><span class="sw"><input type="checkbox" id="sLow" data-key="lowbat"><i></i></span></div>
+      <div class="set" data-setting="lowbat"><div class="r" style="margin-top:10px"><label for="sLow">Varna vid lågt batteri<small>Pip och text på skärmen under 15 %.</small></label><span class="sw"><input type="checkbox" id="sLow" data-key="lowbat"><i></i></span></div></div>
       <div class="sep"></div>
-      <div class="r"><label for="calV">Kalibrera spänningen<small>Mät batteripacket med en multimeter och skriv in värdet.</small></label><input type="number" id="calV" class="n" step="0.01" min="2" max="6" placeholder="4,15"><span class="u">V</span><button type="button" class="sm" data-act="calibrate" data-needs="conn">Kalibrera</button></div>
+      <div class="r"><label for="calV">Kalibrera spänningen<small>Mät batteripacket med en multimeter och skriv in värdet. Sparas direkt.</small></label><input type="number" id="calV" class="n" step="0.01" min="2" max="9" placeholder="4,15"><span class="u">V</span><button type="button" class="sm" data-act="calibrate" data-needs="conn">Kalibrera</button></div>
       <p class="hint" id="calHint">Mottagaren mäter just nu <b id="calNow">–</b>.</p>
     </div>
 
-    <div class="card w6">
+    <div class="card w6" data-card>
       <h2><svg class="ic" aria-hidden="true"><use href="#i-handheld"/></svg>Handmottagare och radio</h2>
-      <div class="r"><label for="sRelay">Skicka vidare larm till handmottagaren<small>Huvudmottagaren sänder om larmet så att det når längre.</small></label><span class="sw"><input type="checkbox" id="sRelay" data-key="relay"><i></i></span></div>
-      <div class="r"><label for="sDouble">Kräv två mottagna paket<small>Färre falsklarm vid störningar, men lite kortare räckvidd.</small></label><span class="sw"><input type="checkbox" id="sDouble" data-key="dbl"><i></i></span></div>
+      <div class="set" data-setting="relay"><div class="r"><label for="sRelay">Skicka vidare larm till handmottagaren<small>Huvudmottagaren sänder om larmet så att det når längre.</small></label><span class="sw"><input type="checkbox" id="sRelay" data-key="relay"><i></i></span></div></div>
+      <div class="set" data-setting="dbl"><div class="r"><label for="sDouble">Kräv två mottagna paket<small>Färre falsklarm vid störningar, men lite kortare räckvidd.</small></label><span class="sw"><input type="checkbox" id="sDouble" data-key="dbl"><i></i></span></div></div>
     </div>
 
     <div class="card w6">
       <h2><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>Återställ</h2>
-      <p class="muted" style="font-size:13.5px">Fabriksåterställning nollställer alla inställningar. Sändarna och dina egna ljud finns kvar.</p>
+      <p class="muted" style="font-size:13.5px">Inställningarna går tillbaka till fabriksläget. Sändarna, deras namn och dina egna ljud finns kvar.</p>
       <div class="b"><button type="button" class="danger" data-act="defaults" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-undo"/></svg>Återställ inställningar</button></div>
     </div>
   </div>
+  <p class="hint" id="moreSettings" hidden style="margin:6px 2px 0"></p>
 
   <div class="savebar" id="saveBar" hidden>
     <svg class="ic" aria-hidden="true" style="color:var(--accent-fg)"><use href="#i-edit"/></svg>
@@ -640,7 +653,7 @@ dialog::backdrop{background:rgba(5,7,10,.55);backdrop-filter:blur(2px)}
         <button type="button" class="sm" data-act="tx-resume-all" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Aktivera alla</button>
       </div>
       <div class="tblwrap"><table class="tbl" id="txTbl"><thead><tr><th>#</th><th>Namn</th><th>Senast hörd</th><th>Signal</th><th>Aktiv</th><th></th></tr></thead><tbody id="txBody"><tr><td colspan="6" class="empty">Anslut mottagaren för att se dina sändare.</td></tr></tbody></table></div>
-      <p class="hint">Namnen sparas i mottagaren (max 12 tecken). Signalen kommer från senaste räckviddstestet.</p>
+      <p class="hint">Namnen sparas i mottagaren (max 10 tecken) och visas på skärmen vid larm. Signalen kommer från senaste räckviddstestet.</p>
     </div>
     <div class="card w4">
       <h2><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg>Live-monitor<span class="sp"></span><span class="sw" title="Visa allt mottagaren hör"><input type="checkbox" id="monOn" aria-label="Live-monitor på/av"><i></i></span></h2>
@@ -653,20 +666,18 @@ dialog::backdrop{background:rgba(5,7,10,.55);backdrop-filter:blur(2px)}
 <!-- ===================== LJUDSTUDIO ===================== -->
 <section class="page" id="p-ljud" hidden>
   <div class="pagehead">
-    <div><h1>Ljudstudio</h1><p>Rita en egen larmmelodi, lyssna här i datorn och skicka den till mottagaren. Den har tre platser för egna ljud.</p></div>
+    <div><h1>Ljudstudio</h1><p>Rita en egen larmmelodi, lyssna här i datorn och skicka den till mottagaren. Melodin upprepas så länge larmet låter.</p></div>
   </div>
   <div class="grid">
     <div class="card w12">
-      <div class="slots" id="slots">
+      <div class="slots" id="slots" style="grid-template-columns:repeat(3,minmax(0,1fr))">
         <button type="button" class="slot" data-slot="1"><b>Eget ljud 1</b><span>Tom</span></button>
         <button type="button" class="slot" data-slot="2"><b>Eget ljud 2</b><span>Tom</span></button>
-        <button type="button" class="slot" data-slot="3"><b>Eget ljud 3</b><span>Tom</span></button>
         <button type="button" class="slot" data-slot="0"><b>Utkast</b><span>Bara här i webbläsaren</span></button>
       </div>
       <div class="studio-top">
-        <input type="text" id="melName" maxlength="12" placeholder="Namn på ljudet" aria-label="Namn på ljudet">
+        <input type="text" id="melName" maxlength="10" placeholder="Namn på ljudet" aria-label="Namn på ljudet">
         <label>Tempo <input type="number" id="melBpm" class="n" min="40" max="300" value="160"> BPM</label>
-        <label>Upprepa <select id="melRep"><option value="1">1 gång</option><option value="2">2 gånger</option><option value="3" selected>3 gånger</option><option value="0">Hela larmet</option></select></label>
         <label>Ny ton <select id="melLen"><option value="1">1/16</option><option value="2" selected>1/8</option><option value="4">1/4</option><option value="8">1/2</option></select></label>
         <span class="grow"></span>
         <div class="seg small" id="melTool" aria-label="Verktyg"><button type="button" data-tool="draw" aria-selected="true">Rita</button><button type="button" data-tool="erase">Sudda</button></div>
@@ -680,7 +691,7 @@ dialog::backdrop{background:rgba(5,7,10,.55);backdrop-filter:blur(2px)}
         <button type="button" data-act="mel-play-dev" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-vol"/></svg>Spela i mottagaren</button>
         <button type="button" data-act="mel-clear" class="ghost"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Rensa</button>
         <span class="grow"></span>
-        <span class="meter" id="melMeter">0 toner · 0 av 128 byte</span>
+        <span class="meter" id="melMeter">0 toner · 0 av 118 byte</span>
         <button type="button" class="default" data-act="mel-save" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg>Spara till mottagaren</button>
       </div>
       <p class="hint">Klicka för att sätta en ton och dra åt höger för att göra den längre. Klicka på en ton igen för att ta bort den. Piezosummern låter starkast i de övre raderna (runt 2–4 kHz).</p>

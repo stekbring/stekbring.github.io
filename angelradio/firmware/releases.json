@@ -2,15 +2,16 @@
   "releases": [
     {
       "version": "2.1.0",
-      "date": "2026-11-15",
+      "date": "2026-10-14",
       "model": "AR-RX",
       "file": "firmware/ReceiverOS-2.1.0.hex",
       "notes": [
-        "Inställningar, sändare och egna ljud kan ändras härifrån via USB.",
-        "Räckviddstest under System, med live-procent och pip.",
-        "Namn på sändarna visas på skärmen vid larm.",
-        "Tre platser för egna larmljud.",
-        "Skärpta gränser för signalomdömen (95/80/50 %)."
+        "Ställ in mottagaren, döp sändarna och skapa egna larmljud här på sidan via USB.",
+        "Räckviddstest under System, med live-procent varje sekund och pip som följer signalen.",
+        "Namn på sändarna visas på skärmen vid larm och i sändarlistan.",
+        "Pausa sändare som inte används.",
+        "Två platser för egna larmljud.",
+        "QR-kod till den här sidan under System → Webbsida."
       ]
     },
     {

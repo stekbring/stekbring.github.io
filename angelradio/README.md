@@ -31,7 +31,17 @@ python -m http.server 8000
 
 ## Publicera en ny version av programvaran
 
-1. Bygg i PlatformIO: `pio run -e nano`
+1. Bygg i PlatformIO: `pio run -e nano` (eller bocken "Build" i VS Code)
 2. Kopiera `.pio/build/nano/firmware.hex` till `firmware/ReceiverOS-<version>.hex`
-3. Lägg till versionen överst i `firmware/releases.json`
-4. Ladda upp
+3. Lägg till versionen överst i `firmware/releases.json` (version, datum, fil och nyheter)
+4. Pusha stekbring.github.io
+
+Versionsnumret i `releases.json` måste vara samma som `SW_NUMBER` i `config.h`,
+annars tror sidan att det finns en nyare version.
+
+## Filer i firmware/
+
+| Fil | Källkod |
+|---|---|
+| `ReceiverOS-2.0.0.hex` | `angelradiov3/simulation/ReceiverOSv2` (din egen byggda fil) |
+| `ReceiverOS-2.1.0.hex` | `angelradiov3/simulation/ReceiverOSv2.1` |

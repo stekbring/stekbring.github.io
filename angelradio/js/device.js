@@ -117,16 +117,18 @@
     async info() {
       const lines = await this.cmd('INFO', 1200);
       const kv = parseKV(lines.find((l) => l.startsWith('INFO')) || '');
+      const pct = num(kv.bat_pct, null);
       return {
         model: kv.model || 'AR-RX', name: kv.model === 'AR-HH' ? 'Handmottagare' : 'Huvudmottagare',
-        fw: kv.fw || '?', hw: kv.hw || '?', batMv: num(kv.bat_mv, 0), batPct: num(kv.bat_pct, null),
-        batType: num(kv.bat_type, 0), usb: kv.usb === '1', slots: num(kv.slots, 50), used: num(kv.used, 0),
-        melSlots: num(kv.mel, 3), melBytes: num(kv.melb, 128), uptime: num(kv.up, 0)
+        fw: kv.fw || '?', hw: kv.hw || '?', batMv: num(kv.bat_mv, 0), batPct: pct != null && pct < 0 ? null : pct,
+        usb: pct != null && pct < 0, batType: num(kv.bat_type, 0), slots: num(kv.slots, 50), used: num(kv.used, 0),
+        melSlots: num(kv.mel, 2), melBytes: num(kv.melb, 118), nameLen: num(kv.namelen, 10),
+        keys: kv.keys ? kv.keys.split(',') : null, clone: kv.clone === '1'
       };
     }
     async sounds() {
       const lines = await this.cmd('SOUNDS');
-      return lines.filter((l) => l.startsWith('SND')).map((l) => { const kv = parseKV(l); return { idx: num(kv.idx, 0), name: hexToLatin1(kv.nameh) || kv.name || ('Ljud ' + kv.idx), custom: kv.custom === '1' }; });
+      return lines.filter((l) => l.startsWith('SND')).map((l) => { const kv = parseKV(l); return { idx: num(kv.idx, 0), name: hexToLatin1(kv.nameh) || ('Ljud ' + kv.idx), custom: kv.custom === '1', empty: kv.empty === '1' }; });
     }
     async getSettings() {
       const lines = await this.cmd('GET');
@@ -134,8 +136,11 @@
       for (const l of lines) if (l.startsWith('S ')) { const kv = parseKV(l); for (const k in kv) s[k] = num(kv[k], kv[k]); }
       return s;
     }
-    async setSettings(obj) {
+    async setLive(obj) {   // ändrar utan att spara (t.ex. för att provlyssna volymen)
       for (const k of Object.keys(obj)) await this.cmd('SET ' + k + ' ' + Number(obj[k]));
+    }
+    async setSettings(obj) {
+      await this.setLive(obj);
       await this.cmd('SAVE', 3000);
     }
     async defaults() { await this.cmd('DEFAULTS', 3000); }
@@ -146,10 +151,10 @@
         return { slot: num(kv.slot, 0), code: kv.code, name: hexToLatin1(kv.nameh), paused: kv.paused === '1', seen: num(kv.seen, -1) };
       });
     }
-    async txName(slot, name) { await this.cmd('TXNAME ' + slot + ' ' + latin1ToHex(name.slice(0, 12))); }
+    async txName(slot, name) { await this.cmd('TXNAME ' + slot + ' ' + latin1ToHex(name.slice(0, 10))); }
     async txDel(slot) { await this.cmd('TXDEL ' + slot); }
     async txPause(slot, on) { await this.cmd('TXPAUSE ' + slot + ' ' + (on ? 1 : 0)); }
-    async txSet(t) { await this.cmd('TXSET ' + t.slot + ' ' + t.code + ' ' + (t.paused ? 1 : 0) + ' ' + latin1ToHex((t.name || '').slice(0, 12))); }
+    async txSet(t) { await this.cmd('TXSET ' + t.slot + ' ' + t.code + ' ' + (t.paused ? 1 : 0) + ' ' + latin1ToHex((t.name || '').slice(0, 10))); }
     async pair(on) { await this.cmd('PAIR ' + (on ? 1 : 0)); }
     async monitor(on) { await this.cmd('MON ' + (on ? 1 : 0)); }
     async rangeTest(on) { await this.cmd('RT ' + (on ? 1 : 0)); }
@@ -167,8 +172,15 @@
       const kv = parseKV(lines.find((l) => l.startsWith('M ')) || '');
       return { slot, name: hexToLatin1(kv.nameh), bytes: hexToBytes(kv.data) };
     }
-    async writeMelody(slot, name, bytes) { await this.cmd('MEL W ' + slot + ' ' + bytesToHex(bytes) + ' ' + latin1ToHex(name.slice(0, 12)), 3000); }
-    async playMelodyBytes(bytes) { await this.cmd('MEL P ' + bytesToHex(bytes)); }
+    async writeMelody(slot, name, bytes) {
+      // Namnet först, sedan datat i bitar om 32 byte. Huvudet (de fyra första
+      // byten) skrivs sist så att ett avbrutet försök aldrig ger ett halvt ljud.
+      await this.cmd('MEL N ' + slot + ' ' + latin1ToHex(name.slice(0, 10)));
+      const write = (off, end) => this.cmd('MEL W ' + slot + ' ' + off + ' ' + bytesToHex(bytes.subarray(off, end)), 3000);
+      await this.cmd('MEL W ' + slot + ' 0 00');   // markera platsen som tom medan vi skriver
+      for (let off = 4; off < bytes.length; off += 32) await write(off, Math.min(off + 32, bytes.length));
+      await write(0, 4);
+    }
     async clone() { await this.cmd('CLONE', 30000); }
 
     async flash(image, opts) {
