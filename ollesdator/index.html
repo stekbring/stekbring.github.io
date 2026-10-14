@@ -101,6 +101,26 @@ table.log td.t{white-space:nowrap;color:var(--muted);width:1%}
 .week b{font-weight:400;padding:2px 0;white-space:nowrap}
 .week span{padding:2px 0 3px}
 
+/* ---------- Avstängning, datorinfo ---------- */
+.pcbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+.pcbtns button{min-width:110px}
+.pcbtns .help{margin:0 0 0 6px}
+table.info th{width:30%}
+.meter{display:inline-block;width:120px;height:12px;border:2px inset var(--face);background:var(--field);vertical-align:-1px;margin-right:8px;position:relative}
+.meter>i{position:absolute;left:1px;top:1px;bottom:1px;background:var(--sel)}
+.meter.warn>i{background:var(--warn)}
+.cmdrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.cmdrow .msg{flex:1 1 260px}
+.wxgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:4px 22px;align-items:start}
+.wxgrid fieldset{margin-top:0}
+
+dialog{background:var(--face);border:2px outset var(--hi);padding:0;color:var(--ink);width:min(440px,94vw);box-shadow:2px 3px 0 rgba(0,0,0,.18)}
+dialog::backdrop{background:rgba(40,38,34,.35)}
+dialog .dhead{background:var(--sel);color:#fff;padding:5px 10px;font-weight:600}
+dialog .dbody{padding:12px 16px 4px}
+dialog .dbody p{margin:0 0 8px}
+dialog .dfoot{display:flex;gap:6px;justify-content:flex-end;padding:8px 16px 12px;border-top:2px groove var(--hi)}
+
 /* ---------- Inloggning ---------- */
 .loginwrap{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}
 .window{background:var(--face);border:2px outset var(--hi);width:min(400px,100%);box-shadow:2px 3px 0 rgba(0,0,0,.18)}
@@ -126,6 +146,9 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
   .pcstate{font-size:28px}
   .temp{font-size:38px}
   table.rows th{width:46%}
+  .wxgrid{grid-template-columns:1fr}
+  .pcbtns button{flex:1 1 40%}
+  .meter{width:80px}
 }
 </style>
 </head>
@@ -193,7 +216,35 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
       <div class="prog" id="wakeProg"><div></div></div>
       <div class="msg" id="wakeMsg"></div>
     </fieldset>
+    <div class="pcbtns" id="pcBtns">
+      <button data-act="shutdown">Stäng av…</button>
+      <button data-act="sleep">Vila…</button>
+      <button data-act="restart">Starta om…</button>
+      <button data-act="lock">Lås</button>
+      <span class="help" id="pcBtnsHelp"></span>
+    </div>
+    <fieldset id="cmdBox" hidden>
+      <legend id="cmdLegend">Avstängning</legend>
+      <div class="prog" id="cmdProg"><div></div></div>
+      <div class="cmdrow"><div class="msg" id="cmdMsg"></div><button id="btnCmdCancel" hidden>Avbryt</button></div>
+    </fieldset>
     <p class="help" id="wakeStats"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="hInfo">
+    <h2 class="panel-title" id="hInfo">Datorns info <small id="infoSeen"></small></h2>
+    <table class="rows info"><tbody>
+      <tr><th>Agenten</th><td><span class="lamp" id="agLamp"></span> <span id="agTxt">–</span></td></tr>
+      <tr><th>Inloggad</th><td id="userTxt">–</td></tr>
+      <tr><th>Senaste aktivitet</th><td id="idleTxt">–</td></tr>
+      <tr><th>Processor</th><td id="cpuTxt">–</td></tr>
+      <tr><th>Minne</th><td id="ramTxt">–</td></tr>
+      <tr><th>Grafikkort</th><td id="gpuTxt">–</td></tr>
+      <tr><th>Diskar</th><td id="diskTxt">–</td></tr>
+      <tr><th>Startad</th><td id="bootTxt">–</td></tr>
+      <tr><th>System</th><td id="osTxt">–</td></tr>
+    </tbody></table>
+    <p class="help" id="infoHelp" hidden>Agenten på datorn skickar ingen info. Den är avstängd eller inte installerad (se guiden, steg 7).</p>
   </section>
 
   <section class="panel" aria-labelledby="hHome">
@@ -212,8 +263,9 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
     </tbody></table>
   </section>
 
-  <section class="panel" aria-labelledby="hWx">
+  <section class="panel wide" aria-labelledby="hWx">
     <h2 class="panel-title" id="hWx"><span id="wxPlace">Väder</span> <small id="wxDate"></small></h2>
+    <div class="wxgrid"><div>
     <div class="wx">
       <div class="temp" id="wxTemp">–</div>
       <div>
@@ -223,12 +275,14 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
     </div>
     <div class="kv" id="wxKv"></div>
     <div class="moon" id="moonBox"></div>
+    </div>
     <fieldset>
       <legend>Elpris <span id="elArea"></span></legend>
       <div id="elNow" class="msg">–</div>
       <div class="chart" id="elChart"></div>
       <div class="help" id="elMinMax"></div>
     </fieldset>
+    </div>
   </section>
 
   <section class="panel wide" aria-labelledby="hLog">
@@ -239,13 +293,21 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
   </section>
 </main>
 
+<dialog id="dlgConfirm">
+  <form method="dialog">
+    <div class="dhead" id="dlgTitle">Stäng av datorn?</div>
+    <div class="dbody" id="dlgBody"></div>
+    <div class="dfoot"><button value="cancel" id="dlgNo">Avbryt</button><button value="ok" class="default" id="dlgYes">Stäng av</button></div>
+  </form>
+</dialog>
+
 <footer id="foot">Olles dator · Wake-on-LAN via ESP32 och Firebase</footer>
 
 <script type="module">
 import { firebaseConfig, LOGIN_DOMAIN } from './firebase-config.js';
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-import { getDatabase, ref, onValue, set, query, orderByChild, limitToLast, endAt, get, remove, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
+import { getDatabase, ref, onValue, set, update, query, orderByChild, limitToLast, endAt, get, remove, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
 
 const $ = id => document.getElementById(id);
 const ROOT = 'ollesdator';
@@ -256,6 +318,7 @@ const configMissing = !firebaseConfig.apiKey || firebaseConfig.apiKey === 'AIza.
 
 let app, auth, db;
 let status = null, command = null, logItems = [];
+let pcinfo = null, pcCmd = null;
 let serverOffset = 0;
 let unsubs = [];
 let localSendingAt = 0, lastCmdState = '';
@@ -502,6 +565,149 @@ $('btnRefresh').addEventListener('click', async () => {
   setTimeout(() => renderStatus(), 4000);
 });
 
+/* ---------- Datorns info (från agenten på datorn) ---------- */
+function agentOnline() { return pcinfo?.lastSeen && nowServer() - pcinfo.lastSeen < ONLINE_MS; }
+const gb = v => dec(v, v >= 100 ? 0 : 1).replace(',0', '') + ' GB';
+function meter(pct, warn) { pct = Math.max(0, Math.min(100, pct || 0)); return `<span class="meter${warn ? ' warn' : ''}"><i style="width:calc(${pct}% - 2px)"></i></span>`; }
+
+function renderPcInfo() {
+  const i = pcinfo, on = agentOnline();
+  $('infoHelp').hidden = on;
+  lamp($('agLamp'), on ? 'ok' : '');
+  if (!i) { $('agTxt').textContent = 'Inte igång'; return; }
+  $('agTxt').textContent = on ? `Igång (v${i.agent}), hördes ${ago(i.lastSeen)}` : `Inte igång sedan ${when(i.lastSeen)}`;
+  $('infoSeen').textContent = on ? '' : 'senaste kända värden';
+  $('userTxt').textContent = i.user ? i.user : 'Ingen är inloggad';
+  $('idleTxt').textContent = i.mode === 'system' ? '–' : i.idleS == null ? '–' : i.idleS < 60 ? 'Används just nu' : `Ingen aktivitet på ${dur(i.idleS)}`;
+  $('cpuTxt').innerHTML = `${i.cpuPct != null ? meter(i.cpuPct) + Math.round(i.cpuPct) + ' %' : ''}<br><span class="help">${esc(i.cpu || '')}${i.cores ? ', ' + i.cores + ' trådar' : ''}</span>`;
+  const m = i.mem;
+  $('ramTxt').innerHTML = m ? `${meter(m.pct, m.pct > 90)}${gb(m.usedGB)} av ${gb(m.totalGB)} (${m.pct} %)` : '–';
+  const g = i.gpu;
+  $('gpuTxt').innerHTML = g ? `${meter(g.util)}${Math.round(g.util)} % · <b>${Math.round(g.temp)} °C</b>${g.powerW != null ? ' · ' + Math.round(g.powerW) + ' W' : ''}${g.fanPct != null ? ' · fläkt ' + Math.round(g.fanPct) + ' %' : ''}<br><span class="help">${esc(g.name)} · VRAM ${dec(g.memUsedMB / 1024)} av ${dec(g.memTotalMB / 1024, 0)} GB</span>` : '–';
+  const d = Array.isArray(i.disks) ? i.disks : Object.values(i.disks || {});
+  $('diskTxt').innerHTML = d.length ? d.map(x => { const used = 100 - x.freeGB / x.totalGB * 100; return `${meter(used, x.freeGB / x.totalGB < 0.1)}<b>${esc(x.name)}</b> ${gb(x.freeGB)} ledigt av ${gb(x.totalGB)}`; }).join('<br>') : '–';
+  $('bootTxt').textContent = i.uptimeS ? `${when(i.lastSeen - i.uptimeS * 1000)} (${dur(i.uptimeS + (on ? (nowServer() - i.lastSeen) / 1000 : 0))} sedan)` : '–';
+  $('osTxt').textContent = [i.os, i.host].filter(Boolean).join(' · ') || '–';
+  renderPcButtons();
+}
+
+/* ---------- Stäng av, vila, starta om, lås ---------- */
+const ACT = {
+  shutdown: { q: 'Stäng av datorn?', ok: 'Stäng av', verb: 'stängs av', noun: 'Avstängning', done: 'stängs av nu' },
+  restart:  { q: 'Starta om datorn?', ok: 'Starta om', verb: 'startas om', noun: 'Omstart', done: 'startas om nu' },
+  sleep:    { q: 'Försätta datorn i vila?', ok: 'Vila', verb: 'går i vila', noun: 'Vila', done: 'går i vila nu' },
+  lock:     { q: 'Lås datorn?', ok: 'Lås', verb: 'låses', noun: 'Låsning', done: 'är låst' },
+};
+function pcCmdActive() {
+  return pcCmd && ['pending', 'countdown'].includes(pcCmd.state) && pcCmd.at && nowServer() - pcCmd.at < 3 * 60 * 1000;
+}
+function renderPcButtons() {
+  const pcOn = espOnline() && status?.pc?.known && status.pc.on;
+  const ok = agentOnline() && !pcCmdActive();
+  document.querySelectorAll('#pcBtns button').forEach(b => { b.disabled = !ok || (!pcOn && espOnline()); });
+  $('pcBtnsHelp').textContent = !agentOnline() ? (pcOn ? 'Agenten på datorn är inte igång.' : '') : pcinfo.mode === 'system' ? 'Ingen är inloggad – körs direkt utan nedräkning.' : '';
+}
+
+function renderPcCmd() {
+  const c = pcCmd, box = $('cmdBox'), prog = $('cmdProg'), msg = $('cmdMsg'), cancel = $('btnCmdCancel');
+  if (!c || !ACT[c.action] || !c.at || nowServer() - c.at > 10 * 60 * 1000) { box.hidden = true; renderPcButtons(); return; }
+  const a = ACT[c.action];
+  box.hidden = false;
+  $('cmdLegend').textContent = a.noun;
+  cancel.hidden = true;
+  prog.hidden = false;
+  prog.classList.remove('indet');
+  msg.className = 'msg';
+  const bar = prog.firstElementChild;
+  const by = c.cancelledBy === 'datorn' ? 'vid datorn' : 'från webben';
+  switch (c.state) {
+    case 'pending':
+      prog.classList.add('indet');
+      msg.textContent = nowServer() - c.at > 15000 ? 'Datorn har inte tagit emot kommandot än… (är agenten igång?)' : 'Skickat. Väntar på datorn…';
+      cancel.hidden = false;
+      break;
+    case 'countdown': {
+      const left = Math.max(0, Math.round((c.deadline - Date.now()) / 1000));
+      bar.style.width = (100 - left / 60 * 100) + '%';
+      msg.textContent = left > 0 ? `Datorn ${a.verb} om ${left} s. Den som sitter vid datorn kan avbryta.` : `Datorn ${a.done}…`;
+      cancel.hidden = left <= 0;
+      break;
+    }
+    case 'executing':
+      bar.style.width = '100%';
+      msg.className = 'msg ok';
+      msg.textContent = `Datorn ${a.done}${c.note ? ' (' + c.note + ')' : ''}.`;
+      break;
+    case 'done':
+      bar.style.width = '100%';
+      msg.className = 'msg ok';
+      msg.textContent = `Datorn ${a.done}.`;
+      break;
+    case 'cancelled':
+      prog.hidden = true;
+      msg.className = 'msg bad';
+      msg.textContent = `${a.noun} avbröts ${by} ${when(c.updatedAt || c.at)}.`;
+      break;
+    case 'no_user':
+      prog.hidden = true;
+      msg.textContent = 'Ingen är inloggad, så det finns inget att låsa.';
+      break;
+    case 'busy':
+      prog.hidden = true;
+      msg.className = 'msg bad';
+      msg.textContent = 'En annan nedräkning pågår redan på datorn.';
+      break;
+    case 'stale':
+      prog.hidden = true;
+      msg.className = 'msg bad';
+      msg.textContent = 'Kommandot var för gammalt när datorn fick det, så det kördes inte.';
+      break;
+    default:
+      box.hidden = true;
+  }
+  renderPcButtons();
+}
+
+function confirmDialog(action) {
+  const a = ACT[action], d = $('dlgConfirm');
+  $('dlgTitle').textContent = a.q;
+  $('dlgYes').textContent = a.ok;
+  const sys = pcinfo?.mode === 'system';
+  let body;
+  if (action === 'lock') body = '<p>Datorn låses direkt. Den som sitter vid den måste logga in igen.</p>';
+  else if (sys) body = `<p><b>Ingen är inloggad</b>, så datorn ${a.verb} direkt utan nedräkning.</p>`;
+  else {
+    body = `<p>En ruta visas på datorn. Den som sitter där har <b>60 sekunder</b> på sig att avbryta. Gör ingen något ${a.verb} datorn.</p>`;
+    if (pcinfo?.idleS != null && pcinfo.idleS < 120) body += `<p class="msg bad">Någon verkar använda datorn just nu (aktivitet för ${dur(pcinfo.idleS)} sedan).</p>`;
+    if (action !== 'sleep') body += '<p class="help">Osparat arbete på datorn går förlorat.</p>';
+  }
+  $('dlgBody').innerHTML = body;
+  return new Promise(res => {
+    d.addEventListener('close', () => res(d.returnValue === 'ok'), { once: true });
+    d.returnValue = 'cancel';
+    d.showModal();
+    $('dlgNo').focus();
+  });
+}
+
+async function sendPcCommand(action) {
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  await set(ref(db, `${ROOT}/pcCommand`), { id, action, by: 'webb', state: 'pending', at: serverTimestamp(), user: auth.currentUser?.email?.split('@')[0] || '' });
+}
+document.querySelectorAll('#pcBtns button').forEach(b => b.addEventListener('click', async () => {
+  const action = b.dataset.act;
+  if (!(await confirmDialog(action))) return;
+  try { await sendPcCommand(action); }
+  catch (err) { setBanner('Kunde inte skicka kommandot: ' + esc(err.message), true); }
+}));
+$('btnCmdCancel').addEventListener('click', async () => {
+  if (!pcCmd) return;
+  try {
+    if (pcCmd.state === 'pending') await update(ref(db, `${ROOT}/pcCommand`), { state: 'cancelled', cancelledBy: 'webben', updatedAt: serverTimestamp() });
+    else await update(ref(db, `${ROOT}/pcCommand`), { cancel: true });
+  } catch (err) { setBanner('Kunde inte avbryta: ' + esc(err.message), true); }
+});
+
 /* ---------- Logg ---------- */
 function logText(l) {
   switch (l.type) {
@@ -511,6 +717,13 @@ function logText(l) {
       if (l.result === 'already_on') return `Start ${who} – datorn var redan på`;
       if (l.result === 'no_wifi') return `Start ${who} – ESP32:an saknade WiFi`;
       return `Start ${who} – datorn svarade inte`;
+    }
+    case 'pc_cmd': {
+      const a = ACT[l.action] || { noun: esc(l.action) }, who = l.by === 'siri' ? 'via Siri' : l.by === 'knapp' ? 'med knappen' : 'från webben';
+      if (l.result === 'executing' || l.result === 'done') return l.action === 'shutdown' ? `Datorn stängdes av ${who}` : l.action === 'restart' ? `Datorn startades om ${who}` : l.action === 'sleep' ? `Datorn försattes i vila ${who}` : `Datorn låstes ${who}`;
+      if (l.result === 'cancelled_pc') return `${a.noun} ${who} – avbröts vid datorn`;
+      if (l.result === 'cancelled_web') return `${a.noun} ${who} – avbröts från webben`;
+      return `${a.noun} ${who} (${esc(l.result)})`;
     }
     case 'pc_on': return 'Datorn slogs på';
     case 'pc_off': return 'Datorn stängdes av';
@@ -588,7 +801,7 @@ $('btnLogout').addEventListener('click', () => signOut(auth));
 
 function showLogin() {
   unsubs.forEach(u => u()); unsubs = [];
-  status = command = null; logItems = [];
+  status = command = pcinfo = pcCmd = null; logItems = [];
   $('viewMain').hidden = true; $('viewLogin').hidden = false;
   $('btnLogout').hidden = $('btnRefresh').hidden = true;
   $('topStatus').textContent = '';
@@ -604,6 +817,8 @@ function showMain(user) {
   unsubs.push(onValue(ref(db, '.info/serverTimeOffset'), s => { serverOffset = s.val() || 0; }));
   unsubs.push(onValue(ref(db, `${ROOT}/status`), s => { status = s.val(); renderStatus(); renderWx(); }, denied));
   unsubs.push(onValue(ref(db, `${ROOT}/command`), s => { command = s.val(); renderCommand(); renderStatus(); }, denied));
+  unsubs.push(onValue(ref(db, `${ROOT}/pcinfo`), s => { pcinfo = s.val(); renderPcInfo(); }, denied));
+  unsubs.push(onValue(ref(db, `${ROOT}/pcCommand`), s => { pcCmd = s.val(); renderPcCmd(); }, denied));
   unsubs.push(onValue(query(ref(db, `${ROOT}/log`), orderByChild('at'), limitToLast(400)), s => {
     const arr = []; s.forEach(ch => { arr.push(ch.val()); }); logItems = arr.filter(l => l && l.at).sort((a, b) => a.at - b.at); renderLog();
   }, denied));
@@ -624,7 +839,7 @@ if (configMissing) {
 }
 
 // Uppdatera "för X s sedan" och förloppet varje sekund
-setInterval(() => { if (status) renderStatus(); if (command) renderCommand(); }, 1000);
+setInterval(() => { if (status) renderStatus(); if (command) renderCommand(); if (pcinfo) renderPcInfo(); if (pcCmd) renderPcCmd(); renderPcButtons(); }, 1000);
 setInterval(() => { if (logItems.length || status) renderWeek(); if (status) renderWx(); }, 60000);
 
 /* ---------- App-installation ---------- */
