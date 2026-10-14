@@ -111,6 +111,16 @@ table.info th{width:30%}
 .meter.warn>i{background:var(--warn)}
 .cmdrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .cmdrow .msg{flex:1 1 260px}
+.avr{display:grid;grid-template-columns:auto 1fr auto;gap:8px 18px;align-items:center}
+.avrstate{font-size:26px;font-weight:600;line-height:1.1}
+.avrstate .lamp{vertical-align:4px;margin-right:8px}
+.avrctl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-top:10px}
+.avrctl label{display:inline-flex;align-items:center;gap:6px}
+.volrow{display:flex;align-items:center;gap:6px;flex:1 1 320px}
+.volrow input[type=range]{flex:1;min-width:120px;accent-color:var(--sel)}
+.volnum{min-width:110px;font-variant-numeric:tabular-nums}
+select{background:var(--field);border:2px inset var(--face);padding:3px 5px;border-radius:0;font:inherit;color:inherit}
+button[aria-pressed="true"]{border-style:inset;background:#cfccc4;font-weight:600}
 .wxgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:4px 22px;align-items:start}
 .wxgrid fieldset{margin-top:0}
 
@@ -149,6 +159,8 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
   .wxgrid{grid-template-columns:1fr}
   .pcbtns button{flex:1 1 40%}
   .meter{width:80px}
+  .avr{grid-template-columns:1fr}
+  .volrow{flex-basis:100%}
 }
 </style>
 </head>
@@ -231,6 +243,26 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
     <p class="help" id="wakeStats"></p>
   </section>
 
+  <section class="panel wide" aria-labelledby="hAvr" id="avrPanel">
+    <h2 class="panel-title" id="hAvr">Förstärkaren <small id="avrModel">Denon AVR-X1700H</small></h2>
+    <div class="avr">
+      <div class="avrstate"><span class="lamp" id="avrLamp"></span><span id="avrState">–</span></div>
+      <div class="pcmeta" id="avrMeta"></div>
+      <div><button id="btnAvrPower" class="default" disabled>Slå på</button></div>
+    </div>
+    <div class="avrctl">
+      <div class="volrow">
+        <button id="btnVolDown" title="Sänk volymen" disabled>−</button>
+        <input type="range" id="avrVol" min="0" max="70" step="0.5" value="0" aria-label="Volym" disabled>
+        <button id="btnVolUp" title="Höj volymen" disabled>+</button>
+        <span class="volnum" id="avrVolTxt">–</span>
+      </div>
+      <button id="btnMute" aria-pressed="false" disabled>Ljud av</button>
+      <label>Ingång <select id="avrInput" disabled></select></label>
+    </div>
+    <p class="help" id="avrHelp" hidden></p>
+  </section>
+
   <section class="panel" aria-labelledby="hInfo">
     <h2 class="panel-title" id="hInfo">Datorns info <small id="infoSeen"></small></h2>
     <table class="rows info"><tbody>
@@ -259,6 +291,7 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
       <tr><th>Fritt minne</th><td id="memTxt">–</td></tr>
       <tr><th>Senaste omstart</th><td id="resetTxt">–</td></tr>
       <tr><th>WiFi-avbrott</th><td id="dropsTxt">–</td></tr>
+      <tr><th>HomeKit</th><td><span class="lamp" id="hkLamp"></span> <span id="hkTxt">–</span></td></tr>
       <tr><th>Programversion</th><td id="fwTxt">–</td></tr>
     </tbody></table>
   </section>
@@ -414,6 +447,9 @@ function renderStatus() {
   $('resetTxt').textContent = e.reset || '–';
   $('dropsTxt').textContent = n.drops != null ? `${n.drops} sedan start` : '–';
   $('fwTxt').textContent = e.fw ? `v${e.fw}` : '–';
+  const hk = s.homekit || {};
+  lamp($('hkLamp'), hk.enabled ? (hk.paired ? 'ok' : 'wait') : '');
+  $('hkTxt').textContent = !hk.enabled ? 'Avstängt' : hk.paired ? 'Parkopplad – Siri och Hem-appen fungerar' : 'Inte parkopplad än (se ESP32:ans skärm för koden)';
 
   // Datorn
   const pc = s.pc || {};
@@ -440,7 +476,7 @@ function renderStatus() {
 
   const w = s.wakes || {};
   $('wakeStats').textContent = w.count
-    ? `Startad ${w.count} ${w.count === 1 ? 'gång' : 'gånger'}. Senast ${when(w.lastAt)} från ${w.lastBy === 'knapp' ? 'BOOT-knappen' : 'webben'}${w.lastResult === 'timeout' ? ' – svarade inte' : ''}.`
+    ? `Startad ${w.count} ${w.count === 1 ? 'gång' : 'gånger'}. Senast ${when(w.lastAt)} ${w.lastBy === 'knapp' ? 'med BOOT-knappen' : w.lastBy === 'siri' ? 'via Siri' : 'från webben'}${w.lastResult === 'timeout' ? ' – svarade inte' : ''}.`
     : 'Datorn har inte startats härifrån än. Du kan också hålla in BOOT-knappen på ESP32:an i 5 sekunder.';
 
   $('topStatus').textContent = online ? `ESP32 online · datorn ${on ? 'på' : 'av'}` : 'ESP32 offline';
@@ -627,8 +663,11 @@ function renderPcCmd() {
       cancel.hidden = false;
       break;
     case 'countdown': {
-      const left = Math.max(0, Math.round((c.deadline - Date.now()) / 1000));
-      bar.style.width = (100 - left / 60 * 100) + '%';
+      // Serverns tid (updatedAt) i stället för datorns eller mobilens klocka
+      const total = c.countdownS || 60;
+      const end = c.updatedAt ? c.updatedAt + total * 1000 : c.deadline;
+      const left = Math.max(0, Math.min(total, Math.round((end - nowServer()) / 1000)));
+      bar.style.width = (100 - left / total * 100) + '%';
       msg.textContent = left > 0 ? `Datorn ${a.verb} om ${left} s. Den som sitter vid datorn kan avbryta.` : `Datorn ${a.done}…`;
       cancel.hidden = left <= 0;
       break;
@@ -708,11 +747,55 @@ $('btnCmdCancel').addEventListener('click', async () => {
   } catch (err) { setBanner('Kunde inte avbryta: ' + esc(err.message), true); }
 });
 
+/* ---------- Förstärkaren (Denon) ---------- */
+let avrDragging = false, avrSentAt = 0;
+function renderAvr() {
+  const a = status?.avr, online = espOnline();
+  const ok = online && a?.configured && a.online;
+  const on = ok && a.power;
+  const help = $('avrHelp');
+  help.hidden = true;
+  if (!a?.configured) { help.hidden = false; help.textContent = 'Fyll i AVR_IP i secrets.h och ladda upp koden till ESP32:an igen.'; }
+  else if (!online) { help.hidden = false; help.textContent = 'ESP32:an är offline.'; }
+  else if (!a.online) { help.hidden = false; help.textContent = 'ESP32:an når inte förstärkaren. Kontrollera att Network Control är satt till Always On i förstärkarens meny (se guiden).'; }
+  lamp($('avrLamp'), !ok ? '' : on ? 'ok' : '');
+  $('avrState').textContent = !ok ? 'Okänt' : on ? 'På' : 'Standby';
+  $('avrMeta').textContent = on ? `${a.inputName || a.input}${a.mute ? ' · ljud av' : ''}` : '';
+  const pb = $('btnAvrPower');
+  pb.disabled = !ok;
+  pb.textContent = on ? 'Stäng av' : 'Slå på';
+  ['btnVolDown', 'btnVolUp', 'btnMute', 'avrInput', 'avrVol'].forEach(id => $(id).disabled = !on);
+  const vol = $('avrVol');
+  if (a?.max) vol.max = a.max;
+  if (ok && !avrDragging && Date.now() - avrSentAt > 2500) vol.value = a.vol ?? 0;
+  const v = Number(vol.value);
+  $('avrVolTxt').textContent = ok ? `${dec(v, v % 1 ? 1 : 0)} (${dec(v - 80, v % 1 ? 1 : 0)} dB)` : '–';
+  const mb = $('btnMute');
+  mb.setAttribute('aria-pressed', ok && a.mute ? 'true' : 'false');
+  const sel = $('avrInput');
+  if (Array.isArray(a?.inputs) && sel.options.length !== a.inputs.length) sel.innerHTML = a.inputs.map(i => `<option value="${esc(i.code)}">${esc(i.name)}</option>`).join('');
+  if (ok && document.activeElement !== sel) sel.value = a.input;
+}
+async function sendAvr(cmd, value) {
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  avrSentAt = Date.now();
+  try { await set(ref(db, `${ROOT}/avrCmd`), { id, cmd, value: value ?? null, state: 'pending', at: serverTimestamp() }); }
+  catch (err) { setBanner('Kunde inte skicka till förstärkaren: ' + esc(err.message), true); }
+}
+$('btnAvrPower').addEventListener('click', () => sendAvr('power', !(status?.avr?.power)));
+function stepVol(d) { const v = $('avrVol'); avrSentAt = Date.now(); v.value = Math.max(0, Math.min(Number(v.max), Number(v.value) + d)); renderAvr(); sendAvr('vol', Number(v.value)); }
+$('btnVolUp').addEventListener('click', () => stepVol(1));
+$('btnVolDown').addEventListener('click', () => stepVol(-1));
+$('btnMute').addEventListener('click', () => sendAvr('mute', !(status?.avr?.mute)));
+$('avrInput').addEventListener('change', e => sendAvr('input', e.target.value));
+$('avrVol').addEventListener('input', () => { avrDragging = true; renderAvr(); });
+$('avrVol').addEventListener('change', e => { avrDragging = false; sendAvr('vol', Number(e.target.value)); });
+
 /* ---------- Logg ---------- */
 function logText(l) {
   switch (l.type) {
     case 'wake': {
-      const who = l.by === 'knapp' ? 'med BOOT-knappen' : 'från webben';
+      const who = l.by === 'knapp' ? 'med BOOT-knappen' : l.by === 'siri' ? 'via Siri' : 'från webben';
       if (l.result === 'ok') return `Datorn startades ${who} – igång efter ${l.secs} s`;
       if (l.result === 'already_on') return `Start ${who} – datorn var redan på`;
       if (l.result === 'no_wifi') return `Start ${who} – ESP32:an saknade WiFi`;
@@ -816,7 +899,7 @@ function showMain(user) {
   setBanner('');
   const denied = err => setBanner(`Databasen nekade läsning (${esc(err.code || err.message)}). Kolla att reglerna i Firebase är inklistrade och att e-posten i reglerna är <b>${esc(user.email)}</b>.`, true);
   unsubs.push(onValue(ref(db, '.info/serverTimeOffset'), s => { serverOffset = s.val() || 0; }));
-  unsubs.push(onValue(ref(db, `${ROOT}/status`), s => { status = s.val(); renderStatus(); renderWx(); }, denied));
+  unsubs.push(onValue(ref(db, `${ROOT}/status`), s => { status = s.val(); renderStatus(); renderWx(); renderAvr(); }, denied));
   unsubs.push(onValue(ref(db, `${ROOT}/command`), s => { command = s.val(); renderCommand(); renderStatus(); }, denied));
   unsubs.push(onValue(ref(db, `${ROOT}/pcinfo`), s => { pcinfo = s.val(); renderPcInfo(); }, denied));
   unsubs.push(onValue(ref(db, `${ROOT}/pcCommand`), s => { pcCmd = s.val(); renderPcCmd(); }, denied));
@@ -840,7 +923,7 @@ if (configMissing) {
 }
 
 // Uppdatera "för X s sedan" och förloppet varje sekund
-setInterval(() => { if (status) renderStatus(); if (command) renderCommand(); if (pcinfo) renderPcInfo(); if (pcCmd) renderPcCmd(); renderPcButtons(); }, 1000);
+setInterval(() => { if (status) renderStatus(); if (command) renderCommand(); if (pcinfo) renderPcInfo(); if (pcCmd) renderPcCmd(); renderPcButtons(); if (status) renderAvr(); }, 1000);
 setInterval(() => { if (logItems.length || status) renderWeek(); if (status) renderWx(); }, 60000);
 
 /* ---------- App-installation ---------- */
