@@ -619,7 +619,7 @@ function renderPcCmd() {
   prog.classList.remove('indet');
   msg.className = 'msg';
   const bar = prog.firstElementChild;
-  const by = c.cancelledBy === 'datorn' ? 'vid datorn' : 'från webben';
+  const by = { datorn: 'vid datorn', knappen: 'med knappen på ESP32:an', timeout: 'eftersom datorn inte svarade' }[c.cancelledBy] || 'från webben';
   switch (c.state) {
     case 'pending':
       prog.classList.add('indet');
@@ -723,6 +723,7 @@ function logText(l) {
       if (l.result === 'executing' || l.result === 'done') return l.action === 'shutdown' ? `Datorn stängdes av ${who}` : l.action === 'restart' ? `Datorn startades om ${who}` : l.action === 'sleep' ? `Datorn försattes i vila ${who}` : `Datorn låstes ${who}`;
       if (l.result === 'cancelled_pc') return `${a.noun} ${who} – avbröts vid datorn`;
       if (l.result === 'cancelled_web') return `${a.noun} ${who} – avbröts från webben`;
+      if (l.result === 'cancelled_btn') return `${a.noun} ${who} – avbröts med knappen`;
       return `${a.noun} ${who} (${esc(l.result)})`;
     }
     case 'pc_on': return 'Datorn slogs på';
