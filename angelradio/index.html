@@ -1,0 +1,860 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Angelradio – inställningar och uppdatering</title>
+<meta name="description" content="Koppla in din Angelradio-mottagare, ändra inställningar, hantera sändare, skapa egna larmljud och uppdatera programvaran direkt i webbläsaren.">
+<meta name="theme-color" content="#14171b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<script>try{var t=localStorage.getItem('ar.theme');if(t==='light')document.documentElement.dataset.theme='light'}catch(e){}</script>
+<style>
+/* ===== Angelradio – samma design som Olles Hälsa och egna20: ”Kväll” = mörk yta med bärnstensgul accent.
+   Ljust läge finns som alternativ (html[data-theme="light"]). Alla färger styrs av variablerna nedan. ===== */
+:root{
+  color-scheme:dark;
+  --bg:#101216; --surface:#181b20; --surface-2:#1e2228; --sunken:#0e1013;
+  --border:#262b32; --border-strong:#353b44;
+  --text:#e8eaee; --muted:#96a0ac;
+  --accent:#f4b63f; --accent-hover:#ffc65c; --accent-ink:#1b1405; --accent-soft:rgba(244,182,63,.14); --accent-fg:#f4b63f;
+  --ok:#52c98d; --ok-soft:rgba(82,201,141,.14); --warn:#f2a25c; --warn-soft:rgba(242,162,92,.14); --danger:#f06a5f; --danger-soft:rgba(240,106,95,.14);
+  --blue:#5aa9e6; --blue-soft:rgba(90,169,230,.14); --gray:#7d8794;
+  --radius-sm:8px; --radius-btn:7px; --radius-card:12px;
+  --shadow-lg:0 30px 80px rgba(0,0,0,.6); --shadow-float:0 10px 30px rgba(0,0,0,.5);
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Mono","Consolas","SF Mono",Menlo,monospace;
+  --topbar:#14171b; --topbar-ink:#e8eaee; --topbar-border:#23272e; --tb-btn-ink:#cfd4dc; --tb-btn-hover:#20242b;
+  --field:#12151a; --btn:#22262d; --btn-ink:#e3e6eb; --btn-border:#343a43; --btn-hover:#2a2f37;
+  --row-hover:#1f2329;
+  --oled-bg:#05070a; --oled-px:#cfe8ff;
+  --focus:0 0 0 3px color-mix(in srgb,var(--accent) 28%,transparent);
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#eceef1; --surface:#ffffff; --surface-2:#f6f7f9; --sunken:#e8ebef;
+  --border:#dfe2e7; --border-strong:#cbd0d8;
+  --text:#1a1d22; --muted:#626b77;
+  --accent:#f4b63f; --accent-hover:#eaa928; --accent-ink:#1b1405; --accent-soft:rgba(244,182,63,.22); --accent-fg:#94600a;
+  --ok:#1d8a4b; --ok-soft:#e1f3e8; --warn:#b45309; --warn-soft:#fdf0e1; --danger:#cc3a2f; --danger-soft:#fbe7e5;
+  --blue:#2f7fc0; --blue-soft:#e3eff9; --gray:#8a93a0;
+  --shadow-lg:0 30px 80px rgba(20,24,32,.25); --shadow-float:0 8px 24px rgba(20,30,50,.18);
+  --topbar:#ffffff; --topbar-ink:#1a1d22; --topbar-border:#e1e4e9; --tb-btn-ink:#2b3038; --tb-btn-hover:#eef0f3;
+  --field:#ffffff; --btn:#ffffff; --btn-ink:#1f242b; --btn-border:#d2d7de; --btn-hover:#f1f3f6;
+  --row-hover:#f3f5f8;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14.5px;line-height:1.45;-webkit-font-smoothing:antialiased;min-height:100vh;min-height:100dvh}
+button,input,select,textarea{font:inherit;color:inherit}
+[hidden]{display:none !important}
+a{color:var(--accent-fg)}
+h1,h2,h3,p{margin:0}
+code,kbd{font-family:var(--mono);font-size:.92em;background:var(--sunken);border:1px solid var(--border);border-radius:5px;padding:0 5px}
+
+/* ---------- Knappar ---------- */
+button{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--btn);color:var(--btn-ink);border:1px solid var(--btn-border);border-radius:var(--radius-btn);padding:5px 12px;min-height:34px;cursor:pointer;font-weight:500;line-height:1.2;transition:background .12s,border-color .12s,color .12s,box-shadow .12s,transform .08s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+button:hover{background:var(--btn-hover)}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default;transform:none}
+button:disabled:hover{background:var(--btn)}
+button.default{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+button.default:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+button.default:disabled:hover{background:var(--accent)}
+button.danger:hover{color:var(--danger);border-color:var(--danger);background:var(--danger-soft)}
+button.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+button.ghost:hover{background:var(--row-hover);color:var(--text)}
+button.icon{padding:0;width:34px;flex:none}
+button.sm{min-height:28px;padding:2px 9px;font-size:12.5px}
+button.lg{min-height:44px;padding:8px 18px;font-size:15px}
+.ic{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ---------- Fält ---------- */
+input[type=number],input[type=text],input[type=search],select,textarea{background:var(--field);color:var(--text);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:5px 9px;min-height:34px;min-width:0;transition:border-color .12s,box-shadow .12s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:var(--focus)}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;margin:0 6px 0 0;vertical-align:-3px}
+input[type=range]{accent-color:var(--accent);width:100%;min-width:0}
+textarea{resize:vertical;width:100%;line-height:1.4}
+::placeholder{color:var(--muted);opacity:.75}
+input.n{text-align:right;font-variant-numeric:tabular-nums}
+.sw{position:relative;display:inline-block;width:40px;height:22px;flex:none}
+.sw input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:1}
+.sw i{position:absolute;inset:0;border-radius:99px;background:var(--border-strong);transition:background .15s}
+.sw i::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+.sw input:checked+i{background:var(--accent)}
+.sw input:checked+i::after{transform:translateX(18px)}
+.sw input:focus-visible+i{box-shadow:var(--focus)}
+.sw input:disabled+i{opacity:.45}
+
+/* ---------- Toppfält ---------- */
+.toolbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;padding:9px 14px;padding-top:calc(9px + env(safe-area-inset-top));min-height:56px;background:var(--topbar);color:var(--topbar-ink);border-bottom:1px solid var(--topbar-border)}
+.brand{display:inline-flex;align-items:center;gap:9px;font-size:20px;font-weight:700;letter-spacing:.2px;white-space:nowrap;margin-right:10px}
+.brand .logo{width:46px;height:35px;flex:none}
+.brand b{color:var(--accent-fg);font-weight:700}
+.toolbar>button{background:transparent;color:var(--tb-btn-ink);border-color:transparent}
+.toolbar>button:hover{background:var(--tb-btn-hover)}
+.toolbar>button.default{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.toolbar>button.default:hover{background:var(--accent-hover)}
+.tb-space{flex:1;min-width:0}
+.seg{display:inline-flex;background:var(--sunken);border-radius:calc(var(--radius-btn) + 3px);padding:3px;gap:2px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{background:transparent;border-color:transparent;color:var(--muted);min-height:32px}
+.seg button:hover{background:transparent;color:var(--text)}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+html[data-theme="light"] .seg button[aria-selected="true"]{background:#fff}
+.seg.small button{min-height:28px;padding:2px 10px;font-size:12.5px}
+.seg.full{display:flex}
+.seg.full button{flex:1}
+#btnTheme .ic-sun{display:none}
+html[data-theme="light"] #btnTheme .ic-sun{display:block}
+html[data-theme="light"] #btnTheme .ic-moon{display:none}
+.connpill{gap:7px;font-size:13px;color:var(--muted) !important;max-width:260px}
+.connpill .lbl2{overflow:hidden;text-overflow:ellipsis}
+.dotx{width:8px;height:8px;border-radius:50%;background:var(--gray);flex:none}
+.on .dotx,.dotx.on{background:var(--ok);box-shadow:0 0 0 3px var(--ok-soft)}
+.demo .dotx,.dotx.demo{background:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.busy .dotx,.dotx.busy{background:var(--accent);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.25}}
+@keyframes popin{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 45%,transparent)}100%{box-shadow:0 0 0 14px transparent}}
+
+/* ---------- Sidor och kort ---------- */
+main{max-width:1260px;margin:0 auto;padding:16px 16px 48px}
+.page{animation:popin .16s ease-out}
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px;align-items:start}
+.card{grid-column:span 4;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-card);padding:14px 16px 16px;min-width:0}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0;grid-column:span 4}
+.col.w5{grid-column:span 5}.col.w6{grid-column:span 6}.col.w7{grid-column:span 7}.col.w8{grid-column:span 8}
+.col>.card{grid-column:auto}
+.grid.masonry{display:block;columns:2;column-gap:14px}
+.grid.masonry>.card{break-inside:avoid;margin-bottom:14px;display:block}
+.card.w5{grid-column:span 5}.card.w6{grid-column:span 6}.card.w7{grid-column:span 7}.card.w8{grid-column:span 8}.card.w12{grid-column:1/-1}
+.card>h2{display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:12px;font-weight:650;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);min-height:26px;flex-wrap:wrap;row-gap:6px}
+.card>h2 .ic{width:15px;height:15px;color:var(--accent-fg)}
+.card>h2 .sp{flex:1}
+.card>h2 .cnt{font-weight:500;letter-spacing:.02em;text-transform:none}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.45;margin-top:8px}
+.muted{color:var(--muted)}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.bad{color:var(--danger)}
+.r{display:flex;align-items:center;gap:10px;margin:9px 0;min-height:34px}
+.r>label,.r>.lab{flex:1;min-width:0;line-height:1.3}
+.r .lab small,.r>label small{display:block;color:var(--muted);font-size:12px;margin-top:1px}
+.r select{width:170px;flex:none}
+.r input[type=number]{width:90px;flex:none}
+.r .u{color:var(--muted);font-size:12.5px;flex:none;min-width:24px}
+.b{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.sep{border-top:1px solid var(--border);margin:12px 0}
+.big{font-size:32px;font-weight:700;letter-spacing:-.5px;font-variant-numeric:tabular-nums;line-height:1.1}
+.tnum{font-variant-numeric:tabular-nums}
+.empty{color:var(--muted);font-size:13px;padding:22px 4px;text-align:center}
+.pagehead{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin:4px 2px 14px}
+.pagehead h1{font-size:22px;font-weight:700;letter-spacing:-.2px}
+.pagehead p{color:var(--muted);font-size:13.5px;margin-top:3px;max-width:640px}
+.pagehead .sp{flex:1}
+.proflbl{font-size:12.5px;color:var(--muted);margin-right:6px}
+
+/* ---------- Översikt: hjälte ---------- */
+.hero{display:flex;gap:22px;align-items:center;flex-wrap:wrap;padding:20px 22px}
+.hero .dev{flex:none;width:210px;max-width:100%}
+.hero .htxt{flex:1;min-width:240px}
+.hero h1{font-size:24px;font-weight:700;letter-spacing:-.3px;line-height:1.2}
+.hero .sub{color:var(--muted);margin-top:6px;font-size:14px;max-width:560px}
+.hero .b{margin-top:16px}
+.kicker{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:650;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.stat{display:flex;align-items:center;gap:9px;padding:6px 12px 6px 8px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);white-space:nowrap}
+.stat .sic{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-fg);flex:none}
+.stat .sic .ic{width:17px;height:17px}
+.stat .sv{font-weight:700;font-size:15px;line-height:1.1}
+.stat .sl{font-size:11.5px;color:var(--muted);line-height:1.15}
+.stat.cold .sic{background:var(--sunken);color:var(--muted)}
+.stat.good .sic{background:var(--ok-soft);color:var(--ok)}
+.stat.new .sic{background:var(--blue-soft);color:var(--blue)}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.tile{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:11px 12px}
+.tile .tl{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.tile .tl .ic{width:14px;height:14px;color:var(--accent-fg)}
+.tile .tv{font-size:22px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums;line-height:1.15}
+.tile .tv small{font-size:12.5px;font-weight:500;color:var(--muted)}
+.tile .ts{font-size:12px;color:var(--muted);margin-top:2px}
+.pbar{height:8px;border-radius:99px;background:var(--sunken);overflow:hidden;position:relative}
+.pbar>i{display:block;height:100%;width:0;background:var(--accent);border-radius:inherit;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.pbar.ok>i{background:var(--ok)}.pbar.warn>i{background:var(--warn)}.pbar.bad>i{background:var(--danger)}
+.pbar.lg{height:12px}
+
+/* ---------- Enhetsbild (huvudmottagaren) ---------- */
+.devsvg{width:100%;height:auto;display:block}
+.devsvg .body{fill:var(--surface-2);stroke:var(--border-strong)}
+.devsvg .knob{fill:var(--btn);stroke:var(--border-strong)}
+.devsvg .ant{stroke:var(--muted)}
+.devsvg .scr{fill:var(--oled-bg)}
+.devsvg text{fill:var(--oled-px);font-family:var(--mono)}
+.devsvg .led{fill:var(--gray)}
+.devsvg.on .led{fill:var(--ok)}
+.devsvg.demo .led{fill:var(--blue)}
+
+/* ---------- Tabeller och etiketter ---------- */
+.tblwrap{overflow-x:auto;margin:0 -4px}
+table.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13.5px}
+.tbl th{text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border-strong);white-space:nowrap}
+.tbl td{padding:7px 8px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tbody tr:hover td{background:var(--row-hover)}
+.tbl .n{text-align:right}
+.tbl td.grow{width:100%}
+.tbl input[type=text]{width:100%;min-width:140px;background:transparent;border-color:transparent}
+.tbl input[type=text]:hover{border-color:var(--border-strong)}
+.tbl input[type=text]:focus{background:var(--field);border-color:var(--accent)}
+.tbl tr.paused td{opacity:.55}
+.tbl tr.flash td{animation:rowflash 1.4s ease-out}
+@keyframes rowflash{0%{background:var(--accent-soft)}100%{background:transparent}}
+.num{display:inline-grid;place-items:center;min-width:28px;height:24px;padding:0 6px;border-radius:7px;background:var(--accent-soft);color:var(--accent-fg);font-weight:700;font-size:13px}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:1px 8px;border-radius:99px;font-size:11.5px;font-weight:600;background:var(--surface-2);border:1px solid var(--border);white-space:nowrap}
+.pill.bra{color:var(--ok);background:var(--ok-soft);border-color:transparent}
+.pill.mitt{color:var(--warn);background:var(--warn-soft);border-color:transparent}
+.pill.dalig{color:var(--danger);background:var(--danger-soft);border-color:transparent}
+.pill.info{color:var(--blue);background:var(--blue-soft);border-color:transparent}
+.pill.acc{color:var(--accent-fg);background:var(--accent-soft);border-color:transparent}
+.toolrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toolrow input[type=search]{flex:1;min-width:160px;max-width:300px}
+
+/* ---------- Monitor ---------- */
+.mon{font-family:var(--mono);font-size:12.5px;background:var(--sunken);border:1px solid var(--border);border-radius:10px;height:260px;overflow:auto;padding:8px 10px}
+.mon div{display:flex;gap:10px;padding:2px 0;white-space:nowrap}
+.mon .t{color:var(--muted)}
+.mon .k{color:var(--accent-fg);font-weight:600;min-width:62px}
+.mon .x{color:var(--muted)}
+.mon .new{animation:rowflash 1.2s ease-out}
+
+/* ---------- Diagram ---------- */
+.bars{display:flex;flex-direction:column;gap:7px}
+.bars .br{display:grid;grid-template-columns:110px 1fr 34px;gap:10px;align-items:center;font-size:13px}
+.bars .br .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bars .br .v{text-align:right;font-weight:650;font-variant-numeric:tabular-nums}
+canvas.chart{width:100%;height:220px;display:block}
+
+/* ---------- Räckvidd ---------- */
+.rtgrid{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:14px;align-items:stretch}
+.rtbig{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px 10px;background:var(--sunken);border:1px solid var(--border);border-radius:12px;min-height:250px;position:relative}
+.rtbig .who{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.rtbig .pct{font-size:84px;font-weight:750;letter-spacing:-3px;line-height:1;font-variant-numeric:tabular-nums;margin:6px 0 2px}
+.rtbig .pct small{font-size:30px;font-weight:600;letter-spacing:0;color:var(--muted);margin-left:3px}
+.rtbig .q{font-size:15px;font-weight:650}
+.rtbig .pk{font-size:12.5px;color:var(--muted);margin-top:4px}
+.rtbig .live{position:absolute;top:10px;right:12px}
+.rtbig .segs{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;width:min(260px,90%);margin-top:12px}
+.rtbig .segs i{height:9px;border-radius:3px;background:var(--border-strong)}
+.rtbig .segs i.f{background:currentColor}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+/* ---------- Ljudstudio ---------- */
+.slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.slot{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:9px 11px;min-height:58px;white-space:normal}
+.slot b{font-size:13.5px}
+.slot span{font-size:11.5px;color:var(--muted);font-weight:400}
+.slot[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.studio-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.studio-top .grow{flex:1}
+.studio-top input[type=text]{width:190px}
+.studio-top label{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.studio-top input[type=number]{width:72px}
+.rollwrap{display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--sunken)}
+.keys{flex:none;width:46px;display:flex;flex-direction:column;border-right:1px solid var(--border-strong)}
+.keys div{height:18px;font-size:10px;line-height:18px;padding-left:6px;color:var(--muted);border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.keys div.blk{background:color-mix(in srgb,var(--sunken) 60%,#000)}
+html[data-theme="light"] .keys div.blk{background:#d9dde3}
+.keys div.c{color:var(--text);font-weight:650}
+.roll{flex:1;overflow-x:auto;position:relative;touch-action:pan-x}
+.roll canvas{display:block}
+.studio-foot{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.studio-foot .grow{flex:1}
+.meter{font-size:12.5px;color:var(--muted)}
+.lib{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.lib button{justify-content:flex-start;white-space:normal;text-align:left;min-height:42px}
+
+/* ---------- Uppdatering ---------- */
+.verbox{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.verbox .vv{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.verbox .arrow{color:var(--muted)}
+.steps{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.steps li{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--muted)}
+.steps li .st{width:22px;height:22px;border-radius:50%;border:2px solid var(--border-strong);display:grid;place-items:center;flex:none}
+.steps li .st .ic{width:13px;height:13px;stroke-width:3;display:none}
+.steps li.doing{color:var(--text);font-weight:600}
+.steps li.doing .st{border-color:var(--accent);border-top-color:transparent;animation:spin .8s linear infinite}
+.steps li.done{color:var(--text)}
+.steps li.done .st{background:var(--ok);border-color:var(--ok);color:#fff}
+.steps li.done .st .ic{display:block}
+.steps li.fail{color:var(--danger)}
+.steps li.fail .st{border-color:var(--danger)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.changelog{display:flex;flex-direction:column;gap:14px}
+.rel h3{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rel .dt{font-size:12.5px;color:var(--muted);font-weight:500}
+.rel ul{margin:6px 0 0;padding-left:18px;color:var(--text)}
+.rel li{margin:3px 0;font-size:13.5px}
+.dropz{border:1.5px dashed var(--border-strong);border-radius:10px;padding:14px;text-align:center;color:var(--muted);font-size:13px;cursor:pointer;transition:border-color .12s,background .12s}
+.dropz:hover,.dropz.over{border-color:var(--accent);background:var(--accent-soft);color:var(--text)}
+
+/* ---------- Hjälp ---------- */
+.howto{counter-reset:s;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.howto li{counter-increment:s;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px 13px 13px}
+.howto li::before{content:counter(s);display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:13px;margin-bottom:8px}
+.howto li b{display:block;margin-bottom:3px}
+.howto li span{font-size:13px;color:var(--muted)}
+details.faq{border-bottom:1px solid var(--border);padding:2px 0}
+details.faq:last-child{border-bottom:0}
+details.faq summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;padding:10px 2px;font-weight:600}
+details.faq summary::-webkit-details-marker{display:none}
+details.faq summary::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .15s}
+details.faq[open] summary::after{transform:rotate(-135deg)}
+details.faq p{color:var(--muted);font-size:13.5px;padding:0 2px 12px;max-width:760px}
+.support{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 16px;font-size:13.5px}
+.support div{display:flex;align-items:center;gap:8px}
+
+/* ---------- Banner, ändringsfält, dialog, toast ---------- */
+.banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:11px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);margin-bottom:14px;font-size:13.5px}
+.banner .ic{width:20px;height:20px;flex:none}
+.banner.warn{border-color:color-mix(in srgb,var(--warn) 40%,transparent);background:var(--warn-soft)}
+.banner.warn .ic{color:var(--warn)}
+.banner.info{border-color:color-mix(in srgb,var(--blue) 40%,transparent);background:var(--blue-soft)}
+.banner.info .ic{color:var(--blue)}
+.banner .grow{flex:1;min-width:200px}
+.savebar{position:sticky;bottom:14px;z-index:15;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding:10px 12px 10px 16px;background:var(--surface);border:1px solid var(--accent);border-radius:12px;box-shadow:var(--shadow-float);animation:popin .16s ease-out}
+.savebar .grow{flex:1}
+dialog{border:1px solid var(--border-strong);border-radius:14px;background:var(--surface);color:var(--text);padding:0;width:min(460px,calc(100vw - 24px));box-shadow:var(--shadow-lg)}
+dialog::backdrop{background:rgba(5,7,10,.55);backdrop-filter:blur(2px)}
+.dlg{padding:20px 20px 16px}
+.dlg h3{font-size:18px;font-weight:700;margin-bottom:6px}
+.dlg p{color:var(--muted);font-size:13.5px}
+.dlg .b{justify-content:flex-end;margin-top:18px}
+.radar{width:96px;height:96px;margin:18px auto 10px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-fg);animation:pulse 1.4s infinite}
+.radar .ic{width:40px;height:40px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100;display:flex;align-items:center;gap:12px;width:max-content;max-width:min(560px,calc(100% - 24px));padding:10px 12px 10px 16px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;box-shadow:var(--shadow-float);font-size:13.5px;line-height:1.4;animation:tin .2s ease-out}
+.toast.ok{border-left-color:var(--ok)}.toast.fel{border-left-color:var(--danger)}
+@keyframes tin{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+.footer{max-width:1260px;margin:0 auto;padding:0 18px 30px;color:var(--muted);font-size:12.5px;display:flex;gap:12px;flex-wrap:wrap}
+.footer .sp{flex:1}
+
+/* ---------- Mobil ---------- */
+.mobnav{display:none}
+@media (max-width:1100px){
+  .card,.card.w5,.card.w7{grid-column:span 6}
+  .card.w8{grid-column:1/-1}
+  .col,.col.w5,.col.w7{grid-column:span 6}
+  .col.w8{grid-column:1/-1}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .howto{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:860px){
+  .tabs{display:none}
+  .mobnav{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--topbar);border-top:1px solid var(--topbar-border);padding:5px 4px calc(5px + env(safe-area-inset-bottom))}
+  .mobnav button{flex-direction:column;gap:2px;min-height:50px;font-size:10.5px;background:transparent;border-color:transparent;color:var(--muted);padding:4px 0;min-width:0}
+  .mobnav button span{max-width:100%;overflow:hidden;text-overflow:ellipsis}
+  .mobnav button .ic{width:21px;height:21px}
+  .mobnav button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent-fg);font-weight:650}
+  main{padding:12px 10px calc(86px + env(safe-area-inset-bottom))}
+  .grid{grid-template-columns:minmax(0,1fr);gap:10px}
+  .card,.card.w5,.card.w6,.card.w7,.card.w8,.card.w12,.col,.col.w5,.col.w6,.col.w7,.col.w8{grid-column:auto}
+  .col{gap:10px}
+  .grid.masonry{columns:1}
+  .grid.masonry>.card{margin-bottom:10px}
+  .card{padding:12px 13px 14px}
+  .toolbar{padding-left:12px;padding-right:8px;gap:4px}
+  .brand{font-size:18px;margin-right:0}
+  .brand .logo{width:42px;height:32px}
+  .toolbar .lbl{display:none}
+  .connpill .lbl2{display:none}
+  input[type=number],input[type=text],input[type=search],select,textarea{font-size:16px}
+  .hero{padding:16px}
+  .hero .dev{width:150px}
+  .hero h1{font-size:20px}
+  .rtgrid{grid-template-columns:minmax(0,1fr)}
+  .slots{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .savebar{bottom:calc(72px + env(safe-area-inset-bottom))}
+  .toast{bottom:calc(76px + env(safe-area-inset-bottom))}
+  .footer{padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+  .r select{width:150px}
+  .support{grid-template-columns:1fr}
+  .studio-top input[type=text]{width:100%}
+}
+@media (max-width:560px){
+  #txTbl th:nth-child(4),#txTbl td:nth-child(4){display:none}
+  .tbl input[type=text]{min-width:96px}
+  .toolrow input[type=search]{max-width:none;flex-basis:100%}
+  .mobnav button{font-size:10px;letter-spacing:-.1px}
+}
+@media (max-width:420px){
+  .howto{grid-template-columns:1fr}
+  .tiles{gap:8px}
+  .tile .tv{font-size:19px}
+  .bars .br{grid-template-columns:84px 1fr 30px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 2v6M15 2v6"/><path d="M6 8h12v3a6 6 0 0 1-12 0z"/><path d="M12 17v5"/></symbol>
+<symbol id="i-unplug" viewBox="0 0 24 24"><path d="M9 2v6M15 2v6"/><path d="M6 8h12v3a6 6 0 0 1-12 0z"/><path d="M12 17v5"/><path d="M3 3l18 18"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol>
+<symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
+<symbol id="i-radio" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49M7.76 16.24a6 6 0 0 1 0-8.49M19.07 4.93a10 10 0 0 1 0 14.14M4.93 19.07a10 10 0 0 1 0-14.14"/></symbol>
+<symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></symbol>
+<symbol id="i-signal" viewBox="0 0 24 24"><path d="M2 20h.01M7 20v-4M12 20v-8M17 20V8M22 4v16"/></symbol>
+<symbol id="i-update" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/><path d="M12 8v5l3 2"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.82 1c0 2-3 3-3 3M12 17h.01"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></symbol>
+<symbol id="i-vol" viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
+<symbol id="i-bat" viewBox="0 0 24 24"><rect x="2" y="7" width="17" height="10" rx="2"/><path d="M22 11v2"/><path d="M6 10v4M10 10v4"/></symbol>
+<symbol id="i-cpu" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></symbol>
+<symbol id="i-fish" viewBox="0 0 24 24"><path d="M2 12c3-5 9-6 13-3 2-2 4-3 7-3-1 2-1 4 0 6-1 2-1 4 0 6-3 0-5-1-7-3-4 3-10 2-13-3z"/><path d="M7.5 11v.01"/></symbol>
+<symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4"/><path d="M5 4h11l-2 3.5L16 11H5"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></symbol>
+<symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+<symbol id="i-screen" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></symbol>
+<symbol id="i-save" viewBox="0 0 24 24"><path d="M5 3h11l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8M7 21v-7h10v7"/></symbol>
+<symbol id="i-undo" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+<symbol id="i-terminal" viewBox="0 0 24 24"><path d="m4 17 6-6-6-6M12 19h8"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></symbol>
+<symbol id="i-handheld" viewBox="0 0 24 24"><path d="M10 6V4a2 2 0 0 1 4 0v2"/><rect x="8" y="6" width="8" height="9" rx="2.5"/><path d="M12 15v7"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></symbol>
+<symbol id="i-wave" viewBox="0 0 24 24"><path d="M2 12h3l3-8 4 16 3-8h7"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></symbol>
+<symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6M10 3v6L4.5 19a1.5 1.5 0 0 0 1.3 2h12.4a1.5 1.5 0 0 0 1.3-2L14 9V3"/><path d="M7 15h10"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+<symbol id="i-logo-wide" viewBox="-227 -578 2357 1785"><ellipse cx="951" cy="315" rx="1178" ry="893" fill="#f4b63f"/><path fill="#161614" fill-rule="evenodd" d="M697,650C691,648 684,642 681,636C679,630 680,613 685,593C692,566 694,541 696,495C696,480 697,466 698,466C698,465 699,443 699,417C700,365 700,366 694,361C692,358 684,355 679,354C668,353 655,351 651,352C647,352 638,357 636,360C635,361 634,364 634,366C634,368 633,373 633,376C632,380 632,386 631,390C631,394 631,397 630,397C630,398 630,406 629,416C628,437 623,467 618,486C616,492 614,502 613,508C610,522 608,529 599,551C590,572 588,576 581,587C565,611 548,628 534,635C527,639 520,640 492,644C472,646 465,647 446,647C432,647 421,646 414,645C408,645 395,643 385,642C372,642 363,640 356,639C351,637 342,635 338,634C320,631 291,625 276,620C267,618 252,614 244,612C234,610 224,606 216,603C210,600 197,595 188,592C172,585 127,564 113,555C105,550 65,522 53,512C34,496 23,478 25,467C26,463 33,455 37,452C46,448 64,448 90,454C108,458 124,460 143,461C156,461 158,461 160,460C162,459 163,457 163,456C163,454 153,445 137,434C120,423 111,419 85,408C73,403 59,397 54,395C30,384 13,372 7,360C5,356 5,354 5,348C5,341 5,339 8,332C10,328 14,322 17,318C24,307 138,193 153,181C186,155 224,128 245,117C253,113 264,107 268,104C276,99 284,95 315,80C337,70 341,69 366,61C401,51 413,48 439,41C474,33 480,32 501,30C533,28 537,29 566,54C581,68 586,74 596,88C605,102 610,111 615,126C620,139 621,144 622,159C622,166 624,178 626,187C627,195 628,209 629,217C630,225 630,235 631,239C632,243 632,254 633,264C634,282 634,285 636,289C640,296 644,297 668,297C686,297 687,297 692,294C699,291 700,289 702,264C703,247 703,238 702,223C702,213 701,181 701,153C701,100 700,89 696,70C693,59 690,50 683,38C676,26 675,21 678,16C681,12 686,8 692,7C710,4 755,3 763,6C771,9 778,17 778,23C778,24 777,29 775,33C770,48 768,53 766,64C764,75 764,79 763,122C763,147 763,176 763,186C763,200 762,212 761,226C758,250 759,270 761,276C762,278 763,281 763,283C763,286 767,290 773,290C792,292 816,293 859,294C947,295 940,295 946,292C958,288 961,280 963,257C964,245 964,237 963,215C962,201 961,186 961,183C960,180 960,160 960,132C959,101 959,86 958,81C955,66 952,56 949,49C944,35 944,32 950,25C955,19 960,17 973,16C983,15 989,15 1008,16C1022,18 1033,19 1035,20C1039,21 1044,25 1046,29C1048,34 1047,38 1040,49C1030,67 1026,80 1024,101C1022,116 1020,241 1022,256C1023,270 1024,273 1031,279C1037,285 1040,286 1060,289C1078,292 1111,293 1155,292C1179,292 1196,292 1207,293C1216,294 1229,294 1237,294C1250,294 1251,294 1253,292C1258,287 1262,265 1263,230C1264,215 1265,198 1265,192C1267,185 1267,178 1266,164C1266,149 1266,143 1268,135C1268,129 1270,116 1270,106C1270,92 1271,85 1272,83C1274,79 1282,72 1285,70C1290,68 1298,68 1308,69C1319,70 1328,72 1351,80C1360,83 1374,86 1381,88C1389,89 1400,91 1406,93C1412,94 1428,97 1440,100C1452,102 1464,105 1467,106C1478,110 1487,118 1490,126C1491,133 1491,135 1489,142C1488,148 1481,156 1476,159C1472,161 1463,161 1453,160C1440,158 1391,146 1377,140C1371,138 1361,134 1356,133C1334,127 1331,127 1326,136C1324,140 1324,144 1323,158C1322,168 1321,185 1320,195C1317,219 1318,251 1321,262C1326,280 1335,285 1356,285C1378,285 1391,284 1408,281C1438,276 1445,277 1462,287C1479,298 1479,298 1509,297C1534,296 1540,295 1552,290C1575,279 1588,265 1614,224C1628,203 1628,202 1643,185C1670,152 1670,153 1706,123C1727,105 1753,89 1782,74C1789,70 1799,64 1804,61C1839,41 1866,32 1880,34C1885,35 1892,42 1895,47C1897,51 1897,53 1897,59C1897,66 1896,69 1892,82C1889,91 1884,103 1881,110C1878,117 1875,126 1874,130C1872,134 1869,141 1867,146C1860,159 1858,166 1854,181C1853,189 1850,200 1848,206C1840,228 1838,243 1836,280C1835,293 1834,310 1834,317C1832,336 1834,360 1838,381C1839,386 1841,398 1843,408C1845,423 1851,452 1856,466C1862,486 1875,520 1882,534C1899,567 1901,578 1891,588C1882,597 1870,597 1844,589C1803,576 1797,574 1784,568C1752,552 1749,551 1713,528C1690,512 1663,485 1633,446C1622,432 1618,426 1608,410C1596,389 1588,378 1578,367C1567,356 1560,352 1545,346C1528,340 1507,336 1484,336C1475,336 1473,336 1467,339C1449,346 1444,348 1434,348C1430,348 1422,347 1416,347C1406,345 1402,345 1362,345C1330,346 1329,346 1324,350C1322,352 1319,362 1319,364C1319,364 1319,371 1318,379C1317,395 1317,422 1319,450C1321,478 1323,485 1332,494C1341,504 1352,506 1377,500C1400,496 1414,492 1443,479C1462,471 1474,467 1480,467C1488,467 1496,474 1499,483C1501,491 1497,500 1487,510C1476,520 1469,524 1448,531C1440,534 1427,538 1420,541C1412,544 1394,550 1378,554C1363,558 1344,563 1336,565C1320,570 1302,574 1294,574C1288,574 1284,572 1279,568C1269,560 1266,548 1265,511C1264,497 1264,485 1263,485C1263,484 1262,467 1262,446C1260,402 1260,392 1261,371C1261,357 1261,355 1259,352C1256,345 1254,344 1239,343C1232,343 1219,343 1209,342C1192,342 1128,342 1074,342C1049,342 1047,343 1042,345C1035,347 1028,354 1025,360C1021,369 1020,378 1020,407C1020,422 1020,443 1021,454C1022,465 1022,488 1022,506C1023,545 1023,546 1032,555C1040,563 1042,563 1071,563C1091,562 1095,562 1104,560C1136,552 1159,549 1169,552C1176,554 1184,563 1186,570C1187,576 1186,581 1182,588C1174,599 1161,605 1132,609C1116,611 1117,611 1103,615C1097,617 1086,619 1078,620C1065,621 1051,624 1012,632C1002,634 987,635 981,633C975,631 967,623 964,617C962,612 962,597 964,582C965,574 966,514 966,484C966,477 966,467 965,460C964,454 964,440 963,428C963,415 963,398 962,389C961,375 961,373 958,367C957,364 954,360 952,358C945,352 928,349 892,349C875,349 866,350 856,351C847,352 837,353 829,353C798,353 772,355 766,359C763,361 758,370 756,380C755,386 755,393 755,416C755,466 756,549 757,557C758,566 762,574 768,580C777,589 790,593 812,592C830,591 863,592 869,594C876,597 884,603 887,609C892,619 888,633 880,641C870,649 863,650 808,651C786,651 754,651 736,652C705,652 702,652 697,650ZM476,602C488,601 496,598 505,590C517,579 534,558 544,540C549,532 559,506 564,492C565,488 567,481 568,476C568,471 570,461 572,454C575,435 576,410 577,325C577,256 577,252 575,240C574,233 573,222 572,215C570,195 568,185 564,169C556,143 552,133 542,120C535,112 521,99 514,95C499,86 476,80 463,81C459,82 451,84 444,87C435,89 425,92 416,93C405,95 396,98 372,106C344,115 341,116 318,128C297,138 267,156 246,170C241,172 231,180 223,186C215,192 203,201 196,206C179,218 172,225 158,239C152,246 130,267 111,287C73,324 69,329 72,334C73,338 84,344 105,353C144,370 154,376 188,404C205,418 213,425 232,446C246,462 251,470 252,481C252,489 251,494 246,499C239,507 237,508 218,507C204,507 200,507 192,505C170,500 156,497 127,494C124,494 120,494 119,494C114,493 111,495 111,497C111,501 117,505 142,519C162,530 185,542 201,548C206,550 216,554 224,558C242,565 246,566 281,576C312,586 318,587 334,590C341,591 350,593 354,594C368,598 372,599 392,600C402,601 417,602 425,602C446,604 464,604 476,602ZM1840,538C1842,535 1840,532 1832,515C1829,508 1826,502 1826,501C1826,501 1824,498 1822,495C1814,482 1802,473 1764,447C1727,422 1694,403 1682,399C1680,398 1677,397 1675,396C1674,396 1672,395 1671,395C1671,395 1668,394 1666,393C1664,392 1660,391 1659,391C1653,392 1654,395 1664,410C1672,423 1676,427 1692,443C1718,469 1739,486 1762,498C1768,501 1779,508 1786,512C1792,516 1802,522 1806,524C1812,527 1820,531 1824,534C1834,540 1838,541 1840,538ZM360,433C343,431 329,426 313,415C302,408 293,398 285,387C266,358 262,343 262,310C262,299 262,289 263,285C265,273 272,250 276,242C284,225 298,207 312,197C348,173 398,168 431,186C440,191 459,205 466,212C481,229 491,249 496,276C499,295 497,330 492,352C487,372 462,406 445,417C424,431 393,436 360,433ZM1803,412C1806,406 1805,378 1802,368C1800,363 1793,353 1789,350C1785,347 1774,343 1767,342C1763,342 1749,341 1736,342C1722,342 1704,342 1696,342C1682,342 1675,343 1673,345C1670,348 1674,351 1696,362C1718,372 1747,388 1776,405C1794,415 1794,415 1798,415C1801,414 1802,414 1803,412ZM397,378C405,374 413,368 422,359C431,349 435,342 439,330C442,323 442,320 443,310C443,285 436,265 418,249C392,224 356,229 334,260C325,272 318,290 317,302C316,313 320,331 326,342C331,353 343,364 360,373C376,382 386,383 397,378ZM1776,296C1784,294 1792,288 1796,282C1800,276 1804,255 1804,239C1804,222 1801,221 1788,228C1784,231 1777,234 1774,237C1770,239 1762,243 1756,247C1750,250 1742,255 1738,257C1731,260 1708,273 1700,278C1699,278 1694,281 1689,283C1684,286 1679,288 1678,289C1676,292 1677,295 1680,297C1683,298 1770,297 1776,296ZM1672,246C1679,243 1687,238 1690,237C1694,235 1702,231 1708,227C1726,218 1745,206 1770,189C1807,165 1817,156 1828,132C1832,124 1836,117 1836,116C1838,112 1841,103 1841,100C1841,96 1839,94 1836,94C1831,94 1799,112 1781,125C1775,129 1764,137 1756,142C1737,156 1734,158 1711,180C1676,213 1652,245 1656,250C1657,251 1658,252 1659,252C1659,252 1666,249 1672,246Z"/><rect x="932" y="0" width="126" height="98" fill="#f4b63f"/><rect x="959.5" y="50" width="63" height="62" fill="#161614"/><circle cx="990.5" cy="50" r="42" fill="#161614"/><path d="M896,84A100,100 0 0 1 929,-29 M836,106A165,165 0 0 1 889,-80 M1052,-29A100,100 0 0 1 1084,84 M1092,-80A165,165 0 0 1 1146,106" fill="none" stroke="#161614" stroke-width="40" stroke-linecap="round"/></symbol>
+</defs></svg>
+
+<header class="toolbar">
+  <span class="brand" title="Angelradio – trådlöst ismetelarm"><svg class="logo" aria-hidden="true"><use href="#i-logo-wide"/></svg><span>Angel<b>radio</b></span></span>
+  <nav class="seg tabs" id="tabs" role="tablist" aria-label="Välj vy">
+    <button type="button" role="tab" data-tab="oversikt">Översikt</button>
+    <button type="button" role="tab" data-tab="inst">Inställningar</button>
+    <button type="button" role="tab" data-tab="sandare">Sändare</button>
+    <button type="button" role="tab" data-tab="ljud">Ljudstudio</button>
+    <button type="button" role="tab" data-tab="rackvidd">Räckvidd</button>
+    <button type="button" role="tab" data-tab="uppdatera">Uppdatera</button>
+    <button type="button" role="tab" data-tab="hjalp">Hjälp</button>
+  </nav>
+  <span class="tb-space"></span>
+  <button id="connPill" type="button" class="connpill" title="Anslutningsstatus"><span class="dotx"></span><span class="lbl2" id="connTxt">Ej ansluten</span></button>
+  <button id="btnConnect" type="button" class="default"><svg class="ic" aria-hidden="true"><use href="#i-plug"/></svg><span class="lbl" id="btnConnectTxt">Anslut</span></button>
+  <button id="btnInstall" type="button" hidden title="Installera Angelradio som en app på datorn"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg><span class="lbl">Installera</span></button>
+  <button id="btnTheme" type="button" class="icon" title="Byt mellan mörkt och ljust läge" aria-label="Byt tema"><svg class="ic ic-moon" aria-hidden="true"><use href="#i-moon"/></svg><svg class="ic ic-sun" aria-hidden="true"><use href="#i-sun"/></svg></button>
+</header>
+
+<main>
+<div class="banner warn" id="unsupported" hidden>
+  <svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>
+  <div class="grow"><b>Den här webbläsaren kan inte prata med USB-enheter.</b> Använd Google Chrome eller Microsoft Edge på en dator. Du kan ändå prova allt i demoläget.</div>
+  <button type="button" data-act="demo"><svg class="ic" aria-hidden="true"><use href="#i-flask"/></svg>Prova demoläget</button>
+</div>
+
+<!-- ===================== ÖVERSIKT ===================== -->
+<section class="page" id="p-oversikt" hidden>
+  <div class="grid">
+    <div class="card w12 hero">
+      <div class="dev">
+        <svg class="devsvg" id="devSvg" viewBox="0 0 220 150" aria-hidden="true">
+          <path class="ant" d="M168 34 V10" stroke-width="3" stroke-linecap="round"/>
+          <path class="ant" d="M160 10 q8 -6 16 0 M160 4 q8 -6 16 0" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".7"/>
+          <rect class="body" x="10" y="32" width="200" height="110" rx="16" stroke-width="1.5"/>
+          <rect class="scr" x="26" y="48" width="120" height="64" rx="4"/>
+          <text id="oledL1" x="34" y="66" font-size="11">ANGELRADIO</text>
+          <text id="oledL2" x="34" y="88" font-size="17" font-weight="700">––</text>
+          <text id="oledL3" x="34" y="104" font-size="9">Ej ansluten</text>
+          <circle class="knob" cx="178" cy="80" r="18" stroke-width="1.5"/>
+          <path d="M178 66 v8" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"/>
+          <circle class="led" cx="178" cy="124" r="4"/>
+          <rect x="26" y="122" width="40" height="8" rx="3" fill="var(--border-strong)"/>
+        </svg>
+      </div>
+      <div class="htxt">
+        <div class="kicker"><span class="dotx" id="heroDot"></span><span id="heroKicker">Ingen enhet ansluten</span></div>
+        <h1 id="heroTitle">Koppla in din mottagare med USB-kabeln</h1>
+        <p class="sub" id="heroSub">Sedan kan du ändra inställningar, döpa dina sändare, skapa egna larmljud och uppdatera programvaran, direkt här i webbläsaren. Du behöver inte installera något.</p>
+        <div class="b" id="heroBtns">
+          <button type="button" class="default lg" data-act="connect"><svg class="ic" aria-hidden="true"><use href="#i-plug"/></svg>Anslut mottagaren</button>
+          <button type="button" class="lg" data-act="demo"><svg class="ic" aria-hidden="true"><use href="#i-flask"/></svg>Prova demoläget</button>
+        </div>
+        <div class="chips" id="heroChips" hidden style="margin-top:16px"></div>
+      </div>
+    </div>
+
+    <div class="card w8" id="cardTiles">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-cpu"/></svg>Enheten<span class="sp"></span><span class="cnt" id="devModel">–</span></h2>
+      <div class="tiles">
+        <div class="tile"><div class="tl"><svg class="ic" aria-hidden="true"><use href="#i-bat"/></svg>Batteri</div><div class="tv" id="tBat">–</div><div class="pbar" style="margin:7px 0 4px"><i id="tBatBar"></i></div><div class="ts" id="tBatSub">&nbsp;</div></div>
+        <div class="tile"><div class="tl"><svg class="ic" aria-hidden="true"><use href="#i-radio"/></svg>Sändare</div><div class="tv" id="tTx">–</div><div class="ts" id="tTxSub">&nbsp;</div></div>
+        <div class="tile"><div class="tl"><svg class="ic" aria-hidden="true"><use href="#i-flag"/></svg>Senaste napp</div><div class="tv" id="tLast">–</div><div class="ts" id="tLastSub">&nbsp;</div></div>
+        <div class="tile"><div class="tl"><svg class="ic" aria-hidden="true"><use href="#i-cpu"/></svg>Programvara</div><div class="tv" id="tFw">–</div><div class="ts" id="tFwSub">&nbsp;</div></div>
+      </div>
+      <div class="sep"></div>
+      <h2 style="margin-bottom:8px"><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>Senaste händelser<span class="sp"></span><button type="button" class="ghost sm" data-act="readlog">Läs om</button></h2>
+      <div class="tblwrap"><table class="tbl"><thead><tr><th>När</th><th>Sändare</th><th>Händelse</th><th class="n">Volym</th></tr></thead><tbody id="logBody"><tr><td colspan="4" class="empty">Anslut mottagaren för att se loggen.</td></tr></tbody></table></div>
+    </div>
+
+    <div class="col w4">
+    <div class="card">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-fish"/></svg>Napp per spö<span class="sp"></span><span class="cnt" id="nappTot"></span></h2>
+      <div class="bars" id="nappBars"><div class="empty">Ingen statistik än.</div></div>
+      <p class="hint">Räknas från mottagarens logg. Spara en säkerhetskopia om du vill behålla statistiken efter en fabriksåterställning.</p>
+    </div>
+
+    <div class="card">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-vol"/></svg>Snabbinställningar</h2>
+      <div class="r"><label for="qVol">Volym</label><span class="tnum" id="qVolV" style="width:32px;text-align:right">–</span></div>
+      <input type="range" id="qVol" min="0" max="10" step="1" data-key="vol" disabled>
+      <div class="r" style="margin-top:12px"><label for="qSig">Larmsignal</label><select id="qSig" data-key="sig" disabled></select><button type="button" class="icon" data-act="preview-sig" title="Lyssna" aria-label="Lyssna på larmsignalen"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg></button></div>
+      <p class="hint">Ändringar sparas när du trycker på Spara i fältet som dyker upp.</p>
+    </div>
+
+    </div>
+    <div class="card w6">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-shield"/></svg>Säkerhetskopia</h2>
+      <p class="muted" style="font-size:13.5px">Spara alla inställningar, sändare med namn och egna ljud i en fil. Bra innan du uppdaterar eller om du byter mottagare.</p>
+      <div class="b">
+        <button type="button" data-act="backup" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Spara kopia</button>
+        <button type="button" data-act="restore" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg>Läs in kopia</button>
+      </div>
+      <p class="hint" id="lastBackup"></p>
+    </div>
+
+    <div class="card w6">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-handheld"/></svg>Handmottagaren</h2>
+      <p class="muted" style="font-size:13.5px">Fickmottagaren lär sig dina sändare direkt från huvudmottagaren, så att spöna får samma nummer i båda.</p>
+      <div class="b"><button type="button" data-act="clone" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-layers"/></svg>Klona sändare till handmottagaren</button></div>
+      <p class="hint">Håll inne knappen på handmottagaren tills den piper två gånger, och klicka sedan här.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== INSTÄLLNINGAR ===================== -->
+<section class="page" id="p-inst" hidden>
+  <div class="pagehead">
+    <div><h1>Inställningar</h1><p>Ändringarna skickas till mottagaren när du sparar. Inget sparas innan dess, så du kan prova dig fram.</p></div>
+    <span class="sp"></span>
+    <span style="display:inline-flex;align-items:center"><span class="proflbl">Profil</span><div class="seg small" id="profiles" aria-label="Profiler">
+      <button type="button" data-prof="dag" title="Normal volym, larm tills du klickar">Dag</button>
+      <button type="button" data-prof="natt" title="Lägre volym, påminnelse var 30:e sekund">Natt</button>
+      <button type="button" data-prof="tyst" title="Lägsta volym, bara skärm och kort pip">Tyst</button>
+    </div></span>
+  </div>
+  <div class="grid masonry" id="instGrid">
+    <div class="card w6">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-vol"/></svg>Ljud</h2>
+      <div class="r"><label for="sVol">Volym<small>0 är tyst, 10 är max.</small></label><span class="tnum" id="sVolV" style="width:26px;text-align:right">–</span><button type="button" class="sm" data-act="beep" data-needs="conn" title="Pip i mottagaren">Testa</button></div>
+      <input type="range" id="sVol" min="0" max="10" step="1" data-key="vol">
+      <div class="r" style="margin-top:14px"><label for="sSig">Larmsignal<small>Det ljud som spelas när en vippa fäller.</small></label><select id="sSig" data-key="sig"></select><button type="button" class="icon" data-act="preview-sig" title="Lyssna här i datorn" aria-label="Lyssna"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg></button></div>
+      <div class="r"><label for="sSigR">Signal vid rusning<small>När rullen snurrar men vippan inte fällt.</small></label><select id="sSigR" data-key="sigr"></select></div>
+      <div class="r"><span class="lab">Larmets längd<small>Hur länge larmet låter innan det tystnar självt.</small></span></div>
+      <div class="seg small full" data-seg="alen">
+        <button type="button" data-v="5">5 s</button><button type="button" data-v="10">10 s</button><button type="button" data-v="30">30 s</button><button type="button" data-v="0">Tills jag klickar</button>
+      </div>
+    </div>
+
+    <div class="card w6">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-bell"/></svg>Larm</h2>
+      <div class="r"><label for="sBeepNo">Pip ut spöets nummer<small>Tre korta pip efter larmet betyder spö 3.</small></label><span class="sw"><input type="checkbox" id="sBeepNo" data-key="beepno"><i></i></span></div>
+      <div class="r"><label for="sRemind">Påminn om okvitterat larm<small>Ett kort pip med jämna mellanrum tills du klickar.</small></label><span class="sw"><input type="checkbox" id="sRemind" data-key="remind"><i></i></span></div>
+      <div class="r"><label for="sRemindS">Påminnelse var</label><select id="sRemindS" data-key="remints" style="width:120px"><option value="15">15 sekund</option><option value="30">30 sekund</option><option value="60">minut</option><option value="120">2 minut</option></select></div>
+      <div class="r"><label for="sRush">Larma vid rusning<small>Larm när rullen snurrar, även om vippan inte fäller.</small></label><span class="sw"><input type="checkbox" id="sRush" data-key="rush"><i></i></span></div>
+      <div class="r"><label for="sFlash">Blinkande skärm vid larm<small>Syns bättre i mörker och på avstånd.</small></label><span class="sw"><input type="checkbox" id="sFlash" data-key="flash"><i></i></span></div>
+    </div>
+
+    <div class="card w6">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-screen"/></svg>Skärm</h2>
+      <div class="r"><label for="sDim">Släck skärmen efter<small>Sparar batteri. Den tänds när du vrider på ratten.</small></label><select id="sDim" data-key="dim" style="width:120px"><option value="10">10 s</option><option value="15">15 s</option><option value="30">30 s</option><option value="60">1 min</option><option value="0">Aldrig</option></select></div>
+      <div class="r"><label for="sCon">Ljusstyrka</label><span class="tnum" id="sConV" style="width:40px;text-align:right">–</span></div>
+      <input type="range" id="sCon" min="1" max="4" step="1" data-key="con">
+      <div class="r" style="margin-top:12px"><label for="sFlip">Vänd skärmen upp och ner<small>Om lådan står med ratten åt vänster.</small></label><span class="sw"><input type="checkbox" id="sFlip" data-key="flip"><i></i></span></div>
+    </div>
+
+    <div class="card w6">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-bat"/></svg>Batteri</h2>
+      <div class="r"><span class="lab">Batterityp<small>Påverkar hur procenten räknas. Laddbara visar annars för lågt.</small></span></div>
+      <div class="seg small full" data-seg="btype">
+        <button type="button" data-v="0">Alkaliska</button><button type="button" data-v="1">Laddbara (NiMH)</button><button type="button" data-v="2">Litium</button>
+      </div>
+      <div class="r" style="margin-top:10px"><label for="sLow">Varna vid lågt batteri<small>Pip och text på skärmen under 15 %.</small></label><span class="sw"><input type="checkbox" id="sLow" data-key="lowbat"><i></i></span></div>
+      <div class="sep"></div>
+      <div class="r"><label for="calV">Kalibrera spänningen<small>Mät batteripacket med en multimeter och skriv in värdet.</small></label><input type="number" id="calV" class="n" step="0.01" min="2" max="6" placeholder="4,15"><span class="u">V</span><button type="button" class="sm" data-act="calibrate" data-needs="conn">Kalibrera</button></div>
+      <p class="hint" id="calHint">Mottagaren mäter just nu <b id="calNow">–</b>.</p>
+    </div>
+
+    <div class="card w6">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-handheld"/></svg>Handmottagare och radio</h2>
+      <div class="r"><label for="sRelay">Skicka vidare larm till handmottagaren<small>Huvudmottagaren sänder om larmet så att det når längre.</small></label><span class="sw"><input type="checkbox" id="sRelay" data-key="relay"><i></i></span></div>
+      <div class="r"><label for="sDouble">Kräv två mottagna paket<small>Färre falsklarm vid störningar, men lite kortare räckvidd.</small></label><span class="sw"><input type="checkbox" id="sDouble" data-key="dbl"><i></i></span></div>
+    </div>
+
+    <div class="card w6">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>Återställ</h2>
+      <p class="muted" style="font-size:13.5px">Fabriksåterställning nollställer alla inställningar. Sändarna och dina egna ljud finns kvar.</p>
+      <div class="b"><button type="button" class="danger" data-act="defaults" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-undo"/></svg>Återställ inställningar</button></div>
+    </div>
+  </div>
+
+  <div class="savebar" id="saveBar" hidden>
+    <svg class="ic" aria-hidden="true" style="color:var(--accent-fg)"><use href="#i-edit"/></svg>
+    <span class="grow" id="saveTxt">Osparade ändringar</span>
+    <button type="button" data-act="undo-settings"><svg class="ic" aria-hidden="true"><use href="#i-undo"/></svg>Ångra</button>
+    <button type="button" class="default" data-act="save-settings"><svg class="ic" aria-hidden="true"><use href="#i-save"/></svg>Spara till mottagaren</button>
+  </div>
+</section>
+
+<!-- ===================== SÄNDARE ===================== -->
+<section class="page" id="p-sandare" hidden>
+  <div class="pagehead">
+    <div><h1>Sändare</h1><p>Ge dina angeldon namn, pausa de som står oanvända och se när de senast hördes. Numret visas på skärmen vid larm.</p></div>
+    <span class="sp"></span>
+    <button type="button" class="default" data-act="pair" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-plus"/></svg>Lägg till sändare</button>
+  </div>
+  <div class="grid">
+    <div class="card w8">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-radio"/></svg>Parade sändare<span class="sp"></span><span class="cnt" id="txCount"></span></h2>
+      <div class="toolrow">
+        <input type="search" id="txSearch" placeholder="Sök namn eller nummer">
+        <span class="tb-space"></span>
+        <button type="button" class="sm" data-act="tx-pause-all" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-pause"/></svg>Pausa alla</button>
+        <button type="button" class="sm" data-act="tx-resume-all" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>Aktivera alla</button>
+      </div>
+      <div class="tblwrap"><table class="tbl" id="txTbl"><thead><tr><th>#</th><th>Namn</th><th>Senast hörd</th><th>Signal</th><th>Aktiv</th><th></th></tr></thead><tbody id="txBody"><tr><td colspan="6" class="empty">Anslut mottagaren för att se dina sändare.</td></tr></tbody></table></div>
+      <p class="hint">Namnen sparas i mottagaren (max 12 tecken). Signalen kommer från senaste räckviddstestet.</p>
+    </div>
+    <div class="card w4">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg>Live-monitor<span class="sp"></span><span class="sw" title="Visa allt mottagaren hör"><input type="checkbox" id="monOn" aria-label="Live-monitor på/av"><i></i></span></h2>
+      <div class="mon" id="mon"><div class="x">Slå på för att se allt som mottagaren hör, även okända sändare och brus.</div></div>
+      <div class="b"><button type="button" class="sm ghost" data-act="mon-clear">Rensa</button><span class="tb-space"></span><label class="muted" style="font-size:12.5px;display:inline-flex;align-items:center"><input type="checkbox" id="monUnknown" checked>Visa okända koder</label></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== LJUDSTUDIO ===================== -->
+<section class="page" id="p-ljud" hidden>
+  <div class="pagehead">
+    <div><h1>Ljudstudio</h1><p>Rita en egen larmmelodi, lyssna här i datorn och skicka den till mottagaren. Den har tre platser för egna ljud.</p></div>
+  </div>
+  <div class="grid">
+    <div class="card w12">
+      <div class="slots" id="slots">
+        <button type="button" class="slot" data-slot="1"><b>Eget ljud 1</b><span>Tom</span></button>
+        <button type="button" class="slot" data-slot="2"><b>Eget ljud 2</b><span>Tom</span></button>
+        <button type="button" class="slot" data-slot="3"><b>Eget ljud 3</b><span>Tom</span></button>
+        <button type="button" class="slot" data-slot="0"><b>Utkast</b><span>Bara här i webbläsaren</span></button>
+      </div>
+      <div class="studio-top">
+        <input type="text" id="melName" maxlength="12" placeholder="Namn på ljudet" aria-label="Namn på ljudet">
+        <label>Tempo <input type="number" id="melBpm" class="n" min="40" max="300" value="160"> BPM</label>
+        <label>Upprepa <select id="melRep"><option value="1">1 gång</option><option value="2">2 gånger</option><option value="3" selected>3 gånger</option><option value="0">Hela larmet</option></select></label>
+        <label>Ny ton <select id="melLen"><option value="1">1/16</option><option value="2" selected>1/8</option><option value="4">1/4</option><option value="8">1/2</option></select></label>
+        <span class="grow"></span>
+        <div class="seg small" id="melTool" aria-label="Verktyg"><button type="button" data-tool="draw" aria-selected="true">Rita</button><button type="button" data-tool="erase">Sudda</button></div>
+      </div>
+      <div class="rollwrap">
+        <div class="keys" id="keys"></div>
+        <div class="roll" id="roll"><canvas id="rollCv"></canvas></div>
+      </div>
+      <div class="studio-foot">
+        <button type="button" class="default" data-act="mel-play" id="btnMelPlay"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg><span>Spela</span></button>
+        <button type="button" data-act="mel-play-dev" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-vol"/></svg>Spela i mottagaren</button>
+        <button type="button" data-act="mel-clear" class="ghost"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>Rensa</button>
+        <span class="grow"></span>
+        <span class="meter" id="melMeter">0 toner · 0 av 128 byte</span>
+        <button type="button" class="default" data-act="mel-save" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg>Spara till mottagaren</button>
+      </div>
+      <p class="hint">Klicka för att sätta en ton och dra åt höger för att göra den längre. Klicka på en ton igen för att ta bort den. Piezosummern låter starkast i de övre raderna (runt 2–4 kHz).</p>
+    </div>
+
+    <div class="card w6">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-music"/></svg>Färdiga ljud att utgå från</h2>
+      <div class="lib" id="lib"></div>
+    </div>
+    <div class="card w6">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-file"/></svg>Importera och exportera</h2>
+      <p class="muted" style="font-size:13.5px">Klistra in en ringsignal i RTTTL-format (det gamla Nokia-formatet), eller exportera din melodi för att dela den.</p>
+      <textarea id="rtttl" rows="4" placeholder="namn:d=8,o=6,b=160:c,e,g,c7,4p,g,4c7" style="margin-top:10px;font-family:var(--mono);font-size:12.5px"></textarea>
+      <div class="b">
+        <button type="button" data-act="rtttl-in"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Läs in RTTTL</button>
+        <button type="button" data-act="rtttl-out"><svg class="ic" aria-hidden="true"><use href="#i-upload"/></svg>Exportera RTTTL</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== RÄCKVIDD ===================== -->
+<section class="page" id="p-rackvidd" hidden>
+  <div class="pagehead">
+    <div><h1>Räckviddstest</h1><p>Mät hur stor del av sändarens paket som kommer fram. Gå iväg med en sändare som sänder och följ procenten här eller på mottagarens skärm.</p></div>
+    <span class="sp"></span>
+    <button type="button" class="default" id="btnRt" data-act="rt-toggle" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg><span>Starta test</span></button>
+  </div>
+  <div class="grid">
+    <div class="card w12">
+      <div class="rtgrid">
+        <div class="rtbig" id="rtBig">
+          <span class="pill live" id="rtLive" hidden>LIVE</span>
+          <div class="who" id="rtWho">Väntar på sändare</div>
+          <div class="pct" id="rtPct">–<small>%</small></div>
+          <div class="q" id="rtQ">&nbsp;</div>
+          <div class="segs" id="rtSegs"></div>
+          <div class="pk" id="rtPk">Fäll en vippa eller vrid rullen så att magneten står vid givaren.</div>
+        </div>
+        <div style="min-width:0">
+          <canvas class="chart" id="rtChart"></canvas>
+          <div class="legend">
+            <span><i style="background:var(--ok)"></i>95–100 % bra placering</span>
+            <span><i style="background:var(--accent)"></i>80–94 % liten marginal</span>
+            <span><i style="background:var(--warn)"></i>50–79 % opålitligt</span>
+            <span><i style="background:var(--danger)"></i>under 50 % larm missas</span>
+          </div>
+          <div class="r" style="margin-top:12px"><label for="rtSound">Pip i datorn vid varje mätning<small>Tonen blir lägre ju sämre signalen är.</small></label><span class="sw"><input type="checkbox" id="rtSound" checked><i></i></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card w8">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>Mätningar<span class="sp"></span><button type="button" class="ghost sm" data-act="rt-csv"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Spara som CSV</button><button type="button" class="ghost sm" data-act="rt-clear">Rensa</button></h2>
+      <div class="tblwrap"><table class="tbl"><thead><tr><th>Tid</th><th>Sändare</th><th>Avstånd</th><th class="n">Paket</th><th class="n">Resultat</th><th></th></tr></thead><tbody id="rtBody"><tr><td colspan="6" class="empty">Inga mätningar än.</td></tr></tbody></table></div>
+      <p class="hint">Skriv in avståndet i meter efter varje mätning, så blir det lätt att se var marginalen tar slut.</p>
+    </div>
+    <div class="card w4">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-info"/></svg>Så tolkar du procenten</h2>
+      <p class="muted" style="font-size:13.5px">Procenten ligger kvar på 100 tills du närmar dig gränsen, och rasar sedan snabbt. Allt under 100 betyder att du är nära kanten.</p>
+      <p class="muted" style="font-size:13.5px;margin-top:8px"><b style="color:var(--text)">Tumregel:</b> gå ut tills procenten börjar sjunka och notera avståndet. Halva det avståndet är din säkra räckvidd.</p>
+      <p class="muted" style="font-size:13.5px;margin-top:8px">Testa gärna en kall dag. Knappcellerna i sändarna tappar spänning i kyla, och då kortas räckvidden.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== UPPDATERA ===================== -->
+<section class="page" id="p-uppdatera" hidden>
+  <div class="pagehead">
+    <div><h1>Uppdatera programvaran</h1><p>Nya versioner läggs upp här. Dina inställningar, sändare och egna ljud sparas först och läggs tillbaka efteråt.</p></div>
+  </div>
+  <div class="grid">
+    <div class="col w7">
+    <div class="card">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-update"/></svg>Version</h2>
+      <div class="verbox">
+        <div><div class="muted" style="font-size:12px">I mottagaren</div><div class="vv" id="fwCur">–</div></div>
+        <svg class="ic arrow" aria-hidden="true" style="width:22px;height:22px"><use href="#i-play"/></svg>
+        <div><div class="muted" style="font-size:12px">Senaste</div><div class="vv" id="fwNew">–</div></div>
+        <span class="tb-space"></span>
+        <span class="pill" id="fwState">Inte ansluten</span>
+      </div>
+      <div class="b" style="margin-top:16px">
+        <button type="button" class="default lg" id="btnFlash" data-act="flash" data-needs="conn"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>Uppdatera nu</button>
+        <label class="muted" style="font-size:13px;display:inline-flex;align-items:center"><input type="checkbox" id="fwKeep" checked>Behåll inställningar och sändare</label>
+      </div>
+      <ol class="steps" id="flashSteps" hidden>
+        <li data-s="backup"><span class="st"><svg class="ic"><use href="#i-check"/></svg></span>Sparar inställningar, sändare och egna ljud</li>
+        <li data-s="dl"><span class="st"><svg class="ic"><use href="#i-check"/></svg></span>Hämtar programvaran</li>
+        <li data-s="boot"><span class="st"><svg class="ic"><use href="#i-check"/></svg></span>Startar om mottagaren i uppdateringsläge</li>
+        <li data-s="write"><span class="st"><svg class="ic"><use href="#i-check"/></svg></span><span>Skriver programvaran <span class="tnum" id="flashPct"></span></span></li>
+        <li data-s="verify"><span class="st"><svg class="ic"><use href="#i-check"/></svg></span>Kontrollerar att allt skrevs rätt</li>
+        <li data-s="restore"><span class="st"><svg class="ic"><use href="#i-check"/></svg></span>Lägger tillbaka dina inställningar</li>
+      </ol>
+      <div class="pbar lg" id="flashBar" hidden style="margin-top:14px"><i></i></div>
+      <p class="hint" id="flashHint">Dra inte ur kabeln medan uppdateringen pågår. Om något går fel kan du alltid göra om den, mottagaren går inte sönder.</p>
+    </div>
+    <div class="card">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg>Avancerat</h2>
+      <div class="r"><label for="fwPick">Välj version<small>Du kan gå tillbaka till en äldre version om något inte fungerar.</small></label><select id="fwPick" style="width:150px"></select></div>
+      <div class="dropz" id="hexDrop" tabindex="0" role="button">Släpp en egen <code>.hex</code>-fil här eller klicka för att välja. Bara för dig som bygger egen programvara.</div>
+      <input type="file" id="hexFile" accept=".hex,.ihx" hidden>
+      <p class="hint" id="hexInfo"></p>
+    </div>
+    </div>
+    <div class="col w5">
+    <div class="card">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-file"/></svg>Nyheter</h2>
+      <div class="changelog" id="changelog"><div class="empty">Läser in…</div></div>
+    </div>
+    <div class="card">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-handheld"/></svg>Handmottagaren</h2>
+      <p class="muted" style="font-size:13.5px">Handmottagaren uppdateras på samma sätt via sitt USB-C-uttag. Stödet kommer i en senare version av sidan.</p>
+      <div class="b"><span class="pill info">Kommer snart</span></div>
+    </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== HJÄLP ===================== -->
+<section class="page" id="p-hjalp" hidden>
+  <div class="pagehead"><div><h1>Hjälp</h1><p>Så kommer du igång, och svar på vanliga frågor.</p></div></div>
+  <div class="grid">
+    <div class="card w12">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-plug"/></svg>Kom igång</h2>
+      <ol class="howto">
+        <li><b>Öppna i Chrome eller Edge</b><span>På en dator med Windows, macOS, Linux eller ChromeOS.</span></li>
+        <li><b>Koppla in USB-kabeln</b><span>Mottagaren kan vara avstängd, den drivs från datorn.</span></li>
+        <li><b>Klicka på Anslut</b><span>Välj porten som heter USB-SERIAL CH340 eller liknande, och klicka på Anslut.</span></li>
+        <li><b>Klart</b><span>Ändra det du vill och tryck på Spara. Dra ur kabeln när du är färdig.</span></li>
+      </ol>
+    </div>
+    <div class="card w8">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-help"/></svg>Vanliga frågor</h2>
+      <details class="faq"><summary>Mottagaren syns inte i listan när jag klickar på Anslut</summary><p>Prova en annan USB-kabel, eftersom vissa kablar bara laddar och inte kan föra över data. På Windows kan det behövas en drivrutin för CH340-chippet. Den hittar du hos tillverkaren WCH. Starta om webbläsaren efter installationen.</p></details>
+      <details class="faq"><summary>Porten är upptagen eller går inte att öppna</summary><p>Bara ett program åt gången kan använda porten. Stäng Arduino IDE, PlatformIO eller andra flikar med den här sidan och försök igen.</p></details>
+      <details class="faq"><summary>Kan jag använda mobilen?</summary><p>Inte med den nuvarande mottagaren. Mobilwebbläsare kan sällan prata med USB-enheter. Demoläget fungerar på mobilen, så du kan titta runt.</p></details>
+      <details class="faq"><summary>Vad händer om uppdateringen avbryts?</summary><p>Ingenting farligt. Mottagaren har en startladdare som alltid finns kvar. Anslut igen och kör uppdateringen en gång till. Dina inställningar finns i säkerhetskopian som sparades innan.</p></details>
+      <details class="faq"><summary>Hur många sändare kan jag ha?</summary><p>Upp till 50 i huvudmottagaren. Varje sändare får ett eget nummer som visas på skärmen och kan pipas ut vid larm.</p></details>
+      <details class="faq"><summary>Varför larmar den inte när jag fäller vippan på långt håll?</summary><p>Gör ett räckviddstest. Höj mottagarens antenn, se till att inget står emellan och byt batterier i sändaren. Kyla sänker spänningen i knappcellerna.</p></details>
+      <details class="faq"><summary>Försvinner mina inställningar när jag uppdaterar?</summary><p>Nej. Sidan sparar dem innan uppdateringen och lägger tillbaka dem efteråt. Spara gärna en egen säkerhetskopia också.</p></details>
+    </div>
+    <div class="card w4">
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-screen"/></svg>Din webbläsare</h2>
+      <div class="support" id="support"></div>
+      <div class="sep"></div>
+      <div class="r"><label for="autoConn">Anslut automatiskt<small>När sidan eller appen är öppen och du kopplar in en mottagare du anslutit förut.</small></label><span class="sw"><input type="checkbox" id="autoConn"><i></i></span></div>
+      <div class="r" id="installRow"><label>Installera som app<small>Då ligger Angelradio på skrivbordet och i startmenyn, och fungerar även utan nät.</small></label><button type="button" class="sm" data-act="install" id="btnInstall2">Installera</button></div>
+      <div class="sep"></div>
+      <p class="muted" style="font-size:12.5px">Sidans version <span id="siteVer"></span>. Allt sker lokalt i din webbläsare, inget skickas till någon server.</p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="footer"><span>Angelradio</span><span class="sp"></span><a href="#" data-act="tab" data-tab="hjalp">Hjälp</a></footer>
+
+<nav class="mobnav" id="mobnav" aria-label="Välj vy">
+  <button type="button" data-tab="oversikt"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span>Översikt</span></button>
+  <button type="button" data-tab="inst"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg><span>Inställn.</span></button>
+  <button type="button" data-tab="sandare"><svg class="ic" aria-hidden="true"><use href="#i-radio"/></svg><span>Sändare</span></button>
+  <button type="button" data-tab="ljud"><svg class="ic" aria-hidden="true"><use href="#i-music"/></svg><span>Ljud</span></button>
+  <button type="button" data-tab="rackvidd"><svg class="ic" aria-hidden="true"><use href="#i-signal"/></svg><span>Räckvidd</span></button>
+  <button type="button" data-tab="uppdatera"><svg class="ic" aria-hidden="true"><use href="#i-update"/></svg><span>Uppdatera</span></button>
+  <button type="button" data-tab="hjalp"><svg class="ic" aria-hidden="true"><use href="#i-help"/></svg><span>Hjälp</span></button>
+</nav>
+
+<dialog id="dlg"><div class="dlg" id="dlgBody"></div></dialog>
+<input type="file" id="restoreFile" accept=".angelradio,.json" hidden>
+
+<script src="js/hex.js"></script>
+<script src="js/stk500.js"></script>
+<script src="js/device.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/melody.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{
+  "releases": [
+    {
+      "version": "2.1.0",
+      "date": "2026-11-15",
+      "model": "AR-RX",
+      "file": "firmware/ReceiverOS-2.1.0.hex",
+      "notes": [
+        "Inställningar, sändare och egna ljud kan ändras härifrån via USB.",
+        "Räckviddstest under System, med live-procent och pip.",
+        "Namn på sändarna visas på skärmen vid larm.",
+        "Tre platser för egna larmljud.",
+        "Skärpta gränser för signalomdömen (95/80/50 %)."
+      ]
+    },
+    {
+      "version": "2.0.0",
+      "date": "2026-10-13",
+      "model": "AR-RX",
+      "file": "firmware/ReceiverOS-2.0.0.hex",
+      "notes": [
+        "Mottagaren kan inte längre fastna i parningsläget.",
+        "En fällning ger ett larm, även om sändaren upprepar koden.",
+        "Batteriprocent efter batterityp och varning vid lågt batteri.",
+        "Ta bort en enskild sändare utan att numren ändras.",
+        "Larmet blockerar inte längre ratten eller radion."
+      ]
+    }
+  ]
+}
