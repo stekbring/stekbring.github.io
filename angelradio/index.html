@@ -791,8 +791,8 @@ dialog::backdrop{background:rgba(5,7,10,.55);backdrop-filter:blur(2px)}
     <div class="card">
       <h2><svg class="ic" aria-hidden="true"><use href="#i-terminal"/></svg>Avancerat</h2>
       <div class="r"><label for="fwPick">Välj version<small>Du kan gå tillbaka till en äldre version om något inte fungerar.</small></label><select id="fwPick" style="width:150px"></select></div>
-      <div class="dropz" id="hexDrop" tabindex="0" role="button">Släpp en egen <code>.hex</code>-fil här eller klicka för att välja. Bara för dig som bygger egen programvara.</div>
-      <input type="file" id="hexFile" accept=".hex,.ihx" hidden>
+      <div class="dropz" id="hexDrop" tabindex="0" role="button">Släpp en egen <code>.hex</code>-fil (Nano) eller <code>.bin</code>-fil (ESP32) här eller klicka för att välja. Bara för dig som bygger egen programvara.</div>
+      <input type="file" id="hexFile" accept=".hex,.ihx,.bin" hidden>
       <p class="hint" id="hexInfo"></p>
     </div>
     </div>
@@ -819,13 +819,13 @@ dialog::backdrop{background:rgba(5,7,10,.55);backdrop-filter:blur(2px)}
       <ol class="howto">
         <li><b>Öppna i Chrome eller Edge</b><span>På en dator med Windows, macOS, Linux eller ChromeOS.</span></li>
         <li><b>Koppla in USB-kabeln</b><span>Mottagaren kan vara avstängd, den drivs från datorn.</span></li>
-        <li><b>Klicka på Anslut</b><span>Välj porten som heter USB-SERIAL CH340 eller liknande, och klicka på Anslut.</span></li>
+        <li><b>Klicka på Anslut</b><span>Välj porten som heter USB-SERIAL CH340, CP210x eller liknande, och klicka på Anslut.</span></li>
         <li><b>Klart</b><span>Ändra det du vill och tryck på Spara. Dra ur kabeln när du är färdig.</span></li>
       </ol>
     </div>
     <div class="card w8">
       <h2><svg class="ic" aria-hidden="true"><use href="#i-help"/></svg>Vanliga frågor</h2>
-      <details class="faq"><summary>Mottagaren syns inte i listan när jag klickar på Anslut</summary><p>Prova en annan USB-kabel, eftersom vissa kablar bara laddar och inte kan föra över data. På Windows kan det behövas en drivrutin för CH340-chippet. Den hittar du hos tillverkaren WCH. Starta om webbläsaren efter installationen.</p></details>
+      <details class="faq"><summary>Mottagaren syns inte i listan när jag klickar på Anslut</summary><p>Prova en annan USB-kabel, eftersom vissa kablar bara laddar och inte kan föra över data. På Windows kan det behövas en drivrutin för USB-chippet. För CH340 finns den hos tillverkaren WCH, för CP2102 (ESP32-kort) hos Silicon Labs ("CP210x Universal Windows Driver"). Starta om webbläsaren efter installationen.</p></details>
       <details class="faq"><summary>Porten är upptagen eller går inte att öppna</summary><p>Bara ett program åt gången kan använda porten. Stäng Arduino IDE, PlatformIO eller andra flikar med den här sidan och försök igen.</p></details>
       <details class="faq"><summary>Kan jag använda mobilen?</summary><p>Inte med den nuvarande mottagaren. Mobilwebbläsare kan sällan prata med USB-enheter. Demoläget fungerar på mobilen, så du kan titta runt.</p></details>
       <details class="faq"><summary>Vad händer om uppdateringen avbryts?</summary><p>Ingenting farligt. Mottagaren har en startladdare som alltid finns kvar. Anslut igen och kör uppdateringen en gång till. Dina inställningar finns i säkerhetskopian som sparades innan.</p></details>
@@ -864,6 +864,7 @@ dialog::backdrop{background:rgba(5,7,10,.55);backdrop-filter:blur(2px)}
 <script src="js/hex.js"></script>
 <script src="js/stk500.js"></script>
 <script src="js/device.js"></script>
+<script src="js/esp32.js"></script>
 <script src="js/sim.js"></script>
 <script src="js/melody.js"></script>
 <script src="js/app.js"></script>

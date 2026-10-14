@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Olles dator</title>
+<meta name="description" content="Starta datorn hemma med Wake-on-LAN och se status för datorn, nätverket och ESP32:an.">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#d4d0c8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Olles dator">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#d4d0c8; --face:#e4e1da; --hi:#ffffff; --lo:#8a877f; --dk:#44423d;
+  --ink:#1d1c1a; --muted:#5c5a55; --field:#ffffff; --sel:#27456f; --selink:#fff;
+  --warn:#8a4b00; --bad:#a0231a; --ok:#2d6b2d;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"EB Garamond",Georgia,"Times New Roman",serif;font-size:17px;line-height:1.35;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
+button,input{font:inherit;color:inherit}
+button{background:ButtonFace;color:ButtonText;border:2px outset var(--face);padding:2px 12px;min-height:30px;cursor:pointer;border-radius:0}
+button:active{border-style:inset}
+button:disabled{color:GrayText;cursor:default}
+button:disabled:active{border-style:outset}
+button.default{outline:1px solid var(--dk);outline-offset:-5px}
+input[type=text],input[type=password]{background:var(--field);border:2px inset var(--face);padding:4px 6px;border-radius:0;width:100%}
+:focus-visible{outline:2px dotted var(--ink);outline-offset:1px}
+[hidden]{display:none !important}
+
+/* ---------- Verktygsrad ---------- */
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 10px;padding-top:max(6px,env(safe-area-inset-top));border-bottom:2px groove var(--face);background:var(--bg);position:sticky;top:0;z-index:10}
+.brand{display:inline-flex;align-items:center;gap:8px;font-size:21px;font-weight:600;margin-right:8px;letter-spacing:.3px}
+.brand svg{width:26px;height:26px;display:block}
+.sep{width:1px;height:24px;border-left:1px solid var(--lo);border-right:1px solid var(--hi);margin:0 4px}
+.status{margin-left:auto;color:var(--muted);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- Layout ---------- */
+main{flex:1 1 auto;padding:10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:1180px;width:100%;margin:0 auto;align-content:start}
+.panel{background:var(--face);border:2px groove var(--hi);padding:10px 12px;min-width:0}
+.panel.wide{grid-column:1 / -1}
+.panel-title{font-weight:600;font-size:18px;margin:0 0 8px;display:flex;align-items:baseline;gap:8px}
+.panel-title small{font-weight:400;color:var(--muted);font-size:15px;margin-left:auto}
+.help{color:var(--muted);font-size:15px;margin:4px 0}
+fieldset{border:2px groove var(--hi);margin:10px 0 0;padding:6px 10px 8px}
+legend{padding:0 4px;font-weight:600}
+
+/* ---------- Datorn ---------- */
+.pc{display:grid;grid-template-columns:auto 1fr auto;gap:6px 18px;align-items:center}
+.pcicon{width:84px;height:72px}
+.pcicon .scr{fill:var(--bg);transition:fill .2s}
+.pcicon.on .scr{fill:var(--sel)}
+.pcstate{font-size:34px;font-weight:600;line-height:1.1}
+.pcstate .lamp{vertical-align:6px;margin-right:8px}
+.pcmeta{color:var(--muted);font-size:16px}
+.pcmeta b{color:var(--ink);font-weight:600}
+.startbtn{min-height:46px;min-width:190px;font-size:19px;font-weight:600;padding:4px 20px}
+.lamp{display:inline-block;width:12px;height:12px;border:1px solid var(--dk);background:#b9b6ae;box-shadow:inset 1px 1px 0 rgba(255,255,255,.6)}
+.lamp.ok{background:#3f8f3f}
+.lamp.bad{background:#b33a2b}
+.lamp.wait{background:#c99a2e}
+
+.prog{height:22px;border:2px inset var(--face);background:var(--field);padding:2px;margin:6px 0 4px}
+.prog>div{height:100%;width:0;background:repeating-linear-gradient(90deg,var(--sel) 0 10px,transparent 10px 12px);transition:width .4s linear}
+.prog.indet>div{width:100% !important;background-size:auto;animation:march 1.1s linear infinite;background:repeating-linear-gradient(90deg,var(--sel) 0 10px,transparent 10px 12px,transparent 12px 36px)}
+@keyframes march{from{background-position:0 0}to{background-position:36px 0}}
+.msg{font-size:16px}
+.msg.ok{color:var(--ok)} .msg.bad{color:var(--bad)}
+
+/* ---------- Tabeller ---------- */
+table.rows{width:100%;border-collapse:collapse;background:var(--field);border:2px inset var(--face)}
+table.rows th,table.rows td{text-align:left;padding:3px 8px;border-bottom:1px solid #e6e3dc;vertical-align:top;font-size:16px}
+table.rows th{font-weight:600;width:42%;color:var(--muted)}
+table.rows td.num{text-align:right;font-variant-numeric:tabular-nums}
+table.log th{width:auto;color:var(--ink);border-bottom:1px solid var(--lo);position:sticky;top:0;background:var(--face)}
+table.log td.t{white-space:nowrap;color:var(--muted);width:1%}
+.logwrap{max-height:360px;overflow:auto;border:2px inset var(--face)}
+.logwrap table.rows{border:0}
+.bars{display:inline-block;vertical-align:-1px;margin-right:4px}
+
+/* ---------- Väder och el ---------- */
+.wx{display:grid;grid-template-columns:auto 1fr;gap:4px 16px;align-items:center}
+.temp{font-size:44px;font-weight:600;line-height:1}
+.wxdesc{font-size:18px}
+.kv{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:2px 14px;margin-top:8px;font-size:16px}
+.kv span{color:var(--muted)}
+.chart{background:var(--field);border:2px inset var(--face);padding:6px 6px 2px;margin-top:6px}
+.chart svg{display:block;width:100%;height:auto}
+.moon{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:16px}
+.moon svg{width:34px;height:34px;flex:none}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:112px;background:var(--field);border:2px inset var(--face);padding:6px 6px 0;margin-top:6px}
+.week div{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:13px;color:var(--muted)}
+.week i{display:block;width:70%;max-width:34px;background:var(--sel);min-height:1px}
+.week b{font-weight:400;padding:2px 0;white-space:nowrap}
+.week span{padding:2px 0 3px}
+
+/* ---------- Inloggning ---------- */
+.loginwrap{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}
+.window{background:var(--face);border:2px outset var(--hi);width:min(400px,100%);box-shadow:2px 3px 0 rgba(0,0,0,.18)}
+.window .dhead{background:var(--sel);color:#fff;padding:5px 10px;font-weight:600;display:flex;align-items:center;gap:8px}
+.window .dhead svg{width:18px;height:18px}
+.window .dbody{padding:14px 16px 6px}
+.window .dfoot{display:flex;gap:6px;justify-content:flex-end;padding:8px 16px 12px}
+.field{display:block;margin:0 0 10px}
+.field span{display:block;margin-bottom:3px}
+.err{color:var(--bad);font-size:15px;min-height:1.3em;margin:0}
+.banner{grid-column:1 / -1;background:#f3edd8;border:2px groove var(--hi);padding:8px 12px;font-size:16px}
+.banner.bad{background:#f4ddd8}
+footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc(10px + env(safe-area-inset-bottom))}
+
+@media (max-width:760px){
+  main{grid-template-columns:1fr;padding:8px;gap:8px}
+  button{min-height:38px}
+  .status{flex-basis:100%;margin-left:0;font-size:14px;order:9}
+  .pc{grid-template-columns:auto 1fr}
+  .pc .startcell{grid-column:1 / -1}
+  .startbtn{width:100%}
+  .pcicon{width:64px;height:56px}
+  .pcstate{font-size:28px}
+  .temp{font-size:38px}
+  table.rows th{width:46%}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <mask id="pwrmask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+      <rect width="100" height="100" fill="#fff"/>
+      <path d="M38.7 30.4A17 17 0 1 0 61.3 30.4" fill="none" stroke="#000" stroke-width="7" stroke-linecap="round"/>
+      <path d="M50 23V41" stroke="#000" stroke-width="7" stroke-linecap="round"/>
+    </mask>
+    <symbol id="logo" viewBox="0 0 100 100">
+      <g fill="#161614">
+        <rect x="6" y="12" width="88" height="62" rx="7" mask="url(#pwrmask)"/>
+        <rect x="43" y="73" width="14" height="11"/>
+        <rect x="26" y="82" width="48" height="7" rx="3"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="toolbar">
+  <span class="brand"><svg aria-hidden="true"><use href="#logo"/></svg>Olles dator</span>
+  <button id="btnRefresh" hidden title="Be ESP32:an kolla datorn och skicka ny status direkt">Uppdatera</button>
+  <button id="btnInstall" hidden title="Installera sidan som en app på datorn eller mobilen">Installera som app</button>
+  <button id="btnLogout" hidden>Logga ut</button>
+  <span id="topStatus" class="status"></span>
+</header>
+
+<!-- ---------- Inloggning ---------- -->
+<div class="loginwrap" id="viewLogin" hidden>
+  <form class="window" id="loginForm" autocomplete="on">
+    <div class="dhead"><svg aria-hidden="true" style="filter:invert(1)"><use href="#logo"/></svg>Logga in</div>
+    <div class="dbody">
+      <p class="help" style="margin-top:0">Logga in med användarnamnet och lösenordet som står i ESP32-koden (secrets.h).</p>
+      <label class="field"><span>Användarnamn</span><input type="text" id="inUser" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+      <label class="field"><span>Lösenord</span><input type="password" id="inPass" autocomplete="current-password" required></label>
+      <p class="err" id="loginErr" role="alert"></p>
+    </div>
+    <div class="dfoot"><button type="submit" class="default" id="btnLogin">Logga in</button></div>
+  </form>
+</div>
+
+<!-- ---------- Huvudvy ---------- -->
+<main id="viewMain" hidden>
+  <div class="banner" id="banner" hidden></div>
+
+  <section class="panel wide" aria-labelledby="hPc">
+    <h2 class="panel-title" id="hPc">Datorn <small id="pcIp"></small></h2>
+    <div class="pc">
+      <svg class="pcicon" id="pcIcon" viewBox="0 0 100 100" aria-hidden="true">
+        <g fill="#161614"><rect x="6" y="12" width="88" height="62" rx="7"/><rect x="43" y="73" width="14" height="11"/><rect x="26" y="82" width="48" height="7" rx="3"/></g>
+        <rect class="scr" x="13" y="19" width="74" height="48" rx="2"/>
+      </svg>
+      <div>
+        <div class="pcstate"><span class="lamp" id="pcLamp"></span><span id="pcState">Okänt</span></div>
+        <div class="pcmeta" id="pcMeta">Väntar på status från ESP32:an…</div>
+      </div>
+      <div class="startcell">
+        <button class="startbtn default" id="btnStart" disabled>Starta datorn</button>
+      </div>
+    </div>
+    <fieldset id="wakeBox" hidden>
+      <legend>Start</legend>
+      <div class="prog" id="wakeProg"><div></div></div>
+      <div class="msg" id="wakeMsg"></div>
+    </fieldset>
+    <p class="help" id="wakeStats"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="hHome">
+    <h2 class="panel-title" id="hHome">Hemma <small id="seenTxt"></small></h2>
+    <table class="rows"><tbody>
+      <tr><th>ESP32</th><td><span class="lamp" id="espLamp"></span> <span id="espTxt">–</span></td></tr>
+      <tr><th>Internet</th><td><span class="lamp" id="netLamp"></span> <span id="netTxt">–</span></td></tr>
+      <tr><th>WiFi-signal</th><td id="wifiTxt">–</td></tr>
+      <tr><th>ESP32:ans IP</th><td id="ipTxt">–</td></tr>
+      <tr><th>Extern IP</th><td id="extIpTxt">–</td></tr>
+      <tr><th>Upptid</th><td id="upTxt">–</td></tr>
+      <tr><th>Fritt minne</th><td id="memTxt">–</td></tr>
+      <tr><th>Senaste omstart</th><td id="resetTxt">–</td></tr>
+      <tr><th>WiFi-avbrott</th><td id="dropsTxt">–</td></tr>
+      <tr><th>Programversion</th><td id="fwTxt">–</td></tr>
+    </tbody></table>
+  </section>
+
+  <section class="panel" aria-labelledby="hWx">
+    <h2 class="panel-title" id="hWx"><span id="wxPlace">Väder</span> <small id="wxDate"></small></h2>
+    <div class="wx">
+      <div class="temp" id="wxTemp">–</div>
+      <div>
+        <div class="wxdesc" id="wxDesc"></div>
+        <div class="pcmeta" id="wxMinMax"></div>
+      </div>
+    </div>
+    <div class="kv" id="wxKv"></div>
+    <div class="moon" id="moonBox"></div>
+    <fieldset>
+      <legend>Elpris <span id="elArea"></span></legend>
+      <div id="elNow" class="msg">–</div>
+      <div class="chart" id="elChart"></div>
+      <div class="help" id="elMinMax"></div>
+    </fieldset>
+  </section>
+
+  <section class="panel wide" aria-labelledby="hLog">
+    <h2 class="panel-title" id="hLog">Händelser <small>senaste 7 dagarna och loggen</small></h2>
+    <div class="week" id="week" aria-label="Hur länge datorn varit på per dag"></div>
+    <p class="help">Staplarna visar hur länge datorn varit på varje dag.</p>
+    <div class="logwrap"><table class="rows log"><thead><tr><th>Tid</th><th>Händelse</th></tr></thead><tbody id="logBody"><tr><td colspan="2" class="help">Laddar…</td></tr></tbody></table></div>
+  </section>
+</main>
+
+<footer id="foot">Olles dator · Wake-on-LAN via ESP32 och Firebase</footer>
+
+<script type="module">
+import { firebaseConfig, LOGIN_DOMAIN } from './firebase-config.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+import { getDatabase, ref, onValue, set, query, orderByChild, limitToLast, endAt, get, remove, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js';
+
+const $ = id => document.getElementById(id);
+const ROOT = 'ollesdator';
+const ONLINE_MS = 75000;           // ESP32 skickar status var 30:e sekund
+const LOG_KEEP_DAYS = 60;
+
+const configMissing = !firebaseConfig.apiKey || firebaseConfig.apiKey === 'AIza...' || firebaseConfig.databaseURL.includes('DITT-PROJEKT');
+
+let app, auth, db;
+let status = null, command = null, logItems = [];
+let serverOffset = 0;
+let unsubs = [];
+let localSendingAt = 0, lastCmdState = '';
+
+/* ---------- Hjälpfunktioner ---------- */
+const nowServer = () => Date.now() + serverOffset;
+const pad = n => String(n).padStart(2, '0');
+const hm = ms => { const d = new Date(ms); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const WD = ['sön','mån','tis','ons','tor','fre','lör'];
+const MON = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+function when(ms) {
+  if (!ms) return '–';
+  const d = new Date(ms), t = new Date();
+  const y = new Date(); y.setDate(t.getDate() - 1);
+  if (d.toDateString() === t.toDateString()) return `idag ${hm(ms)}`;
+  if (d.toDateString() === y.toDateString()) return `igår ${hm(ms)}`;
+  return `${WD[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]} ${hm(ms)}`;
+}
+function dur(s) {
+  s = Math.max(0, Math.round(s));
+  const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+  if (d) return `${d} d ${h} h`;
+  if (h) return `${h} h ${m} min`;
+  if (m) return `${m} min`;
+  return `${s} s`;
+}
+const ago = ms => dur((nowServer() - ms) / 1000) + ' sedan';
+const dec = (v, n = 1) => (v ?? 0).toFixed(n).replace('.', ',');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function lamp(el, st) { el.className = 'lamp' + (st ? ' ' + st : ''); }
+function bars(rssi) {
+  const n = rssi >= -55 ? 4 : rssi >= -65 ? 3 : rssi >= -75 ? 2 : rssi >= -85 ? 1 : 0;
+  let h = '<svg class="bars" width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">';
+  for (let i = 0; i < 4; i++) { const hh = 4 + i * 3; h += `<rect x="${i * 5}" y="${14 - hh}" width="3.4" height="${hh}" fill="${i < n ? '#1d1c1a' : '#b9b6ae'}"/>`; }
+  return h + '</svg>';
+}
+const signal = r => r >= -55 ? 'utmärkt' : r >= -65 ? 'bra' : r >= -75 ? 'okej' : r >= -85 ? 'svag' : 'mycket svag';
+function setBanner(text, bad) {
+  const b = $('banner');
+  if (!text) { b.hidden = true; return; }
+  b.hidden = false; b.className = 'banner' + (bad ? ' bad' : ''); b.innerHTML = text;
+}
+
+/* ---------- Månen (samma uträkning som på ESP32:an) ---------- */
+const SYN = 29.530588853;
+function moon(ms) {
+  let age = ((ms / 1000 - 947182440) / 86400) % SYN; if (age < 0) age += SYN;
+  const illum = (1 - Math.cos(2 * Math.PI * age / SYN)) / 2;
+  const names = ['Nymåne', 'Ny skära', 'Första kvarteret', 'Tilltagande', 'Fullmåne', 'Avtagande', 'Sista kvarteret', 'Gammal skära'];
+  const name = names[Math.floor(age / SYN * 8 + 0.5) % 8];
+  const toFull = ((SYN / 2 - age) % SYN + SYN) % SYN, toNew = SYN - age;
+  return { age, illum, name, toFull, toNew };
+}
+function moonSvg(age) {
+  const r = 15, k = Math.cos(2 * Math.PI * age / SYN), wax = age < SYN / 2;
+  let lit = '';
+  for (let y = -r; y <= r; y += 0.5) {
+    const w = Math.sqrt(r * r - y * y), t = w * k;
+    const x0 = wax ? t : -w, x1 = wax ? w : -t;
+    if (x1 > x0) lit += `M${17 + x0} ${17 + y}H${17 + x1}`;
+  }
+  return `<svg viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="${r}" fill="#2b2a27"/><path d="${lit}" stroke="#f4f1e6" stroke-width="0.6"/><circle cx="17" cy="17" r="${r}" fill="none" stroke="#1d1c1a" stroke-width="1"/></svg>`;
+}
+
+/* ---------- Rendering ---------- */
+function espOnline() { return status?.lastSeen && nowServer() - status.lastSeen < ONLINE_MS; }
+
+function renderStatus() {
+  const s = status;
+  const online = espOnline();
+  $('btnRefresh').disabled = !online || isWakeActive();
+
+  if (!s) {
+    lamp($('espLamp'), 'bad'); $('espTxt').textContent = 'Har aldrig hörts av';
+    $('pcMeta').textContent = 'ESP32:an har inte skickat någon status än. Kolla att den är igång och inloggad (se skärmen).';
+    $('btnStart').disabled = true;
+    $('topStatus').textContent = 'Ingen status från ESP32:an';
+    return;
+  }
+
+  // ESP32 och nät
+  lamp($('espLamp'), online ? 'ok' : 'bad');
+  $('espTxt').textContent = online ? `Online, hördes ${ago(s.lastSeen)}` : `Offline sedan ${when(s.lastSeen)}`;
+  $('seenTxt').textContent = online ? '' : 'senaste kända värden';
+  const n = s.net || {}, e = s.esp || {};
+  lamp($('netLamp'), n.internet ? 'ok' : 'bad');
+  $('netTxt').textContent = n.internet ? `Fungerar (${n.pingMs} ms till Google)` : 'Nere';
+  $('wifiTxt').innerHTML = n.rssi ? `${bars(n.rssi)}${n.rssi} dBm, ${signal(n.rssi)} · ${esc(n.ssid)}` : '–';
+  $('ipTxt').textContent = n.ip || '–';
+  $('extIpTxt').textContent = n.extIp || '–';
+  $('upTxt').textContent = e.uptimeS != null ? dur(e.uptimeS + (online ? (nowServer() - s.lastSeen) / 1000 : 0)) : '–';
+  $('memTxt').textContent = e.heapKB != null ? `${e.heapKB} kB (lägst ${e.minHeapKB} kB)` : '–';
+  $('resetTxt').textContent = e.reset || '–';
+  $('dropsTxt').textContent = n.drops != null ? `${n.drops} sedan start` : '–';
+  $('fwTxt').textContent = e.fw ? `v${e.fw}` : '–';
+
+  // Datorn
+  const pc = s.pc || {};
+  $('pcIp').textContent = pc.ip ? `IP ${pc.ip}` : '';
+  const known = pc.known && online;
+  const on = known && pc.on;
+  $('pcIcon').classList.toggle('on', !!on);
+  lamp($('pcLamp'), !known ? '' : on ? 'ok' : '');
+  $('pcState').textContent = !known ? 'Okänt' : on ? 'Datorn är på' : 'Datorn är av';
+  let meta = [];
+  if (!online) meta.push('ESP32:an svarar inte, så status är okänd.');
+  else if (pc.known) {
+    if (pc.since) meta.push(`${on ? 'På' : 'Av'} sedan <b>${when(pc.since)}</b> (${dur((nowServer() - pc.since) / 1000)})`);
+    meta.push(`På idag <b>${dur(pc.onTodayS || 0)}</b>`);
+    if (on && pc.pingMs >= 0) meta.push(`svarstid ${pc.pingMs} ms`);
+  } else meta.push('ESP32:an kollar datorn…');
+  $('pcMeta').innerHTML = meta.join(' · ');
+
+  const busy = isWakeActive();
+  const btn = $('btnStart');
+  btn.disabled = !online || on || busy;
+  btn.textContent = busy ? 'Startar…' : on ? 'Datorn är igång' : 'Starta datorn';
+  btn.title = !online ? 'ESP32:an är offline' : on ? 'Datorn är redan på' : 'Skicka Wake-on-LAN till datorn';
+
+  const w = s.wakes || {};
+  $('wakeStats').textContent = w.count
+    ? `Startad ${w.count} ${w.count === 1 ? 'gång' : 'gånger'}. Senast ${when(w.lastAt)} från ${w.lastBy === 'knapp' ? 'BOOT-knappen' : 'webben'}${w.lastResult === 'timeout' ? ' – svarade inte' : ''}.`
+    : 'Datorn har inte startats härifrån än. Du kan också hålla in BOOT-knappen på ESP32:an i 5 sekunder.';
+
+  $('topStatus').textContent = online ? `ESP32 online · datorn ${on ? 'på' : 'av'}` : 'ESP32 offline';
+}
+
+function renderWx() {
+  const wx = status?.wx || {}, el = status?.el || {};
+  const d = new Date();
+  $('wxDate').textContent = `${WD[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}`;
+  if (wx.ok) {
+    $('wxPlace').textContent = wx.place || 'Väder';
+    $('wxTemp').textContent = `${dec(wx.temp)}°`;
+    $('wxDesc').textContent = `${wx.desc || ''}, känns som ${dec(wx.feels, 0)}°`;
+    $('wxMinMax').textContent = `Idag ${dec(wx.tmin, 0)}° till ${dec(wx.tmax, 0)}°`;
+    const trend = wx.trend >= 0.8 ? 'stiger' : wx.trend <= -0.8 ? 'sjunker' : 'stabilt';
+    const [sh, sm] = (wx.sunrise || '0:0').split(':').map(Number), [eh, em] = (wx.sunset || '0:0').split(':').map(Number);
+    const len = Math.max(0, eh * 60 + em - sh * 60 - sm);
+    $('wxKv').innerHTML = [
+      ['Vind', `${dec(wx.wind)} m/s ${esc(wx.windDir)}`],
+      ['Luftfuktighet', `${wx.hum} %`],
+      ['Lufttryck', `${Math.round(wx.pressure)} hPa, ${trend} (${wx.trend > 0 ? '+' : ''}${dec(wx.trend)}/3 h)`],
+      ['Sol', `${esc(wx.sunrise)}–${esc(wx.sunset)} (${Math.floor(len / 60)} h ${len % 60} min)`],
+    ].map(([k, v]) => `<div><span>${k}</span><br>${v}</div>`).join('');
+  } else {
+    $('wxTemp').textContent = '–'; $('wxDesc').textContent = 'Inget väder än'; $('wxMinMax').textContent = ''; $('wxKv').innerHTML = '';
+  }
+  const m = moon(Date.now());
+  $('moonBox').innerHTML = `${moonSvg(m.age)}<div><b>${m.name}</b>, ${Math.round(m.illum * 100)} % belyst<br><span class="help" style="margin:0">${m.toFull < 0.5 || m.toFull > SYN - 0.5 ? 'Fullmåne idag' : 'Fullmåne om ' + Math.round(m.toFull) + ' dagar'} · nymåne om ${Math.round(m.toNew)} dagar</span></div>`;
+
+  $('elArea').textContent = el.area || '';
+  if (el.ok && Array.isArray(el.h)) {
+    const h = el.h, cur = new Date().getHours();
+    const mx = Math.max(1, ...h), mn = Math.min(...h);
+    const iMx = h.indexOf(Math.max(...h)), iMn = h.indexOf(mn);
+    $('elNow').innerHTML = `Nu <b>${Math.round(h[cur])} öre/kWh</b> <span class="help">(timmedel, spotpris exkl. moms och avgifter)</span>`;
+    const W = 480, H = 120, bw = W / 24;
+    let svg = `<svg viewBox="0 0 ${W} ${H + 18}" role="img" aria-label="Elpris per timme idag">`;
+    for (let g = 0; g <= 2; g++) { const y = H - H * g / 2; svg += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="#e1ded7"/>`; }
+    h.forEach((v, i) => {
+      const bh = Math.max(1, Math.max(0, v) / mx * (H - 8));
+      svg += `<rect x="${i * bw + 2}" y="${H - bh}" width="${bw - 4}" height="${bh}" fill="${i === cur ? '#27456f' : '#a9a69e'}"><title>${pad(i)}–${pad((i + 1) % 24)}: ${dec(v)} öre/kWh</title></rect>`;
+      if (i % 3 === 0) svg += `<text x="${i * bw + bw / 2}" y="${H + 14}" font-size="15" text-anchor="middle" fill="#5c5a55" font-family="EB Garamond, Georgia, serif">${pad(i)}</text>`;
+    });
+    svg += `<text x="${W - 2}" y="12" font-size="14" text-anchor="end" fill="#5c5a55" font-family="EB Garamond, Georgia, serif">max ${Math.round(mx)} öre</text></svg>`;
+    $('elChart').innerHTML = svg;
+    $('elMinMax').textContent = `Billigast kl ${pad(iMn)}–${pad((iMn + 1) % 24)} (${Math.round(mn)} öre) · dyrast kl ${pad(iMx)}–${pad((iMx + 1) % 24)} (${Math.round(h[iMx])} öre)`;
+  } else {
+    $('elNow').textContent = 'Inget elpris än'; $('elChart').innerHTML = ''; $('elMinMax').textContent = '';
+  }
+}
+
+/* ---------- Start av datorn ---------- */
+function isWakeActive() {
+  if (!command || command.action !== 'wake') return false;
+  if (!['pending', 'sending'].includes(command.state)) return false;
+  return command.at && nowServer() - command.at < 4 * 60 * 1000;
+}
+
+function renderCommand() {
+  const c = command, box = $('wakeBox'), prog = $('wakeProg'), msg = $('wakeMsg');
+  if (!c || c.action !== 'wake' || !c.at || nowServer() - c.at > 15 * 60 * 1000) { box.hidden = true; return; }
+  box.hidden = false;
+  if (c.state !== lastCmdState) {
+    if (c.state === 'sending') localSendingAt = Date.now();
+    lastCmdState = c.state;
+  }
+  const age = (nowServer() - c.at) / 1000;
+  prog.classList.remove('indet');
+  msg.className = 'msg';
+  switch (c.state) {
+    case 'pending':
+      prog.classList.add('indet');
+      msg.textContent = age > 15 ? 'ESP32:an har inte hämtat kommandot än… (är den online?)' : 'Skickat. Väntar på att ESP32:an ska hämta kommandot…';
+      if (age > 3 * 60) { prog.classList.remove('indet'); msg.className = 'msg bad'; msg.textContent = 'ESP32:an hämtade aldrig kommandot. Kolla att den är igång.'; }
+      break;
+    case 'sending': {
+      const s = localSendingAt ? (Date.now() - localSendingAt) / 1000 : age;
+      prog.firstElementChild.style.width = Math.min(100, s / 60 * 100) + '%';
+      msg.textContent = `Wake-on-LAN skickat. Väntar på att datorn ska svara… ${Math.round(s)} s`;
+      break;
+    }
+    case 'done':
+      prog.firstElementChild.style.width = '100%';
+      msg.className = 'msg ok';
+      msg.textContent = `Datorn är igång! Den svarade efter ${c.secs || '?'} s (${when(c.doneAt || c.at)}).`;
+      break;
+    case 'already_on':
+      prog.firstElementChild.style.width = '100%';
+      msg.className = 'msg ok';
+      msg.textContent = 'Datorn var redan på.';
+      break;
+    case 'timeout':
+      prog.firstElementChild.style.width = '100%';
+      msg.className = 'msg bad';
+      msg.textContent = 'Datorn svarade inte inom 3 minuter. Kontrollera att den sitter i ström och nätverkssladd och att Wake-on-LAN är på (se guiden).';
+      break;
+    case 'stale':
+      prog.firstElementChild.style.width = '0';
+      msg.className = 'msg bad';
+      msg.textContent = 'Kommandot var för gammalt när ESP32:an fick det, så det kördes inte. Försök igen.';
+      break;
+    default:
+      box.hidden = true;
+  }
+}
+
+async function sendCommand(action) {
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  localSendingAt = 0; lastCmdState = '';
+  await set(ref(db, `${ROOT}/command`), { id, action, by: 'webb', state: 'pending', at: serverTimestamp(), user: auth.currentUser?.email?.split('@')[0] || '' });
+}
+
+$('btnStart').addEventListener('click', async () => {
+  $('btnStart').disabled = true;
+  try { await sendCommand('wake'); }
+  catch (err) { setBanner('Kunde inte skicka kommandot: ' + esc(err.message), true); renderStatus(); }
+});
+$('btnRefresh').addEventListener('click', async () => {
+  $('btnRefresh').disabled = true;
+  try { await sendCommand('refresh'); }
+  catch (err) { setBanner('Kunde inte skicka: ' + esc(err.message), true); }
+  setTimeout(() => renderStatus(), 4000);
+});
+
+/* ---------- Logg ---------- */
+function logText(l) {
+  switch (l.type) {
+    case 'wake': {
+      const who = l.by === 'knapp' ? 'med BOOT-knappen' : 'från webben';
+      if (l.result === 'ok') return `Datorn startades ${who} – igång efter ${l.secs} s`;
+      if (l.result === 'already_on') return `Start ${who} – datorn var redan på`;
+      if (l.result === 'no_wifi') return `Start ${who} – ESP32:an saknade WiFi`;
+      return `Start ${who} – datorn svarade inte`;
+    }
+    case 'pc_on': return 'Datorn slogs på';
+    case 'pc_off': return 'Datorn stängdes av';
+    case 'esp_start': return `ESP32:an startade (${esc(l.result || 'okänd orsak')})`;
+    default: return esc(l.type);
+  }
+}
+function renderLog() {
+  const rows = logItems.slice().reverse().slice(0, 80);
+  $('logBody').innerHTML = rows.length
+    ? rows.map(l => `<tr><td class="t">${when(l.at)}</td><td>${logText(l)}</td></tr>`).join('')
+    : '<tr><td colspan="2" class="help">Inga händelser än.</td></tr>';
+  renderWeek();
+}
+// Hur länge datorn varit på per dag, uträknat från på/av-händelserna
+function renderWeek() {
+  const ev = logItems.filter(l => l.type === 'pc_on' || l.type === 'pc_off' || (l.type === 'wake' && l.result === 'ok')).sort((a, b) => a.at - b.at);
+  const now = nowServer();
+  const days = [];
+  for (let i = 6; i >= 0; i--) { const d = new Date(now); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i); days.push({ start: d.getTime(), end: d.getTime() + 864e5, on: 0 }); }
+  const intervals = [];
+  let onAt = null;
+  for (const e of ev) {
+    const isOn = e.type !== 'pc_off';
+    if (isOn && onAt === null) onAt = e.at;
+    if (!isOn && onAt !== null) { intervals.push([onAt, e.at]); onAt = null; }
+  }
+  const pc = status?.pc;
+  if (onAt !== null) intervals.push([onAt, pc && pc.on ? now : onAt]);
+  else if (pc?.on && pc.since) intervals.push([pc.since, now]);
+  for (const [a, b] of intervals) for (const d of days) d.on += Math.max(0, Math.min(b, d.end) - Math.max(a, d.start));
+  // Idag räknar ESP32:an exakt själv
+  if (pc?.onTodayS != null && espOnline()) days[6].on = Math.min(864e5, Math.max(days[6].on, pc.onTodayS * 1000));
+  const mx = Math.max(3600e3, ...days.map(d => d.on));
+  $('week').innerHTML = days.map(d => {
+    const dt = new Date(d.start), h = d.on / 3600e3;
+    return `<div title="${WD[dt.getDay()]} ${dt.getDate()} ${MON[dt.getMonth()]}: ${dur(d.on / 1000)}"><b>${h >= 1 ? dec(h, h < 10 ? 1 : 0) + ' h' : Math.round(d.on / 60e3) + ' min'}</b><i style="height:${(d.on / mx * 56).toFixed(1)}px"></i><span>${WD[dt.getDay()]}</span></div>`;
+  }).join('');
+}
+async function pruneLog() {
+  try {
+    const cutoff = Date.now() - LOG_KEEP_DAYS * 864e5;
+    const snap = await get(query(ref(db, `${ROOT}/log`), orderByChild('at'), endAt(cutoff)));
+    const jobs = [];
+    snap.forEach(ch => { jobs.push(remove(ch.ref)); });
+    await Promise.all(jobs);
+  } catch (e) { /* inte viktigt */ }
+}
+
+/* ---------- Inloggning ---------- */
+function authError(code) {
+  switch (code) {
+    case 'auth/invalid-credential': case 'auth/wrong-password': case 'auth/user-not-found': case 'auth/invalid-login-credentials':
+      return 'Fel användarnamn eller lösenord.';
+    case 'auth/invalid-email': return 'Användarnamnet får bara innehålla a–z, siffror, punkt och bindestreck.';
+    case 'auth/too-many-requests': return 'För många försök. Vänta en stund och försök igen.';
+    case 'auth/network-request-failed': return 'Ingen kontakt med Firebase. Kolla internet.';
+    case 'auth/operation-not-allowed': return 'E-post/lösenord är inte påslaget i Firebase (se guiden).';
+    case 'auth/api-key-not-valid.-please-pass-a-valid-api-key.': case 'auth/invalid-api-key': return 'Fel apiKey i firebase-config.js.';
+    default: return 'Kunde inte logga in (' + code + ').';
+  }
+}
+$('loginForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const user = $('inUser').value.trim().toLowerCase(), pass = $('inPass').value;
+  $('loginErr').textContent = '';
+  $('btnLogin').disabled = true;
+  try {
+    await signInWithEmailAndPassword(auth, `${user}@${LOGIN_DOMAIN}`, pass);
+    $('inPass').value = '';
+  } catch (err) { $('loginErr').textContent = authError(err.code); }
+  $('btnLogin').disabled = false;
+});
+$('btnLogout').addEventListener('click', () => signOut(auth));
+
+function showLogin() {
+  unsubs.forEach(u => u()); unsubs = [];
+  status = command = null; logItems = [];
+  $('viewMain').hidden = true; $('viewLogin').hidden = false;
+  $('btnLogout').hidden = $('btnRefresh').hidden = true;
+  $('topStatus').textContent = '';
+  setTimeout(() => $('inUser').focus(), 50);
+}
+
+function showMain(user) {
+  $('viewLogin').hidden = true; $('viewMain').hidden = false;
+  $('btnLogout').hidden = $('btnRefresh').hidden = false;
+  $('btnLogout').title = `Inloggad som ${user.email.split('@')[0]}`;
+  setBanner('');
+  const denied = err => setBanner(`Databasen nekade läsning (${esc(err.code || err.message)}). Kolla att reglerna i Firebase är inklistrade och att e-posten i reglerna är <b>${esc(user.email)}</b>.`, true);
+  unsubs.push(onValue(ref(db, '.info/serverTimeOffset'), s => { serverOffset = s.val() || 0; }));
+  unsubs.push(onValue(ref(db, `${ROOT}/status`), s => { status = s.val(); renderStatus(); renderWx(); }, denied));
+  unsubs.push(onValue(ref(db, `${ROOT}/command`), s => { command = s.val(); renderCommand(); renderStatus(); }, denied));
+  unsubs.push(onValue(query(ref(db, `${ROOT}/log`), orderByChild('at'), limitToLast(400)), s => {
+    const arr = []; s.forEach(ch => { arr.push(ch.val()); }); logItems = arr.filter(l => l && l.at).sort((a, b) => a.at - b.at); renderLog();
+  }, denied));
+  pruneLog();
+}
+
+/* ---------- Start ---------- */
+if (configMissing) {
+  $('viewMain').hidden = false;
+  setBanner('Fyll i dina Firebase-värden i <b>firebase-config.js</b> och ladda upp sidan igen (se GUIDE.md i WoL-mappen).', true);
+  document.querySelectorAll('#viewMain section').forEach(s => s.hidden = true);
+} else {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getDatabase(app);
+  setPersistence(auth, browserLocalPersistence).catch(() => {});
+  onAuthStateChanged(auth, u => u ? showMain(u) : showLogin());
+}
+
+// Uppdatera "för X s sedan" och förloppet varje sekund
+setInterval(() => { if (status) renderStatus(); if (command) renderCommand(); }, 1000);
+setInterval(() => { if (logItems.length || status) renderWeek(); if (status) renderWx(); }, 60000);
+
+/* ---------- App-installation ---------- */
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; $('btnInstall').hidden = false; });
+$('btnInstall').addEventListener('click', async () => { if (!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt = null; $('btnInstall').hidden = true; });
+window.addEventListener('appinstalled', () => { $('btnInstall').hidden = true; });
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>

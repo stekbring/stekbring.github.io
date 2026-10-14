@@ -825,6 +825,18 @@
   async function pickHex(file) {
     if (!file) return;
     try {
+      if (/\.bin$/i.test(file.name)) {
+        /* ESP32: firmware.bin från PlatformIO (.pio\\build\\esp32) */
+        const img = new Uint8Array(await file.arrayBuffer());
+        if (img.length < 1024 || img[0] !== 0xE9) throw new Error('Filen är inte en ESP32-programfil. Använd firmware.bin från PlatformIO.');
+        if (S.info && S.info.chip && S.info.chip !== 'esp32') throw new Error('En .bin-fil är till ESP32. Den här mottagaren är en Nano och behöver en .hex-fil.');
+        if (img.length > 1310720) throw new Error('Filen är för stor (' + img.length.toLocaleString('sv-SE') + ' byte, högst 1 310 720).');
+        S.customHex = { name: file.name, image: img, size: img.length };
+        $('#hexInfo').innerHTML = icon('i-file') + ' <b>' + esc(file.name) + '</b> · ESP32 · ' + img.length.toLocaleString('sv-SE') + ' byte (' + Math.round(img.length / 1310720 * 100) + ' % av minnet) · <a href="#" data-act="hex-clear">Ta bort</a>';
+        renderUpdate();
+        return;
+      }
+      if (S.info && S.info.chip === 'esp32') throw new Error('Den här mottagaren är en ESP32 och behöver en .bin-fil (firmware.bin från PlatformIO).');
       const txt = await file.text();
       const r = window.ArHex.parseHex(txt, 32768);
       if (r.size > window.ArStk500.MAX_APP) throw new Error('Filen är ' + r.size + ' byte men får vara högst ' + window.ArStk500.MAX_APP + '.');

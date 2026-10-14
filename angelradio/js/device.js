@@ -37,6 +37,22 @@
   const bytesToHex = (b) => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
   const hexToBytes = (h) => { const o = []; for (let i = 0; i + 1 < (h || '').length; i += 2) o.push(parseInt(h.substr(i, 2), 16)); return Uint8Array.from(o); };
 
+  /* ESP32-delen (js/esp32.js) laddas bara när en ESP32 ansluts */
+  let esp32Loading = null;
+  function loadEsp32() {
+    if (g.ArEsp32) return Promise.resolve(g.ArEsp32);
+    if (!esp32Loading) {
+      esp32Loading = new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'js/esp32.js';
+        s.onload = () => res(g.ArEsp32);
+        s.onerror = () => { esp32Loading = null; rej(new Error('Kunde inte läsa in js/esp32.js')); };
+        document.head.appendChild(s);
+      });
+    }
+    return esp32Loading;
+  }
+
   class ProtocolError extends Error {}
 
   class SerialDevice extends ArEmitter {
@@ -46,6 +62,7 @@
       this.text = ''; this.pending = null; this.queue = Promise.resolve();
       this.dec = new TextDecoder('latin1');
       this.protocol = false; this.ready = false;
+      this.chip = 'avr';
     }
 
     async connect() {
@@ -53,7 +70,10 @@
       this.io.onData = (b) => this._onBytes(b);
       this.io.onError = (e) => this.emit('lost', e);
       await this.io.open(115200);
-      /* Nanon startar om när porten öppnas – vänta på READY eller som mest 2,5 s */
+      /* ESP32-kort har RTS/DTR kopplade till EN och BOOT. Släpp båda så att den
+         inte hålls i reset. Nanon har redan startat om när porten öppnades. */
+      await this.io.setSignals({ dataTerminalReady: false, requestToSend: false });
+      /* Nanon (och ESP32:an) startar om när porten öppnas – vänta på READY eller som mest 2,5 s */
       const t0 = Date.now();
       while (!this.ready && Date.now() - t0 < 2500) await sleep(50);
       for (let i = 0; i < 3; i++) {
@@ -77,6 +97,7 @@
     _onLine(line) {
       this.emit('line', line);
       if (line.startsWith('AR READY')) { this.ready = true; return; }
+      if (line[0] === '#') return;   /* kommentarer från ESP32-testbygget */
       if (line[0] === '!') { this._onEvent(line); return; }
       const p = this.pending;
       if (!p) return;
@@ -118,9 +139,12 @@
       const lines = await this.cmd('INFO', 1200);
       const kv = parseKV(lines.find((l) => l.startsWith('INFO')) || '');
       const pct = num(kv.bat_pct, null);
+      this.chip = kv.chip || 'avr';
+      const esp = this.chip === 'esp32';
+      if (esp && typeof document !== 'undefined') loadEsp32().then((m) => m.showTestPanel(this)).catch((e) => console.warn(e));
       return {
-        model: kv.model || 'AR-RX', name: kv.model === 'AR-HH' ? 'Handmottagare' : 'Huvudmottagare',
-        fw: kv.fw || '?', hw: kv.hw || '?', batMv: num(kv.bat_mv, 0), batPct: pct != null && pct < 0 ? null : pct,
+        model: kv.model || 'AR-RX', name: (kv.model === 'AR-HH' ? 'Handmottagare' : 'Huvudmottagare') + (esp ? ' (ESP32-test)' : ''),
+        fw: kv.fw || '?', hw: esp ? '?' : (kv.hw || '?'), chip: this.chip, batMv: num(kv.bat_mv, 0), batPct: pct != null && pct < 0 ? null : pct,
         usb: pct != null && pct < 0, batType: num(kv.bat_type, 0), slots: num(kv.slots, 50), used: num(kv.used, 0),
         melSlots: num(kv.mel, 2), melBytes: num(kv.melb, 118), nameLen: num(kv.namelen, 10),
         keys: kv.keys ? kv.keys.split(',') : null, clone: kv.clone === '1'
@@ -183,17 +207,35 @@
     }
     async clone() { await this.cmd('CLONE', 30000); }
 
+    /* ESP32: sidans versionslista gäller Nanon (.hex). För ESP32 hämtas
+       firmware/ReceiverOS-esp32-<version>.bin i stället (firmware.bin från PlatformIO). */
+    async _esp32Image(image, opts) {
+      if (image && image.length >= 1024 && image[0] === 0xE9) return image;   // redan en ESP32-fil
+      const v = (opts && opts.version) || '';
+      const file = 'firmware/ReceiverOS-esp32-' + v + '.bin';
+      const r = await fetch(file, { cache: 'no-cache' });
+      if (!r.ok) throw new Error('Det finns ingen ESP32-version ' + v + ' på sidan (' + file + ' saknas). Bygg i PlatformIO och kopiera .pio\\build\\esp32\\firmware.bin dit.');
+      return new Uint8Array(await r.arrayBuffer());
+    }
+
     async flash(image, opts) {
+      /* En ESP32-fil (börjar med 0xE9 och är större än Nanons hela minne) flashas alltid med esptool,
+         även om mottagaren inte svarar på protokollet (t.ex. trasig programvara). */
+      const espFile = image && image.length > 32768 && image[0] === 0xE9;
+      const esp = this.chip === 'esp32' || espFile;
+      if (esp) image = await this._esp32Image(image, opts);
       /* Stäng textporten, låt startladdaren ta över, och anslut igen efteråt */
+      if (g.ArEsp32) g.ArEsp32.hideTestPanel();
       if (this.io) await this.io.close();
       this.pending = null; this.queue = Promise.resolve(); this.ready = false;
-      const res = await g.ArStk500.flashNano(this.port, image, opts);
-      await sleep(400);
+      const res = esp ? await (await loadEsp32()).flash(this.port, image, opts) : await g.ArStk500.flashNano(this.port, image, opts);
+      await sleep(esp ? 800 : 400);
       const info = await this.connect();
       return { res, info };
     }
 
     async disconnect() {
+      if (g.ArEsp32) g.ArEsp32.hideTestPanel();
       try { if (this.protocol) await Promise.race([this.cmd('MON 0', 400), sleep(450)]); } catch (e) { /* ignoreras */ }
       if (this.io) await this.io.close();
       this.io = null;
