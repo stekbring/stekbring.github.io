@@ -498,7 +498,7 @@ function renderStatus() {
   const w = s.wakes || {};
   $('wakeStats').textContent = w.count
     ? `Startad ${w.count} ${w.count === 1 ? 'gång' : 'gånger'}. Senast ${when(w.lastAt)} ${w.lastBy === 'knapp' ? 'med BOOT-knappen' : w.lastBy === 'siri' ? 'via Siri' : 'från webben'}${w.lastResult === 'timeout' ? ' – svarade inte' : ''}.`
-    : 'Datorn har inte startats härifrån än. Du kan också hålla in BOOT-knappen på ESP32:an i 5 sekunder.';
+    : 'Datorn har inte startats härifrån än. Du kan också hålla in BOOT-knappen på ESP32:an i 3 sekunder.';
 
   $('topStatus').textContent = online ? `ESP32 online · datorn ${on ? 'på' : 'av'}` : 'ESP32 offline';
 }
@@ -697,7 +697,8 @@ function renderPcCmd() {
   prog.classList.remove('indet');
   msg.className = 'msg';
   const bar = prog.firstElementChild;
-  const by = { datorn: 'vid datorn', knappen: 'med knappen på ESP32:an', timeout: 'eftersom datorn inte svarade' }[c.cancelledBy] || 'från webben';
+  const by = { datorn: 'vid datorn', knappen: 'med knappen på ESP32:an', siri: 'från Hem-appen', timeout: 'eftersom datorn inte svarade' }[c.cancelledBy] || 'från webben';
+  const from = { siri: ' (begärt från Hem-appen)', knapp: ' (begärt med knappen på ESP32:an)' }[c.by] || '';
   switch (c.state) {
     case 'pending':
       prog.classList.add('indet');
@@ -708,9 +709,10 @@ function renderPcCmd() {
       // Serverns tid (updatedAt) i stället för datorns eller mobilens klocka
       const total = c.countdownS || 60;
       const end = c.updatedAt ? c.updatedAt + total * 1000 : c.deadline;
-      const left = Math.max(0, Math.min(total, Math.round((end - nowServer()) / 1000)));
-      bar.style.width = (100 - left / total * 100) + '%';
-      msg.textContent = left > 0 ? `Datorn ${a.verb} om ${left} s. Den som sitter vid datorn kan avbryta.` : `Datorn ${a.done}…`;
+      const leftMs = Math.max(0, Math.min(total * 1000, end - nowServer()));
+      const left = Math.ceil(leftMs / 1000);       // räknas likadant som rutan på datorn och ESP32:an
+      bar.style.width = (100 - leftMs / (total * 10)) + '%';
+      msg.textContent = left > 0 ? `Datorn ${a.verb} om ${left} s${from}. Den som sitter vid datorn kan avbryta.` : `Datorn ${a.done}…`;
       cancel.hidden = left <= 0;
       break;
     }
@@ -784,8 +786,10 @@ document.querySelectorAll('#pcBtns button').forEach(b => b.addEventListener('cli
 $('btnCmdCancel').addEventListener('click', async () => {
   if (!pcCmd) return;
   try {
-    if (pcCmd.state === 'pending') await update(ref(db, `${ROOT}/pcCommand`), { state: 'cancelled', cancelledBy: 'webben', updatedAt: serverTimestamp() });
-    else await update(ref(db, `${ROOT}/pcCommand`), { cancel: true });
+    // Under nedräkningen stänger agenten rutan och svarar själv. Har den inte visat rutan än
+    // avbryts kommandot direkt (cancel-flaggan gör att agenten stänger en ruta som just hann öppnas).
+    if (pcCmd.state === 'pending') await update(ref(db, `${ROOT}/pcCommand`), { cancel: true, cancelBy: 'webben', state: 'cancelled', cancelledBy: 'webben', updatedAt: serverTimestamp() });
+    else await update(ref(db, `${ROOT}/pcCommand`), { cancel: true, cancelBy: 'webben' });
   } catch (err) { setBanner('Kunde inte avbryta: ' + esc(err.message), true); }
 });
 
@@ -850,6 +854,7 @@ function logText(l) {
       if (l.result === 'cancelled_pc') return `${a.noun} ${who} – avbröts vid datorn`;
       if (l.result === 'cancelled_web') return `${a.noun} ${who} – avbröts från webben`;
       if (l.result === 'cancelled_btn') return `${a.noun} ${who} – avbröts med knappen`;
+      if (l.result === 'cancelled_siri') return `${a.noun} ${who} – avbröts från Hem-appen`;
       return `${a.noun} ${who} (${esc(l.result)})`;
     }
     case 'pc_on': return 'Datorn slogs på';
@@ -1104,6 +1109,7 @@ if (configMissing) {
 // Uppdatera "för X s sedan" och förloppet varje sekund
 setInterval(() => { if (status) renderStatus(); if (command) renderCommand(); if (pcinfo) renderPcInfo(); if (pcCmd) renderPcCmd(); renderPcButtons(); if (status) renderAvr(); }, 1000);
 setInterval(() => { if (logItems.length || status) renderStats(); if (status) renderWx(); }, 60000);
+setInterval(() => { if (pcCmd?.state === 'countdown') renderPcCmd(); }, 250);   // sekunderna byts samtidigt som på datorn
 
 /* ---------- App-installation ---------- */
 let installEvt = null;
