@@ -95,11 +95,14 @@ table.log td.t{white-space:nowrap;color:var(--muted);width:1%}
 .chart svg{display:block;width:100%;height:auto}
 .moon{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:16px}
 .moon svg{width:34px;height:34px;flex:none}
-.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:112px;background:var(--field);border:2px inset var(--face);padding:6px 6px 0;margin-top:6px}
-.week div{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:13px;color:var(--muted)}
-.week i{display:block;width:70%;max-width:34px;background:var(--sel);min-height:1px}
-.week b{font-weight:400;padding:2px 0;white-space:nowrap}
-.week span{padding:2px 0 3px}
+.tabs{display:flex;gap:4px;margin:0 0 8px}
+.tabs button{min-width:84px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.tile{background:var(--field);border:2px inset var(--face);padding:6px 10px}
+.tile span{display:block;color:var(--muted);font-size:14px}
+.tile b{display:block;font-size:22px;font-weight:600;line-height:1.2}
+.tile small{display:block;color:var(--muted);font-size:13px}
+.tile small.up{color:var(--ok)} .tile small.down{color:var(--warn)}
 
 /* ---------- Avstängning, datorinfo ---------- */
 .pcbtns{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
@@ -226,7 +229,7 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
     <fieldset id="wakeBox" hidden>
       <legend>Start</legend>
       <div class="prog" id="wakeProg"><div></div></div>
-      <div class="msg" id="wakeMsg"></div>
+      <div class="cmdrow"><div class="msg" id="wakeMsg"></div><button id="btnWakeCancel" hidden>Avbryt</button></div>
     </fieldset>
     <div class="pcbtns" id="pcBtns">
       <button data-act="shutdown">Stäng av…</button>
@@ -272,6 +275,7 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
       <tr><th>Processor</th><td id="cpuTxt">–</td></tr>
       <tr><th>Minne</th><td id="ramTxt">–</td></tr>
       <tr><th>Grafikkort</th><td id="gpuTxt">–</td></tr>
+      <tr><th>Effekt</th><td id="powTxt">–</td></tr>
       <tr><th>Diskar</th><td id="diskTxt">–</td></tr>
       <tr><th>Startad</th><td id="bootTxt">–</td></tr>
       <tr><th>System</th><td id="osTxt">–</td></tr>
@@ -318,10 +322,25 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
     </div>
   </section>
 
+  <section class="panel wide" aria-labelledby="hStats">
+    <h2 class="panel-title" id="hStats">Statistik <small id="statRange"></small></h2>
+    <div class="tabs" role="group" aria-label="Period">
+      <button data-range="week" aria-pressed="true">Vecka</button>
+      <button data-range="month" aria-pressed="false">Månad</button>
+      <button data-range="year" aria-pressed="false">År</button>
+    </div>
+    <div class="tiles" id="statTiles"></div>
+    <div class="tabs" role="group" aria-label="Visa i diagrammet" style="margin-top:8px">
+      <button data-metric="time" aria-pressed="true">Tid</button>
+      <button data-metric="energy" aria-pressed="false">Energi</button>
+      <button data-metric="cost" aria-pressed="false">Kostnad</button>
+    </div>
+    <div class="chart" id="statChart"></div>
+    <p class="help" id="statNote"></p>
+  </section>
+
   <section class="panel wide" aria-labelledby="hLog">
-    <h2 class="panel-title" id="hLog">Händelser <small>senaste 7 dagarna och loggen</small></h2>
-    <div class="week" id="week" aria-label="Hur länge datorn varit på per dag"></div>
-    <p class="help">Staplarna visar hur länge datorn varit på varje dag.</p>
+    <h2 class="panel-title" id="hLog">Händelser <small>de senaste 60 dagarna</small></h2>
     <div class="logwrap"><table class="rows log"><thead><tr><th>Tid</th><th>Händelse</th></tr></thead><tbody id="logBody"><tr><td colspan="2" class="help">Laddar…</td></tr></tbody></table></div>
   </section>
 </main>
@@ -443,7 +462,7 @@ function renderStatus() {
   $('ipTxt').textContent = n.ip || '–';
   $('extIpTxt').textContent = n.extIp || '–';
   $('upTxt').textContent = e.uptimeS != null ? dur(e.uptimeS + (online ? (nowServer() - s.lastSeen) / 1000 : 0)) : '–';
-  $('memTxt').textContent = e.heapKB != null ? `${e.heapKB} kB (lägst ${e.minHeapKB} kB)` : '–';
+  $('memTxt').textContent = e.heapKB != null ? `${e.heapKB} kB (lägst ${e.minHeapKB} kB${e.maxBlockKB != null ? ', största block ' + e.maxBlockKB + ' kB' : ''})` : '–';
   $('resetTxt').textContent = e.reset || '–';
   $('dropsTxt').textContent = n.drops != null ? `${n.drops} sedan start` : '–';
   $('fwTxt').textContent = e.fw ? `v${e.fw}` : '–';
@@ -464,8 +483,10 @@ function renderStatus() {
   else if (pc.known) {
     if (pc.since) meta.push(`${on ? 'På' : 'Av'} sedan <b>${when(pc.since)}</b> (${dur((nowServer() - pc.since) / 1000)})`);
     meta.push(`På idag <b>${dur(pc.onTodayS || 0)}</b>`);
-    if (on && pc.pingMs >= 0) meta.push(`svarstid ${pc.pingMs} ms`);
+    if (on && pc.powerW) meta.push(`drar ${pc.powerFromAgent ? '≈' : 'uppskattat'} <b>${pc.powerW} W</b>`);
+    if (pc.whToday) meta.push(`idag ${kwh(pc.whToday)} ≈ <b>${kr(pc.costTodayOre || 0)}</b>`);
   } else meta.push('ESP32:an kollar datorn…');
+  if (pc.macOk === false) meta.push(`<br><span class="msg bad">Fel MAC-adress: datorn på ${esc(pc.ip)} har <b>${esc(pc.macSeen)}</b>, men PC_MAC i secrets.h är <b>${esc(pc.mac)}</b>. Wake-on-LAN skickas då till fel nätverkskort.</span>`);
   $('pcMeta').innerHTML = meta.join(' · ');
 
   const busy = isWakeActive();
@@ -511,7 +532,9 @@ function renderWx() {
     const h = el.h, cur = new Date().getHours();
     const mx = Math.max(1, ...h), mn = Math.min(...h);
     const iMx = h.indexOf(Math.max(...h)), iMn = h.indexOf(mn);
-    $('elNow').innerHTML = `Nu <b>${Math.round(h[cur])} öre/kWh</b> <span class="help">(timmedel, spotpris exkl. moms och avgifter)</span>`;
+    const tot = el.nowTotalOre;
+    const totTxt = tot != null && (el.extraOre || el.moms) ? ` · med ${el.extraOre ? 'påslag och ' : ''}moms <b>${Math.round(tot)} öre</b>` : '';
+    $('elNow').innerHTML = `Nu <b>${Math.round(h[cur])} öre/kWh</b> spotpris${totTxt} <span class="help">(timmedel)</span>`;
     const W = 480, H = 120, bw = W / 24;
     let svg = `<svg viewBox="0 0 ${W} ${H + 18}" role="img" aria-label="Elpris per timme idag">`;
     for (let g = 0; g <= 2; g++) { const y = H - H * g / 2; svg += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="#e1ded7"/>`; }
@@ -546,6 +569,7 @@ function renderCommand() {
   const age = (nowServer() - c.at) / 1000;
   prog.classList.remove('indet');
   msg.className = 'msg';
+  $('btnWakeCancel').hidden = !(['pending', 'sending'].includes(c.state) && age < 3 * 60 && !c.cancel);
   switch (c.state) {
     case 'pending':
       prog.classList.add('indet');
@@ -554,7 +578,7 @@ function renderCommand() {
       break;
     case 'sending': {
       const s = localSendingAt ? (Date.now() - localSendingAt) / 1000 : age;
-      prog.firstElementChild.style.width = Math.min(100, s / 60 * 100) + '%';
+      prog.firstElementChild.style.width = Math.min(100, s / 120 * 100) + '%';
       msg.textContent = `Wake-on-LAN skickat. Väntar på att datorn ska svara… ${Math.round(s)} s`;
       break;
     }
@@ -571,7 +595,14 @@ function renderCommand() {
     case 'timeout':
       prog.firstElementChild.style.width = '100%';
       msg.className = 'msg bad';
-      msg.textContent = 'Datorn svarade inte inom 3 minuter. Kontrollera att den sitter i ström och nätverkssladd och att Wake-on-LAN är på (se guiden).';
+      msg.textContent = status?.pc?.macOk === false
+        ? 'Datorn svarade inte inom 2 minuter. PC_MAC i secrets.h verkar vara fel (se ovan).'
+        : 'Datorn svarade inte inom 2 minuter. Kontrollera att den sitter i ström och nätverkssladd och att Wake-on-LAN är på i BIOS och Windows (se guiden).';
+      break;
+    case 'cancelled':
+      prog.firstElementChild.style.width = '0';
+      msg.className = 'msg bad';
+      msg.textContent = c.cancelledBy === 'knappen' ? 'Väckningen avbröts med knappen på ESP32:an.' : 'Du avbröt väckningen.';
       break;
     case 'stale':
       prog.firstElementChild.style.width = '0';
@@ -593,6 +624,14 @@ $('btnStart').addEventListener('click', async () => {
   $('btnStart').disabled = true;
   try { await sendCommand('wake'); }
   catch (err) { setBanner('Kunde inte skicka kommandot: ' + esc(err.message), true); renderStatus(); }
+});
+$('btnWakeCancel').addEventListener('click', async () => {
+  if (!command) return;
+  $('btnWakeCancel').hidden = true;
+  try {
+    if (command.state === 'pending') await update(ref(db, `${ROOT}/command`), { state: 'cancelled', cancelledBy: 'webben' });
+    else await update(ref(db, `${ROOT}/command`), { cancel: true });
+  } catch (err) { setBanner('Kunde inte avbryta: ' + esc(err.message), true); }
 });
 $('btnRefresh').addEventListener('click', async () => {
   $('btnRefresh').disabled = true;
@@ -620,6 +659,9 @@ function renderPcInfo() {
   $('ramTxt').innerHTML = m ? `${meter(m.pct, m.pct > 90)}${gb(m.usedGB)} av ${gb(m.totalGB)} (${m.pct} %)` : '–';
   const g = i.gpu;
   $('gpuTxt').innerHTML = g ? `${meter(g.util)}${Math.round(g.util)} % · <b>${Math.round(g.temp)} °C</b>${g.powerW != null ? ' · ' + Math.round(g.powerW) + ' W' : ''}${g.fanPct != null ? ' · fläkt ' + Math.round(g.fanPct) + ' %' : ''}<br><span class="help">${esc(g.name)} · VRAM ${dec(g.memUsedMB / 1024)} av ${dec(g.memTotalMB / 1024, 0)} GB</span>` : '–';
+  const pw = i.power || {};
+  const price = status?.el?.nowTotalOre;
+  $('powTxt').innerHTML = i.powerW ? `<b>≈ ${Math.round(i.powerW)} W</b> från väggen${price != null ? ` · kostar ≈ ${dec(i.powerW / 1000 * price, 1)} öre/timme` : ''}<br><span class="help">grafikkort ${Math.round(pw.gpuW || 0)} W (mätt) · processor ${Math.round(pw.cpuW || 0)} W · övrigt ${Math.round(pw.baseW || 0)} W${pw.monitorW ? ' · skärm ' + Math.round(pw.monitorW) + ' W' : ''} (uppskattat)</span>` : '–';
   const d = Array.isArray(i.disks) ? i.disks : Object.values(i.disks || {});
   $('diskTxt').innerHTML = d.length ? d.map(x => { const used = 100 - x.freeGB / x.totalGB * 100; return `${meter(used, x.freeGB / x.totalGB < 0.1)}<b>${esc(x.name)}</b> ${gb(x.freeGB)} ledigt av ${gb(x.totalGB)}`; }).join('<br>') : '–';
   $('bootTxt').textContent = i.uptimeS ? `${when(i.lastSeen - i.uptimeS * 1000)} (${dur(i.uptimeS + (on ? (nowServer() - i.lastSeen) / 1000 : 0))} sedan)` : '–';
@@ -799,6 +841,7 @@ function logText(l) {
       if (l.result === 'ok') return `Datorn startades ${who} – igång efter ${l.secs} s`;
       if (l.result === 'already_on') return `Start ${who} – datorn var redan på`;
       if (l.result === 'no_wifi') return `Start ${who} – ESP32:an saknade WiFi`;
+      if (l.result === 'cancelled') return `Start ${who} – avbröts`;
       return `Start ${who} – datorn svarade inte`;
     }
     case 'pc_cmd': {
@@ -820,33 +863,168 @@ function renderLog() {
   $('logBody').innerHTML = rows.length
     ? rows.map(l => `<tr><td class="t">${when(l.at)}</td><td>${logText(l)}</td></tr>`).join('')
     : '<tr><td colspan="2" class="help">Inga händelser än.</td></tr>';
-  renderWeek();
+  renderStats();
 }
-// Hur länge datorn varit på per dag, uträknat från på/av-händelserna
-function renderWeek() {
+/* ---------- Statistik ---------- */
+// ESP32:an sparar en rad per dag i /stats/days. För dagar innan dess (eller om
+// något saknas) uppskattas tiden från på/av-händelserna i loggen.
+let statsDays = {};
+let statRange = 'week', statMetric = 'time';
+try { statRange = localStorage.getItem('statRange') || 'week'; statMetric = localStorage.getItem('statMetric') || 'time'; } catch (e) {}
+const dkey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const MONL = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+const WDL = ['söndagar','måndagar','tisdagar','onsdagar','torsdagar','fredagar','lördagar'];
+
+function logEstimates() {
   const ev = logItems.filter(l => l.type === 'pc_on' || l.type === 'pc_off' || (l.type === 'wake' && l.result === 'ok')).sort((a, b) => a.at - b.at);
-  const now = nowServer();
-  const days = [];
-  for (let i = 6; i >= 0; i--) { const d = new Date(now); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i); days.push({ start: d.getTime(), end: d.getTime() + 864e5, on: 0 }); }
-  const intervals = [];
+  const all = logItems.slice().sort((a, b) => a.at - b.at);
+  const now = nowServer(), intervals = [];
   let onAt = null;
   for (const e of ev) {
     const isOn = e.type !== 'pc_off';
     if (isOn && onAt === null) onAt = e.at;
     if (!isOn && onAt !== null) { intervals.push([onAt, e.at]); onAt = null; }
+    else if (!isOn && onAt === null) {
+      const prev = all.filter(x => x.at < e.at && x.type === 'esp_start').pop();
+      if (prev && e.at - prev.at < 864e5) intervals.push([prev.at, e.at]);
+    }
   }
   const pc = status?.pc;
   if (onAt !== null) intervals.push([onAt, pc && pc.on ? now : onAt]);
-  else if (pc?.on && pc.since) intervals.push([pc.since, now]);
-  for (const [a, b] of intervals) for (const d of days) d.on += Math.max(0, Math.min(b, d.end) - Math.max(a, d.start));
-  // Idag räknar ESP32:an exakt själv
-  if (pc?.onTodayS != null && espOnline()) days[6].on = Math.min(864e5, Math.max(days[6].on, pc.onTodayS * 1000));
-  const mx = Math.max(3600e3, ...days.map(d => d.on));
-  $('week').innerHTML = days.map(d => {
-    const dt = new Date(d.start), h = d.on / 3600e3;
-    return `<div title="${WD[dt.getDay()]} ${dt.getDate()} ${MON[dt.getMonth()]}: ${dur(d.on / 1000)}"><b>${h >= 1 ? dec(h, h < 10 ? 1 : 0) + ' h' : Math.round(d.on / 60e3) + ' min'}</b><i style="height:${(d.on / mx * 56).toFixed(1)}px"></i><span>${WD[dt.getDay()]}</span></div>`;
-  }).join('');
+  const est = {};
+  for (const [a, b] of intervals) {
+    let t = a;
+    while (t < b) {
+      const d = new Date(t); d.setHours(0, 0, 0, 0);
+      const end = Math.min(b, d.getTime() + 864e5);
+      const k = dkey(d);
+      est[k] = (est[k] || 0) + (end - t) / 1000;
+      t = end;
+    }
+  }
+  return est;
 }
+
+function dayRec(k, est, todayK) {
+  const r = statsDays[k] || {};
+  let onS = r.onS != null ? r.onS : (est[k] || 0);
+  let wh = r.energyWh || 0, cost = r.costOre || 0;
+  if (k === todayK && status?.pc && espOnline()) {
+    if (status.pc.onTodayS != null) onS = Math.max(onS, status.pc.onTodayS);
+    wh = Math.max(wh, status.pc.whToday || 0);
+    cost = Math.max(cost, status.pc.costTodayOre || 0);
+  }
+  return { onS: Math.min(86400, onS), wh, cost, starts: r.starts || 0, wakes: r.wakes || 0, longestS: r.longestS || 0, firstOn: r.firstOn || 0, has: r.onS != null || !!est[k] };
+}
+
+const kwh = wh => wh >= 10000 ? `${Math.round(wh / 1000)} kWh` : `${dec(wh / 1000, wh < 1000 ? 2 : 1)} kWh`;
+const kr = ore => ore >= 10000 ? `${Math.round(ore / 100)} kr` : `${dec(ore / 100, 2)} kr`;
+function hrs(sec) { const h = sec / 3600; return h >= 10 ? `${Math.round(h)} h` : h >= 1 ? `${dec(h)} h` : `${Math.round(sec / 60)} min`; }
+
+function renderStats() {
+  document.querySelectorAll('.tabs button[data-range]').forEach(b => b.setAttribute('aria-pressed', b.dataset.range === statRange ? 'true' : 'false'));
+  document.querySelectorAll('.tabs button[data-metric]').forEach(b => b.setAttribute('aria-pressed', b.dataset.metric === statMetric ? 'true' : 'false'));
+  const val = r => statMetric === 'energy' ? r.wh : statMetric === 'cost' ? r.cost : r.onS;
+  const fmt = v => statMetric === 'energy' ? kwh(v) : statMetric === 'cost' ? kr(v) : hrs(v);
+  const est = logEstimates();
+  const today = new Date(nowServer()); today.setHours(0, 0, 0, 0);
+  const todayK = dkey(today);
+  const days = n => { const out = []; for (let i = n - 1; i >= 0; i--) { const d = new Date(today); d.setDate(d.getDate() - i); out.push(d); } return out; };
+  const shift = (list, n) => list.map(d => { const x = new Date(d); x.setDate(x.getDate() - n); return x; });
+
+  let bars = [], cur = [], prev = [], label = '', prevName = '';
+  if (statRange === 'year') {
+    const months = [];
+    for (let i = 11; i >= 0; i--) { const m = new Date(today.getFullYear(), today.getMonth() - i, 1); months.push(m); }
+    for (const m of months) {
+      let sum = 0;
+      const n = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
+      for (let d = 1; d <= n; d++) { const dd = new Date(m.getFullYear(), m.getMonth(), d); if (dd > today) break; const r = dayRec(dkey(dd), est, todayK); sum += val(r); cur.push({ d: dd, r }); }
+      bars.push({ v: sum, lab: MON[m.getMonth()], title: `${MONL[m.getMonth()]} ${m.getFullYear()}: ${fmt(sum)}`, now: m.getMonth() === today.getMonth() && m.getFullYear() === today.getFullYear() });
+    }
+    const p0 = new Date(today); p0.setFullYear(p0.getFullYear() - 1);
+    for (let i = 0; i < 365; i++) { const d = new Date(p0); d.setDate(d.getDate() - i); prev.push({ d, r: dayRec(dkey(d), est, todayK) }); }
+    label = 'senaste 12 månaderna'; prevName = 'året innan';
+  } else {
+    const n = statRange === 'week' ? 7 : 30;
+    const list = days(n);
+    cur = list.map(d => ({ d, r: dayRec(dkey(d), est, todayK) }));
+    prev = shift(list, n).map(d => ({ d, r: dayRec(dkey(d), est, todayK) }));
+    bars = cur.map(({ d, r }) => ({ v: val(r), lab: statRange === 'week' ? WD[d.getDay()] : (d.getDate() % 5 === 0 || d.getDate() === 1 ? String(d.getDate()) : ''), title: `${WD[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}: ${hrs(r.onS)}${r.wh ? ', ' + kwh(r.wh) + ', ' + kr(r.cost) : ''}${r.starts ? ', ' + r.starts + ' start' + (r.starts > 1 ? 'er' : '') : ''}`, now: dkey(d) === todayK }));
+    label = statRange === 'week' ? 'senaste 7 dagarna' : 'senaste 30 dagarna';
+    prevName = statRange === 'week' ? 'veckan innan' : '30 dagarna innan';
+  }
+  $('statRange').textContent = label;
+
+  const total = cur.reduce((a, x) => a + x.r.onS, 0);
+  const totWh = cur.reduce((a, x) => a + x.r.wh, 0), totCost = cur.reduce((a, x) => a + x.r.cost, 0);
+  const prevWh = prev.reduce((a, x) => a + x.r.wh, 0), prevCost = prev.reduce((a, x) => a + x.r.cost, 0);
+  const prevTotal = prev.reduce((a, x) => a + x.r.onS, 0);
+  const prevHas = prev.some(x => x.r.has);
+  const nDays = cur.length || 1;
+  const usedDays = cur.filter(x => x.r.onS > 60).length;
+  const starts = cur.reduce((a, x) => a + x.r.starts, 0);
+  const wakes = cur.reduce((a, x) => a + x.r.wakes, 0);
+  const longest = cur.reduce((m, x) => x.r.longestS > m.s ? { s: x.r.longestS, d: x.d } : m, { s: 0, d: null });
+  const firsts = cur.filter(x => x.r.firstOn).map(x => { const t = new Date(x.r.firstOn); return t.getHours() * 60 + t.getMinutes(); }).sort((a, b) => a - b);
+  const median = firsts.length ? firsts[Math.floor(firsts.length / 2)] : null;
+  const byWd = Array(7).fill(0).map(() => ({ s: 0, n: 0 }));
+  cur.forEach(x => { byWd[x.d.getDay()].s += x.r.onS; byWd[x.d.getDay()].n++; });
+  const best = byWd.map((w, i) => ({ i, avg: w.n ? w.s / w.n : 0 })).sort((a, b) => b.avg - a.avg)[0];
+
+  let change = '';
+  if (prevHas && prevTotal > 0) {
+    const pct = Math.round((total - prevTotal) / prevTotal * 100);
+    change = `<small class="${pct > 0 ? 'up' : pct < 0 ? 'down' : ''}">${pct > 0 ? '+' : ''}${pct} % mot ${prevName}</small>`;
+  } else change = `<small>inget att jämföra med än</small>`;
+  const tile = (lab, v, sub = '') => `<div class="tile"><span>${lab}</span><b>${v}</b>${sub}</div>`;
+  const cmp = (a, b) => { if (!(b > 0)) return '<small>inget att jämföra med än</small>'; const pct = Math.round((a - b) / b * 100); return `<small class="${pct > 0 ? 'up' : pct < 0 ? 'down' : ''}">${pct > 0 ? '+' : ''}${pct} % mot ${prevName}</small>`; };
+  const avgPrice = totWh > 0 ? totCost / (totWh / 1000) : null;
+  $('statTiles').innerHTML = [
+    tile('Totalt på', hrs(total), change),
+    tile('Snitt per dag', hrs(total / nDays), `<small>på ${usedDays} av ${nDays} dagar</small>`),
+    tile('Starter', String(starts), `<small>${wakes ? `varav ${wakes} väckt${wakes > 1 ? 'a' : ''} av ESP32:an` : 'ingen väckt av ESP32:an'}</small>`),
+    tile('Längsta pass', longest.s ? hrs(longest.s) : '–', longest.d ? `<small>${WD[longest.d.getDay()]} ${longest.d.getDate()} ${MON[longest.d.getMonth()]}</small>` : ''),
+    tile('Startas oftast', median != null ? `${pad(Math.floor(median / 60))}:${pad(median % 60)}` : '–', `<small>mittenvärdet för första start</small>`),
+    tile('Mest använd', best && best.avg > 60 ? WDL[best.i] : '–', best && best.avg > 60 ? `<small>i snitt ${hrs(best.avg)}</small>` : ''),
+    tile('Energi', totWh ? kwh(totWh) : '–', totWh ? cmp(totWh, prevWh) : '<small>räknas från v1.2</small>'),
+    tile('Elkostnad', totWh ? kr(totCost) : '–', totWh ? `<small>${avgPrice != null ? 'i snitt ' + Math.round(avgPrice) + ' öre/kWh' : ''}</small>` : '<small>räknas från v1.2</small>'),
+  ].join('');
+
+  // Ritas i skärmens verkliga pixlar så att diagrammet inte blir jättestort på en bred skärm
+  const W = Math.max(300, Math.round(($('statChart').clientWidth || 480) - 12)), H = 130, bw = W / bars.length;
+  const mx = Math.max(statMetric === 'energy' ? 100 : statMetric === 'cost' ? 10 : 3600, ...bars.map(b => b.v));
+  let svg = `<svg viewBox="0 0 ${W} ${H + 18}" width="${W}" height="${H + 18}" role="img" aria-label="Tid på per ${statRange === 'year' ? 'månad' : 'dag'}">`;
+  for (let g = 0; g <= 2; g++) { const y = H - H * g / 2; svg += `<line x1="0" x2="${W}" y1="${y}" y2="${y}" stroke="#e1ded7"/>`; }
+  bars.forEach((b, i) => {
+    const bh = Math.max(b.v > 0 ? 2 : 1, b.v / mx * (H - 16));
+    const gap = bw > 30 ? 6 : bw > 12 ? 2 : 1;
+    svg += `<rect x="${i * bw + gap}" y="${H - bh}" width="${Math.max(1, bw - gap * 2)}" height="${bh}" fill="${b.now ? '#27456f' : '#a9a69e'}"><title>${esc(b.title)}</title></rect>`;
+    if (b.lab) svg += `<text x="${i * bw + bw / 2}" y="${H + 14}" font-size="14" text-anchor="middle" fill="#5c5a55" font-family="EB Garamond, Georgia, serif">${esc(b.lab)}</text>`;
+  });
+  svg += `<text x="${W - 2}" y="12" font-size="14" text-anchor="end" fill="#5c5a55" font-family="EB Garamond, Georgia, serif">max ${fmt(mx)}</text></svg>`;
+  $('statChart').innerHTML = svg;
+
+  const keys = Object.keys(statsDays).sort();
+  const el = status?.el || {};
+  const costHow = `Energin är uppskattad (grafikkortet mäts, resten räknas ut) och kostnaden räknas på spotpriset${el.extraOre ? ' + ' + el.extraOre + ' öre påslag' : ''}${el.moms !== false ? ' inkl. moms' : ''} för varje kvart.`;
+  if (keys.length) {
+    const all = keys.reduce((a, k) => a + (statsDays[k].onS || 0), 0);
+    const allWh = keys.reduce((a, k) => a + (statsDays[k].energyWh || 0), 0);
+    const allCost = keys.reduce((a, k) => a + (statsDays[k].costOre || 0), 0);
+    const sk = keys[0].split('-');
+    $('statNote').textContent = `Sedan ${Number(sk[2])} ${MONL[Number(sk[1]) - 1]} ${sk[0]}: ${hrs(all)} på ${keys.length} dagar${allWh ? `, ${kwh(allWh)} ≈ ${kr(allCost)}` : ''}. ${costHow}`;
+  } else $('statNote').textContent = 'Statistiken byggs upp från och med nu. ' + costHow;
+}
+let statResizeT = 0;
+window.addEventListener('resize', () => { clearTimeout(statResizeT); statResizeT = setTimeout(() => { if (logItems.length || status) renderStats(); }, 200); });
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => {
+  if (b.dataset.range) statRange = b.dataset.range;
+  if (b.dataset.metric) statMetric = b.dataset.metric;
+  try { localStorage.setItem('statRange', statRange); localStorage.setItem('statMetric', statMetric); } catch (e) {}
+  renderStats();
+}));
+
 async function pruneLog() {
   try {
     const cutoff = Date.now() - LOG_KEEP_DAYS * 864e5;
@@ -902,6 +1080,7 @@ function showMain(user) {
   unsubs.push(onValue(ref(db, `${ROOT}/status`), s => { status = s.val(); renderStatus(); renderWx(); renderAvr(); }, denied));
   unsubs.push(onValue(ref(db, `${ROOT}/command`), s => { command = s.val(); renderCommand(); renderStatus(); }, denied));
   unsubs.push(onValue(ref(db, `${ROOT}/pcinfo`), s => { pcinfo = s.val(); renderPcInfo(); }, denied));
+  unsubs.push(onValue(ref(db, `${ROOT}/stats/days`), s => { statsDays = s.val() || {}; renderStats(); }, denied));
   unsubs.push(onValue(ref(db, `${ROOT}/pcCommand`), s => { pcCmd = s.val(); renderPcCmd(); }, denied));
   unsubs.push(onValue(query(ref(db, `${ROOT}/log`), orderByChild('at'), limitToLast(400)), s => {
     const arr = []; s.forEach(ch => { arr.push(ch.val()); }); logItems = arr.filter(l => l && l.at).sort((a, b) => a.at - b.at); renderLog();
@@ -924,7 +1103,7 @@ if (configMissing) {
 
 // Uppdatera "för X s sedan" och förloppet varje sekund
 setInterval(() => { if (status) renderStatus(); if (command) renderCommand(); if (pcinfo) renderPcInfo(); if (pcCmd) renderPcCmd(); renderPcButtons(); if (status) renderAvr(); }, 1000);
-setInterval(() => { if (logItems.length || status) renderWeek(); if (status) renderWx(); }, 60000);
+setInterval(() => { if (logItems.length || status) renderStats(); if (status) renderWx(); }, 60000);
 
 /* ---------- App-installation ---------- */
 let installEvt = null;
