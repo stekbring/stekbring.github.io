@@ -564,9 +564,27 @@ function isWakeActive() {
   return command.at && nowServer() - command.at < 4 * 60 * 1000;
 }
 
+/* Rutorna Start och Avstängning visar bara den senaste händelsen. Ett gammalt resultat
+   döljs när något nyare hänt: ett nyare kommando, eller att datorn bytt läge efteråt
+   (t.ex. "Datorn stängs av nu" ska inte stå kvar när datorn startats igen). */
+const RESULT_SHOW_MS = 10 * 60 * 1000;
+const pcKnownOn = () => !!(status?.pc?.known && status.pc.on);
+const pcKnownOff = () => !!(status?.pc?.known && !status.pc.on);
+const pcSince = () => status?.pc?.since || 0;
+const wakeAt = () => (command?.action === 'wake' && command.at) || 0;
+const pcCmdAt = () => (pcCmd && ACT[pcCmd.action] && pcCmd.at) || 0;
+
+function wakeResultStale(c) {
+  if (pcCmdAt() > c.at) return true;                                   // en avstängning m.m. kom efter
+  const end = c.doneAt || c.updatedAt || c.at;
+  if (['done', 'already_on'].includes(c.state)) return pcKnownOff() && pcSince() > end;   // datorn har stängts av sedan dess
+  return pcKnownOn() && pcSince() > c.at;                              // datorn kom igång på annat sätt
+}
+
 function renderCommand() {
   const c = command, box = $('wakeBox'), prog = $('wakeProg'), msg = $('wakeMsg');
-  if (!c || c.action !== 'wake' || !c.at || nowServer() - c.at > 15 * 60 * 1000) { box.hidden = true; return; }
+  if (!c || c.action !== 'wake' || !c.at || nowServer() - c.at > RESULT_SHOW_MS) { box.hidden = true; return; }
+  if (!['pending', 'sending'].includes(c.state) && wakeResultStale(c)) { box.hidden = true; return; }
   box.hidden = false;
   if (c.state !== lastCmdState) {
     if (c.state === 'sending') localSendingAt = Date.now();
@@ -712,7 +730,12 @@ function renderPcButtons() {
 
 function renderPcCmd() {
   const c = pcCmd, box = $('cmdBox'), prog = $('cmdProg'), msg = $('cmdMsg'), cancel = $('btnCmdCancel');
-  if (!c || !ACT[c.action] || !c.at || nowServer() - c.at > 10 * 60 * 1000) { box.hidden = true; renderPcButtons(); return; }
+  const finished = !['pending', 'countdown'].includes(c?.state);
+  if (!c || !ACT[c.action] || !c.at || nowServer() - c.at > RESULT_SHOW_MS
+      || (finished && (wakeAt() > c.at                                        // datorn startades efter kommandot
+                       || (pcKnownOn() && pcSince() > (c.updatedAt || c.at))))) {   // eller kom igång igen efteråt (t.ex. omstart)
+    box.hidden = true; renderPcButtons(); return;
+  }
   const a = ACT[c.action];
   box.hidden = false;
   $('cmdLegend').textContent = a.noun;
@@ -743,7 +766,9 @@ function renderPcCmd() {
     case 'executing':
       bar.style.width = '100%';
       msg.className = 'msg ok';
-      msg.textContent = `Datorn ${a.done}${c.note ? ' (' + c.note + ')' : ''}.`;
+      if (c.action !== 'restart' && pcKnownOff() && pcSince() >= (c.updatedAt || c.at))   // har redan hänt
+        msg.textContent = `Datorn ${c.action === 'sleep' ? 'gick i vila' : 'stängdes av'} ${when(pcSince())}.`;
+      else msg.textContent = `Datorn ${a.done}${c.note ? ' (' + c.note + ')' : ''}.`;
       break;
     case 'done':
       bar.style.width = '100%';
