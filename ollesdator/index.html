@@ -244,6 +244,12 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
       <div class="cmdrow"><div class="msg" id="cmdMsg"></div><button id="btnCmdCancel" hidden>Avbryt</button></div>
     </fieldset>
     <p class="help" id="wakeStats"></p>
+    <p class="help"><label>Nedräkning på datorn innan den stängs av, vilar eller startar om:
+      <select id="cdSel">
+        <option value="10">10 s</option><option value="15">15 s</option><option value="30">30 s</option>
+        <option value="45">45 s</option><option value="60">60 s</option><option value="90">1½ min</option>
+        <option value="120">2 min</option><option value="180">3 min</option><option value="300">5 min</option>
+      </select></label> <span id="cdSaved"></span></p>
   </section>
 
   <section class="panel wide" aria-labelledby="hAvr" id="avrPanel">
@@ -676,6 +682,24 @@ const ACT = {
   sleep:    { q: 'Försätta datorn i vila?', ok: 'Vila', verb: 'går i vila', noun: 'Vila', done: 'går i vila nu' },
   lock:     { q: 'Lås datorn?', ok: 'Lås', verb: 'låses', noun: 'Låsning', done: 'är låst' },
 };
+/* Nedräkningens längd: /settings/countdownS (läses av agenten på datorn) */
+let countdownS = 60;
+function renderSettings(v) {
+  countdownS = Number(v) > 0 ? Number(v) : 60;
+  const sel = $('cdSel');
+  if (![...sel.options].some(o => Number(o.value) === countdownS)) sel.add(new Option(countdownS + ' s', countdownS));
+  sel.value = String(countdownS);
+}
+$('cdSel').addEventListener('change', async e => {
+  const v = Number(e.target.value);
+  try {
+    await set(ref(db, `${ROOT}/settings/countdownS`), v);
+    $('cdSaved').textContent = 'Sparat.';
+    setTimeout(() => { $('cdSaved').textContent = ''; }, 2000);
+  } catch (err) { setBanner('Kunde inte spara: ' + esc(err.message), true); }
+});
+function secs(n) { return n % 60 === 0 && n >= 120 ? `${n / 60} minuter` : n === 90 ? '1½ minut' : `${n} sekunder`; }
+
 function pcCmdActive() {
   return pcCmd && ['pending', 'countdown'].includes(pcCmd.state) && pcCmd.at && nowServer() - pcCmd.at < 3 * 60 * 1000;
 }
@@ -760,7 +784,7 @@ function confirmDialog(action) {
   if (action === 'lock') body = '<p>Datorn låses direkt. Den som sitter vid den måste logga in igen.</p>';
   else if (sys) body = `<p><b>Ingen är inloggad</b>, så datorn ${a.verb} direkt utan nedräkning.</p>`;
   else {
-    body = `<p>En ruta visas på datorn. Den som sitter där har <b>60 sekunder</b> på sig att avbryta. Gör ingen något ${a.verb} datorn.</p>`;
+    body = `<p>En ruta visas på datorn. Den som sitter där har <b>${secs(countdownS)}</b> på sig att avbryta. Gör ingen något ${a.verb} datorn.</p>`;
     if (pcinfo?.idleS != null && pcinfo.idleS < 120) body += `<p class="msg bad">Någon verkar använda datorn just nu (aktivitet för ${dur(pcinfo.idleS)} sedan).</p>`;
     if (action !== 'sleep') body += '<p class="help">Osparat arbete på datorn går förlorat.</p>';
   }
@@ -1087,6 +1111,7 @@ function showMain(user) {
   unsubs.push(onValue(ref(db, `${ROOT}/pcinfo`), s => { pcinfo = s.val(); renderPcInfo(); }, denied));
   unsubs.push(onValue(ref(db, `${ROOT}/stats/days`), s => { statsDays = s.val() || {}; renderStats(); }, denied));
   unsubs.push(onValue(ref(db, `${ROOT}/pcCommand`), s => { pcCmd = s.val(); renderPcCmd(); }, denied));
+  unsubs.push(onValue(ref(db, `${ROOT}/settings/countdownS`), s => renderSettings(s.val()), denied));
   unsubs.push(onValue(query(ref(db, `${ROOT}/log`), orderByChild('at'), limitToLast(400)), s => {
     const arr = []; s.forEach(ch => { arr.push(ch.val()); }); logItems = arr.filter(l => l && l.at).sort((a, b) => a.at - b.at); renderLog();
   }, denied));
