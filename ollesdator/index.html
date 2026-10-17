@@ -302,6 +302,7 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
       <tr><th>Senaste omstart</th><td id="resetTxt">–</td></tr>
       <tr><th>WiFi-avbrott</th><td id="dropsTxt">–</td></tr>
       <tr><th>HomeKit</th><td><span class="lamp" id="hkLamp"></span> <span id="hkTxt">–</span></td></tr>
+      <tr id="bulbRow" hidden><th id="bulbName">Badrumslampan</th><td><span class="lamp" id="bulbLamp"></span> <span id="bulbTxt">–</span></td></tr>
       <tr><th>Programversion</th><td id="fwTxt">–</td></tr>
     </tbody></table>
   </section>
@@ -475,6 +476,16 @@ function renderStatus() {
   const hk = s.homekit || {};
   lamp($('hkLamp'), hk.enabled ? (hk.paired ? 'ok' : 'wait') : '');
   $('hkTxt').textContent = !hk.enabled ? 'Avstängt' : hk.paired ? 'Parkopplad – Siri och Hem-appen fungerar' : 'Inte parkopplad än (se ESP32:ans skärm för koden)';
+  const bl = s.lamp || {};
+  $('bulbRow').hidden = !bl.configured;
+  if (bl.configured) {
+    $('bulbName').textContent = bl.name || 'Badrumslampan';
+    lamp($('bulbLamp'), bl.online ? 'ok' : 'bad');
+    const hueName = h => [[15, 'röd'], [40, 'orange'], [70, 'gul'], [160, 'grön'], [200, 'turkos'], [255, 'blå'], [290, 'lila'], [340, 'rosa'], [361, 'röd']].find(([m]) => h < m)[1];
+    const how = bl.colour ? (bl.sat < 15 ? 'vitt' : hueName(bl.hue || 0)) : (bl.temp != null ? (bl.temp < 350 ? 'varmvitt' : bl.temp > 650 ? 'kallvitt' : 'vitt') : '');
+    $('bulbTxt').textContent = !bl.online ? `Når inte lampan${bl.err ? ' – ' + bl.err : ''}`
+      : bl.on == null ? 'Ansluten' : bl.on ? `Tänd · ${bl.bri} %${how ? ' · ' + how : ''}` : 'Släckt';
+  }
 
   // Datorn
   const pc = s.pc || {};

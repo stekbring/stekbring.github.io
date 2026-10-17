@@ -1,6 +1,6 @@
 /* Olles dator – service worker: gör sidan installerbar som app.
    Själva statusen kommer alltid live från Firebase, så bara sidans egna filer sparas. */
-const VERSION = 'ollesdator-v10';
+const VERSION = 'ollesdator-v11';
 const CORE = ['./', './index.html', './firebase-config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
