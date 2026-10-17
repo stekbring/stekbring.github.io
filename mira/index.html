@@ -2,44 +2,70 @@
 <html lang="sv">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#422634">
     <title>Interaktiva Flashcards i Canvas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
+        html, body {
+            height: 100%;
+        }
         body {
             font-family: 'Inter', sans-serif;
             background-color: #422634; /* Färg från palett */
             margin: 0;
             overflow: hidden; /* Förhindrar scroll då vi använder canvas för allt */
+            overscroll-behavior: none;
             color: #E585B4;
+            -webkit-tap-highlight-color: transparent;
         }
         #canvas-container {
-            position: relative;
-            width: 100vw;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            /* 100vh på mobil räknar med adressfältet -> knapparna hamnar utanför.
+               100dvh = den faktiskt synliga höjden. (JS sätter höjden som reserv
+               i äldre webbläsare som saknar dvh.) */
             height: 100vh;
-            display: flex;
-            flex-direction: column;
+            height: 100dvh;
+            overflow: hidden;
         }
         canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
             display: block;
-            flex-grow: 1;
             width: 100%;
             height: 100%;
             cursor: pointer;
+            touch-action: manipulation;
         }
         .ui-layer {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            right: 0;
+            bottom: 0;
             pointer-events: none; /* Låter klick gå igenom till canvas om de inte träffar knappar */
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 1.5rem;
+            /* Säkra marginaler för notch och hemindikator på iPhone/Android */
+            padding: max(1rem, env(safe-area-inset-top))
+                     max(1rem, env(safe-area-inset-right))
+                     max(1rem, env(safe-area-inset-bottom))
+                     max(1rem, env(safe-area-inset-left));
             box-sizing: border-box;
+        }
+        @media (min-width: 640px) {
+            .ui-layer {
+                padding: max(1.5rem, env(safe-area-inset-top))
+                         max(1.5rem, env(safe-area-inset-right))
+                         max(1.5rem, env(safe-area-inset-bottom))
+                         max(1.5rem, env(safe-area-inset-left));
+            }
         }
         .controls {
             pointer-events: auto; /* Aktiverar klick för UI-elementen */
@@ -55,11 +81,21 @@
             transition: all 0.2s ease;
             border: 2px solid transparent;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            white-space: nowrap;
+            touch-action: manipulation; /* Ingen dubbeltryck-zoom på knapparna */
         }
-        .btn:hover {
-            background-color: #B86A90;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        @media (max-width: 639px) {
+            .btn {
+                padding: 0.7rem 1rem;
+            }
+        }
+        /* Hover bara på enheter med mus, annars "fastnar" effekten på mobiler */
+        @media (hover: hover) {
+            .btn:hover {
+                background-color: #B86A90;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            }
         }
         .btn:active {
             transform: translateY(0);
@@ -81,8 +117,8 @@
         <div class="ui-layer">
             
             <!-- Toppmeny med inställningar -->
-            <div class="controls flex flex-col sm:flex-row justify-between items-center gap-4">
-                <h1 class="text-3xl font-extrabold text-[#E585B4] drop-shadow-md tracking-tight">Flashcards</h1>
+            <div id="topBar" class="controls flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-4">
+                <h1 class="text-2xl sm:text-3xl font-extrabold text-[#E585B4] drop-shadow-md tracking-tight">Flashcards</h1>
                 
                 <div class="flex bg-[#6B3E54] p-1 rounded-full shadow-inner">
                     <button id="btnOrder" class="btn active-mode !py-2 !px-4 !text-sm">I ordning</button>
@@ -91,12 +127,12 @@
             </div>
 
             <!-- Bottenmeny med navigering -->
-            <div class="controls flex justify-center gap-6 pb-4">
-                <button id="btnPrev" class="btn flex items-center gap-2">
+            <div id="bottomBar" class="controls flex justify-center gap-3 sm:gap-6">
+                <button id="btnPrev" class="btn flex flex-1 sm:flex-none items-center justify-center gap-2 max-w-[13rem]">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                     Föregående
                 </button>
-                <button id="btnNext" class="btn flex items-center gap-2">
+                <button id="btnNext" class="btn flex flex-1 sm:flex-none items-center justify-center gap-2 max-w-[13rem]">
                     Nästa
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                 </button>
@@ -147,15 +183,55 @@
         ];
 
 
+        // Element för att mäta ut tillgänglig yta
+        const container = document.getElementById('canvas-container');
+        const topBar = document.getElementById('topBar');
+        const bottomBar = document.getElementById('bottomBar');
+        const supportsDvh = !!(window.CSS && CSS.supports && CSS.supports('height', '100dvh'));
+
+        // Synlig storlek (CSS-pixlar) och ytan mellan topp- och bottenmenyn där kortet får plats
+        let viewW = window.innerWidth;
+        let viewH = window.innerHeight;
+        let cardArea = { top: 0, bottom: viewH };
+        let layoutCache = null;
+
         // Hantera fönsterstorlek för skarp canvas (retina displays)
         function resizeCanvas() {
-            const dpr = window.devicePixelRatio || 1;
-            canvas.width = window.innerWidth * dpr;
-            canvas.height = window.innerHeight * dpr;
-            ctx.scale(dpr, dpr);
+            // Reserv för webbläsare utan dvh: använd den faktiskt synliga höjden
+            if (!supportsDvh) container.style.height = window.innerHeight + 'px';
+
+            const rect = container.getBoundingClientRect();
+            viewW = rect.width;
+            viewH = rect.height;
+
+            const dpr = Math.min(window.devicePixelRatio || 1, 3);
+            canvas.width = Math.round(viewW * dpr);
+            canvas.height = Math.round(viewH * dpr);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // Nollställ skalan (ackumuleras inte)
+
+            // Kortet ska ligga mellan toppmenyn och knapparna i botten
+            const gap = viewW < 600 ? 12 : 20;
+            cardArea.top = topBar.getBoundingClientRect().bottom - rect.top + gap;
+            cardArea.bottom = bottomBar.getBoundingClientRect().top - rect.top - gap;
+
+            layoutCache = null;
             draw();
         }
-        window.addEventListener('resize', resizeCanvas);
+
+        // Samla ihop många resize-händelser till en per bildruta
+        let resizeQueued = false;
+        function queueResize() {
+            if (resizeQueued) return;
+            resizeQueued = true;
+            requestAnimationFrame(() => { resizeQueued = false; resizeCanvas(); });
+        }
+        window.addEventListener('resize', queueResize);
+        window.addEventListener('orientationchange', () => setTimeout(queueResize, 250));
+        if (window.visualViewport) window.visualViewport.addEventListener('resize', queueResize);
+        if (window.ResizeObserver) {
+            new ResizeObserver(queueResize).observe(topBar);
+            new ResizeObserver(queueResize).observe(bottomBar);
+        }
 
         // Hämta frågor från JSON
         async function fetchQuestions() {
@@ -177,7 +253,14 @@
             shuffleArray(shuffledIndices);
             
             resizeCanvas();
-            requestAnimationFrame(animationLoop);
+
+            // Rita om när typsnittet Inter har laddats (canvas mäter annars med reservtypsnitt)
+            if (document.fonts && document.fonts.load) {
+                Promise.all([
+                    document.fonts.load('600 18px Inter'),
+                    document.fonts.load('400 18px Inter')
+                ]).then(() => { layoutCache = null; draw(); }).catch(() => {});
+            }
         }
 
 
@@ -207,8 +290,8 @@
         }
 
         // Funktion för att rita text som bryts över flera rader i Canvas
-        function getWrappedTextLines(ctx, text, maxWidth, fontSize) {
-            ctx.font = `${fontSize}px Inter`;
+        function getWrappedTextLines(ctx, text, maxWidth, font) {
+            ctx.font = font;
             const paragraphs = text.split('\n');
             const lines = [];
 
@@ -251,65 +334,73 @@
             ctx.closePath();
         }
 
+        // Räknar ut kortets storlek och textrader så att allt ryms mellan menyerna.
+        // Resultatet cachas så att texten inte bryts om i varje bildruta.
+        function computeLayout(w) {
+            const key = [currentIndex, isRandomMode, questions.length, w, cardArea.top, cardArea.bottom].join('|');
+            if (layoutCache && layoutCache.key === key) return layoutCache;
+
+            const qData = getCurrentQuestion();
+            const isMobile = w < 600;
+            const cardWidth = Math.min(w * (isMobile ? 0.94 : 0.9), 800);
+            const padding = isMobile ? 18 : 40;
+            const headerSpace = isMobile ? 52 : 65;   // Plats för "Fråga X av Y"
+            const bottomSpace = isMobile ? 18 : 40;
+            const maxTextWidth = cardWidth - padding * 2;
+            const availH = Math.max(cardArea.bottom - cardArea.top, 160);
+            const minFont = 9;
+            const lh = (size) => size * (size < 14 ? 1.35 : 1.5);
+
+            // Börja med normal storlek och krymp texten tills kortet får plats
+            let fontSize = isMobile ? 18 : 24;
+            let frontLines, backLines, backFont, needed;
+            while (true) {
+                backFont = Math.max(fontSize - 2, minFont); // Något mindre text för svar då de är längre
+                frontLines = getWrappedTextLines(ctx, qData.q, maxTextWidth, `600 ${fontSize}px Inter`);
+                backLines = getWrappedTextLines(ctx, qData.a, maxTextWidth, `normal ${backFont}px Inter`);
+                const textH = Math.max(frontLines.length * lh(fontSize), backLines.length * lh(backFont));
+                needed = headerSpace + textH + bottomSpace;
+                if (needed <= availH || fontSize <= minFont) break;
+                fontSize -= 1;
+            }
+
+            // Kortets höjd: minst en trevlig grundhöjd, men aldrig större än ytan
+            const minHeight = Math.min(isMobile ? 260 : 300, availH);
+            const cardHeight = Math.min(Math.max(needed, minHeight), availH);
+            const cardX = (w - cardWidth) / 2;
+            const cardY = cardArea.top + (availH - cardHeight) / 2;
+
+            layoutCache = {
+                key, isMobile, cardWidth, cardHeight, cardX, cardY, padding, headerSpace, bottomSpace,
+                front: { lines: frontLines, font: `600 ${fontSize}px Inter`, lineHeight: lh(fontSize) },
+                back:  { lines: backLines,  font: `normal ${backFont}px Inter`, lineHeight: lh(backFont) }
+            };
+            return layoutCache;
+        }
+
         function draw() {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
+            const w = viewW;
+            const h = viewH;
 
             // 1. Rensa bakgrunden
             ctx.fillStyle = colors.c4;
             ctx.fillRect(0, 0, w, h);
 
-            // 2. Beräkna kortets storlek och position
-            // Gör kortet responsivt
-            let cardWidth = Math.min(w * 0.9, 800);
-            let padding = 40;
-            if (w < 600) padding = 20; // Mindre padding på mobiler
-
-            // För att anpassa kortets höjd dynamiskt baserat på texten,
-            // måste vi mäta texten för både fram och baksida först.
-            const qData = getCurrentQuestion();
-            
-            // Anpassa fontstorlek om texten är extremt lång (dynamisk typografi)
-            let baseFontSize = w < 600 ? 18 : 24;
-            let lineHeight = baseFontSize * 1.5;
-            
-            const maxTextWidth = cardWidth - (padding * 2);
-            
-            let frontLines = getWrappedTextLines(ctx, qData.q, maxTextWidth, baseFontSize);
-            let backLines = getWrappedTextLines(ctx, qData.a, maxTextWidth, baseFontSize - 2); // Något mindre text för svar då de är längre
-
-            // Minska fontstorlek om svaret tar för mycket plats
-            let backLineHeight = (baseFontSize - 2) * 1.5;
-            let maxAllowedLines = Math.floor((h * 0.6) / backLineHeight);
-            
-            if (backLines.length > maxAllowedLines) {
-                const reducedFontSize = w < 600 ? 14 : 16;
-                backLines = getWrappedTextLines(ctx, qData.a, maxTextWidth, reducedFontSize);
-                backLineHeight = reducedFontSize * 1.5;
-            }
-
-            const frontTextHeight = frontLines.length * lineHeight;
-            const backTextHeight = backLines.length * backLineHeight;
-            
-            // Kortets höjd blir den högsta av fram/baksida plus utrymme för nummer/padding
-            let cardHeight = Math.max(frontTextHeight, backTextHeight) + (padding * 3) + 40;
-            // Begränsa minsta höjd
-            cardHeight = Math.max(cardHeight, 300);
-
-            const cardX = (w - cardWidth) / 2;
-            const cardY = (h - cardHeight) / 2;
+            // 2. Kortets storlek och position (anpassad till skärmen)
+            const L = computeLayout(w);
+            const { cardX, cardY, cardWidth, cardHeight, padding } = L;
 
             // 3. Utför 3D-snurr transformationen
             ctx.save();
-            
+
             // Flytta origo till kortets mitt för skalningen
             ctx.translate(cardX + cardWidth / 2, cardY + cardHeight / 2);
-            
+
             // Beräkna skalning (cosinus av vinkeln ger en 3D-flipp effekt)
             // Använd Math.abs så att kortet inte ritas spegelvänt när vinkeln passerar 90 grader
             const scaleX = Math.abs(Math.cos(flipAngle));
             ctx.scale(scaleX, 1);
-            
+
             // Flytta tillbaka origo
             ctx.translate(-(cardX + cardWidth / 2), -(cardY + cardHeight / 2));
 
@@ -320,66 +411,66 @@
             ctx.shadowColor = "rgba(0,0,0,0.4)";
             ctx.shadowBlur = 20;
             ctx.shadowOffsetY = 10;
-            
+
             drawRoundRect(ctx, cardX, cardY, cardWidth, cardHeight, 20);
-            
+
             // Färg baserad på fram/baksida
             ctx.fillStyle = isShowingBack ? colors.c2 : colors.c3;
             ctx.fill();
-            
+
             // Stäng av skugga för texten
             ctx.shadowColor = "transparent";
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+
+            // Klipp allt innehåll till kortet så inget ritas utanför
+            ctx.clip();
 
             // 5. Rita innehållet
             // Rita linje i toppen
             ctx.fillStyle = colors.c1;
-            drawRoundRect(ctx, cardX, cardY, cardWidth, 10, 20);
-            // Fyll nedre hörnen på topplinjen för att göra den rak i botten
-            ctx.fillRect(cardX, cardY + 5, cardWidth, 5);
+            ctx.fillRect(cardX, cardY, cardWidth, 10);
 
             // Rita Frågans nummer i toppen
             ctx.fillStyle = isShowingBack ? "#ffffff" : colors.c5;
-            ctx.font = `bold ${w < 600 ? 14 : 16}px Inter`;
+            ctx.font = `bold ${L.isMobile ? 14 : 16}px Inter`;
             ctx.textAlign = "center";
+            ctx.textBaseline = "alphabetic";
             ctx.fillText(
-                `Fråga ${getQuestionDisplayNumber()} av ${questions.length}`, 
-                cardX + cardWidth / 2, 
-                cardY + 35
+                `Fråga ${getQuestionDisplayNumber()} av ${questions.length}`,
+                cardX + cardWidth / 2,
+                cardY + (L.isMobile ? 34 : 38)
             );
 
             // Rita texten (Fråga eller Svar)
+            const side = isShowingBack ? L.back : L.front;
             ctx.textAlign = "left";
             ctx.textBaseline = "top";
-            
-            let currentLines = isShowingBack ? backLines : frontLines;
-            let currentLineHeight = isShowingBack ? backLineHeight : lineHeight;
-            let currentFontSize = isShowingBack ? (backLines === frontLines ? baseFontSize : (backLineHeight/1.5)) : baseFontSize;
-            
-            ctx.font = `${isShowingBack ? 'normal' : '600'} ${currentFontSize}px Inter`;
+            ctx.font = side.font;
             ctx.fillStyle = "#ffffff";
 
-            // Centrera texten vertikalt på kortet
-            let textStartY = cardY + (cardHeight - (currentLines.length * currentLineHeight)) / 2;
-            
-            // Om texten är väldigt lång, flytta upp den lite så den inte krockar med numret
-            if (textStartY < cardY + 60) {
-                textStartY = cardY + 60;
+            // Centrera texten vertikalt i ytan under numret
+            const contentTop = cardY + L.headerSpace;
+            const contentH = cardHeight - L.headerSpace - L.bottomSpace;
+            const textH = side.lines.length * side.lineHeight;
+            const textStartY = contentTop + Math.max(0, (contentH - textH) / 2);
+
+            for (let i = 0; i < side.lines.length; i++) {
+                ctx.fillText(side.lines[i], cardX + padding, textStartY + i * side.lineHeight);
             }
 
-            for (let i = 0; i < currentLines.length; i++) {
-                ctx.fillText(
-                    currentLines[i], 
-                    cardX + padding, 
-                    textStartY + (i * currentLineHeight)
-                );
-            }
-
-            ctx.restore(); // Återställ transformationer
+            ctx.restore(); // Återställ transformationer och klippning
         }
 
 
         // Huvudloop för animationer
+        let rafId = null;
+        function requestFrame() {
+            if (rafId === null) rafId = requestAnimationFrame(animationLoop);
+        }
+
         function animationLoop() {
+            rafId = null;
             if (isAnimating) {
                 // Interpolera vinkeln mot målet för en mjuk (ease-out) snurr
                 flipAngle += (targetFlipAngle - flipAngle) * 0.1;
@@ -392,7 +483,7 @@
             }
             
             draw();
-            requestAnimationFrame(animationLoop);
+            if (isAnimating) requestFrame();
         }
 
         // Trigga kortflipp
@@ -407,6 +498,7 @@
                 targetFlipAngle = 0; // Snurra tillbaka till framsidan
                 cardState = 'front';
             }
+            requestFrame();
         }
 
         // Klick på canvas = flippa kortet
