@@ -231,36 +231,73 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
 
   <section class="panel" aria-labelledby="hSet">
     <h2 class="panel-title" id="hSet">Inställningar <small id="setPending"></small></h2>
-    <div class="form2">
-      <label for="selInt">Mätintervall</label>
+    <div class="form2" id="setForm">
+      <label for="selMat">Mät var</label>
       <div class="row" style="margin:0">
-        <select id="selInt">
-          <option value="1">1 min</option><option value="2">2 min</option><option value="5">5 min</option>
-          <option value="10">10 min</option><option value="15">15 min</option><option value="20">20 min</option>
-          <option value="30">30 min</option><option value="45">45 min</option><option value="60">1 timme</option>
-          <option value="90">1½ timme</option><option value="120">2 timmar</option><option value="180">3 timmar</option>
-          <option value="240">4 timmar</option><option value="360">6 timmar</option><option value="720">12 timmar</option>
-          <option value="1440">1 dygn</option>
+        <select id="selMat">
+          <option value="30">30 s</option><option value="60">1 min</option><option value="120">2 min</option>
+          <option value="300">5 min</option><option value="600">10 min</option><option value="900">15 min</option>
+          <option value="1800">30 min</option><option value="3600">1 timme</option>
         </select>
-        <span class="help" id="intLife"></span>
+      </div>
+      <label for="selUpp">Ladda upp</label>
+      <div class="row" style="margin:0">
+        <select id="selUpp">
+          <option value="0">varje mätning</option><option value="15">var 15:e min</option><option value="30">var 30:e min</option>
+          <option value="60">varje timme</option><option value="120">varannan timme</option><option value="180">var 3:e timme</option>
+          <option value="360">var 6:e timme</option>
+        </select>
+      </div>
+      <span>På natten</span>
+      <div class="row" style="margin:0">
+        <label><input type="checkbox" id="chkNatt"> glesare,</label>
+        <select id="selNatt" aria-label="Uppladdning på natten">
+          <option value="60">varje timme</option><option value="120">varannan timme</option><option value="180">var 3:e timme</option>
+          <option value="240">var 4:e timme</option><option value="360">var 6:e timme</option><option value="720">en gång</option>
+        </select>
+        <label>från <input type="time" id="tNattFran" step="900"></label>
+        <label>till <input type="time" id="tNattTill" step="900"></label>
+      </div>
+      <span>Larm</span>
+      <div style="display:grid;gap:4px">
+        <label class="row" style="margin:0"><input type="checkbox" id="chkLTi"> Jordkällaren under <input type="number" id="numLTi" step="0.5" min="-30" max="40" style="width:80px"> °C</label>
+        <label class="row" style="margin:0"><input type="checkbox" id="chkHTi"> Jordkällaren över <input type="number" id="numHTi" step="0.5" min="-30" max="40" style="width:80px"> °C</label>
+        <label class="row" style="margin:0"><input type="checkbox" id="chkHRh"> Fukten över <input type="number" id="numHRh" step="1" min="0" max="100" style="width:80px"> %</label>
       </div>
       <span>Värmaren</span>
       <div class="row" style="margin:0">
         <label><input type="checkbox" id="chkHeat"> Automatiskt när fukten fastnat på 99–100 %</label>
       </div>
     </div>
+    <p class="help" id="schemaHelp"></p>
     <div class="row">
       <button id="btnSaveSet" class="default">Spara</button>
+      <button id="btnSetDefault">Standardvärden</button>
       <span class="msg" id="setMsg"></span>
     </div>
     <fieldset>
+      <legend>Snabbläge</legend>
+      <div class="row">
+        <label>Mät var <select id="selSnS">
+          <option value="5">5 s</option><option value="10">10 s</option><option value="15">15 s</option><option value="30">30 s</option>
+          <option value="60">1 min</option><option value="120">2 min</option><option value="300">5 min</option>
+        </select></label>
+        <label>i <select id="selSnMin">
+          <option value="5">5 min</option><option value="10">10 min</option><option value="15">15 min</option><option value="30">30 min</option>
+          <option value="60">1 timme</option><option value="120">2 timmar</option><option value="180">3 timmar</option>
+        </select></label>
+        <button id="btnSnStart">Starta</button>
+        <button id="btnSnStop">Avsluta</button>
+        <span class="msg" id="snMsg"></span>
+      </div>
+      <p class="help" id="snHelp"></p>
+    </fieldset>
+    <fieldset>
       <legend>Engångskommandon</legend>
       <div class="row">
-        <button id="btnFast15" title="Mäter varje minut de närmaste 15 mätningarna">Mät varje minut i 15 min</button>
-        <button id="btnFast60" title="Mäter varje minut de närmaste 60 mätningarna">… i 1 timme</button>
         <button id="btnHeatNow" title="SHT40:ans värmare (200 mW i 1 s) torkar bort kondens">Kör värmaren</button>
       </div>
-      <p class="help" id="cmdHelp">Sensorn sover mellan mätningarna. Allt du ändrar här tas emot vid nästa mätning.</p>
+      <p class="help" id="cmdHelp"></p>
     </fieldset>
   </section>
 
@@ -331,9 +368,12 @@ const DEMO = new URLSearchParams(location.search).has('demo');
 const LOG_KEEP_DAYS = 120;
 const RANGES = { day: 864e5, week: 7 * 864e5, month: 30 * 864e5, year: 365 * 864e5 };
 const RANGE_NAMES = { day: 'senaste dygnet', week: 'senaste veckan', month: 'senaste 30 dagarna', year: 'senaste året' };
-const STD = { intervallMin: 30, varmeAuto: true, ntcR25: 10000, ntcB: 3950, ntcSerie: 55000, ntcOffset: 0, tiOffset: 0, rhOffset: 0, batFaktor: 2.0 };
+const STD = { matS: 300, uppDagMin: 60, uppNattMin: 180, nattPa: true, nattFran: 22 * 60, nattTill: 6 * 60, larmTiLag: 1, larmTiHog: false, larmRhHog: false,
+  varmeAuto: true, ntcR25: 10000, ntcB: 3950, ntcSerie: 55000, ntcOffset: 0, tiOffset: 0, rhOffset: 0, batFaktor: 2.0 };
+const LARM_STD = { larmTiLag: 1, larmTiHog: 12, larmRhHog: 97 };   // förslag när ett larm slås på
 
 let fb = null;                 // Firebase-funktioner (inte i demoläget)
+let demoRaw = [], demoTimmar = [];
 let latest = null, diag = null, inst = null, logItems = [], hist = [], hist14 = [];
 let serverOffset = 0, unsubs = [], histUnsub = null;
 let range = 'day';
@@ -390,15 +430,26 @@ function batPct(v) {
   return 100;
 }
 const histTime = h => (h.at || 0) - (h.ald || 0) * 1000;
-const intervalMs = () => ((latest?.intervallMin || inst?.intervallMin || STD.intervallMin) * 60000);
-function nextExpected() { return latest?.at ? latest.at + (latest.intervallMin || STD.intervallMin) * 60000 : 0; }
+const matS = () => latest?.matS || diag?.schema?.matS || (latest?.intervallMin ? latest.intervallMin * 60 : STD.matS);
+const intervalMs = () => matS() * 1000;
+// När nästa uppladdning väntas (sensorn skickar sin plan; äldre program: mätning + intervall)
+function nextExpected() {
+  if (!latest?.at) return 0;
+  if (num(latest.nastaUpp)) return latest.nastaUpp;
+  return latest.at + (latest.intervallMin || 30) * 60000;
+}
 function overdue() {
   if (!latest?.at) return false;
-  const iv = (latest.intervallMin || STD.intervallMin) * 60000;
-  return nowServer() > latest.at + iv + Math.max(3 * 60000, iv * 0.25);
+  const nx = nextExpected(), from = latest.uppAt || latest.at;
+  return nowServer() > nx + Math.max(3 * 60000, (nx - from) * 0.25);
 }
+const snabbOn = () => latest?.status === 'snabb' && num(latest.snabbTill) && latest.snabbTill > nowServer() && !overdue();
+const fmtS = s => !s ? '–' : s < 60 ? `${s} s` : s % 3600 === 0 ? (s === 3600 ? '1 timme' : `${s / 3600} h`) : s % 60 === 0 ? `${s / 60} min` : `${Math.floor(s / 60)} min ${s % 60} s`;
+const hhmm = m => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+const fromHHMM = v => { const [h, m] = String(v || '').split(':').map(Number); return num(h) && num(m) ? h * 60 + m : null; };
+const LARM_TXT = [[1, 'larmTiLag', 'jordkällaren under', ' °C'], [2, 'larmTiHog', 'jordkällaren över', ' °C'], [4, 'larmRhHog', 'fukten över', ' %']];
 const liveActive = () => diag?.live && typeof diag.live === 'object' && diag.live.at && nowServer() - diag.live.at < 45000;
-const cfg = k => (inst && inst[k] != null ? inst[k] : (diag?.kal && diag.kal[k] != null ? diag.kal[k] : STD[k]));
+const cfg = k => (inst && inst[k] != null ? inst[k] : diag?.schema && diag.schema[k] != null ? diag.schema[k] : (diag?.kal && diag.kal[k] != null ? diag.kal[k] : STD[k]));
 
 /* ---------- Banderoller ---------- */
 function renderBanners() {
@@ -406,7 +457,12 @@ function renderBanners() {
   if (!latest) b.push(['info', 'Ingen mätning har kommit in än. Starta sensorn (se GUIDE.md i tempsensor-mappen) och vänta tills den skickat sin första mätning.']);
   else {
     if (latest.status === 'skydd') b.push(['bad', `<b>Batteriet är nästan tomt</b> (${dec(latest.bv, 2)} V). Sensorn har gått i skyddsläge: den startar inte WiFi och vaknar bara en gång per dygn. Ladda batteriet.`]);
-    else if (overdue()) b.push(['bad', `<b>Ingen ny mätning sedan ${when(latest.at)}</b> (väntades ${hm(nextExpected())}). Vanliga orsaker: tomt batteri, WiFi når inte fram, eller att routern bytt kanal. Se Felsökning nedan.`]);
+    else if (overdue()) b.push(['bad', `<b>Ingen uppladdning sedan ${when(latest.uppAt || latest.at)}</b> (väntades ${hm(nextExpected())}). Vanliga orsaker: tomt batteri, WiFi når inte fram, eller att routern bytt kanal. Se Felsökning nedan.`]);
+    if (latest.larm) {
+      const t = LARM_TXT.filter(([bit]) => latest.larm & bit).map(([, k, txt, u]) => `${txt} ${dec(diag?.schema?.[k] ?? cfg(k), k === 'larmRhHog' ? 0 : 1)}${u}`);
+      b.push(['bad', `<b>Larm:</b> ${t.join(', ')}. Nu ${dec(latest.ti)} °C och ${dec(latest.rh, 0)} %.`]);
+    }
+    if (snabbOn()) b.push(['info', `<b>Snabbläge</b>: mäter var ${fmtS(latest.matS)} och laddar upp varje mätning till ${hm(latest.snabbTill)}.`]);
     if (liveActive()) b.push(['info', `<b>Live-läget är på</b> (${dur(diag.live.kvarS || 0)} kvar). Värdena uppdateras var 15:e sekund. På hemmanätet: <a href="http://${esc(diag.live.ip)}/">http://${esc(diag.live.ip)}</a> eller <a href="http://jordkallare.local/">jordkallare.local</a>.`]);
     else if (num(latest.bp) && latest.bp < 15 && latest.bv >= 2.5 && latest.status !== 'skydd') b.push(['', `Batteriet är på ${Math.round(latest.bp)} % (${dec(latest.bv, 2)} V). Dags att ladda snart.`]);
   }
@@ -417,9 +473,9 @@ function renderBanners() {
 /* ---------- Just nu ---------- */
 function dayStats(key) {
   const t0 = new Date(); t0.setHours(0, 0, 0, 0);
-  const v = hist.filter(h => histTime(h) >= t0.getTime() && num(h[key])).map(h => h[key]);
+  const v = hist.filter(h => histTime(h) >= t0.getTime() && num(h[key]));
   if (!v.length) return null;
-  return { min: Math.min(...v), max: Math.max(...v) };
+  return { min: Math.min(...v.map(h => num(h[key + 'Min']) ? h[key + 'Min'] : h[key])), max: Math.max(...v.map(h => num(h[key + 'Max']) ? h[key + 'Max'] : h[key])) };
 }
 function renderNow() {
   const L = latest;
@@ -442,15 +498,16 @@ function renderNow() {
   $('vRsSub').textContent = num(L.rs) ? `dBm, ${signal(L.rs)}` : '';
 
   const od = overdue(), live = liveActive();
-  lamp($('stLamp'), L.status === 'skydd' || od ? 'bad' : live ? 'wait' : 'ok');
-  $('stTxt').innerHTML = `Mätt <b>${when(L.at)}</b> (<span id="agoTick" style="font-variant-numeric:tabular-nums">${agoExakt(L.at)}</span>)` + (live ? ' · live-läge' : '');
+  const sn = snabbOn();
+  lamp($('stLamp'), L.status === 'skydd' || od ? 'bad' : live || sn ? 'wait' : 'ok');
+  $('stTxt').innerHTML = `Mätt <b>${when(L.at)}</b> (<span id="agoTick" style="font-variant-numeric:tabular-nums">${agoExakt(L.at)}</span>)` + (live ? ' · live-läge' : sn ? ' · snabbläge' : '');
   $('nowWhen').textContent = '';
   const nx = nextExpected();
   $('nextTxt').innerHTML = L.status === 'skydd' ? 'Skyddsläge: nästa kontroll om ett dygn'
-    : `Nästa mätning ${od ? 'var väntad' : 'ca'} <b>${hm(nx)}</b> · intervall ${fmtInt(L.intervallMin)}` + (num(L.chip) ? ` · i lådan ${dec(L.chip)} °C` : '');
-  $('topStatus').textContent = od ? `Ingen mätning sedan ${when(L.at)}` : `Jordkällaren ${dec(L.ti)} °C, ${dec(L.rh, 0)} % · ute ${dec(L.tu)} °C`;
+    : live ? 'Uppdateras var 15:e sekund' + (num(L.chip) ? ` · i lådan ${dec(L.chip)} °C` : '')
+    : `Nästa uppladdning ${od ? 'var väntad' : 'ca'} <b>${hm(nx)}</b> · mäter var ${fmtS(matS())}` + (num(L.chip) ? ` · i lådan ${dec(L.chip)} °C` : '');
+  $('topStatus').textContent = od ? `Ingen uppladdning sedan ${when(L.uppAt || L.at)}` : `Jordkällaren ${dec(L.ti)} °C, ${dec(L.rh, 0)} % · ute ${dec(L.tu)} °C`;
 }
-const fmtInt = m => !m ? '–' : m % 1440 === 0 ? `${m / 1440} dygn` : m % 60 === 0 ? `${m / 60} h` : `${m} min`;
 
 /* ---------- Batteritid ---------- */
 function batteryEstimate() {
@@ -467,11 +524,22 @@ function batteryEstimate() {
   const days = nowPct / -slope;
   return { days, text: days > 60 ? `${Math.round(days / 30)} månader` : `${Math.round(days)} dagar` };
 }
-// Uppskattad batteritid för ett visst intervall utifrån hur länge sensorn är vaken
-function lifeFor(intMin) {
-  const vakenS = Math.max(1, (diag?.vakenMsForra || 3000) / 1000);
-  const mAhPerWake = vakenS * 90 / 3600;            // ca 90 mA i snitt med WiFi på
-  const perDay = (1440 / intMin) * mAhPerWake + 0.054 * 24 + 0.01 * 24;   // + djupsömn och spänningsdelare
+// Uppladdningar per dygn med ett visst schema
+function uploadsPerDay(sc) {
+  const perMat = 86400 / sc.matS;
+  if (!sc.uppDagMin) return perMat;
+  let natt = 0;
+  if (sc.nattPa && sc.nattFran !== sc.nattTill) natt = (sc.nattTill - sc.nattFran + 1440) % 1440;
+  return Math.min(perMat, (1440 - natt) / sc.uppDagMin + (natt ? Math.max(1, natt / sc.uppNattMin) : 0));
+}
+// Uppskattad förbrukning (mAh per dygn) utifrån hur länge sensorn är vaken
+function mAhPerDay(sc) {
+  const matVaken = Math.max(0.12, (diag?.vakenMsMatning || 250) / 1000);   // bara mätning, ca 20 mA
+  const uppVaken = Math.max(1, (diag?.vakenMsUpp || 4000) / 1000);           // med WiFi, ca 90 mA i snitt
+  const perMat = 86400 / sc.matS, ups = uploadsPerDay(sc);
+  return (perMat - ups) * matVaken * 20 / 3600 + ups * uppVaken * 90 / 3600 + 0.054 * 24 + 0.01 * 24;   // + djupsömn och spänningsdelare
+}
+function lifeText(perDay) {
   const days = 3400 * 0.85 / (perDay + 3400 * 0.02 / 30);                  // + självurladdning ca 2 %/mån
   return days > 365 ? `ca ${dec(days / 365, 1)} år` : days > 60 ? `ca ${Math.round(days / 30)} mån` : `ca ${Math.round(days)} dagar`;
 }
@@ -496,17 +564,17 @@ function xTicks(t0, t1, rk, narrow) {
 }
 function bucketize(pts, t0, t1, n) {
   const w = (t1 - t0) / n, b = new Map();
-  for (const [t, v] of pts) {
-    const i = Math.floor((t - t0) / w);
-    let e = b.get(i); if (!e) { e = { s: 0, c: 0, mn: v, mx: v }; b.set(i, e); }
-    e.s += v; e.c++; if (v < e.mn) e.mn = v; if (v > e.mx) e.mx = v;
+  for (const [t, v, lo, hi] of pts) {
+    const i = Math.floor((t - t0) / w), mn = lo ?? v, mx = hi ?? v;
+    let e = b.get(i); if (!e) { e = { s: 0, c: 0, mn, mx }; b.set(i, e); }
+    e.s += v; e.c++; if (mn < e.mn) e.mn = mn; if (mx > e.mx) e.mx = mx;
   }
   return [...b.entries()].sort((a, c) => a[0] - c[0]).map(([i, e]) => ({ t: t0 + (i + 0.5) * w, v: e.s / e.c, mn: e.mn, mx: e.mx }));
 }
 function drawChart(el, series, opt) {
   const W = Math.max(280, Math.round((el.clientWidth || 800) - 12)), H = opt.h || 210, L = 44, R = 10, T = 10, B = 24;
   const { t0, t1 } = opt;
-  const all = series.flatMap(s => s.pts.map(p => p[1]));
+  const all = series.flatMap(s => s.pts.flatMap(p => [p[1], p[2] ?? p[1], p[3] ?? p[1]]));
   el._chart = null;
   if (!all.length) { el.innerHTML = `<div class="empty">Inga mätningar ${RANGE_NAMES[range]}.</div>`; return; }
   let lo = Math.min(...all), hi = Math.max(...all);
@@ -524,19 +592,20 @@ function drawChart(el, series, opt) {
   for (const se of series) {
     if (!se.pts.length) continue;
     const many = se.pts.length > 500;
-    const pts = many ? bucketize(se.pts, t0, t1, 360) : se.pts.map(([t, v]) => ({ t, v, mn: v, mx: v }));
+    const pts = many ? bucketize(se.pts, t0, t1, 360) : se.pts.map(([t, v, lo, hi]) => ({ t, v, mn: lo ?? v, mx: hi ?? v }));
+    const band = many || se.pts.some(p => p[2] != null);
     const gapLim = many ? Math.max(gap, (t1 - t0) / 360 * 2.5) : gap;
-    let d = '', band = '', seg = [];
+    let d = '', bandSvg = '', seg = [];
     const flush = () => {
       if (!seg.length) return;
       d += seg.map((p, i) => `${i ? 'L' : 'M'}${sx(p.t).toFixed(1)} ${sy(p.v).toFixed(1)}`).join('');
       if (seg.length === 1) d += `h0.1`;
-      if (many) band += `<path d="${seg.map((p, i) => `${i ? 'L' : 'M'}${sx(p.t).toFixed(1)} ${sy(p.mx).toFixed(1)}`).join('')}${seg.slice().reverse().map(p => `L${sx(p.t).toFixed(1)} ${sy(p.mn).toFixed(1)}`).join('')}Z" fill="${se.color}" opacity="0.16"/>`;
+      if (band) bandSvg += `<path d="${seg.map((p, i) => `${i ? 'L' : 'M'}${sx(p.t).toFixed(1)} ${sy(p.mx).toFixed(1)}`).join('')}${seg.slice().reverse().map(p => `L${sx(p.t).toFixed(1)} ${sy(p.mn).toFixed(1)}`).join('')}Z" fill="${se.color}" opacity="0.16"/>`;
       seg = [];
     };
     pts.forEach((p, i) => { if (i && p.t - pts[i - 1].t > gapLim) flush(); seg.push(p); });
     flush();
-    s += band + `<path d="${d}" fill="none" stroke="${se.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    s += bandSvg + `<path d="${d}" fill="none" stroke="${se.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
   }
   s += `<line class="hl" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="#44423d" stroke-dasharray="3 3" visibility="hidden"/>`;
   for (let i = 0; i < series.length; i++) s += `<circle class="hd${i}" r="4" fill="${series[i].color}" stroke="#fff" stroke-width="1.5" visibility="hidden"/>`;
@@ -582,19 +651,30 @@ for (const id of ['chTemp', 'chRh', 'chBat', 'chRs']) {
   el.addEventListener('pointerleave', () => chartLeave(el));
 }
 
+const hourly = () => range === 'month' || range === 'year';
 function renderHist() {
-  const t1 = nowServer(), t0 = t1 - RANGES[range];
-  const rows = hist.map(h => ({ ...h, t: histTime(h) })).filter(h => h.t >= t0 && h.t <= t1 + 60000).sort((a, b) => a.t - b.t);
-  const ser = k => rows.filter(h => num(h[k])).map(h => [h.t, h[k]]);
-  const gap = Math.max(3 * intervalMs(), 20 * 60000);
+  const t1 = nowServer(), t0 = t1 - RANGES[range], H = hourly() && hist.some(h => h.n != null);
+  const rows = hist.map(h => ({ ...h, t: H ? h.at + 1800e3 : histTime(h) })).filter(h => h.t >= t0 && h.t <= t1 + 3600e3).sort((a, b) => a.t - b.t);
+  const ser = k => rows.filter(h => num(h[k])).map(h => num(h[k + 'Min']) ? [h.t, h[k], h[k + 'Min'], h[k + 'Max']] : [h.t, h[k]]);
+  // Linjen bryts vid luckor: tre gånger det vanliga avståndet mellan mätningarna
+  const dts = rows.slice(1).map((r, i) => r.t - rows[i].t).filter(x => x > 0).sort((x, y) => x - y);
+  const medDt = dts.length ? dts[Math.floor(dts.length / 2)] : intervalMs();
+  const gap = H ? 3 * 3600e3 : Math.max(3 * Math.max(intervalMs(), medDt), 20 * 60000);
   const base = { t0, t1, rk: range, gap };
   drawChart($('chTemp'), [{ name: 'Jordkällaren', color: '#27456f', pts: ser('ti') }, { name: 'Ute', color: '#b0651a', pts: ser('tu') }], { ...base, unit: ' °C', label: 'Temperatur', minSpan: 2, h: 230 });
   drawChart($('chRh'), [{ name: 'Fukt', color: '#2d6b2d', pts: ser('rh') }], { ...base, unit: ' %', dec: 0, label: 'Luftfuktighet', minSpan: 5, clamp: [0, 100], h: 170 });
-  drawChart($('chBat'), [{ name: 'Batteri', color: '#44423d', pts: ser('bv') }], { ...base, unit: ' V', dec: 2, label: 'Batterispänning', minSpan: 0.1, h: 170, tickDec: 2, ticks: 4 });
-  drawChart($('chRs'), [{ name: 'Signal', color: '#7b4fa0', pts: ser('rs') }], { ...base, unit: ' dBm', dec: 0, label: 'WiFi-signal', minSpan: 10, h: 170, ticks: 4 });
-  $('histRange').textContent = `${RANGE_NAMES[range]} · ${rows.length} mätningar`;
+  // Batteri och signal finns bara vid uppladdningarna: längre glapp är normalt
+  const gapUpp = Math.max(gap, 4 * 3600e3);
+  drawChart($('chBat'), [{ name: 'Batteri', color: '#44423d', pts: ser('bv') }], { ...base, gap: gapUpp, unit: ' V', dec: 2, label: 'Batterispänning', minSpan: 0.1, h: 170, tickDec: 2, ticks: 4 });
+  drawChart($('chRs'), [{ name: 'Signal', color: '#7b4fa0', pts: ser('rs') }], { ...base, gap: gapUpp, unit: ' dBm', dec: 0, label: 'WiFi-signal', minSpan: 10, h: 170, ticks: 4 });
+  const antal = H ? rows.reduce((a, h) => a + (h.n || 0), 0) : rows.length;
+  $('histRange').textContent = `${RANGE_NAMES[range]} · ${antal.toLocaleString('sv')} mätningar`;
 
-  const st = k => { const v = rows.filter(h => num(h[k])).map(h => h[k]); if (!v.length) return null; return { min: Math.min(...v), max: Math.max(...v), avg: v.reduce((a, b) => a + b, 0) / v.length }; };
+  const st = k => {
+    const v = rows.filter(h => num(h[k])); if (!v.length) return null;
+    const w = h => (H ? h.n || 1 : 1), sw = v.reduce((a, h) => a + w(h), 0);
+    return { min: Math.min(...v.map(h => h[k + 'Min'] ?? h[k])), max: Math.max(...v.map(h => h[k + 'Max'] ?? h[k])), avg: v.reduce((a, h) => a + h[k] * w(h), 0) / sw };
+  };
   const tile = (lab, s, unit, d = 1) => s ? `<div class="tile"><span>${lab}</span><b>${dec(s.avg, d)}${unit}</b><small>min ${dec(s.min, d)} · max ${dec(s.max, d)}</small></div>` : '';
   const bv = rows.filter(h => num(h.bv));
   let batTile = '';
@@ -604,60 +684,113 @@ function renderHist() {
   }
   const missed = (() => {
     if (rows.length < 2) return '';
-    const diffs = rows.slice(1).map((r, i) => r.t - rows[i].t).sort((x, y) => x - y);
-    const med = diffs[Math.floor(diffs.length / 2)] || intervalMs(); let gaps = 0;
-    for (let i = 1; i < rows.length; i++) { const dt = rows[i].t - rows[i - 1].t; if (dt > med * 2.5 && dt > 10 * 60000 && dt > 3 * Math.min(med, intervalMs())) gaps++; }
+    let gaps = 0;
+    if (H) { for (let i = 1; i < rows.length; i++) if (rows[i].t - rows[i - 1].t > 2.5 * 3600e3) gaps++; }
+    else {
+      const diffs = rows.slice(1).map((r, i) => r.t - rows[i].t).sort((x, y) => x - y);
+      const med = diffs[Math.floor(diffs.length / 2)] || intervalMs();
+      for (let i = 1; i < rows.length; i++) { const dt = rows[i].t - rows[i - 1].t; if (dt > med * 2.5 && dt > 10 * 60000 && dt > 3 * Math.min(med, intervalMs())) gaps++; }
+    }
     return `<div class="tile"><span>Avbrott i mätningarna</span><b>${gaps}</b><small>${gaps ? 'längre uppehåll än väntat' : 'inga luckor'}</small></div>`;
   })();
   $('statTiles').innerHTML = tile('Jordkällaren, medel', st('ti'), ' °C') + tile('Fukt, medel', st('rh'), ' %', 0) + tile('Ute, medel', st('tu'), ' °C') + batTile + missed;
-  $('histNote').textContent = rows.length > 500 ? 'Många mätningar: linjen visar medelvärdet och det skuggade fältet min och max.' : '';
+  $('histNote').textContent = H ? 'Linjen visar medelvärdet per timme och det skuggade fältet timmens lägsta och högsta värde.'
+    : rows.length > 500 ? 'Många mätningar: linjen visar medelvärdet och det skuggade fältet min och max.' : '';
 }
 
 /* ---------- Inställningar ---------- */
+const LARM_UI = [['chkLTi', 'numLTi', 'larmTiLag'], ['chkHTi', 'numHTi', 'larmTiHog'], ['chkHRh', 'numHRh', 'larmRhHog']];
+let setDirty = false;
+function setSelVal(sel, v, label) {
+  if (![...sel.options].some(o => o.value === String(v))) sel.add(new Option(label, v));
+  sel.value = String(v);
+}
+function formSchema() {
+  return {
+    matS: +$('selMat').value, uppDagMin: +$('selUpp').value, uppNattMin: +$('selNatt').value, nattPa: $('chkNatt').checked,
+    nattFran: fromHHMM($('tNattFran').value) ?? STD.nattFran, nattTill: fromHHMM($('tNattTill').value) ?? STD.nattTill,
+  };
+}
+function fillSettings(get) {
+  setSelVal($('selMat'), get('matS'), fmtS(get('matS')));
+  setSelVal($('selUpp'), get('uppDagMin'), get('uppDagMin') ? `var ${fmtS(get('uppDagMin') * 60)}` : 'varje mätning');
+  setSelVal($('selNatt'), get('uppNattMin'), `var ${fmtS(get('uppNattMin') * 60)}`);
+  $('chkNatt').checked = !!get('nattPa');
+  $('tNattFran').value = hhmm(get('nattFran')); $('tNattTill').value = hhmm(get('nattTill'));
+  for (const [c, n, k] of LARM_UI) { const v = get(k); $(c).checked = num(v); $(n).value = num(v) ? v : LARM_STD[k]; }
+  $('chkHeat').checked = !!get('varmeAuto');
+}
+function nextUpText() { const nx = nextExpected(); return nx ? `ca ${hm(Math.max(nx, nowServer()))}` : 'nästa gång den laddar upp'; }
 function renderSettings() {
-  const iv = cfg('intervallMin');
-  if (document.activeElement !== $('selInt') && !$('selInt').dataset.dirty) {
-    $('selInt').value = String(iv);
-    if (![...$('selInt').options].some(o => o.value === String(iv))) { const o = new Option(fmtInt(iv), iv); $('selInt').add(o); $('selInt').value = String(iv); }
-  }
-  if (!$('chkHeat').dataset.dirty) $('chkHeat').checked = !!(inst?.varmeAuto ?? diag?.varmeAuto ?? STD.varmeAuto);
-  $('intLife').textContent = `batteriet räcker ${lifeFor(+$('selInt').value)}`;
+  if (!setDirty) fillSettings(k => k === 'varmeAuto' ? (inst?.varmeAuto ?? diag?.varmeAuto ?? STD.varmeAuto) : cfg(k));
+  const nattOff = !$('chkNatt').checked;
+  $('selNatt').disabled = $('tNattFran').disabled = $('tNattTill').disabled = nattOff;
+  for (const [c, n] of LARM_UI) $(n).disabled = !$(c).checked;
+  const sc = formSchema(), ups = uploadsPerDay(sc);
+  $('schemaHelp').textContent = `${Math.round(86400 / sc.matS).toLocaleString('sv')} mätningar och ca ${ups < 10 ? dec(ups, 1) : Math.round(ups)} uppladdningar per dygn – batteriet räcker ${lifeText(mAhPerDay(sc))}.` +
+    (sc.uppDagMin && sc.uppDagMin * 60 < sc.matS ? ' Uppladdningen kan inte ske oftare än mätningarna.' : '') + ' Larm och fel laddas upp direkt.';
 
   const pend = [];
-  if (inst?.intervallMin && diag?.intervallMin && inst.intervallMin !== diag.intervallMin) pend.push(`intervall ${fmtInt(inst.intervallMin)}`);
+  if (inst?.andrad && inst.andrad > (diag?.instMottagen || 0)) pend.push('ändringar');
   if (inst?.varmeNu) pend.push('värmaren');
-  if (inst?.snabbAntal > 0) pend.push(`snabbläge (${inst.snabbAntal} mätningar)`);
+  if (inst?.snabbMin > 0) pend.push('snabbläge');
+  if (inst?.snabbStopp) pend.push('avsluta snabbläget');
   if (inst?.nollstall) pend.push('nollställning');
-  const nx = nextExpected();
-  $('setPending').innerHTML = pend.length ? `<span class="lamp wait"></span> väntar: ${esc(pend.join(', '))}${nx ? ` (ca ${hm(nx)})` : ''}` : '';
-  const sk = diag?.snabbKvar || 0;
-  $('cmdHelp').textContent = sk > 0
-    ? `Snabbläge: ${sk} mätningar kvar med 1 minuts mellanrum.`
-    : 'Sensorn sover mellan mätningarna. Allt du ändrar här tas emot vid nästa mätning.';
+  $('setPending').innerHTML = pend.length ? `<span class="lamp wait"></span> väntar: ${esc(pend.join(', '))} (${esc(nextUpText())})` : '';
+
+  const on = snabbOn(), S = +$('selSnS').value, M = +$('selSnMin').value;
+  if (on) {
+    $('snHelp').textContent = `Pågår: mäter var ${fmtS(latest.matS)} till ${hm(latest.snabbTill)}${diag?.snabb?.antal ? ` (${diag.snabb.antal} mätningar hittills)` : ''}. Varje mätning laddas upp direkt.`;
+  } else {
+    const uppVaken = Math.max(1, (diag?.vakenMsUpp || 4000) / 1000);
+    const mAh = S < 60 ? M / 60 * 45 : M * 60 / S * uppVaken * 90 / 3600;
+    const pct = mAh / 3400 * 100;
+    $('snHelp').textContent = `Varje mätning laddas upp direkt${S < 60 ? ' och WiFi är på hela tiden' : ''}. Kostar ca ${pct < 1 ? dec(Math.max(pct, 0.1), 1) : Math.round(pct)} % av batteriet. ` +
+      `Startar vid nästa uppladdning (${nextUpText()}) – tryck R på kortet för att starta direkt.`;
+  }
+  $('btnSnStart').textContent = on ? 'Starta om' : 'Starta';
+  $('btnSnStop').disabled = !on && !(inst?.snabbMin > 0);
+  $('cmdHelp').textContent = `Sensorn sover mellan uppladdningarna. Ändringar och kommandon tas emot vid nästa uppladdning (${nextUpText()}). Tryck R på kortet för att skicka direkt.`;
 }
-$('selInt').addEventListener('change', () => { $('selInt').dataset.dirty = '1'; renderSettings(); });
-$('chkHeat').addEventListener('change', () => { $('chkHeat').dataset.dirty = '1'; });
+document.querySelectorAll('#setForm input, #setForm select').forEach(el => {
+  el.addEventListener('input', () => { setDirty = true; renderSettings(); });
+  el.addEventListener('change', () => { setDirty = true; renderSettings(); });
+});
+for (const id of ['selSnS', 'selSnMin']) $(id).addEventListener('change', renderSettings);
 
 async function save(obj, msgEl, okText) {
   msgEl.className = 'msg'; msgEl.textContent = 'Sparar…';
   try {
-    if (DEMO) { inst = { ...(inst || {}), ...obj }; }
-    else await fb.update(fb.ref(fb.db, `${ROOT}/installningar`), obj);
+    if (DEMO) { inst = { ...(inst || {}), ...obj, andrad: Date.now() }; }
+    else await fb.update(fb.ref(fb.db, `${ROOT}/installningar`), { ...obj, andrad: fb.serverTimestamp() });
     msgEl.className = 'msg ok';
-    const nx = nextExpected();
-    msgEl.textContent = okText + (nx && !liveActive() ? ` Tas emot ca ${hm(Math.max(nx, nowServer()))}.` : '');
+    msgEl.textContent = okText + (liveActive() ? '' : ` Tas emot vid nästa uppladdning (${nextUpText()}).`);
     renderSettings(); renderCal();
   } catch (e) {
     msgEl.className = 'msg bad'; msgEl.textContent = `Kunde inte spara (${e.code || e.message}).`;
   }
 }
 $('btnSaveSet').addEventListener('click', async () => {
-  await save({ intervallMin: +$('selInt').value, varmeAuto: $('chkHeat').checked }, $('setMsg'), 'Sparat.');
-  delete $('selInt').dataset.dirty; delete $('chkHeat').dataset.dirty;
+  const sc = formSchema();
+  if (fromHHMM($('tNattFran').value) == null || fromHHMM($('tNattTill').value) == null) { $('setMsg').className = 'msg bad'; $('setMsg').textContent = 'Fyll i när natten börjar och slutar.'; return; }
+  const obj = { ...sc, varmeAuto: $('chkHeat').checked, intervallMin: null, snabbAntal: null };
+  for (const [c, n, k] of LARM_UI) {
+    if (!$(c).checked) { obj[k] = false; continue; }
+    const v = parseFloat(String($(n).value).replace(',', '.'));
+    const [lo, hi] = k === 'larmRhHog' ? [0, 100] : [-30, 40];
+    if (!num(v) || v < lo || v > hi) { $('setMsg').className = 'msg bad'; $('setMsg').textContent = `Orimlig larmgräns (tillåtet ${lo} till ${hi}).`; return; }
+    obj[k] = v;
+  }
+  setDirty = false;
+  await save(obj, $('setMsg'), 'Sparat.');
 });
-$('btnFast15').addEventListener('click', () => save({ snabbAntal: 15 }, $('setMsg'), 'Snabbläge beställt.'));
-$('btnFast60').addEventListener('click', () => save({ snabbAntal: 60 }, $('setMsg'), 'Snabbläge beställt.'));
-$('btnHeatNow').addEventListener('click', () => save({ varmeNu: true }, $('setMsg'), 'Värmaren beställd.'));
+$('btnSetDefault').addEventListener('click', () => {
+  fillSettings(k => STD[k]); setDirty = true; renderSettings();
+  $('setMsg').className = 'msg'; $('setMsg').textContent = 'Standardvärden ifyllda. Tryck på Spara.';
+});
+$('btnSnStart').addEventListener('click', () => save({ snabbS: +$('selSnS').value, snabbMin: +$('selSnMin').value, snabbStopp: false }, $('snMsg'), 'Snabbläge beställt.'));
+$('btnSnStop').addEventListener('click', () => save({ snabbStopp: true, snabbMin: 0 }, $('snMsg'), 'Beställt.'));
+$('btnHeatNow').addEventListener('click', () => save({ varmeNu: true }, $('snMsg'), 'Värmaren beställd.'));
 
 /* ---------- Kalibrering ---------- */
 const CAL_KEYS = ['ntcR25', 'ntcB', 'ntcSerie', 'ntcOffset', 'tiOffset', 'rhOffset', 'batFaktor'];
@@ -732,7 +865,9 @@ function health() {
   const add = (st, t, sub = '') => out.push([st, t, sub]);
   if (!L) return [['wait', 'Ingen data än', 'Sensorn har inte skickat något. Starta den och titta i Serial Monitor (GUIDE.md).']];
   if (L.status === 'skydd') add('bad', 'Batteriet är tomt – skyddsläge', 'Ladda batteriet. Sensorn startar inte WiFi förrän spänningen är över 3,10 V igen.');
-  else if (overdue()) add('bad', `Ingen mätning sedan ${when(L.at)}`, 'Batteriet kan vara slut, eller så når sensorn inte WiFi. Slå på live-brytaren vid lådan och se om live-sidan går att öppna.');
+  else if (overdue()) add('bad', `Ingen uppladdning sedan ${when(L.uppAt || L.at)}`, 'Batteriet kan vara slut, eller så når sensorn inte WiFi. Mätningarna sparas i sensorn och skickas när det fungerar igen. Slå på live-brytaren vid lådan och se om live-sidan går att öppna.');
+  if (L.larm) add('bad', 'Larm', LARM_TXT.filter(([bit]) => L.larm & bit).map(([, k, txt, u]) => `${txt[0].toUpperCase() + txt.slice(1)} ${dec(d.schema?.[k] ?? cfg(k), 1)}${u}`).join(', ') + '. Gränserna ställs in under Inställningar.');
+  if (num(d.buffrade) && num(d.bufMax) && d.buffrade > d.bufMax * 0.8) add('warn', `Bufferten var nästan full (${d.buffrade} av ${d.bufMax} mätningar)`, 'Äldre mätningar glesas ut om den blir full. Ladda upp oftare eller mät glesare.');
   if (d.sht && d.sht !== 'ok') add('bad', `SHT40: ${d.sht}`, d.pullup === 'intern' ? 'Kabeln har inga egna pullup-motstånd. Löd in R7 och R8 (4,7 kΩ) enligt ritningen, och kolla färgerna på trådarna.' : 'Kolla trådarna i skruvplinten och skarven på kabeln.');
   if (d.ntc && d.ntc !== 'ok') add('warn', `Utomhussonden: ${d.ntc}`, d.ntc === 'avbrott' ? 'Ingen kontakt med sonden, eller kallare än mätområdet. Kolla kabeln. Är det en 50 kΩ-sond: sätt referensmotståndet till 220 kΩ.' : 'Kortslutning i sonden eller kabeln.');
   if (num(d.rssi) && d.rssi < -85) add('bad', `Mycket svag WiFi-signal (${d.rssi} dBm)`, 'Rikta om antennen med live-läget, flytta den högre upp, eller sätt en WiFi-förstärkare närmare.');
@@ -746,11 +881,13 @@ function health() {
   if (num(L.bv) && L.bv < 2.5) add('', 'Inget batteri – går på USB', 'Batterimätningen visar inget vettigt värde utan batteri. Allt annat fungerar som vanligt.');
   else if (num(L.bp) && L.bp < 10 && L.status !== 'skydd') add('bad', `Batteriet nästan tomt (${Math.round(L.bp)} %)`, 'Ladda snart. Under 3,10 V går sensorn i skyddsläge.');
   else if (num(L.bp) && L.bp < 25) add('warn', `Batteriet är på ${Math.round(L.bp)} %`, '');
-  if (num(d.vakenMsForra) && d.vakenMsForra > 7000) add('warn', `Var vaken länge förra gången (${dec(d.vakenMsForra / 1000, 1)} s)`, 'Normalt 2–4 s. Kostar batteri. Svag signal eller långsam inloggning brukar vara orsaken.');
+  const uppMs = d.vakenMsUpp ?? d.vakenMsForra;
+  if (num(uppMs) && uppMs > 8000) add('warn', `Förra uppladdningen tog lång tid (${dec(uppMs / 1000, 1)} s)`, 'Normalt 2–5 s. Kostar batteri. Svag signal eller långsam inloggning brukar vara orsaken.');
+  if (num(d.vakenMsMatning) && d.vakenMsMatning > 1500) add('warn', `Mätningarna tar lång tid (${dec(d.vakenMsMatning / 1000, 1)} s)`, 'Normalt under en halv sekund. Kolla SHT40-kabeln.');
   if (num(L.chip) && L.chip < -10) add('warn', `Kallt i lådan (${dec(L.chip)} °C)`, 'Batteriet tappar kapacitet i kyla. Isolera lådan om det går.');
   if (d.brytareGlomd) add('warn', 'Live-brytaren står fortfarande på', 'Slå av den, annars kan live-läget inte startas igen.');
   if (num(L.rh) && L.rh >= 99 && d.hogFuktRad >= 3 && !d.varmeAuto) add('', 'Fukten har legat på 99–100 % ett tag', 'Slå på automatisk värmare under Inställningar, eller kör värmaren en gång.');
-  if (!out.length) add('ok', 'Allt ser bra ut', `WiFi ${dec((d.wifiMs || 0) / 1000, 1)} s, vaken ${dec((d.vakenMsForra || 0) / 1000, 1)} s per mätning.`);
+  if (!out.length) add('ok', 'Allt ser bra ut', `WiFi ${dec((d.wifiMs || 0) / 1000, 1)} s · uppladdning ${dec((uppMs || 0) / 1000, 1)} s · mätning ${num(d.vakenMsMatning) ? dec(d.vakenMsMatning / 1000, 2) + ' s' : '–'}.`);
   return out;
 }
 function renderDiag() {
@@ -761,21 +898,23 @@ function renderDiag() {
   const yn = b => b ? 'ja' : 'nej';
   const startTxt = `${esc(d.start || '–')}${d.startAt ? `, ${when(d.startAt)}` : ''}`;
   const r = [
-    ['Senaste vakningen', `${esc(d.vackt || '–')} · programversion ${esc(d.fw || '–')}`],
+    ['Senaste uppladdningen', `${esc(d.vackt || '–')}${d.varfor ? ` · orsak: ${esc(d.varfor)}` : ''} · programversion ${esc(d.fw || '–')}`],
     ['WiFi', num(d.rssi) ? `${bars(d.rssi)}${d.rssi} dBm (${signal(d.rssi)}) · kanal ${d.kanal} · router ${esc(d.bssid || '–')}` : '–'],
     ['Anslutning', `${dec((d.wifiMs || 0) / 1000, 2)} s · ${d.wifiSnabb ? 'snabbanslutning' : d.wifiSokte ? 'fick söka' : 'vanlig'}${d.wifiOrsak ? ` · ${esc(d.wifiOrsak)}` : ''}`],
     ['IP-adress', `${esc(d.ip || '–')} (${d.fastIp ? 'fast' : 'DHCP'})`],
     ['Sändningseffekt', `${dec(d.txDbm, 1)} dBm${d.lagTx ? ' (sänkt efter brownout)' : ''}`],
     ['Inloggning', `${esc(d.authTyp || '–')}${d.authMs ? `, ${dec(d.authMs / 1000, 2)} s` : ''}`],
     ['Firebase', num(d.fbMs) ? `${dec(d.fbMs / 1000, 2)} s` : '–'],
-    ['Vaken tid', `${num(d.vakenMsForra) ? dec(d.vakenMsForra / 1000, 1) + ' s förra gången' : '–'} · ${num(d.vakenMsNu) ? dec(d.vakenMsNu / 1000, 1) + ' s fram till uppladdningen nu' : ''}`],
-    ['Uppladdningar', d.missade ? `${d.missade} misslyckades innan, ${d.buffrade} sparade mätningar skickades i efterhand${d.sistaFel ? ` · ${esc(d.sistaFel)}` : ''}` : 'alla gick fram'],
+    ['Vaken tid', `${num(d.vakenMsMatning) ? `mätning ${dec(d.vakenMsMatning / 1000, 2)} s` : `förra ${dec((d.vakenMsForra || 0) / 1000, 1)} s`}${num(d.vakenMsUpp) ? ` · förra uppladdningen ${dec(d.vakenMsUpp / 1000, 1)} s` : ''}${num(d.vakenMsNu) ? ` · den här ${dec(d.vakenMsNu / 1000, 1)} s fram till sändningen` : ''}`],
+    ['Uppladdningar', `${num(d.uppladdningar) ? `${d.uppladdningar} sedan start · ` : ''}${num(d.buffrade) ? `${d.buffrade} mätningar i den senaste${num(d.bufMax) ? ` (plats för ${d.bufMax})` : ''} · ` : ''}${d.missade ? `${d.missade} misslyckades innan${d.sistaFel ? `: ${esc(d.sistaFel)}` : ''}` : 'alla gick fram'}`],
     ['SHT40', `${esc(d.sht || '–')}${d.shtSerie ? ` · serienr ${esc(d.shtSerie)}` : ''} · pullup ${d.pullup === 'extern' ? 'på kabeln (extern)' : 'ESP32:ans interna'}${num(d.shtRaT) ? ` · rått ${dec(d.shtRaT, 2)} °C, ${dec(d.shtRaRh, 1)} %` : ''}`],
     ['Utomhussonden', `${esc(d.ntc || '–')}${num(d.ntcOhm) ? ` · ${Math.round(d.ntcOhm).toLocaleString('sv')} Ω` : ''} · ${d.ntcMv ?? '–'} mV på A1`],
     ['Batteri', `${num(latest?.bv) ? dec(latest.bv, 3) + ' V' : '–'} · ${d.batMv ?? '–'} mV på A0 · faktor ${dec(d.kal?.batFaktor, 4)}`],
     ['I lådan', num(d.chip) ? `${dec(d.chip)} °C (chippets temperatur)` : '–'],
     ['Värmaren', `${d.varmeAuto ? 'automatisk' : 'av'} · körts ${d.varmeAntal || 0} gånger${d.varmeAt ? `, senast ${when(d.varmeAt)}` : ''}`],
-    ['Mätintervall', `${fmtInt(d.intervallMin)}${d.snabbKvar ? ` · snabbläge, ${d.snabbKvar} kvar` : ''}`],
+    ['Schema', d.schema ? `mäter var ${fmtS(d.schema.matS)} · laddar upp ${d.schema.uppDagMin ? `var ${fmtS(d.schema.uppDagMin * 60)}` : 'varje mätning'}${d.schema.nattPa ? `, natten ${hhmm(d.schema.nattFran)}–${hhmm(d.schema.nattTill)} var ${fmtS(d.schema.uppNattMin * 60)}` : ''}${d.snabb ? ` · snabbläge var ${fmtS(d.snabb.s)} till ${hm(d.snabb.till)}` : ''}` : (d.intervallMin ? `var ${d.intervallMin} min (äldre program)` : '–')],
+    ['Larm', d.schema ? (LARM_TXT.filter(([, k]) => num(d.schema[k])).map(([, k, txt, u]) => `${txt} ${dec(d.schema[k], 1)}${u}`).join(' · ') || 'inga') : '–'],
+    ['Klockan', num(d.klockFaktor) ? (Math.abs(d.klockFaktor - 1) < 0.0005 ? 'går rätt' : `sömntimern går ${dec(Math.abs(d.klockFaktor - 1) * 100, 2)} % för ${d.klockFaktor > 1 ? 'sakta' : 'fort'} – rättas automatiskt`) : '–'],
     ['Startad', startTxt],
     ['Vakningar', `${d.vakningar ?? '–'} sedan start${d.startAt ? ` (${ago(d.startAt).replace(' sedan', '')})` : ''}`],
     ['Starter totalt', `${d.starter ?? 0} · brownouts ${d.brownouts ?? 0} · krascher ${d.krascher ?? 0}`],
@@ -810,18 +949,21 @@ function setRange(r) {
   range = r;
   try { localStorage.setItem('jk-range', r); } catch (e) {}
   document.querySelectorAll('#rangeTabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.range === r)));
-  if (DEMO) renderHist(); else subscribeHist();
+  if (DEMO) { hist = hourly() ? demoTimmar : demoRaw; renderHist(); } else subscribeHist();
 }
 document.querySelectorAll('#rangeTabs button').forEach(b => b.addEventListener('click', () => setRange(b.dataset.range)));
 
 function renderAll() { renderBanners(); renderNow(); renderHist(); renderSettings(); renderCal(); renderDiag(); renderLog(); }
 
 /* ---------- Firebase ---------- */
+// Dygn och vecka: varje mätning. Månad och år: timsammanfattningar (nyckeln är timmar sedan 1970).
+const timmarFran = ms => fb.query(fb.ref(fb.db, `${ROOT}/timmar`), fb.orderByKey(), fb.startAt(String(Math.floor(ms / 3600e3))));
 function subscribeHist() {
   if (histUnsub) { histUnsub(); histUnsub = null; }
   const from = nowServer() - RANGES[range] - 3600e3;
-  histUnsub = fb.onValue(fb.query(fb.ref(fb.db, `${ROOT}/historik`), fb.orderByChild('at'), fb.startAt(from)), s => {
-    const arr = []; s.forEach(ch => { arr.push(ch.val()); }); hist = arr.filter(h => h && h.at);
+  const q = hourly() ? timmarFran(from) : fb.query(fb.ref(fb.db, `${ROOT}/historik`), fb.orderByChild('at'), fb.startAt(from));
+  histUnsub = fb.onValue(q, s => {
+    const arr = []; s.forEach(ch => { arr.push(ch.val()); }); hist = arr.filter(h => h && h.at && h.at >= from);
     if (range !== 'day' && range !== 'week') { /* räcker för batteriuppskattningen */ }
     if (RANGES[range] >= 14 * 864e5) hist14 = hist.filter(h => histTime(h) > nowServer() - 14 * 864e5);
     renderHist(); renderNow();
@@ -830,8 +972,9 @@ function subscribeHist() {
 async function loadHist14() {
   if (RANGES[range] >= 14 * 864e5) return;
   try {
-    const s = await fb.get(fb.query(fb.ref(fb.db, `${ROOT}/historik`), fb.orderByChild('at'), fb.startAt(nowServer() - 14 * 864e5)));
-    const arr = []; s.forEach(ch => { arr.push(ch.val()); }); hist14 = arr.filter(h => h && h.at);
+    const from = nowServer() - 14 * 864e5;
+    const s = await fb.get(timmarFran(from));
+    const arr = []; s.forEach(ch => { arr.push(ch.val()); }); hist14 = arr.filter(h => h && h.at && h.at >= from);
     renderNow();
   } catch (e) { /* inte viktigt */ }
 }
@@ -902,16 +1045,29 @@ function demoData() {
     if (Math.random() < 0.004) continue;
     out.push({ at: t, ti: +ti.toFixed(2), rh: +rh.toFixed(1), tu: +tu.toFixed(2), bv: +bv.toFixed(3), rs: Math.round(-69 + Math.sin(day * 2) * 4 + (Math.random() - 0.5) * 3) });
   }
-  hist = out; hist14 = out.filter(h => h.at > now - 14 * 864e5);
+  // Timsammanfattningar som sensorn bygger (för Månad och År)
+  const tm = new Map();
+  for (const h of out) {
+    const k = Math.floor(h.at / 3600e3); let e = tm.get(k);
+    if (!e) { e = { at: k * 3600e3, n: 0 }; tm.set(k, e); }
+    e.n++;
+    for (const q of ['ti', 'rh', 'tu']) { e[q + 's'] = (e[q + 's'] || 0) + h[q]; e[q + 'Min'] = Math.min(e[q + 'Min'] ?? 1e9, h[q]); e[q + 'Max'] = Math.max(e[q + 'Max'] ?? -1e9, h[q]); }
+    e.bv = h.bv; e.rs = h.rs;
+  }
+  demoTimmar = [...tm.values()].map(e => ({ ...e, ti: e.tis / e.n, rh: e.rhs / e.n, tu: e.tus / e.n }));
+  demoRaw = out;
+  hist = hourly() ? demoTimmar : out; hist14 = demoTimmar.filter(h => h.at > now - 14 * 864e5);
   const L = out[out.length - 1];
-  latest = { ...L, at: now - 9 * 60000, bp: Math.round(batPct(L.bv)), chip: 3.4, ntcOhm: 24500, intervallMin: 30, status: 'ok' };
-  diag = { at: latest.at, fw: '1.0', vackt: 'timer', start: 'ström på (nytt batteri eller USB)', startAt: now - 41 * 864e5, vakningar: 1968, starter: 3, brownouts: 0, krascher: 0,
+  latest = { ...L, at: now - 9 * 60000, uppAt: now - 9 * 60000 + 3000, nastaUpp: now + 51 * 60000, matS: 300, larm: 0, bp: Math.round(batPct(L.bv)), chip: 3.4, ntcOhm: 24500, status: 'ok' };
+  diag = { at: latest.at, fw: '2.0', vackt: 'timer', start: 'ström på (nytt batteri eller USB)', startAt: now - 41 * 864e5, vakningar: 1968, starter: 3, brownouts: 0, krascher: 0,
     wifiMs: 612, wifiSnabb: true, wifiSokte: false, kanal: 6, bssid: 'A4:2B:B0:11:22:33', ip: '192.168.0.60', fastIp: true, rssi: L.rs, txDbm: 19.5, lagTx: false,
-    authTyp: 'förnyad', authMs: 840, fbMs: 1210, vakenMsForra: 2780, vakenMsNu: 2650, missade: 0, buffrade: 0, sht: 'ok', shtKod: 0, shtSerie: '1F0A33C2', pullup: 'intern',
+    authTyp: 'förnyad', authMs: 840, fbMs: 1210, vakenMsForra: 240, vakenMsNu: 2650, missade: 0, buffrade: 0, sht: 'ok', shtKod: 0, shtSerie: '1F0A33C2', pullup: 'intern',
     shtRaT: L.ti, shtRaRh: L.rh, ntc: 'ok', ntcMv: 1018, ntcOhm: 24500, ntcT10: 3.1, ntcT50: 41.2, batMv: Math.round(L.bv * 500), chip: 3.4, varmeAuto: true, varmeAntal: 4,
-    varmeAt: now - 3 * 864e5, hogFuktRad: 0, intervallMin: 30, snabbKvar: 0, brytare: false, brytareGlomd: false, heapMin: 201000, live: false,
+    varmeAt: now - 3 * 864e5, hogFuktRad: 0, brytare: false, brytareGlomd: false, heapMin: 201000, live: false, varfor: 'schemat',
+    vakenMsMatning: 240, vakenMsUpp: 3900, uppladdningar: 812, buffrade: 12, bufMax: 300, klockFaktor: 1.0123, instMottagen: 0, snabb: false,
+    schema: { matS: 300, uppDagMin: 60, uppNattMin: 180, nattPa: true, nattFran: 1320, nattTill: 360, larmTiLag: 1, larmTiHog: false, larmRhHog: false },
     kal: { ntcR25: 10000, ntcB: 3950, ntcSerie: 55000, ntcOffset: 0, tiOffset: 0, rhOffset: 0, batFaktor: 2 } };
-  inst = { intervallMin: 30, varmeAuto: true };
+  inst = { varmeAuto: true };
   logItems = [
     { at: now - 41 * 864e5, text: 'Startade: ström på (nytt batteri eller USB)', niva: 'info' },
     { at: now - 20 * 864e5, text: 'Snabbanslutningen misslyckades. Hittade routern på kanal 6 (förut kanal 11)', niva: 'varning' },
