@@ -401,7 +401,7 @@ function renderBanners() {
     if (latest.status === 'skydd') b.push(['bad', `<b>Batteriet är nästan tomt</b> (${dec(latest.bv, 2)} V). Sensorn har gått i skyddsläge: den startar inte WiFi och vaknar bara en gång per dygn. Ladda batteriet.`]);
     else if (overdue()) b.push(['bad', `<b>Ingen ny mätning sedan ${when(latest.at)}</b> (väntades ${hm(nextExpected())}). Vanliga orsaker: tomt batteri, WiFi når inte fram, eller att routern bytt kanal. Se Felsökning nedan.`]);
     if (liveActive()) b.push(['info', `<b>Live-läget är på</b> (${dur(diag.live.kvarS || 0)} kvar). Värdena uppdateras var 15:e sekund. På hemmanätet: <a href="http://${esc(diag.live.ip)}/">http://${esc(diag.live.ip)}</a> eller <a href="http://jordkallare.local/">jordkallare.local</a>.`]);
-    else if (num(latest.bp) && latest.bp < 15 && latest.status !== 'skydd') b.push(['', `Batteriet är på ${Math.round(latest.bp)} % (${dec(latest.bv, 2)} V). Dags att ladda snart.`]);
+    else if (num(latest.bp) && latest.bp < 15 && latest.bv >= 2.5 && latest.status !== 'skydd') b.push(['', `Batteriet är på ${Math.round(latest.bp)} % (${dec(latest.bv, 2)} V). Dags att ladda snart.`]);
   }
   if (DEMO) b.push(['info', 'Demoläge: påhittade värden, inget sparas. Ta bort <b>?demo</b> ur adressen för att se de riktiga.']);
   $('banners').innerHTML = b.map(([c, t]) => `<div class="banner ${c}">${t}</div>`).join('');
@@ -736,7 +736,8 @@ function health() {
   if (d.brownouts > 0) add('warn', `${d.brownouts} omstart${d.brownouts > 1 ? 'er' : ''} på grund av låg spänning (brownout)`, `Sändningseffekten är sänkt till 15 dBm. Löd in en kondensator på 1000 µF mellan BAT+ och GND. ${num(L.chip) && L.chip < 0 ? 'Kylan gör det värre.' : ''}`);
   if (d.krascher > 0) add('warn', `${d.krascher} krasch${d.krascher > 1 ? 'er' : ''}`, 'Se Händelser för när. Skicka gärna Serial Monitor-utskriften till Claude om det upprepas.');
   if (d.missade > 0) add('warn', `${d.missade} uppladdning${d.missade > 1 ? 'ar' : ''} misslyckades före den senaste`, d.sistaFel ? `Senaste felet: ${d.sistaFel}. Mätningarna sparades och skickades i efterhand.` : '');
-  if (num(L.bp) && L.bp < 10 && L.status !== 'skydd') add('bad', `Batteriet nästan tomt (${Math.round(L.bp)} %)`, 'Ladda snart. Under 3,10 V går sensorn i skyddsläge.');
+  if (num(L.bv) && L.bv < 2.5) add('', 'Inget batteri – går på USB', 'Batterimätningen visar inget vettigt värde utan batteri. Allt annat fungerar som vanligt.');
+  else if (num(L.bp) && L.bp < 10 && L.status !== 'skydd') add('bad', `Batteriet nästan tomt (${Math.round(L.bp)} %)`, 'Ladda snart. Under 3,10 V går sensorn i skyddsläge.');
   else if (num(L.bp) && L.bp < 25) add('warn', `Batteriet är på ${Math.round(L.bp)} %`, '');
   if (num(d.vakenMsForra) && d.vakenMsForra > 7000) add('warn', `Var vaken länge förra gången (${dec(d.vakenMsForra / 1000, 1)} s)`, 'Normalt 2–4 s. Kostar batteri. Svag signal eller långsam inloggning brukar vara orsaken.');
   if (num(L.chip) && L.chip < -10) add('warn', `Kallt i lådan (${dec(L.chip)} °C)`, 'Batteriet tappar kapacitet i kyla. Isolera lådan om det går.');
