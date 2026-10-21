@@ -425,12 +425,12 @@ function renderNow() {
   $('vRhSub').textContent = sRh ? `idag ${dec(sRh.min, 0)} – ${dec(sRh.max, 0)} %` : '';
   $('vTuSub').textContent = num(L.tu) ? (sTu ? `idag ${dec(sTu.min)} – ${dec(sTu.max)} °C` : '') : (diag?.ntc && diag.ntc !== 'ok' ? `sonden: ${diag.ntc}` : 'sonden svarar inte');
   const pct = num(L.bp) ? L.bp : batPct(L.bv);
-  $('vBat').textContent = num(L.bv) ? `${Math.round(pct)} %` : '–';
+  $('vBat').textContent = num(L.bv) ? (L.bv < 2.5 ? 'USB' : `${Math.round(pct)} %`) : '–';
   const m = $('vBatMeter');
   m.className = 'meter' + (pct < 10 ? ' bad' : pct < 25 ? ' warn' : '');
   m.firstElementChild.style.width = `calc(${Math.max(0, Math.min(100, pct))}% - 2px)`;
   const est = batteryEstimate();
-  $('vBatSub').textContent = `${dec(L.bv, 2)} V` + (est ? ` · räcker ca ${est.text}` : '');
+  $('vBatSub').textContent = num(L.bv) && L.bv < 2.5 ? `${dec(L.bv, 2)} V · inget batteri (går på USB)` : `${dec(L.bv, 2)} V` + (est ? ` · räcker ca ${est.text}` : '');
   $('vRs').innerHTML = num(L.rs) ? `${bars(L.rs)}${L.rs}` : '–';
   $('vRsSub').textContent = num(L.rs) ? `dBm, ${signal(L.rs)}` : '';
 
