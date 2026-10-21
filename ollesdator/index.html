@@ -93,6 +93,7 @@ table.log td.t{white-space:nowrap;color:var(--muted);width:1%}
 .kv span{color:var(--muted)}
 .chart{background:var(--field);border:2px inset var(--face);padding:6px 6px 2px;margin-top:6px}
 .chart svg{display:block;width:100%;height:auto}
+.subhead{font-size:16px;font-weight:600;margin:12px 0 0}
 .moon{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:16px}
 .moon svg{width:34px;height:34px;flex:none}
 .tabs{display:flex;gap:4px;margin:0 0 8px}
@@ -299,12 +300,18 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
       <tr><th>Extern IP</th><td id="extIpTxt">–</td></tr>
       <tr><th>Upptid</th><td id="upTxt">–</td></tr>
       <tr><th>Fritt minne</th><td id="memTxt">–</td></tr>
+      <tr><th>Chiptemperatur</th><td id="chipTxt">–</td></tr>
       <tr><th>Senaste omstart</th><td id="resetTxt">–</td></tr>
       <tr><th>WiFi-avbrott</th><td id="dropsTxt">–</td></tr>
       <tr><th>HomeKit</th><td><span class="lamp" id="hkLamp"></span> <span id="hkTxt">–</span></td></tr>
       <tr id="bulbRow" hidden><th id="bulbName">Badrumslampan</th><td><span class="lamp" id="bulbLamp"></span> <span id="bulbTxt">–</span></td></tr>
       <tr><th>Programversion</th><td id="fwTxt">–</td></tr>
     </tbody></table>
+    <div id="chipBox" hidden>
+      <h3 class="subhead" id="chipHead">ESP32:ans chiptemperatur, senaste dygnet</h3>
+      <div class="chart" id="chipChart"></div>
+      <p class="help" id="chipSum"></p>
+    </div>
   </section>
 
   <section class="panel wide" aria-labelledby="hWx">
@@ -442,6 +449,66 @@ function moonSvg(age) {
   return `<svg viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="${r}" fill="#2b2a27"/><path d="${lit}" stroke="#f4f1e6" stroke-width="0.6"/><circle cx="17" cy="17" r="${r}" fill="none" stroke="#1d1c1a" stroke-width="1"/></svg>`;
 }
 
+/* ---------- Chiptemperatur ---------- */
+// ESP32:an sparar ett medelvärde per fem minuter i /chipTemp: { slot, step, v: [tiondels °C, null = saknas] }
+// där sista värdet i v gäller perioden slot (unixtid / step).
+let chipHist = null;
+function renderChip() {
+  const e = status?.esp || {};
+  const box = $('chipBox');
+  const pts = [];
+  const h = chipHist;
+  if (h && Array.isArray(h.v) && h.slot && h.step) {
+    const n = h.v.length;
+    h.v.forEach((v, i) => { if (v != null) pts.push([((h.slot - (n - 1 - i)) * h.step + h.step / 2) * 1000, v / 10]); });
+  }
+  const now = nowServer();
+  const recent = pts.filter(p => p[0] >= now - 24 * 3600e3);
+  if (e.chipT != null && espOnline()) recent.push([now, e.chipT]);
+  if (e.chipNoSensor || recent.length < 2) { box.hidden = true; return; }
+  box.hidden = false;
+  // grafen visar så lång tid som finns, minst en timme och högst ett dygn
+  const from = Math.min(recent[0][0], now - 3600e3);
+  const spanH = (now - from) / 3600e3;
+  $('chipHead').textContent = spanH > 23 ? 'ESP32:ans chiptemperatur, senaste dygnet' : `ESP32:ans chiptemperatur, senaste ${Math.max(1, Math.round(spanH))} timmarna`.replace('senaste 1 timmarna', 'senaste timmen');
+
+  const vals = recent.map(p => p[1]);
+  const mn = Math.min(...vals), mx = Math.max(...vals);
+  let lo = Math.floor(mn), hi = Math.ceil(mx);
+  if (hi - lo < 4) { const mid = Math.round((hi + lo) / 2); lo = mid - 2; hi = mid + 2; }
+  const W = 480, H = 120, L = 34, T = 6;
+  const X = t => L + (t - from) / (now - from) * (W - L - 4);
+  const Y = v => T + (hi - v) / (hi - lo) * (H - T);
+  const font = 'font-family="EB Garamond, Georgia, serif" fill="#5c5a55"';
+  let svg = `<svg viewBox="0 0 ${W} ${H + 18}" role="img" aria-label="ESP32:ans chiptemperatur senaste dygnet">`;
+  const step = (hi - lo) <= 6 ? 1 : (hi - lo) <= 12 ? 2 : 5;
+  for (let g = Math.ceil(lo / step) * step; g <= hi; g += step) {
+    svg += `<line x1="${L}" x2="${W}" y1="${Y(g)}" y2="${Y(g)}" stroke="#e1ded7"/><text x="${L - 4}" y="${Y(g) + 5}" font-size="14" text-anchor="end" ${font}>${g}°</text>`;
+  }
+  // tidsmarkeringar: var tredje timme för ett dygn, tätare när det är kortare
+  const every = spanH > 12 ? 180 : spanH > 6 ? 60 : spanH > 2 ? 30 : 15;   // minuter
+  const t0 = new Date(from); t0.setMinutes(0, 0, 0);
+  for (let t = t0.getTime(); t < now; t += every * 60e3) {
+    const d = new Date(t);
+    if (t <= from + 10 * 60e3 || (d.getHours() * 60 + d.getMinutes()) % every) continue;
+    const lbl = every >= 60 ? pad(d.getHours()) : hm(t);
+    svg += `<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${H}" stroke="#eeebe4"/><text x="${X(t)}" y="${H + 15}" font-size="14" text-anchor="middle" ${font}>${lbl}</text>`;
+  }
+  // linjen bryts där värden saknas (t.ex. när ESP32:an var avstängd)
+  let d = '', prev = null;
+  const gapMs = (h?.step || 300) * 1500;
+  for (const [t, v] of recent) {
+    d += `${prev && t - prev <= gapMs ? 'L' : 'M'}${X(t).toFixed(1)} ${Y(v).toFixed(1)}`;
+    prev = t;
+  }
+  svg += `<path d="${d}" fill="none" stroke="#27456f" stroke-width="2" stroke-linejoin="round"/>`;
+  for (const [t, v] of recent) svg += `<circle cx="${X(t).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="5" fill="transparent"><title>${hm(t)}: ${dec(v)} °C</title></circle>`;
+  svg += '</svg>';
+  $('chipChart').innerHTML = svg;
+  const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+  $('chipSum').textContent = `Lägst ${dec(mn)} °C, högst ${dec(mx)} °C, medel ${dec(avg)} °C. Givaren i chipet är grov och kan visa flera grader fel, så titta mest på hur den ändras.`;
+}
+
 /* ---------- Rendering ---------- */
 function espOnline() { return status?.lastSeen && nowServer() - status.lastSeen < ONLINE_MS; }
 
@@ -473,6 +540,8 @@ function renderStatus() {
   $('resetTxt').textContent = e.reset || '–';
   $('dropsTxt').textContent = n.drops != null ? `${n.drops} sedan start` : '–';
   $('fwTxt').textContent = e.fw ? `v${e.fw}` : '–';
+  $('chipTxt').textContent = e.chipNoSensor ? 'Chipet saknar temperaturgivare' : e.chipT != null ? `${dec(e.chipT)} °C` : '–';
+  renderChip();
   const hk = s.homekit || {};
   lamp($('hkLamp'), hk.enabled ? (hk.paired ? 'ok' : 'wait') : '');
   $('hkTxt').textContent = !hk.enabled ? 'Avstängt' : hk.paired ? 'Parkopplad – Siri och Hem-appen fungerar' : 'Inte parkopplad än (se ESP32:ans skärm för koden)';
@@ -1144,6 +1213,7 @@ function showMain(user) {
   unsubs.push(onValue(ref(db, '.info/serverTimeOffset'), s => { serverOffset = s.val() || 0; }));
   unsubs.push(onValue(ref(db, `${ROOT}/status`), s => { status = s.val(); renderStatus(); renderWx(); renderAvr(); }, denied));
   unsubs.push(onValue(ref(db, `${ROOT}/command`), s => { command = s.val(); renderCommand(); renderStatus(); }, denied));
+  unsubs.push(onValue(ref(db, `${ROOT}/chipTemp`), s => { chipHist = s.val(); renderChip(); }, denied));
   unsubs.push(onValue(ref(db, `${ROOT}/pcinfo`), s => { pcinfo = s.val(); renderPcInfo(); }, denied));
   unsubs.push(onValue(ref(db, `${ROOT}/stats/days`), s => { statsDays = s.val() || {}; renderStats(); }, denied));
   unsubs.push(onValue(ref(db, `${ROOT}/pcCommand`), s => { pcCmd = s.val(); renderPcCmd(); }, denied));
