@@ -364,6 +364,13 @@ function dur(s) {
   return `${s} s`;
 }
 const ago = ms => dur((nowServer() - ms) / 1000) + ' sedan';
+// Exakt ålder som tickar varje sekund (minuter och sekunder under en timme)
+function agoExakt(ms) {
+  const s = Math.max(0, Math.floor((nowServer() - ms) / 1000));
+  if (s >= 3600) return dur(s) + ' sedan';
+  const m = Math.floor(s / 60);
+  return (m ? `${m} min ${s % 60} s` : `${s} s`) + ' sedan';
+}
 const dec = (v, n = 1) => v == null || Number.isNaN(v) ? '–' : Number(v).toFixed(n).replace('.', ',').replace('-', '−');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = v => typeof v === 'number' && Number.isFinite(v);
@@ -436,7 +443,7 @@ function renderNow() {
 
   const od = overdue(), live = liveActive();
   lamp($('stLamp'), L.status === 'skydd' || od ? 'bad' : live ? 'wait' : 'ok');
-  $('stTxt').innerHTML = `Mätt <b>${when(L.at)}</b> (${ago(L.at)})` + (live ? ' · live-läge' : '');
+  $('stTxt').innerHTML = `Mätt <b>${when(L.at)}</b> (<span id="agoTick" style="font-variant-numeric:tabular-nums">${agoExakt(L.at)}</span>)` + (live ? ' · live-läge' : '');
   $('nowWhen').textContent = '';
   const nx = nextExpected();
   $('nextTxt').innerHTML = L.status === 'skydd' ? 'Skyddsläge: nästa kontroll om ett dygn'
@@ -955,6 +962,7 @@ start();
 
 // Uppdatera "för X min sedan" och väntande-status
 setInterval(() => { if (latest) { renderBanners(); renderNow(); renderSettings(); } }, 15000);
+setInterval(() => { const e = document.getElementById('agoTick'); if (e && latest) e.textContent = agoExakt(latest.at); }, 1000);
 setInterval(() => { if (latest) { renderHist(); renderDiag(); } }, 120000);
 let rsz; window.addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(() => { if (latest || hist.length) renderHist(); }, 200); });
 
