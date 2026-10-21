@@ -934,11 +934,16 @@ async function start() {
       import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js'),
       import('https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js'),
     ]);
-    const app = appMod.initializeApp(cfgMod.firebaseConfig);
+    // Eget appnamn: inloggningen sparas då skilt från ollesdator, som ligger på samma adress
+    const app = appMod.initializeApp(cfgMod.firebaseConfig, 'jordkallare');
     const auth = authMod.getAuth(app);
     fb = { ...dbMod, ...authMod, db: dbMod.getDatabase(app), auth, LOGIN_DOMAIN: cfgMod.LOGIN_DOMAIN };
     authMod.setPersistence(auth, authMod.browserLocalPersistence).catch(() => {});
-    authMod.onAuthStateChanged(auth, u => u ? showMain(u) : showLogin());
+    authMod.onAuthStateChanged(auth, u => {
+      // Ett konto från en annan sida (fel domän) loggas ut direkt
+      if (u && !String(u.email || '').endsWith('@' + cfgMod.LOGIN_DOMAIN)) { authMod.signOut(auth); return; }
+      u ? showMain(u) : showLogin();
+    });
   } catch (e) {
     $('viewMain').hidden = false;
     $('banners').innerHTML = `<div class="banner bad">Kunde inte starta Firebase (${esc(e.message)}). Kolla internet och firebase-config.js. <a href="?demo">Visa demoläget</a>.</div>`;
