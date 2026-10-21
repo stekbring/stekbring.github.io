@@ -17,6 +17,7 @@ export const firebaseConfig = {
   measurementId: "G-JG6QZ21KN1"
 };
 
-// Måste vara samma som LOGIN_DOMAIN i ESP32-koden (WoL src/main.cpp och tempsensor src/natverk.cpp).
-// Användarnamnet "olle" blir då kontot olle@ollesdator.se i Firebase.
-export const LOGIN_DOMAIN = "ollesdator.se";
+// Måste vara samma som LOGIN_DOMAIN i tempsensor src/natverk.cpp.
+// Användarnamnet "olle" blir då kontot olle@jordkallare.se i Firebase, skilt från
+// olle@ollesdator.se på Olles dator, så lösenorden kan vara olika.
+export const LOGIN_DOMAIN = "jordkallare.se";
