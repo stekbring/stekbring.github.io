@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jordkällaren</title>
+<meta name="description" content="Temperatur och luftfuktighet i jordkällaren, utetemperatur, batteri och felsökning för sensorn.">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#d4d0c8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Jordkällaren">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#d4d0c8; --face:#e4e1da; --hi:#ffffff; --lo:#8a877f; --dk:#44423d;
+  --ink:#1d1c1a; --muted:#5c5a55; --field:#ffffff; --sel:#27456f; --selink:#fff;
+  --warn:#8a4b00; --bad:#a0231a; --ok:#2d6b2d;
+  --c-in:#27456f; --c-ut:#b0651a; --c-rh:#2d6b2d; --c-bat:#44423d; --c-rs:#7b4fa0;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"EB Garamond",Georgia,"Times New Roman",serif;font-size:17px;line-height:1.35;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
+button,input,select{font:inherit;color:inherit}
+button{background:ButtonFace;color:ButtonText;border:2px outset var(--face);padding:2px 12px;min-height:30px;cursor:pointer;border-radius:0}
+button:active{border-style:inset}
+button:disabled{color:GrayText;cursor:default}
+button:disabled:active{border-style:outset}
+button.default{outline:1px solid var(--dk);outline-offset:-5px}
+button[aria-pressed="true"]{border-style:inset;background:#cfccc4;font-weight:600}
+input[type=text],input[type=password],input[type=number]{background:var(--field);border:2px inset var(--face);padding:4px 6px;border-radius:0;width:100%}
+input[type=number]{width:110px}
+select{background:var(--field);border:2px inset var(--face);padding:3px 5px;border-radius:0}
+:focus-visible{outline:2px dotted var(--ink);outline-offset:1px}
+[hidden]{display:none !important}
+
+/* ---------- Verktygsrad ---------- */
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 10px;padding-top:max(6px,env(safe-area-inset-top));border-bottom:2px groove var(--face);background:var(--bg);position:sticky;top:0;z-index:10}
+.brand{display:inline-flex;align-items:center;gap:8px;font-size:21px;font-weight:600;margin-right:8px;letter-spacing:.3px}
+.brand svg{width:26px;height:26px;display:block}
+.status{margin-left:auto;color:var(--muted);font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- Layout ---------- */
+main{flex:1 1 auto;padding:10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:1180px;width:100%;margin:0 auto;align-content:start}
+.panel{background:var(--face);border:2px groove var(--hi);padding:10px 12px;min-width:0}
+.panel.wide{grid-column:1 / -1}
+.panel-title{font-weight:600;font-size:18px;margin:0 0 8px;display:flex;align-items:baseline;gap:8px}
+.panel-title small{font-weight:400;color:var(--muted);font-size:15px;margin-left:auto}
+.help{color:var(--muted);font-size:15px;margin:4px 0}
+fieldset{border:2px groove var(--hi);margin:10px 0 0;padding:6px 10px 8px;min-width:0}
+legend{padding:0 4px;font-weight:600}
+.lamp{display:inline-block;width:12px;height:12px;border:1px solid var(--dk);background:#b9b6ae;box-shadow:inset 1px 1px 0 rgba(255,255,255,.6);vertical-align:-1px}
+.lamp.ok{background:#3f8f3f} .lamp.bad{background:#b33a2b} .lamp.wait{background:#c99a2e}
+.msg{font-size:16px}
+.msg.ok{color:var(--ok)} .msg.bad{color:var(--bad)} .msg.warn{color:var(--warn)}
+
+/* ---------- Just nu ---------- */
+.nowgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.big{background:var(--field);border:2px inset var(--face);padding:8px 12px;min-width:0}
+.big span{display:block;color:var(--muted);font-size:15px}
+.big b{display:block;font-size:40px;font-weight:600;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap}
+.big small{display:block;color:var(--muted);font-size:14px;margin-top:2px}
+.big .sw{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:1px}
+.meta{display:flex;flex-wrap:wrap;gap:4px 18px;align-items:center;margin-top:8px;font-size:16px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+.meter{display:inline-block;width:100%;height:12px;border:2px inset var(--face);background:var(--field);position:relative;margin-top:4px}
+.meter>i{position:absolute;left:1px;top:1px;bottom:1px;background:var(--sel)}
+.meter.warn>i{background:var(--warn)} .meter.bad>i{background:var(--bad)}
+.bars{display:inline-block;vertical-align:-1px;margin-right:4px}
+
+/* ---------- Diagram ---------- */
+.tabs{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px}
+.tabs button{min-width:84px}
+.chartwrap{position:relative}
+.chart{background:var(--field);border:2px inset var(--face);padding:6px 6px 2px;margin-top:4px;position:relative;touch-action:pan-y}
+.chart svg{display:block;width:100%;height:auto}
+.chart .empty{color:var(--muted);font-size:15px;padding:30px 10px;text-align:center}
+.charthead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-top:10px;font-weight:600}
+.charthead .key{font-weight:400;font-size:15px;color:var(--muted)}
+.key i{display:inline-block;width:18px;height:3px;vertical-align:4px;margin-right:5px}
+.tip{position:absolute;pointer-events:none;background:var(--face);border:2px outset var(--hi);padding:3px 8px;font-size:14px;white-space:nowrap;z-index:5;box-shadow:2px 2px 0 rgba(0,0,0,.15)}
+.tip b{font-weight:600}
+.small2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px}
+.tile{background:var(--field);border:2px inset var(--face);padding:6px 10px}
+.tile span{display:block;color:var(--muted);font-size:14px}
+.tile b{display:block;font-size:20px;font-weight:600;line-height:1.25;font-variant-numeric:tabular-nums}
+.tile small{display:block;color:var(--muted);font-size:13px}
+
+/* ---------- Formulär ---------- */
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:6px 0}
+.row label{display:inline-flex;align-items:center;gap:6px}
+.form2{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:center}
+.form2 .help{margin:0}
+.pending{font-size:15px}
+
+/* ---------- Tabeller ---------- */
+table.rows{width:100%;border-collapse:collapse;background:var(--field);border:2px inset var(--face)}
+table.rows th,table.rows td{text-align:left;padding:3px 8px;border-bottom:1px solid #e6e3dc;vertical-align:top;font-size:16px}
+table.rows th{font-weight:600;width:34%;color:var(--muted)}
+table.log th{width:auto;color:var(--ink);border-bottom:1px solid var(--lo);position:sticky;top:0;background:var(--face)}
+table.log td.t{white-space:nowrap;color:var(--muted);width:1%}
+.logwrap{max-height:380px;overflow:auto;border:2px inset var(--face)}
+.logwrap table.rows{border:0}
+ul.health{list-style:none;margin:0 0 8px;padding:0}
+ul.health li{display:grid;grid-template-columns:18px 1fr;gap:6px;padding:4px 0;border-bottom:1px solid #d9d6cf}
+ul.health li .lamp{margin-top:5px}
+ul.health li small{display:block;color:var(--muted);font-size:15px}
+
+/* ---------- Dialog och inloggning ---------- */
+dialog{background:var(--face);border:2px outset var(--hi);padding:0;color:var(--ink);width:min(440px,94vw);box-shadow:2px 3px 0 rgba(0,0,0,.18)}
+dialog::backdrop{background:rgba(40,38,34,.35)}
+.dhead{background:var(--sel);color:#fff;padding:5px 10px;font-weight:600;display:flex;align-items:center;gap:8px}
+.dhead svg{width:18px;height:18px}
+.dbody{padding:12px 16px 4px}
+.dbody p{margin:0 0 8px}
+.dfoot{display:flex;gap:6px;justify-content:flex-end;padding:8px 16px 12px;border-top:2px groove var(--hi)}
+.loginwrap{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}
+.window{background:var(--face);border:2px outset var(--hi);width:min(400px,100%);box-shadow:2px 3px 0 rgba(0,0,0,.18)}
+.window .dfoot{border-top:0}
+.field{display:block;margin:0 0 10px}
+.field span{display:block;margin-bottom:3px}
+.err{color:var(--bad);font-size:15px;min-height:1.3em;margin:0}
+.banner{grid-column:1 / -1;background:#f3edd8;border:2px groove var(--hi);padding:8px 12px;font-size:16px}
+.banner.bad{background:#f4ddd8}
+.banner.info{background:#dde4ee}
+.banner + .banner{margin-top:-4px}
+footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc(10px + env(safe-area-inset-bottom))}
+
+@media (max-width:900px){
+  .nowgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nowgrid .big:first-child{grid-column:1 / -1}
+}
+@media (max-width:760px){
+  main{grid-template-columns:1fr;padding:8px;gap:8px}
+  button{min-height:38px}
+  .status{flex-basis:100%;margin-left:0;font-size:14px;order:9}
+  .big b{font-size:34px}
+  .small2{grid-template-columns:1fr}
+  table.rows th{width:42%}
+  .tabs button{flex:1 1 20%;min-width:0}
+  .tiles{grid-template-columns:1fr 1fr}
+  .form2{grid-template-columns:1fr}
+  table.log th{width:auto !important}
+  .form2>label,.form2>span{margin-top:6px;margin-bottom:-2px;font-weight:600}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <mask id="doormask" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+      <rect width="100" height="100" fill="#fff"/>
+      <path d="M38 82V60a12 12 0 0 1 24 0V82Z" fill="#000"/>
+    </mask>
+    <symbol id="logo" viewBox="0 0 100 100">
+      <g fill="#161614">
+        <path d="M8 82Q50 6 92 82Z" mask="url(#doormask)"/>
+        <rect x="64" y="20" width="7" height="34"/>
+        <rect x="60" y="15" width="15" height="6" rx="1"/>
+        <rect x="3" y="82" width="94" height="7" rx="2"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="toolbar">
+  <span class="brand"><svg aria-hidden="true"><use href="#logo"/></svg>Jordkällaren</span>
+  <button id="btnInstall" hidden title="Installera sidan som en app på datorn eller mobilen">Installera som app</button>
+  <button id="btnLogout" hidden>Logga ut</button>
+  <span id="topStatus" class="status"></span>
+</header>
+
+<!-- ---------- Inloggning ---------- -->
+<div class="loginwrap" id="viewLogin" hidden>
+  <form class="window" id="loginForm" autocomplete="on">
+    <div class="dhead"><svg aria-hidden="true" style="filter:invert(1)"><use href="#logo"/></svg>Logga in</div>
+    <div class="dbody">
+      <p class="help" style="margin-top:0">Logga in med samma användarnamn och lösenord som i ESP32-koden (secrets.h) och på Olles dator.</p>
+      <label class="field"><span>Användarnamn</span><input type="text" id="inUser" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+      <label class="field"><span>Lösenord</span><input type="password" id="inPass" autocomplete="current-password" required></label>
+      <p class="err" id="loginErr" role="alert"></p>
+    </div>
+    <div class="dfoot"><button type="submit" class="default" id="btnLogin">Logga in</button></div>
+  </form>
+</div>
+
+<!-- ---------- Huvudvy ---------- -->
+<main id="viewMain" hidden>
+  <div id="banners" style="grid-column:1 / -1;display:grid;gap:6px"></div>
+
+  <section class="panel wide" aria-labelledby="hNow">
+    <h2 class="panel-title" id="hNow">Just nu <small id="nowWhen"></small></h2>
+    <div class="nowgrid">
+      <div class="big"><span><i class="sw" style="background:var(--c-in)"></i>Jordkällaren</span><b id="vTi">–</b><small id="vTiSub"></small></div>
+      <div class="big"><span><i class="sw" style="background:var(--c-rh)"></i>Luftfuktighet</span><b id="vRh">–</b><small id="vRhSub"></small></div>
+      <div class="big"><span><i class="sw" style="background:var(--c-ut)"></i>Ute</span><b id="vTu">–</b><small id="vTuSub"></small></div>
+      <div class="big"><span>Batteri</span><b id="vBat">–</b><div class="meter" id="vBatMeter"><i></i></div><small id="vBatSub"></small></div>
+      <div class="big"><span>WiFi-signal</span><b id="vRs">–</b><small id="vRsSub"></small></div>
+    </div>
+    <div class="meta">
+      <span><span class="lamp" id="stLamp"></span> <span id="stTxt">Väntar på data…</span></span>
+      <span id="nextTxt"></span>
+    </div>
+  </section>
+
+  <section class="panel wide" aria-labelledby="hHist">
+    <h2 class="panel-title" id="hHist">Historik <small id="histRange"></small></h2>
+    <div class="tabs" role="group" aria-label="Period" id="rangeTabs">
+      <button data-range="day" aria-pressed="true">Dygn</button>
+      <button data-range="week" aria-pressed="false">Vecka</button>
+      <button data-range="month" aria-pressed="false">Månad</button>
+      <button data-range="year" aria-pressed="false">År</button>
+    </div>
+    <div class="charthead">Temperatur <span class="key"><i style="background:var(--c-in)"></i>jordkällaren</span><span class="key"><i style="background:var(--c-ut)"></i>ute</span></div>
+    <div class="chart" id="chTemp"></div>
+    <div class="charthead">Luftfuktighet i jordkällaren</div>
+    <div class="chart" id="chRh"></div>
+    <div class="small2">
+      <div><div class="charthead">Batteri</div><div class="chart" id="chBat"></div></div>
+      <div><div class="charthead">WiFi-signal</div><div class="chart" id="chRs"></div></div>
+    </div>
+    <div class="tiles" id="statTiles"></div>
+    <p class="help" id="histNote"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="hSet">
+    <h2 class="panel-title" id="hSet">Inställningar <small id="setPending"></small></h2>
+    <div class="form2">
+      <label for="selInt">Mätintervall</label>
+      <div class="row" style="margin:0">
+        <select id="selInt">
+          <option value="1">1 min</option><option value="2">2 min</option><option value="5">5 min</option>
+          <option value="10">10 min</option><option value="15">15 min</option><option value="20">20 min</option>
+          <option value="30">30 min</option><option value="45">45 min</option><option value="60">1 timme</option>
+          <option value="90">1½ timme</option><option value="120">2 timmar</option><option value="180">3 timmar</option>
+          <option value="240">4 timmar</option><option value="360">6 timmar</option><option value="720">12 timmar</option>
+          <option value="1440">1 dygn</option>
+        </select>
+        <span class="help" id="intLife"></span>
+      </div>
+      <span>Värmaren</span>
+      <div class="row" style="margin:0">
+        <label><input type="checkbox" id="chkHeat"> Automatiskt när fukten fastnat på 99–100 %</label>
+      </div>
+    </div>
+    <div class="row">
+      <button id="btnSaveSet" class="default">Spara</button>
+      <span class="msg" id="setMsg"></span>
+    </div>
+    <fieldset>
+      <legend>Engångskommandon</legend>
+      <div class="row">
+        <button id="btnFast15" title="Mäter varje minut de närmaste 15 mätningarna">Mät varje minut i 15 min</button>
+        <button id="btnFast60" title="Mäter varje minut de närmaste 60 mätningarna">… i 1 timme</button>
+        <button id="btnHeatNow" title="SHT40:ans värmare (200 mW i 1 s) torkar bort kondens">Kör värmaren</button>
+      </div>
+      <p class="help" id="cmdHelp">Sensorn sover mellan mätningarna. Allt du ändrar här tas emot vid nästa mätning.</p>
+    </fieldset>
+  </section>
+
+  <section class="panel" aria-labelledby="hCal">
+    <h2 class="panel-title" id="hCal">Kalibrering <small id="calPending"></small></h2>
+    <div class="form2">
+      <label for="calR25">NTC-sonden</label>
+      <div class="row" style="margin:0">
+        <select id="calR25Sel"><option value="10000">10 kΩ</option><option value="50000">50 kΩ</option><option value="other">annan…</option></select>
+        <input type="number" id="calR25" step="100" min="100" hidden aria-label="Resistans vid 25 °C i ohm">
+      </div>
+      <label for="calB">B-värde</label>
+      <div class="row" style="margin:0"><input type="number" id="calB" step="1" min="2000" max="6000"><span class="help">3950 är vanligast</span></div>
+      <label for="calSerieSel">Referensmotstånd</label>
+      <div class="row" style="margin:0">
+        <select id="calSerieSel"><option value="55000">55 kΩ (4 × 220 kΩ)</option><option value="110000">110 kΩ (2 × 220 kΩ)</option><option value="220000">220 kΩ (1 st)</option><option value="other">annat…</option></select>
+        <input type="number" id="calSerie" step="100" min="1000" hidden aria-label="Referensmotstånd i ohm">
+      </div>
+      <label for="calTu">Korrigering ute</label>
+      <div class="row" style="margin:0"><input type="number" id="calTu" step="0.1"> °C <button id="btnMatchTu" title="Använd när sonden och SHT40 sitter på samma ställe">Sätt lika med jordkällaren</button></div>
+      <label for="calTi">Korrigering jordkällare</label>
+      <div class="row" style="margin:0"><input type="number" id="calTi" step="0.1"> °C</div>
+      <label for="calRh">Korrigering fukt</label>
+      <div class="row" style="margin:0"><input type="number" id="calRh" step="0.5"> %</div>
+      <label for="calBat">Batterifaktor</label>
+      <div class="row" style="margin:0"><input type="number" id="calBat" step="0.001" min="1.5" max="2.5">
+        <span class="help">Uppmätt med multimeter:</span><input type="number" id="calBatMeas" step="0.01" placeholder="V" aria-label="Uppmätt batterispänning" style="width:80px"><button id="btnBatCalc">Räkna ut</button></div>
+    </div>
+    <p class="help" id="ntcHint"></p>
+    <div class="row">
+      <button id="btnSaveCal" class="default">Spara kalibrering</button>
+      <button id="btnCalDefault">Standardvärden</button>
+      <span class="msg" id="calMsg"></span>
+    </div>
+    <p class="help">Gäller nya mätningar från och med nästa vakning. Gamla värden i historiken räknas inte om.</p>
+  </section>
+
+  <section class="panel wide" aria-labelledby="hDiag">
+    <h2 class="panel-title" id="hDiag">Felsökning <small id="diagWhen"></small></h2>
+    <ul class="health" id="health"></ul>
+    <table class="rows"><tbody id="diagBody"><tr><td class="help">Ingen felsökningsdata än.</td></tr></tbody></table>
+    <div class="row">
+      <button id="btnReset" title="Nollställer starter, brownouts, krascher och värmarräknaren, och återställer sändningseffekten">Nollställ räknare…</button>
+      <span class="msg" id="resetMsg"></span>
+    </div>
+  </section>
+
+  <section class="panel wide" aria-labelledby="hLog">
+    <h2 class="panel-title" id="hLog">Händelser <small>de senaste 120 dagarna</small></h2>
+    <div class="logwrap"><table class="rows log"><thead><tr><th>Tid</th><th></th><th>Händelse</th></tr></thead><tbody id="logBody"><tr><td colspan="3" class="help">Laddar…</td></tr></tbody></table></div>
+  </section>
+</main>
+
+<dialog id="dlgConfirm">
+  <form method="dialog">
+    <div class="dhead" id="dlgTitle">Säker?</div>
+    <div class="dbody" id="dlgBody"></div>
+    <div class="dfoot"><button value="cancel">Avbryt</button><button value="ok" class="default" id="dlgYes">OK</button></div>
+  </form>
+</dialog>
+
+<footer id="foot">Jordkällaren · XIAO ESP32-C3, SHT40 och NTC via Firebase</footer>
+
+<script type="module">
+const $ = id => document.getElementById(id);
+const ROOT = 'jordkallare';
+const DEMO = new URLSearchParams(location.search).has('demo');
+const LOG_KEEP_DAYS = 120;
+const RANGES = { day: 864e5, week: 7 * 864e5, month: 30 * 864e5, year: 365 * 864e5 };
+const RANGE_NAMES = { day: 'senaste dygnet', week: 'senaste veckan', month: 'senaste 30 dagarna', year: 'senaste året' };
+const STD = { intervallMin: 30, varmeAuto: true, ntcR25: 10000, ntcB: 3950, ntcSerie: 55000, ntcOffset: 0, tiOffset: 0, rhOffset: 0, batFaktor: 2.0 };
+
+let fb = null;                 // Firebase-funktioner (inte i demoläget)
+let latest = null, diag = null, inst = null, logItems = [], hist = [], hist14 = [];
+let serverOffset = 0, unsubs = [], histUnsub = null;
+let range = 'day';
+try { range = localStorage.getItem('jk-range') || 'day'; if (!RANGES[range]) range = 'day'; } catch (e) {}
+
+/* ---------- Hjälpfunktioner ---------- */
+const nowServer = () => Date.now() + serverOffset;
+const pad = n => String(n).padStart(2, '0');
+const hm = ms => { const d = new Date(ms); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const WD = ['sön', 'mån', 'tis', 'ons', 'tor', 'fre', 'lör'];
+const MON = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+function when(ms) {
+  if (!ms) return '–';
+  const d = new Date(ms), t = new Date();
+  const y = new Date(); y.setDate(t.getDate() - 1);
+  const tm = new Date(); tm.setDate(t.getDate() + 1);
+  if (d.toDateString() === t.toDateString()) return `idag ${hm(ms)}`;
+  if (d.toDateString() === y.toDateString()) return `igår ${hm(ms)}`;
+  if (d.toDateString() === tm.toDateString()) return `imorgon ${hm(ms)}`;
+  return `${WD[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]} ${hm(ms)}`;
+}
+function dur(s) {
+  s = Math.max(0, Math.round(s));
+  const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+  if (d) return `${d} d ${h} h`;
+  if (h) return `${h} h ${m} min`;
+  if (m) return `${m} min`;
+  return `${s} s`;
+}
+const ago = ms => dur((nowServer() - ms) / 1000) + ' sedan';
+const dec = (v, n = 1) => v == null || Number.isNaN(v) ? '–' : Number(v).toFixed(n).replace('.', ',').replace('-', '−');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const num = v => typeof v === 'number' && Number.isFinite(v);
+function lamp(el, st) { el.className = 'lamp' + (st ? ' ' + st : ''); }
+function bars(rssi) {
+  const n = rssi >= -55 ? 4 : rssi >= -67 ? 3 : rssi >= -75 ? 2 : rssi >= -85 ? 1 : 0;
+  let h = '<svg class="bars" width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">';
+  for (let i = 0; i < 4; i++) { const hh = 4 + i * 3; h += `<rect x="${i * 5}" y="${14 - hh}" width="3.4" height="${hh}" fill="${i < n ? '#1d1c1a' : '#b9b6ae'}"/>`; }
+  return h + '</svg>';
+}
+const signal = r => r >= -55 ? 'utmärkt' : r >= -67 ? 'bra' : r >= -75 ? 'okej' : r >= -85 ? 'svag' : 'mycket svag';
+function batPct(v) {
+  const V = [3.20, 3.40, 3.55, 3.65, 3.70, 3.75, 3.80, 3.85, 3.92, 4.00, 4.10, 4.20];
+  const P = [0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+  if (!num(v) || v <= V[0]) return 0;
+  for (let i = 1; i < V.length; i++) if (v <= V[i]) return P[i - 1] + (P[i] - P[i - 1]) * (v - V[i - 1]) / (V[i] - V[i - 1]);
+  return 100;
+}
+const histTime = h => (h.at || 0) - (h.ald || 0) * 1000;
+const intervalMs = () => ((latest?.intervallMin || inst?.intervallMin || STD.intervallMin) * 60000);
+function nextExpected() { return latest?.at ? latest.at + (latest.intervallMin || STD.intervallMin) * 60000 : 0; }
+function overdue() {
+  if (!latest?.at) return false;
+  const iv = (latest.intervallMin || STD.intervallMin) * 60000;
+  return nowServer() > latest.at + iv + Math.max(3 * 60000, iv * 0.25);
+}
+const liveActive = () => diag?.live && typeof diag.live === 'object' && diag.live.at && nowServer() - diag.live.at < 45000;
+const cfg = k => (inst && inst[k] != null ? inst[k] : (diag?.kal && diag.kal[k] != null ? diag.kal[k] : STD[k]));
+
+/* ---------- Banderoller ---------- */
+function renderBanners() {
+  const b = [];
+  if (!latest) b.push(['info', 'Ingen mätning har kommit in än. Starta sensorn (se GUIDE.md i tempsensor-mappen) och vänta tills den skickat sin första mätning.']);
+  else {
+    if (latest.status === 'skydd') b.push(['bad', `<b>Batteriet är nästan tomt</b> (${dec(latest.bv, 2)} V). Sensorn har gått i skyddsläge: den startar inte WiFi och vaknar bara en gång per dygn. Ladda batteriet.`]);
+    else if (overdue()) b.push(['bad', `<b>Ingen ny mätning sedan ${when(latest.at)}</b> (väntades ${hm(nextExpected())}). Vanliga orsaker: tomt batteri, WiFi når inte fram, eller att routern bytt kanal. Se Felsökning nedan.`]);
+    if (liveActive()) b.push(['info', `<b>Live-läget är på</b> (${dur(diag.live.kvarS || 0)} kvar). Värdena uppdateras var 15:e sekund. På hemmanätet: <a href="http://${esc(diag.live.ip)}/">http://${esc(diag.live.ip)}</a> eller <a href="http://jordkallare.local/">jordkallare.local</a>.`]);
+    else if (num(latest.bp) && latest.bp < 15 && latest.status !== 'skydd') b.push(['', `Batteriet är på ${Math.round(latest.bp)} % (${dec(latest.bv, 2)} V). Dags att ladda snart.`]);
+  }
+  if (DEMO) b.push(['info', 'Demoläge: påhittade värden, inget sparas. Ta bort <b>?demo</b> ur adressen för att se de riktiga.']);
+  $('banners').innerHTML = b.map(([c, t]) => `<div class="banner ${c}">${t}</div>`).join('');
+}
+
+/* ---------- Just nu ---------- */
+function dayStats(key) {
+  const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+  const v = hist.filter(h => histTime(h) >= t0.getTime() && num(h[key])).map(h => h[key]);
+  if (!v.length) return null;
+  return { min: Math.min(...v), max: Math.max(...v) };
+}
+function renderNow() {
+  const L = latest;
+  if (!L) { $('stTxt').textContent = 'Väntar på första mätningen…'; lamp($('stLamp'), 'wait'); $('topStatus').textContent = ''; return; }
+  $('vTi').textContent = num(L.ti) ? `${dec(L.ti)} °C` : 'fel';
+  $('vRh').textContent = num(L.rh) ? `${dec(L.rh, 0)} %` : 'fel';
+  $('vTu').textContent = num(L.tu) ? `${dec(L.tu)} °C` : 'fel';
+  const sTi = dayStats('ti'), sRh = dayStats('rh'), sTu = dayStats('tu');
+  $('vTiSub').textContent = num(L.ti) ? (sTi ? `idag ${dec(sTi.min)} – ${dec(sTi.max)} °C` : '') : (diag?.sht && diag.sht !== 'ok' ? `SHT40 ${diag.sht}` : 'SHT40 svarar inte');
+  $('vRhSub').textContent = sRh ? `idag ${dec(sRh.min, 0)} – ${dec(sRh.max, 0)} %` : '';
+  $('vTuSub').textContent = num(L.tu) ? (sTu ? `idag ${dec(sTu.min)} – ${dec(sTu.max)} °C` : '') : (diag?.ntc && diag.ntc !== 'ok' ? `sonden: ${diag.ntc}` : 'sonden svarar inte');
+  const pct = num(L.bp) ? L.bp : batPct(L.bv);
+  $('vBat').textContent = num(L.bv) ? `${Math.round(pct)} %` : '–';
+  const m = $('vBatMeter');
+  m.className = 'meter' + (pct < 10 ? ' bad' : pct < 25 ? ' warn' : '');
+  m.firstElementChild.style.width = `calc(${Math.max(0, Math.min(100, pct))}% - 2px)`;
+  const est = batteryEstimate();
+  $('vBatSub').textContent = `${dec(L.bv, 2)} V` + (est ? ` · räcker ca ${est.text}` : '');
+  $('vRs').innerHTML = num(L.rs) ? `${bars(L.rs)}${L.rs}` : '–';
+  $('vRsSub').textContent = num(L.rs) ? `dBm, ${signal(L.rs)}` : '';
+
+  const od = overdue(), live = liveActive();
+  lamp($('stLamp'), L.status === 'skydd' || od ? 'bad' : live ? 'wait' : 'ok');
+  $('stTxt').innerHTML = `Mätt <b>${when(L.at)}</b> (${ago(L.at)})` + (live ? ' · live-läge' : '');
+  $('nowWhen').textContent = '';
+  const nx = nextExpected();
+  $('nextTxt').innerHTML = L.status === 'skydd' ? 'Skyddsläge: nästa kontroll om ett dygn'
+    : `Nästa mätning ${od ? 'var väntad' : 'ca'} <b>${hm(nx)}</b> · intervall ${fmtInt(L.intervallMin)}` + (num(L.chip) ? ` · i lådan ${dec(L.chip)} °C` : '');
+  $('topStatus').textContent = od ? `Ingen mätning sedan ${when(L.at)}` : `Jordkällaren ${dec(L.ti)} °C, ${dec(L.rh, 0)} % · ute ${dec(L.tu)} °C`;
+}
+const fmtInt = m => !m ? '–' : m % 1440 === 0 ? `${m / 1440} dygn` : m % 60 === 0 ? `${m / 60} h` : `${m} min`;
+
+/* ---------- Batteritid ---------- */
+function batteryEstimate() {
+  const pts = hist14.filter(h => num(h.bv)).map(h => [histTime(h) / 864e5, batPct(h.bv)]);
+  if (pts.length < 10) return null;
+  const span = pts[pts.length - 1][0] - pts[0][0];
+  if (span < 2) return null;
+  const n = pts.length, mx = pts.reduce((s, p) => s + p[0], 0) / n, my = pts.reduce((s, p) => s + p[1], 0) / n;
+  let sxy = 0, sxx = 0;
+  for (const [x, y] of pts) { sxy += (x - mx) * (y - my); sxx += (x - mx) ** 2; }
+  const slope = sxy / sxx;                         // % per dag
+  const nowPct = num(latest?.bp) ? latest.bp : pts[n - 1][1];
+  if (!(slope < -0.02)) return { text: 'länge (ingen märkbar minskning än)', days: Infinity };
+  const days = nowPct / -slope;
+  return { days, text: days > 60 ? `${Math.round(days / 30)} månader` : `${Math.round(days)} dagar` };
+}
+// Uppskattad batteritid för ett visst intervall utifrån hur länge sensorn är vaken
+function lifeFor(intMin) {
+  const vakenS = Math.max(1, (diag?.vakenMsForra || 3000) / 1000);
+  const mAhPerWake = vakenS * 90 / 3600;            // ca 90 mA i snitt med WiFi på
+  const perDay = (1440 / intMin) * mAhPerWake + 0.054 * 24 + 0.01 * 24;   // + djupsömn och spänningsdelare
+  const days = 3400 * 0.85 / (perDay + 3400 * 0.02 / 30);                  // + självurladdning ca 2 %/mån
+  return days > 365 ? `ca ${dec(days / 365, 1)} år` : days > 60 ? `ca ${Math.round(days / 30)} mån` : `ca ${Math.round(days)} dagar`;
+}
+
+/* ---------- Diagram ---------- */
+function niceTicks(lo, hi, n = 5) {
+  if (lo === hi) { lo -= 1; hi += 1; }
+  const raw = (hi - lo) / n, mag = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 2.5, 5, 10].map(s => s * mag).find(s => s >= raw) || raw;
+  const t0 = Math.floor(lo / step) * step, t1 = Math.ceil(hi / step) * step;
+  const out = []; for (let v = t0; v <= t1 + step / 2; v += step) out.push(+v.toFixed(6));
+  return out;
+}
+const tickDecimals = yt => { const st = Math.abs((yt[1] ?? yt[0] + 1) - yt[0]); return st < 0.1 ? 2 : Math.abs(st - Math.round(st)) > 1e-6 ? 1 : 0; };
+function xTicks(t0, t1, rk, narrow) {
+  const out = [], d = new Date(t0);
+  if (rk === 'day') { d.setMinutes(0, 0, 0); d.setHours(Math.ceil(d.getHours() / 3) * 3); for (; d <= t1; d.setHours(d.getHours() + 3)) if (d >= t0) out.push([d.getTime(), `${pad(d.getHours())}:00`]); }
+  else if (rk === 'week') { d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 1); for (; d <= t1; d.setDate(d.getDate() + 1)) out.push([d.getTime(), `${WD[d.getDay()]} ${d.getDate()}`]); }
+  else if (rk === 'month') { d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 1); for (; d <= t1; d.setDate(d.getDate() + 1)) if ((d.getDate() - 1) % 5 === 0) out.push([d.getTime(), `${d.getDate()} ${MON[d.getMonth()]}`]); }
+  else { d.setHours(0, 0, 0, 0); d.setDate(1); d.setMonth(d.getMonth() + 1); for (; d <= t1; d.setMonth(d.getMonth() + 1)) out.push([d.getTime(), MON[d.getMonth()]]); }
+  return out;
+}
+function bucketize(pts, t0, t1, n) {
+  const w = (t1 - t0) / n, b = new Map();
+  for (const [t, v] of pts) {
+    const i = Math.floor((t - t0) / w);
+    let e = b.get(i); if (!e) { e = { s: 0, c: 0, mn: v, mx: v }; b.set(i, e); }
+    e.s += v; e.c++; if (v < e.mn) e.mn = v; if (v > e.mx) e.mx = v;
+  }
+  return [...b.entries()].sort((a, c) => a[0] - c[0]).map(([i, e]) => ({ t: t0 + (i + 0.5) * w, v: e.s / e.c, mn: e.mn, mx: e.mx }));
+}
+function drawChart(el, series, opt) {
+  const W = Math.max(280, Math.round((el.clientWidth || 800) - 12)), H = opt.h || 210, L = 44, R = 10, T = 10, B = 24;
+  const { t0, t1 } = opt;
+  const all = series.flatMap(s => s.pts.map(p => p[1]));
+  el._chart = null;
+  if (!all.length) { el.innerHTML = `<div class="empty">Inga mätningar ${RANGE_NAMES[range]}.</div>`; return; }
+  let lo = Math.min(...all), hi = Math.max(...all);
+  if (opt.minSpan && hi - lo < opt.minSpan) { const m = (hi + lo) / 2; lo = m - opt.minSpan / 2; hi = m + opt.minSpan / 2; }
+  if (opt.clamp) { lo = Math.max(opt.clamp[0], lo); hi = Math.min(opt.clamp[1], hi); }
+  const yt = niceTicks(lo, hi, opt.ticks || 5);
+  const y0 = yt[0], y1 = yt[yt.length - 1];
+  const sx = t => L + (t - t0) / (t1 - t0) * (W - L - R);
+  const sy = v => T + (1 - (v - y0) / (y1 - y0 || 1)) * (H - T - B);
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt.label)}">`;
+  for (const v of yt) s += `<line x1="${L}" x2="${W - R}" y1="${sy(v)}" y2="${sy(v)}" stroke="${v === 0 && y0 < 0 ? '#b9b6ae' : '#ebe8e1'}"/><text x="${L - 6}" y="${sy(v) + 4}" font-size="12" text-anchor="end" fill="#5c5a55">${dec(v, opt.tickDec ?? tickDecimals(yt))}</text>`;
+  const xt = xTicks(t0, t1, opt.rk), every = Math.max(1, Math.ceil(xt.length / Math.max(2, Math.floor(W / 75))));
+  for (const [t, lab] of xt.filter((_, i) => i % every === 0)) s += `<line x1="${sx(t)}" x2="${sx(t)}" y1="${T}" y2="${H - B}" stroke="#f1eee8"/><text x="${sx(t)}" y="${H - 6}" font-size="12" text-anchor="middle" fill="#5c5a55">${lab}</text>`;
+  const gap = opt.gap;
+  for (const se of series) {
+    if (!se.pts.length) continue;
+    const many = se.pts.length > 500;
+    const pts = many ? bucketize(se.pts, t0, t1, 360) : se.pts.map(([t, v]) => ({ t, v, mn: v, mx: v }));
+    const gapLim = many ? Math.max(gap, (t1 - t0) / 360 * 2.5) : gap;
+    let d = '', band = '', seg = [];
+    const flush = () => {
+      if (!seg.length) return;
+      d += seg.map((p, i) => `${i ? 'L' : 'M'}${sx(p.t).toFixed(1)} ${sy(p.v).toFixed(1)}`).join('');
+      if (seg.length === 1) d += `h0.1`;
+      if (many) band += `<path d="${seg.map((p, i) => `${i ? 'L' : 'M'}${sx(p.t).toFixed(1)} ${sy(p.mx).toFixed(1)}`).join('')}${seg.slice().reverse().map(p => `L${sx(p.t).toFixed(1)} ${sy(p.mn).toFixed(1)}`).join('')}Z" fill="${se.color}" opacity="0.16"/>`;
+      seg = [];
+    };
+    pts.forEach((p, i) => { if (i && p.t - pts[i - 1].t > gapLim) flush(); seg.push(p); });
+    flush();
+    s += band + `<path d="${d}" fill="none" stroke="${se.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  }
+  s += `<line class="hl" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="#44423d" stroke-dasharray="3 3" visibility="hidden"/>`;
+  for (let i = 0; i < series.length; i++) s += `<circle class="hd${i}" r="4" fill="${series[i].color}" stroke="#fff" stroke-width="1.5" visibility="hidden"/>`;
+  s += `</svg><div class="tip" hidden></div>`;
+  el.innerHTML = s;
+  el._chart = { series, sx, sy, W, L, R, t0, t1, opt };
+}
+function chartHover(el, ev) {
+  const c = el._chart; if (!c) return;
+  const svg = el.querySelector('svg'), r = svg.getBoundingClientRect();
+  const x = (ev.clientX - r.left) / r.width * c.W;
+  const t = c.t0 + (x - c.L) / (c.W - c.L - c.R) * (c.t1 - c.t0);
+  let best = null, lines = [];
+  c.series.forEach((se, i) => {
+    const p = se.pts; const dot = svg.querySelector('.hd' + i);
+    if (!p.length) { dot.setAttribute('visibility', 'hidden'); return; }
+    let a = 0, b = p.length - 1;
+    while (b - a > 1) { const m = (a + b) >> 1; if (p[m][0] < t) a = m; else b = m; }
+    const q = Math.abs(p[a][0] - t) < Math.abs(p[b][0] - t) ? p[a] : p[b];
+    if (Math.abs(q[0] - t) > (c.t1 - c.t0) / 40 && Math.abs(q[0] - t) > 2 * 3600e3) { dot.setAttribute('visibility', 'hidden'); return; }
+    dot.setAttribute('cx', c.sx(q[0])); dot.setAttribute('cy', c.sy(q[1])); dot.setAttribute('visibility', 'visible');
+    best = best ?? q[0];
+    lines.push(`<span style="color:${se.color}">●</span> ${esc(se.name)} <b>${dec(q[1], c.opt.dec ?? 1)}${c.opt.unit}</b>`);
+  });
+  const hl = svg.querySelector('.hl'), tip = el.querySelector('.tip');
+  if (best == null) { hl.setAttribute('visibility', 'hidden'); tip.hidden = true; return; }
+  hl.setAttribute('x1', c.sx(best)); hl.setAttribute('x2', c.sx(best)); hl.setAttribute('visibility', 'visible');
+  tip.innerHTML = `${when(best)}<br>${lines.join('<br>')}`; tip.hidden = false;
+  const px = c.sx(best) / c.W * r.width;
+  tip.style.top = '8px';
+  tip.style.left = px > r.width / 2 ? `${Math.max(4, px - tip.offsetWidth - 12)}px` : `${px + 16}px`;
+}
+function chartLeave(el) {
+  const c = el._chart; if (!c) return;
+  el.querySelector('.hl')?.setAttribute('visibility', 'hidden');
+  el.querySelectorAll('circle[class^="hd"]').forEach(d => d.setAttribute('visibility', 'hidden'));
+  const tip = el.querySelector('.tip'); if (tip) tip.hidden = true;
+}
+for (const id of ['chTemp', 'chRh', 'chBat', 'chRs']) {
+  const el = $(id);
+  el.addEventListener('pointermove', e => chartHover(el, e));
+  el.addEventListener('pointerdown', e => chartHover(el, e));
+  el.addEventListener('pointerleave', () => chartLeave(el));
+}
+
+function renderHist() {
+  const t1 = nowServer(), t0 = t1 - RANGES[range];
+  const rows = hist.map(h => ({ ...h, t: histTime(h) })).filter(h => h.t >= t0 && h.t <= t1 + 60000).sort((a, b) => a.t - b.t);
+  const ser = k => rows.filter(h => num(h[k])).map(h => [h.t, h[k]]);
+  const gap = Math.max(3 * intervalMs(), 20 * 60000);
+  const base = { t0, t1, rk: range, gap };
+  drawChart($('chTemp'), [{ name: 'Jordkällaren', color: '#27456f', pts: ser('ti') }, { name: 'Ute', color: '#b0651a', pts: ser('tu') }], { ...base, unit: ' °C', label: 'Temperatur', minSpan: 2, h: 230 });
+  drawChart($('chRh'), [{ name: 'Fukt', color: '#2d6b2d', pts: ser('rh') }], { ...base, unit: ' %', dec: 0, label: 'Luftfuktighet', minSpan: 5, clamp: [0, 100], h: 170 });
+  drawChart($('chBat'), [{ name: 'Batteri', color: '#44423d', pts: ser('bv') }], { ...base, unit: ' V', dec: 2, label: 'Batterispänning', minSpan: 0.1, h: 170, tickDec: 2, ticks: 4 });
+  drawChart($('chRs'), [{ name: 'Signal', color: '#7b4fa0', pts: ser('rs') }], { ...base, unit: ' dBm', dec: 0, label: 'WiFi-signal', minSpan: 10, h: 170, ticks: 4 });
+  $('histRange').textContent = `${RANGE_NAMES[range]} · ${rows.length} mätningar`;
+
+  const st = k => { const v = rows.filter(h => num(h[k])).map(h => h[k]); if (!v.length) return null; return { min: Math.min(...v), max: Math.max(...v), avg: v.reduce((a, b) => a + b, 0) / v.length }; };
+  const tile = (lab, s, unit, d = 1) => s ? `<div class="tile"><span>${lab}</span><b>${dec(s.avg, d)}${unit}</b><small>min ${dec(s.min, d)} · max ${dec(s.max, d)}</small></div>` : '';
+  const bv = rows.filter(h => num(h.bv));
+  let batTile = '';
+  if (bv.length > 1) {
+    const dv = bv[bv.length - 1].bv - bv[0].bv;
+    batTile = `<div class="tile"><span>Batteri under perioden</span><b>${Math.abs(dv) < 0.005 ? '±' : dv > 0 ? '+' : '−'}${dec(Math.abs(dv), 2)} V</b><small>${dec(bv[0].bv, 2)} → ${dec(bv[bv.length - 1].bv, 2)} V</small></div>`;
+  }
+  const missed = (() => {
+    if (rows.length < 2) return '';
+    const diffs = rows.slice(1).map((r, i) => r.t - rows[i].t).sort((x, y) => x - y);
+    const med = diffs[Math.floor(diffs.length / 2)] || intervalMs(); let gaps = 0;
+    for (let i = 1; i < rows.length; i++) { const dt = rows[i].t - rows[i - 1].t; if (dt > med * 2.5 && dt > 10 * 60000 && dt > 3 * Math.min(med, intervalMs())) gaps++; }
+    return `<div class="tile"><span>Avbrott i mätningarna</span><b>${gaps}</b><small>${gaps ? 'längre uppehåll än väntat' : 'inga luckor'}</small></div>`;
+  })();
+  $('statTiles').innerHTML = tile('Jordkällaren, medel', st('ti'), ' °C') + tile('Fukt, medel', st('rh'), ' %', 0) + tile('Ute, medel', st('tu'), ' °C') + batTile + missed;
+  $('histNote').textContent = rows.length > 500 ? 'Många mätningar: linjen visar medelvärdet och det skuggade fältet min och max.' : '';
+}
+
+/* ---------- Inställningar ---------- */
+function renderSettings() {
+  const iv = cfg('intervallMin');
+  if (document.activeElement !== $('selInt') && !$('selInt').dataset.dirty) {
+    $('selInt').value = String(iv);
+    if (![...$('selInt').options].some(o => o.value === String(iv))) { const o = new Option(fmtInt(iv), iv); $('selInt').add(o); $('selInt').value = String(iv); }
+  }
+  if (!$('chkHeat').dataset.dirty) $('chkHeat').checked = !!(inst?.varmeAuto ?? diag?.varmeAuto ?? STD.varmeAuto);
+  $('intLife').textContent = `batteriet räcker ${lifeFor(+$('selInt').value)}`;
+
+  const pend = [];
+  if (inst?.intervallMin && diag?.intervallMin && inst.intervallMin !== diag.intervallMin) pend.push(`intervall ${fmtInt(inst.intervallMin)}`);
+  if (inst?.varmeNu) pend.push('värmaren');
+  if (inst?.snabbAntal > 0) pend.push(`snabbläge (${inst.snabbAntal} mätningar)`);
+  if (inst?.nollstall) pend.push('nollställning');
+  const nx = nextExpected();
+  $('setPending').innerHTML = pend.length ? `<span class="lamp wait"></span> väntar: ${esc(pend.join(', '))}${nx ? ` (ca ${hm(nx)})` : ''}` : '';
+  const sk = diag?.snabbKvar || 0;
+  $('cmdHelp').textContent = sk > 0
+    ? `Snabbläge: ${sk} mätningar kvar med 1 minuts mellanrum.`
+    : 'Sensorn sover mellan mätningarna. Allt du ändrar här tas emot vid nästa mätning.';
+}
+$('selInt').addEventListener('change', () => { $('selInt').dataset.dirty = '1'; renderSettings(); });
+$('chkHeat').addEventListener('change', () => { $('chkHeat').dataset.dirty = '1'; });
+
+async function save(obj, msgEl, okText) {
+  msgEl.className = 'msg'; msgEl.textContent = 'Sparar…';
+  try {
+    if (DEMO) { inst = { ...(inst || {}), ...obj }; }
+    else await fb.update(fb.ref(fb.db, `${ROOT}/installningar`), obj);
+    msgEl.className = 'msg ok';
+    const nx = nextExpected();
+    msgEl.textContent = okText + (nx && !liveActive() ? ` Tas emot ca ${hm(Math.max(nx, nowServer()))}.` : '');
+    renderSettings(); renderCal();
+  } catch (e) {
+    msgEl.className = 'msg bad'; msgEl.textContent = `Kunde inte spara (${e.code || e.message}).`;
+  }
+}
+$('btnSaveSet').addEventListener('click', async () => {
+  await save({ intervallMin: +$('selInt').value, varmeAuto: $('chkHeat').checked }, $('setMsg'), 'Sparat.');
+  delete $('selInt').dataset.dirty; delete $('chkHeat').dataset.dirty;
+});
+$('btnFast15').addEventListener('click', () => save({ snabbAntal: 15 }, $('setMsg'), 'Snabbläge beställt.'));
+$('btnFast60').addEventListener('click', () => save({ snabbAntal: 60 }, $('setMsg'), 'Snabbläge beställt.'));
+$('btnHeatNow').addEventListener('click', () => save({ varmeNu: true }, $('setMsg'), 'Värmaren beställd.'));
+
+/* ---------- Kalibrering ---------- */
+const CAL_KEYS = ['ntcR25', 'ntcB', 'ntcSerie', 'ntcOffset', 'tiOffset', 'rhOffset', 'batFaktor'];
+let calDirty = false;
+function setSel(sel, inp, v) {
+  const has = [...sel.options].some(o => o.value === String(v));
+  sel.value = has ? String(v) : 'other'; inp.hidden = has; inp.value = v;
+}
+function renderCal() {
+  if (!calDirty) {
+    setSel($('calR25Sel'), $('calR25'), cfg('ntcR25'));
+    setSel($('calSerieSel'), $('calSerie'), cfg('ntcSerie'));
+    $('calB').value = cfg('ntcB');
+    $('calTu').value = cfg('ntcOffset');
+    $('calTi').value = cfg('tiOffset');
+    $('calRh').value = cfg('rhOffset');
+    $('calBat').value = (+cfg('batFaktor')).toFixed(4);
+  }
+  const pend = inst && diag?.kal && CAL_KEYS.some(k => inst[k] != null && Math.abs(inst[k] - (diag.kal[k] ?? STD[k])) > 1e-3);
+  $('calPending').innerHTML = pend ? '<span class="lamp wait"></span> väntar på sensorn' : '';
+  // Hjälp att avgöra vilken sorts sond det är
+  const d = diag;
+  if (d?.ntc && d.ntc !== 'ok') $('ntcHint').textContent = `Utomhussonden: ${d.ntc} (${d.ntcMv} mV på A1). Kolla kabeln och att referensmotståndet matas från D3.`;
+  else if (num(d?.ntcOhm)) {
+    const ref = num(latest?.chip) ? latest.chip : null;
+    let gissning = '';
+    if (ref != null && num(d.ntcT10) && num(d.ntcT50)) {
+      const t10 = Math.abs(d.ntcT10 - ref), t50 = Math.abs(d.ntcT50 - ref);
+      if (Math.abs(t10 - t50) > 3) gissning = ` Lådan är ${dec(ref)} °C, så det ser ut att vara en <b>${t10 < t50 ? '10' : '50'} kΩ-sond</b>.`;
+    }
+    $('ntcHint').innerHTML = `Sonden mäter ${Math.round(d.ntcOhm).toLocaleString('sv')} Ω just nu. Som 10 kΩ-sond blir det ${dec(d.ntcT10)} °C, som 50 kΩ-sond ${dec(d.ntcT50)} °C.${gissning}` +
+      (cfg('ntcR25') >= 40000 && cfg('ntcSerie') < 100000 ? ' <b>Tips:</b> med en 50 kΩ-sond bör referensmotståndet vara 220 kΩ, annars slår mätningen i taket när det är kallt.' : '');
+  } else $('ntcHint').textContent = '';
+}
+for (const id of ['calR25', 'calB', 'calSerie', 'calTu', 'calTi', 'calRh', 'calBat']) $(id).addEventListener('input', () => { calDirty = true; });
+$('calR25Sel').addEventListener('change', () => { calDirty = true; const o = $('calR25Sel').value === 'other'; $('calR25').hidden = !o; if (!o) $('calR25').value = $('calR25Sel').value; });
+$('calSerieSel').addEventListener('change', () => { calDirty = true; const o = $('calSerieSel').value === 'other'; $('calSerie').hidden = !o; if (!o) $('calSerie').value = $('calSerieSel').value; });
+$('btnMatchTu').addEventListener('click', () => {
+  if (!num(latest?.ti) || !num(latest?.tu)) { $('calMsg').className = 'msg bad'; $('calMsg').textContent = 'Behöver både jordkällarens och utetemperaturen från senaste mätningen.'; return; }
+  const ny = cfg('ntcOffset') + (latest.ti - latest.tu);
+  $('calTu').value = ny.toFixed(2); calDirty = true;
+  $('calMsg').className = 'msg'; $('calMsg').textContent = `Korrigeringen blir ${dec(ny, 2)} °C. Tryck på Spara kalibrering.`;
+});
+$('btnBatCalc').addEventListener('click', () => {
+  const m = parseFloat(String($('calBatMeas').value).replace(',', '.'));
+  if (!num(m) || !num(latest?.bv) || m < 2.5 || m > 4.5) { $('calMsg').className = 'msg bad'; $('calMsg').textContent = 'Skriv in spänningen du mätte över batteriet (t.ex. 3,95).'; return; }
+  const f = cfg('batFaktor') * m / latest.bv;
+  $('calBat').value = f.toFixed(4); calDirty = true;
+  $('calMsg').className = 'msg'; $('calMsg').textContent = `Faktorn blir ${dec(f, 4)}. Mät helst när sensorn sover. Tryck på Spara kalibrering.`;
+});
+$('btnCalDefault').addEventListener('click', () => {
+  setSel($('calR25Sel'), $('calR25'), STD.ntcR25); setSel($('calSerieSel'), $('calSerie'), STD.ntcSerie);
+  $('calB').value = STD.ntcB; $('calTu').value = 0; $('calTi').value = 0; $('calRh').value = 0; $('calBat').value = STD.batFaktor.toFixed(4);
+  calDirty = true; $('calMsg').className = 'msg'; $('calMsg').textContent = 'Standardvärden ifyllda. Tryck på Spara kalibrering.';
+});
+$('btnSaveCal').addEventListener('click', async () => {
+  const n = id => parseFloat(String($(id).value).replace(',', '.'));
+  const obj = {
+    ntcR25: $('calR25Sel').value === 'other' ? n('calR25') : +$('calR25Sel').value,
+    ntcSerie: $('calSerieSel').value === 'other' ? n('calSerie') : +$('calSerieSel').value,
+    ntcB: n('calB'), ntcOffset: n('calTu'), tiOffset: n('calTi'), rhOffset: n('calRh'), batFaktor: n('calBat'),
+  };
+  const lim = { ntcR25: [100, 2e6], ntcB: [2000, 6000], ntcSerie: [1000, 3e6], ntcOffset: [-20, 20], tiOffset: [-20, 20], rhOffset: [-30, 30], batFaktor: [1.5, 2.5] };
+  for (const [k, [a, b]] of Object.entries(lim)) if (!num(obj[k]) || obj[k] < a || obj[k] > b) { $('calMsg').className = 'msg bad'; $('calMsg').textContent = `Orimligt värde för ${k} (tillåtet ${a}–${b}).`; return; }
+  calDirty = false;
+  await save(obj, $('calMsg'), 'Kalibreringen sparad.');
+});
+
+/* ---------- Felsökning ---------- */
+function health() {
+  const out = [], d = diag || {}, L = latest;
+  const add = (st, t, sub = '') => out.push([st, t, sub]);
+  if (!L) return [['wait', 'Ingen data än', 'Sensorn har inte skickat något. Starta den och titta i Serial Monitor (GUIDE.md).']];
+  if (L.status === 'skydd') add('bad', 'Batteriet är tomt – skyddsläge', 'Ladda batteriet. Sensorn startar inte WiFi förrän spänningen är över 3,10 V igen.');
+  else if (overdue()) add('bad', `Ingen mätning sedan ${when(L.at)}`, 'Batteriet kan vara slut, eller så når sensorn inte WiFi. Slå på live-brytaren vid lådan och se om live-sidan går att öppna.');
+  if (d.sht && d.sht !== 'ok') add('bad', `SHT40: ${d.sht}`, d.pullup === 'intern' ? 'Kabeln har inga egna pullup-motstånd. Löd in R7 och R8 (4,7 kΩ) enligt ritningen, och kolla färgerna på trådarna.' : 'Kolla trådarna i skruvplinten och skarven på kabeln.');
+  if (d.ntc && d.ntc !== 'ok') add('warn', `Utomhussonden: ${d.ntc}`, d.ntc === 'avbrott' ? 'Ingen kontakt med sonden, eller kallare än mätområdet. Kolla kabeln. Är det en 50 kΩ-sond: sätt referensmotståndet till 220 kΩ.' : 'Kortslutning i sonden eller kabeln.');
+  if (num(d.rssi) && d.rssi < -85) add('bad', `Mycket svag WiFi-signal (${d.rssi} dBm)`, 'Rikta om antennen med live-läget, flytta den högre upp, eller sätt en WiFi-förstärkare närmare.');
+  else if (num(d.rssi) && d.rssi < -78) add('warn', `Svag WiFi-signal (${d.rssi} dBm)`, 'Fungerar, men anslutningen tar längre tid och kostar batteri. Prova att rikta om antennen med live-läget.');
+  if (d.wifiSokte) add('warn', 'Snabbanslutningen fungerade inte senast', d.wifiOrsak ? `Orsak: ${d.wifiOrsak}. ` : 'Routern kan ha bytt kanal. ' + 'Den sparade nu den nya kanalen, så nästa gång bör det gå snabbt igen.');
+  else if (num(d.wifiMs) && d.wifiMs > 3000) add('warn', `WiFi-anslutningen tog ${dec(d.wifiMs / 1000, 1)} s`, 'Normalt är under 1,5 s. Svag signal eller trög router.');
+  if (d.fastIp === false) add('', 'Ingen fast IP-adress', 'Fyll i STATIC_IP i secrets.h för att spara ca en halv sekund per mätning (se GUIDE.md).');
+  if (d.brownouts > 0) add('warn', `${d.brownouts} omstart${d.brownouts > 1 ? 'er' : ''} på grund av låg spänning (brownout)`, `Sändningseffekten är sänkt till 15 dBm. Löd in en kondensator på 1000 µF mellan BAT+ och GND. ${num(L.chip) && L.chip < 0 ? 'Kylan gör det värre.' : ''}`);
+  if (d.krascher > 0) add('warn', `${d.krascher} krasch${d.krascher > 1 ? 'er' : ''}`, 'Se Händelser för när. Skicka gärna Serial Monitor-utskriften till Claude om det upprepas.');
+  if (d.missade > 0) add('warn', `${d.missade} uppladdning${d.missade > 1 ? 'ar' : ''} misslyckades före den senaste`, d.sistaFel ? `Senaste felet: ${d.sistaFel}. Mätningarna sparades och skickades i efterhand.` : '');
+  if (num(L.bp) && L.bp < 10 && L.status !== 'skydd') add('bad', `Batteriet nästan tomt (${Math.round(L.bp)} %)`, 'Ladda snart. Under 3,10 V går sensorn i skyddsläge.');
+  else if (num(L.bp) && L.bp < 25) add('warn', `Batteriet är på ${Math.round(L.bp)} %`, '');
+  if (num(d.vakenMsForra) && d.vakenMsForra > 7000) add('warn', `Var vaken länge förra gången (${dec(d.vakenMsForra / 1000, 1)} s)`, 'Normalt 2–4 s. Kostar batteri. Svag signal eller långsam inloggning brukar vara orsaken.');
+  if (num(L.chip) && L.chip < -10) add('warn', `Kallt i lådan (${dec(L.chip)} °C)`, 'Batteriet tappar kapacitet i kyla. Isolera lådan om det går.');
+  if (d.brytareGlomd) add('warn', 'Live-brytaren står fortfarande på', 'Slå av den, annars kan live-läget inte startas igen.');
+  if (num(L.rh) && L.rh >= 99 && d.hogFuktRad >= 3 && !d.varmeAuto) add('', 'Fukten har legat på 99–100 % ett tag', 'Slå på automatisk värmare under Inställningar, eller kör värmaren en gång.');
+  if (!out.length) add('ok', 'Allt ser bra ut', `WiFi ${dec((d.wifiMs || 0) / 1000, 1)} s, vaken ${dec((d.vakenMsForra || 0) / 1000, 1)} s per mätning.`);
+  return out;
+}
+function renderDiag() {
+  $('health').innerHTML = health().map(([st, t, sub]) => `<li><span class="lamp ${st === 'warn' ? 'wait' : st}"></span><div>${esc(t)}${sub ? `<small>${esc(sub)}</small>` : ''}</div></li>`).join('');
+  const d = diag;
+  if (!d) { $('diagWhen').textContent = ''; return; }
+  $('diagWhen').textContent = d.at ? `från ${when(d.at)}` : '';
+  const yn = b => b ? 'ja' : 'nej';
+  const startTxt = `${esc(d.start || '–')}${d.startAt ? `, ${when(d.startAt)}` : ''}`;
+  const r = [
+    ['Senaste vakningen', `${esc(d.vackt || '–')} · programversion ${esc(d.fw || '–')}`],
+    ['WiFi', num(d.rssi) ? `${bars(d.rssi)}${d.rssi} dBm (${signal(d.rssi)}) · kanal ${d.kanal} · router ${esc(d.bssid || '–')}` : '–'],
+    ['Anslutning', `${dec((d.wifiMs || 0) / 1000, 2)} s · ${d.wifiSnabb ? 'snabbanslutning' : d.wifiSokte ? 'fick söka' : 'vanlig'}${d.wifiOrsak ? ` · ${esc(d.wifiOrsak)}` : ''}`],
+    ['IP-adress', `${esc(d.ip || '–')} (${d.fastIp ? 'fast' : 'DHCP'})`],
+    ['Sändningseffekt', `${dec(d.txDbm, 1)} dBm${d.lagTx ? ' (sänkt efter brownout)' : ''}`],
+    ['Inloggning', `${esc(d.authTyp || '–')}${d.authMs ? `, ${dec(d.authMs / 1000, 2)} s` : ''}`],
+    ['Firebase', num(d.fbMs) ? `${dec(d.fbMs / 1000, 2)} s` : '–'],
+    ['Vaken tid', `${num(d.vakenMsForra) ? dec(d.vakenMsForra / 1000, 1) + ' s förra gången' : '–'} · ${num(d.vakenMsNu) ? dec(d.vakenMsNu / 1000, 1) + ' s fram till uppladdningen nu' : ''}`],
+    ['Uppladdningar', d.missade ? `${d.missade} misslyckades innan, ${d.buffrade} sparade mätningar skickades i efterhand${d.sistaFel ? ` · ${esc(d.sistaFel)}` : ''}` : 'alla gick fram'],
+    ['SHT40', `${esc(d.sht || '–')}${d.shtSerie ? ` · serienr ${esc(d.shtSerie)}` : ''} · pullup ${d.pullup === 'extern' ? 'på kabeln (extern)' : 'ESP32:ans interna'}${num(d.shtRaT) ? ` · rått ${dec(d.shtRaT, 2)} °C, ${dec(d.shtRaRh, 1)} %` : ''}`],
+    ['Utomhussonden', `${esc(d.ntc || '–')}${num(d.ntcOhm) ? ` · ${Math.round(d.ntcOhm).toLocaleString('sv')} Ω` : ''} · ${d.ntcMv ?? '–'} mV på A1`],
+    ['Batteri', `${num(latest?.bv) ? dec(latest.bv, 3) + ' V' : '–'} · ${d.batMv ?? '–'} mV på A0 · faktor ${dec(d.kal?.batFaktor, 4)}`],
+    ['I lådan', num(d.chip) ? `${dec(d.chip)} °C (chippets temperatur)` : '–'],
+    ['Värmaren', `${d.varmeAuto ? 'automatisk' : 'av'} · körts ${d.varmeAntal || 0} gånger${d.varmeAt ? `, senast ${when(d.varmeAt)}` : ''}`],
+    ['Mätintervall', `${fmtInt(d.intervallMin)}${d.snabbKvar ? ` · snabbläge, ${d.snabbKvar} kvar` : ''}`],
+    ['Startad', startTxt],
+    ['Vakningar', `${d.vakningar ?? '–'} sedan start${d.startAt ? ` (${ago(d.startAt).replace(' sedan', '')})` : ''}`],
+    ['Starter totalt', `${d.starter ?? 0} · brownouts ${d.brownouts ?? 0} · krascher ${d.krascher ?? 0}`],
+    ['Brytaren', d.brytare ? (d.brytareGlomd ? 'på (glömd, live-läget avslutat)' : 'på') : 'av'],
+    ['Minne', num(d.heapMin) ? `minst ${Math.round(d.heapMin / 1024)} kB ledigt` : '–'],
+  ];
+  $('diagBody').innerHTML = r.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
+}
+$('btnReset').addEventListener('click', async () => {
+  if (!await confirmDlg('Nollställ räknare?', 'Starter, brownouts, krascher och värmarräknaren nollställs, och sändningseffekten återställs till det som står i installningar.h. Det sker vid nästa mätning.', 'Nollställ')) return;
+  save({ nollstall: true }, $('resetMsg'), 'Beställt.');
+});
+
+/* ---------- Händelser ---------- */
+function renderLog() {
+  if (!logItems.length) { $('logBody').innerHTML = '<tr><td colspan="3" class="help">Inga händelser än.</td></tr>'; return; }
+  $('logBody').innerHTML = logItems.slice().reverse().map(l => {
+    const st = l.niva === 'fel' ? 'bad' : l.niva === 'varning' ? 'wait' : 'ok';
+    return `<tr><td class="t">${when(histTime(l))}</td><td style="width:1%"><span class="lamp ${st}"></span></td><td>${esc(l.text)}</td></tr>`;
+  }).join('');
+}
+
+/* ---------- Dialog ---------- */
+function confirmDlg(title, body, yes) {
+  const d = $('dlgConfirm');
+  $('dlgTitle').textContent = title; $('dlgBody').innerHTML = `<p>${esc(body)}</p>`; $('dlgYes').textContent = yes;
+  return new Promise(res => { d.onclose = () => res(d.returnValue === 'ok'); d.returnValue = ''; d.showModal(); });
+}
+
+/* ---------- Period ---------- */
+function setRange(r) {
+  range = r;
+  try { localStorage.setItem('jk-range', r); } catch (e) {}
+  document.querySelectorAll('#rangeTabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.range === r)));
+  if (DEMO) renderHist(); else subscribeHist();
+}
+document.querySelectorAll('#rangeTabs button').forEach(b => b.addEventListener('click', () => setRange(b.dataset.range)));
+
+function renderAll() { renderBanners(); renderNow(); renderHist(); renderSettings(); renderCal(); renderDiag(); renderLog(); }
+
+/* ---------- Firebase ---------- */
+function subscribeHist() {
+  if (histUnsub) { histUnsub(); histUnsub = null; }
+  const from = nowServer() - RANGES[range] - 3600e3;
+  histUnsub = fb.onValue(fb.query(fb.ref(fb.db, `${ROOT}/historik`), fb.orderByChild('at'), fb.startAt(from)), s => {
+    const arr = []; s.forEach(ch => { arr.push(ch.val()); }); hist = arr.filter(h => h && h.at);
+    if (range !== 'day' && range !== 'week') { /* räcker för batteriuppskattningen */ }
+    if (RANGES[range] >= 14 * 864e5) hist14 = hist.filter(h => histTime(h) > nowServer() - 14 * 864e5);
+    renderHist(); renderNow();
+  }, denied);
+}
+async function loadHist14() {
+  if (RANGES[range] >= 14 * 864e5) return;
+  try {
+    const s = await fb.get(fb.query(fb.ref(fb.db, `${ROOT}/historik`), fb.orderByChild('at'), fb.startAt(nowServer() - 14 * 864e5)));
+    const arr = []; s.forEach(ch => { arr.push(ch.val()); }); hist14 = arr.filter(h => h && h.at);
+    renderNow();
+  } catch (e) { /* inte viktigt */ }
+}
+async function pruneLog() {
+  try {
+    const snap = await fb.get(fb.query(fb.ref(fb.db, `${ROOT}/logg`), fb.orderByChild('at'), fb.endAt(Date.now() - LOG_KEEP_DAYS * 864e5)));
+    const jobs = []; snap.forEach(ch => { jobs.push(fb.remove(ch.ref)); }); await Promise.all(jobs);
+  } catch (e) { /* inte viktigt */ }
+}
+let deniedShown = false;
+function denied(err) {
+  if (deniedShown) return; deniedShown = true;
+  $('banners').insertAdjacentHTML('afterbegin', `<div class="banner bad">Databasen nekade läsning (${esc(err.code || err.message)}). Kolla att reglerna för <b>jordkallare</b> är inklistrade i Firebase (se GUIDE.md i tempsensor-mappen).</div>`);
+}
+
+function authError(code) {
+  switch (code) {
+    case 'auth/invalid-credential': case 'auth/wrong-password': case 'auth/user-not-found': case 'auth/invalid-login-credentials':
+      return 'Fel användarnamn eller lösenord.';
+    case 'auth/invalid-email': return 'Användarnamnet får bara innehålla a–z, siffror, punkt och bindestreck.';
+    case 'auth/too-many-requests': return 'För många försök. Vänta en stund och försök igen.';
+    case 'auth/network-request-failed': return 'Ingen kontakt med Firebase. Kolla internet.';
+    case 'auth/operation-not-allowed': return 'E-post/lösenord är inte påslaget i Firebase.';
+    case 'auth/api-key-not-valid.-please-pass-a-valid-api-key.': case 'auth/invalid-api-key': return 'Fel apiKey i firebase-config.js.';
+    default: return 'Kunde inte logga in (' + code + ').';
+  }
+}
+
+function showLogin() {
+  unsubs.forEach(u => u()); unsubs = [];
+  if (histUnsub) { histUnsub(); histUnsub = null; }
+  latest = diag = inst = null; logItems = []; hist = []; hist14 = [];
+  $('viewMain').hidden = true; $('viewLogin').hidden = false;
+  $('btnLogout').hidden = true; $('topStatus').textContent = '';
+  setTimeout(() => $('inUser').focus(), 50);
+}
+function showMain(user) {
+  $('viewLogin').hidden = true; $('viewMain').hidden = false;
+  $('btnLogout').hidden = DEMO;
+  if (user) $('btnLogout').title = `Inloggad som ${user.email.split('@')[0]}`;
+  document.querySelectorAll('#rangeTabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.range === range)));
+  renderAll();
+  if (DEMO) return;
+  const on = (path, fn) => unsubs.push(fb.onValue(fb.ref(fb.db, `${ROOT}/${path}`), s => { fn(s.val()); }, denied));
+  unsubs.push(fb.onValue(fb.ref(fb.db, '.info/serverTimeOffset'), s => { serverOffset = s.val() || 0; }));
+  on('latest', v => { const ny = v?.at !== latest?.at; latest = v; renderBanners(); renderNow(); renderSettings(); renderCal(); renderDiag(); if (ny) loadHist14(); });
+  on('diag', v => { diag = v; renderBanners(); renderNow(); renderDiag(); renderSettings(); renderCal(); });
+  on('installningar', v => { inst = v; renderSettings(); renderCal(); });
+  unsubs.push(fb.onValue(fb.query(fb.ref(fb.db, `${ROOT}/logg`), fb.orderByChild('at'), fb.limitToLast(300)), s => {
+    const arr = []; s.forEach(ch => { arr.push(ch.val()); }); logItems = arr.filter(l => l && l.at).sort((a, b) => histTime(a) - histTime(b)); renderLog();
+  }, denied));
+  subscribeHist();
+  loadHist14();
+  pruneLog();
+}
+
+/* ---------- Demoläge ---------- */
+function demoData() {
+  const now = Date.now(), iv = 30 * 60000, out = [];
+  let bv = 4.12;
+  for (let t = now - 365 * 864e5; t <= now - 60000; t += iv * (t < now - 30 * 864e5 ? 4 : 1)) {
+    const day = (t - now) / 864e5, yr = Math.sin((day / 365) * 2 * Math.PI - 1.2);
+    const daily = Math.sin(((new Date(t).getHours() - 9) / 24) * 2 * Math.PI);
+    const tu = 7 + 11 * yr + 4 * daily + Math.sin(day * 1.7) * 3;
+    const ti = 5.5 + 3.5 * Math.sin((day / 365) * 2 * Math.PI - 1.9) + 0.15 * daily;
+    const rh = Math.min(100, 88 + 4 * Math.sin(day * 0.9) + 2 * Math.cos(day * 3.1));
+    bv = Math.max(3.4, 4.12 - (t - (now - 365 * 864e5)) / 864e5 * 0.0012 + (tu < 0 ? -0.02 : 0));
+    if (Math.random() < 0.004) continue;
+    out.push({ at: t, ti: +ti.toFixed(2), rh: +rh.toFixed(1), tu: +tu.toFixed(2), bv: +bv.toFixed(3), rs: Math.round(-69 + Math.sin(day * 2) * 4 + (Math.random() - 0.5) * 3) });
+  }
+  hist = out; hist14 = out.filter(h => h.at > now - 14 * 864e5);
+  const L = out[out.length - 1];
+  latest = { ...L, at: now - 9 * 60000, bp: Math.round(batPct(L.bv)), chip: 3.4, ntcOhm: 24500, intervallMin: 30, status: 'ok' };
+  diag = { at: latest.at, fw: '1.0', vackt: 'timer', start: 'ström på (nytt batteri eller USB)', startAt: now - 41 * 864e5, vakningar: 1968, starter: 3, brownouts: 0, krascher: 0,
+    wifiMs: 612, wifiSnabb: true, wifiSokte: false, kanal: 6, bssid: 'A4:2B:B0:11:22:33', ip: '192.168.0.60', fastIp: true, rssi: L.rs, txDbm: 19.5, lagTx: false,
+    authTyp: 'förnyad', authMs: 840, fbMs: 1210, vakenMsForra: 2780, vakenMsNu: 2650, missade: 0, buffrade: 0, sht: 'ok', shtKod: 0, shtSerie: '1F0A33C2', pullup: 'intern',
+    shtRaT: L.ti, shtRaRh: L.rh, ntc: 'ok', ntcMv: 1018, ntcOhm: 24500, ntcT10: 3.1, ntcT50: 41.2, batMv: Math.round(L.bv * 500), chip: 3.4, varmeAuto: true, varmeAntal: 4,
+    varmeAt: now - 3 * 864e5, hogFuktRad: 0, intervallMin: 30, snabbKvar: 0, brytare: false, brytareGlomd: false, heapMin: 201000, live: false,
+    kal: { ntcR25: 10000, ntcB: 3950, ntcSerie: 55000, ntcOffset: 0, tiOffset: 0, rhOffset: 0, batFaktor: 2 } };
+  inst = { intervallMin: 30, varmeAuto: true };
+  logItems = [
+    { at: now - 41 * 864e5, text: 'Startade: ström på (nytt batteri eller USB)', niva: 'info' },
+    { at: now - 20 * 864e5, text: 'Snabbanslutningen misslyckades. Hittade routern på kanal 6 (förut kanal 11)', niva: 'varning' },
+    { at: now - 12 * 864e5, text: 'Kunde inte skicka 3 gånger (WiFi: tappade routerns signal (svag signal)). Skickade nu 3 sparade mätningar.', niva: 'varning' },
+    { at: now - 3 * 864e5, text: 'Värmaren i SHT40 kördes, fukten var 99,6 %', niva: 'info' },
+    { at: now - 2 * 864e5, text: 'Live-läget startade (brytaren)', niva: 'info' },
+    { at: now - 2 * 864e5 + 6 * 60000, text: 'Live-läget slutade efter 6 min (brytaren slogs av)', niva: 'info' },
+  ];
+}
+
+/* ---------- Inloggning och start ---------- */
+$('loginForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const user = $('inUser').value.trim().toLowerCase(), pass = $('inPass').value;
+  $('loginErr').textContent = ''; $('btnLogin').disabled = true;
+  try { await fb.signInWithEmailAndPassword(fb.auth, `${user}@${fb.LOGIN_DOMAIN}`, pass); $('inPass').value = ''; }
+  catch (err) { $('loginErr').textContent = authError(err.code); }
+  $('btnLogin').disabled = false;
+});
+$('btnLogout').addEventListener('click', () => fb.signOut(fb.auth));
+
+async function start() {
+  if (DEMO) { demoData(); showMain(null); return; }
+  try {
+    const [cfgMod, appMod, authMod, dbMod] = await Promise.all([
+      import('./firebase-config.js'),
+      import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js'),
+      import('https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js'),
+    ]);
+    const app = appMod.initializeApp(cfgMod.firebaseConfig);
+    const auth = authMod.getAuth(app);
+    fb = { ...dbMod, ...authMod, db: dbMod.getDatabase(app), auth, LOGIN_DOMAIN: cfgMod.LOGIN_DOMAIN };
+    authMod.setPersistence(auth, authMod.browserLocalPersistence).catch(() => {});
+    authMod.onAuthStateChanged(auth, u => u ? showMain(u) : showLogin());
+  } catch (e) {
+    $('viewMain').hidden = false;
+    $('banners').innerHTML = `<div class="banner bad">Kunde inte starta Firebase (${esc(e.message)}). Kolla internet och firebase-config.js. <a href="?demo">Visa demoläget</a>.</div>`;
+    document.querySelectorAll('#viewMain section').forEach(s => s.hidden = true);
+  }
+}
+start();
+
+// Uppdatera "för X min sedan" och väntande-status
+setInterval(() => { if (latest) { renderBanners(); renderNow(); renderSettings(); } }, 15000);
+setInterval(() => { if (latest) { renderHist(); renderDiag(); } }, 120000);
+let rsz; window.addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(() => { if (latest || hist.length) renderHist(); }, 200); });
+
+/* ---------- App-installation ---------- */
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; $('btnInstall').hidden = false; });
+$('btnInstall').addEventListener('click', async () => { if (!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt = null; $('btnInstall').hidden = true; });
+window.addEventListener('appinstalled', () => { $('btnInstall').hidden = true; });
+if ('serviceWorker' in navigator && !DEMO) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
