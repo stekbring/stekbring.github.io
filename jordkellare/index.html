@@ -71,6 +71,9 @@ legend{padding:0 4px;font-weight:600}
 .meter{display:inline-block;width:100%;height:12px;border:2px inset var(--face);background:var(--field);position:relative;margin-top:4px}
 .meter>i{position:absolute;left:1px;top:1px;bottom:1px;background:var(--sel)}
 .meter.warn>i{background:var(--warn)} .meter.bad>i{background:var(--bad)}
+.meter.laddar>i{background:repeating-linear-gradient(-45deg,#3f8f3f 0 6px,#5fae5f 6px 12px);background-size:17px 17px;animation:ladda 1s linear infinite}
+@keyframes ladda{to{background-position:17px 0}}
+@media (prefers-reduced-motion:reduce){.meter.laddar>i{animation:none}}
 .bars{display:inline-block;vertical-align:-1px;margin-right:4px}
 
 /* ---------- Diagram ---------- */
@@ -465,6 +468,8 @@ dialog.bred{width:min(560px,96vw)}
       <label for="calBat">Batterifaktor</label>
       <div class="row" style="margin:0"><input type="number" id="calBat" step="0.001" min="1.5" max="2.5">
         <span class="help">Uppmätt med multimeter:</span><input type="number" id="calBatMeas" step="0.01" placeholder="V" aria-label="Uppmätt batterispänning" style="width:80px"><button id="btnBatCalc">Räkna ut</button></div>
+      <label for="calKap">Batteriet</label>
+      <div class="row" style="margin:0"><input type="number" id="calKap" step="100" min="200" max="20000" style="width:90px"> mAh, laddas med <input type="number" id="calLadd" step="10" min="20" max="2000" style="width:80px"> mA <span class="help">(för tiden till fullt)</span></div>
     </div>
     <p class="help" id="ntcHint"></p>
     <div class="row">
@@ -602,7 +607,7 @@ const ROOT = 'jordkallare';
 const DEMO = new URLSearchParams(location.search).has('demo');
 const LOG_KEEP_DAYS = 120;
 const STD = { matS: 300, uppDagMin: 60, uppNattMin: 180, nattPa: true, nattFran: 22 * 60, nattTill: 6 * 60, larmTiLag: 1, larmTiHog: false, larmRhHog: false,
-  larmFordrojMin: 30, paminnelseH: 6, gallringAr: 0,
+  larmFordrojMin: 30, paminnelseH: 6, gallringAr: 0, batKapMah: 3400, laddMa: 380,
   varmeAuto: true, ntcR25: 10000, ntcB: 3950, ntcSerie: 55000, ntcOffset: 0, tiOffset: 0, rhOffset: 0, batFaktor: 2.0 };
 const LARM_STD = { larmTiLag: 1, larmTiHog: 12, larmRhHog: 97 };   // förslag när ett larm slås på
 const TYPER = [['temp', 'temperatur'], ['fukt', 'fukt'], ['batteri', 'batteri'], ['sensor', 'sensorfel'], ['tystnat', 'sensorn tystnat'], ['frost', 'frostvarning'], ['vecka', 'veckorapport']];
@@ -823,6 +828,39 @@ function trendText(key, unit, d, lim) {
   if (s == null || Math.abs(s) < lim) return '';
   return ` · <span class="trend">${s > 0 ? '↑' : '↓'} ${dec(Math.abs(s), d)} ${unit}/h</span>`;
 }
+// Laddning: säkert om sensorn har R9/R10 (latest.usb), annars gissat från att spänningen stiger
+function linjar(pts) {
+  const n = pts.length; if (n < 2) return null;
+  const mx = pts.reduce((a, p) => a + p[0], 0) / n, my = pts.reduce((a, p) => a + p[1], 0) / n;
+  let sxy = 0, sxx = 0;
+  for (const [x, y] of pts) { sxy += (x - mx) * (y - my); sxx += (x - mx) ** 2; }
+  return sxx ? sxy / sxx : null;
+}
+function laddStatus() {
+  const L = latest;
+  if (!L || !num(L.bv) || L.bv < 2.5) return null;
+  const nu = nowServer();
+  const pts = [...today.filter(h => num(h.bv) && h.bv >= 2.5).map(h => [histTime(h), h.bv]), [L.at, L.bv]]
+    .filter(p => p[0] > nu - 3 * 3600e3).sort((a, b) => a[0] - b[0]);
+  const span = pts.length > 1 ? pts[pts.length - 1][0] - pts[0][0] : 0;
+  const lutning = span >= 20 * 60e3 ? linjar(pts.map(([t, v]) => [t / 3600e3, v])) : null;   // V per timme
+  const usb = L.usb === true;
+  // Utan USB-detektering: spänningen ska ha stigit tydligt i minst 45 min (laddning höjer den 0,1–0,2 V/h,
+  // medan återhämtning efter en uppladdning bara är några hundradels volt)
+  const okning = pts.length > 1 ? pts[pts.length - 1][1] - pts[0][1] : 0;
+  const troligen = !usb && span >= 45 * 60e3 && lutning != null && lutning > 0.06 && okning > 0.05 && L.bv > 3.3;
+  if (!usb && !troligen) return null;
+  if (L.bv >= 4.17 && (lutning == null || Math.abs(lutning) < 0.01)) return { usb, troligen, full: true, soc: 100 };
+  const soc = batPct(L.bv - 0.08);               // under laddning visar spänningen ca 0,08 V för mycket
+  const kap = L.batKap || cfg('batKapMah'), ma = L.laddMa || cfg('laddMa');
+  const takt = span >= 30 * 60e3 ? linjar(pts.map(([t, v]) => [t / 3600e3, batPct(v - 0.08)])) : null;   // % per timme
+  let h;
+  if (L.bv >= 4.15) h = 0.5;                     // sista biten: spänningen står still och strömmen minskar
+  else if (takt != null && takt > 2) h = Math.max(0, 97 - soc) / takt + 0.5;
+  else h = (100 - soc) / 100 * kap * 0.9 / ma + 0.6;
+  return { usb, troligen, full: false, soc, h, eta: nu + h * 3600e3 };
+}
+
 function renderNow() {
   const L = latest;
   if (!L) { $('stTxt').textContent = 'Väntar på första mätningen…'; lamp($('stLamp'), 'wait'); $('topStatus').textContent = ''; return; }
@@ -834,13 +872,19 @@ function renderNow() {
   $('vRhSub').innerHTML = (sRh ? `idag ${dec(sRh.min, 0)} – ${dec(sRh.max, 0)} %` : '') + trendText('rh', '%', 0, 1);
   $('vTuSub').innerHTML = num(L.tu) ? (sTu ? `idag ${dec(sTu.min)} – ${dec(sTu.max)} °C` : '') + trendText('tu', '°C', 1, 0.3) : esc(diag?.ntc && diag.ntc !== 'ok' ? `sonden: ${diag.ntc}` : 'sonden svarar inte');
   const ingenMatning = num(L.bv) && L.bv < 0.05;
-  const pct = num(L.bp) ? L.bp : batPct(L.bv);
-  $('vBat').textContent = num(L.bv) && !ingenMatning ? (L.bv < 2.5 ? 'USB' : `${Math.round(pct)} %`) : '–';
+  const ladd = laddStatus();
+  const pct = ladd ? ladd.soc : num(L.bp) ? L.bp : batPct(L.bv);
+  const blixt = '<svg width="0.55em" height="0.9em" viewBox="0 0 11 18" style="vertical-align:-0.05em;margin-right:0.12em" aria-label="laddar"><path d="M7 0 0 10h4l-1 8 7-10H6z" fill="currentColor"/></svg>';
+  $('vBat').innerHTML = num(L.bv) && !ingenMatning ? (L.bv < 2.5 ? 'USB' : `${ladd ? blixt : ''}${Math.round(pct)} %`) : '–';
   const m = $('vBatMeter');
-  m.className = 'meter' + (pct < 10 ? ' bad' : pct < 25 ? ' warn' : '');
+  m.className = 'meter' + (ladd && !ladd.full ? ' laddar' : pct < 10 ? ' bad' : pct < 25 ? ' warn' : '');
   m.firstElementChild.style.width = `calc(${Math.max(0, Math.min(100, pct))}% - 2px)`;
-  const est = batteryEstimate();
-  $('vBatSub').textContent = ingenMatning ? 'ingen batterimätning (A0 är inte kopplad)' : num(L.bv) && L.bv < 2.5 ? `${dec(L.bv, 2)} V · inget batteri (går på USB)` : `${dec(L.bv, 2)} V` + (est ? ` · räcker ca ${est.text}` : '');
+  const est = ladd ? null : batteryEstimate();
+  $('vBatSub').textContent = ingenMatning ? (L.usb ? 'laddaren ansluten · ingen batterimätning (A0 är inte kopplad)' : 'ingen batterimätning (A0 är inte kopplad)')
+    : num(L.bv) && L.bv < 2.5 ? `${dec(L.bv, 2)} V · inget batteri (går på USB)`
+    : ladd?.full ? `${dec(L.bv, 2)} V · fullt laddat${ladd.usb ? ', kan kopplas ur' : ''}`
+    : ladd ? `${dec(L.bv, 2)} V · laddar${ladd.troligen ? ' (troligen)' : ''} · fullt ca ${hm(ladd.eta)} (om ${dur(ladd.h * 3600)})`
+    : `${dec(L.bv, 2)} V` + (est ? ` · räcker ca ${est.text}` : '');
   $('vRs').innerHTML = num(L.rs) ? `${bars(L.rs)}${L.rs}` : '–';
   $('vRsSub').textContent = num(L.rs) ? `dBm, ${signal(L.rs)}` : '';
 
@@ -857,7 +901,9 @@ function renderNow() {
 
 /* ---------- Batteritid ---------- */
 function batteryEstimate() {
-  const pts = hist14.filter(h => num(h.bv) && h.bv >= 2.5).map(h => [histTime(h) / 864e5, batPct(h.bv)]);
+  let pts = hist14.filter(h => num(h.bv) && h.bv >= 2.5).map(h => [histTime(h) / 864e5, batPct(h.bv)]);
+  // Räkna bara från senaste laddningen (där procenten hoppar upp)
+  for (let i = pts.length - 1; i > 0; i--) if (pts[i][1] - pts[i - 1][1] > 3) { pts = pts.slice(i + 2); break; }
   if (pts.length < 10) return null;
   const span = pts[pts.length - 1][0] - pts[0][0];
   if (span < 2) return null;
@@ -1706,6 +1752,7 @@ function renderCal() {
     setSel($('calR25Sel'), $('calR25'), cfg('ntcR25')); setSel($('calSerieSel'), $('calSerie'), cfg('ntcSerie'));
     $('calB').value = cfg('ntcB'); $('calTu').value = cfg('ntcOffset'); $('calTi').value = cfg('tiOffset'); $('calRh').value = cfg('rhOffset');
     $('calBat').value = (+cfg('batFaktor')).toFixed(4);
+    $('calKap').value = cfg('batKapMah'); $('calLadd').value = cfg('laddMa');
   }
   const pend = inst && diag?.kal && CAL_KEYS.some(k => inst[k] != null && Math.abs(inst[k] - (diag.kal[k] ?? STD[k])) > 1e-3);
   $('calPending').innerHTML = pend ? '<span class="lamp wait"></span> väntar på sensorn' : '';
@@ -1719,7 +1766,7 @@ function renderCal() {
       (cfg('ntcR25') >= 40000 && cfg('ntcSerie') < 100000 ? ' <b>Tips:</b> med en 50 kΩ-sond bör referensmotståndet vara 220 kΩ, annars slår mätningen i taket när det är kallt.' : '');
   } else $('ntcHint').textContent = '';
 }
-for (const id of ['calR25', 'calB', 'calSerie', 'calTu', 'calTi', 'calRh', 'calBat']) $(id).addEventListener('input', () => { calDirty = true; });
+for (const id of ['calR25', 'calB', 'calSerie', 'calTu', 'calTi', 'calRh', 'calBat', 'calKap', 'calLadd']) $(id).addEventListener('input', () => { calDirty = true; });
 $('calR25Sel').addEventListener('change', () => { calDirty = true; const o = $('calR25Sel').value === 'other'; $('calR25').hidden = !o; if (!o) $('calR25').value = $('calR25Sel').value; });
 $('calSerieSel').addEventListener('change', () => { calDirty = true; const o = $('calSerieSel').value === 'other'; $('calSerie').hidden = !o; if (!o) $('calSerie').value = $('calSerieSel').value; });
 $('btnMatchTu').addEventListener('click', () => {
@@ -1738,13 +1785,14 @@ $('btnBatCalc').addEventListener('click', () => {
 $('btnCalDefault').addEventListener('click', () => {
   setSel($('calR25Sel'), $('calR25'), STD.ntcR25); setSel($('calSerieSel'), $('calSerie'), STD.ntcSerie);
   $('calB').value = STD.ntcB; $('calTu').value = 0; $('calTi').value = 0; $('calRh').value = 0; $('calBat').value = STD.batFaktor.toFixed(4);
+  $('calKap').value = STD.batKapMah; $('calLadd').value = STD.laddMa;
   calDirty = true; msg($('calMsg'), '', 'Standardvärden ifyllda. Tryck på Spara kalibrering.');
 });
 $('btnSaveCal').addEventListener('click', async () => {
   const n = id => parseFloat(String($(id).value).replace(',', '.'));
   const obj = { ntcR25: $('calR25Sel').value === 'other' ? n('calR25') : +$('calR25Sel').value, ntcSerie: $('calSerieSel').value === 'other' ? n('calSerie') : +$('calSerieSel').value,
-    ntcB: n('calB'), ntcOffset: n('calTu'), tiOffset: n('calTi'), rhOffset: n('calRh'), batFaktor: n('calBat') };
-  const lim = { ntcR25: [100, 2e6], ntcB: [2000, 6000], ntcSerie: [1000, 3e6], ntcOffset: [-20, 20], tiOffset: [-20, 20], rhOffset: [-30, 30], batFaktor: [1.5, 2.5] };
+    ntcB: n('calB'), ntcOffset: n('calTu'), tiOffset: n('calTi'), rhOffset: n('calRh'), batFaktor: n('calBat'), batKapMah: Math.round(n('calKap')), laddMa: Math.round(n('calLadd')) };
+  const lim = { ntcR25: [100, 2e6], ntcB: [2000, 6000], ntcSerie: [1000, 3e6], ntcOffset: [-20, 20], tiOffset: [-20, 20], rhOffset: [-30, 30], batFaktor: [1.5, 2.5], batKapMah: [200, 20000], laddMa: [20, 2000] };
   for (const [k, [a, b]] of Object.entries(lim)) if (!num(obj[k]) || obj[k] < a || obj[k] > b) return msg($('calMsg'), 'bad', `Orimligt värde för ${k} (tillåtet ${a}–${b}).`);
   calDirty = false;
   await save(obj, $('calMsg'), 'Kalibreringen sparad.');
@@ -1908,7 +1956,7 @@ function renderDiag() {
     ['Uppladdningar', `${num(d.uppladdningar) ? `${d.uppladdningar} sedan start · ` : ''}${num(d.buffrade) ? `${d.buffrade} mätningar i den senaste (plats för ${d.bufMax || '?'}) · ` : ''}${d.missade ? `${d.missade} misslyckades innan${d.sistaFel ? `: ${esc(d.sistaFel)}` : ''}` : 'alla gick fram'}`],
     ['SHT40', `${esc(d.sht || '–')}${d.shtSerie ? ` · serienr ${esc(d.shtSerie)}` : ''} · pullup ${d.pullup === 'extern' ? 'på kabeln (extern)' : 'ESP32:ans interna'}${num(d.shtRaT) ? ` · rått ${dec(d.shtRaT, 2)} °C, ${dec(d.shtRaRh, 1)} %` : ''}`],
     ['Utomhussonden', `${esc(d.ntc || '–')}${num(d.ntcOhm) ? ` · ${Math.round(d.ntcOhm).toLocaleString('sv')} Ω` : ''} · ${d.ntcMv ?? '–'} mV på A1`],
-    ['Batteri', `${num(latest?.bv) ? dec(latest.bv, 3) + ' V' : '–'} · ${d.batMv ?? '–'} mV på A0 · faktor ${dec(d.kal?.batFaktor, 4)}`],
+    ['Batteri', `${num(latest?.bv) ? dec(latest.bv, 3) + ' V' : '–'} · ${d.batMv ?? '–'} mV på A0 · faktor ${dec(d.kal?.batFaktor, 4)} · laddaren ${d.usb ? 'ansluten' : 'inte ansluten (eller R9/R10 saknas)'}`],
     ['I lådan', num(d.chip) ? `${dec(d.chip)} °C (chippets temperatur)` : '–'],
     ['Värmaren', `${d.varmeAuto ? 'automatisk' : 'av'} · körts ${d.varmeAntal || 0} gånger${d.varmeAt ? `, senast ${when(d.varmeAt)}` : ''}`],
     ['Schema', d.schema ? `mäter var ${fmtS(d.schema.matS)} · laddar upp ${d.schema.uppDagMin ? `var ${fmtS(d.schema.uppDagMin * 60)}` : 'varje mätning'}${d.schema.nattPa ? `, natten ${hhmm(d.schema.nattFran)}–${hhmm(d.schema.nattTill)} var ${fmtS(d.schema.uppNattMin * 60)}` : ''}${d.snabb ? ` · snabbläge var ${fmtS(d.snabb.s)} till ${hm(d.snabb.till)}` : ''}` : '–'],
@@ -2055,7 +2103,10 @@ function demoData() {
     timmar[k] = o;
   }
   const last = Object.values(out).sort((a, b) => b.at - a.at)[0];
-  const L = { ...last, at: now - 4 * 60000, uppAt: now - 4 * 60000 + 3000, nastaUpp: now + 56 * 60000, matS: 300, larm: 0, bv: 3.91, bp: Math.round(batPct(3.91)), rs: -68, chip: 3.4, ntcOhm: 24500, status: 'ok', granser: { tiLag: 1 } };
+  const laddar = new URLSearchParams(location.search).has('laddar');
+  if (laddar) Object.values(out).filter(h => h.at > now - 2.5 * 3600e3 && num(h.bv)).forEach(h => { h.bv = +(3.62 + (h.at - (now - 2.5 * 3600e3)) / 3600e3 * 0.12).toFixed(3); });
+  const L = { ...last, at: now - 4 * 60000, uppAt: now - 4 * 60000 + 3000, nastaUpp: now + 56 * 60000, matS: 300, larm: 0, bv: 3.91, bp: Math.round(batPct(3.91)), rs: -68, chip: 3.4, ntcOhm: 24500, status: 'ok', granser: { tiLag: 1 }, usb: laddar, batKap: 3400, laddMa: 380 };
+  if (laddar) L.bv = 3.92; else { const sb = Object.values(out).filter(h => num(h.bv)).sort((a, b) => b.at - a.at)[0]; if (sb) L.bv = sb.bv; L.bp = Math.round(batPct(L.bv)); }
   demoDb.data = {
     historik: out, timmar, latest: L,
     diag: { at: L.at, fw: '2.5', vackt: 'timer', varfor: 'schemat', start: 'ström på (nytt batteri eller USB)', startAt: now - 41 * 864e5, vakningar: 11808, uppladdningar: 912, starter: 3, brownouts: 0, krascher: 0,
