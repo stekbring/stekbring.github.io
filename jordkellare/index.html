@@ -836,21 +836,39 @@ function linjar(pts) {
   for (const [x, y] of pts) { sxy += (x - mx) * (y - my); sxx += (x - mx) ** 2; }
   return sxx ? sxy / sxx : null;
 }
+// Har sensorn någon gång sagt att laddaren sitter i, så finns R9–R11 och då gissas det aldrig
+function laddDetektor() {
+  let ja = latest?.usb === true || logItems.some(l => /^Laddaren ansluten/.test(l.text || ''));
+  try {
+    if (ja) localStorage.setItem('jkLaddDet', '1');
+    else ja = localStorage.getItem('jkLaddDet') === '1';
+  } catch (e) {}
+  return ja;
+}
 function laddStatus() {
   const L = latest;
   if (!L || !num(L.bv) || L.bv < 2.5) return null;
   const nu = nowServer();
-  const pts = [...today.filter(h => num(h.bv) && h.bv >= 2.5).map(h => [histTime(h), h.bv]), [L.at, L.bv]]
+  const usb = L.usb === true;
+  let pts = [...today.filter(h => num(h.bv) && h.bv >= 2.5).map(h => [histTime(h), h.bv]), [L.at, L.bv]]
     .filter(p => p[0] > nu - 3 * 3600e3).sort((a, b) => a[0] - b[0]);
+  // Ett tydligt fall mellan två mätningar = laddaren urkopplad: räkna bara från det
+  for (let i = pts.length - 1; i > 0; i--) if (pts[i][1] - pts[i - 1][1] <= -0.04) { pts = pts.slice(i); break; }
   const span = pts.length > 1 ? pts[pts.length - 1][0] - pts[0][0] : 0;
   const lutning = span >= 20 * 60e3 ? linjar(pts.map(([t, v]) => [t / 3600e3, v])) : null;   // V per timme
-  const usb = L.usb === true;
-  // Utan USB-detektering: spänningen ska ha stigit tydligt i minst 45 min (laddning höjer den 0,1–0,2 V/h,
-  // medan återhämtning efter en uppladdning bara är några hundradels volt)
-  const okning = pts.length > 1 ? pts[pts.length - 1][1] - pts[0][1] : 0;
-  const troligen = !usb && span >= 45 * 60e3 && lutning != null && lutning > 0.06 && okning > 0.05 && L.bv > 3.3;
+  let troligen = false;
+  if (!usb && !laddDetektor()) {
+    // Utan R9–R11: spänningen ska ha stigit tydligt i minst 45 min (laddning höjer den 0,1–0,2 V/h,
+    // medan återhämtning efter en uppladdning bara är några hundradels volt) och fortfarande stiga
+    const okning = pts.length > 1 ? pts[pts.length - 1][1] - pts[0][1] : 0;
+    const senaste = pts.filter(p => p[0] > nu - 40 * 60e3);
+    const sen = senaste.length > 2 ? linjar(senaste.map(([t, v]) => [t / 3600e3, v])) : null;
+    const topp = Math.max(...senaste.map(p => p[1]));
+    troligen = span >= 45 * 60e3 && lutning != null && lutning > 0.06 && okning > 0.05 && L.bv > 3.3
+      && (sen == null || sen > 0) && L.bv >= topp - 0.02 && L.bv < 4.15;
+  }
   if (!usb && !troligen) return null;
-  if (L.bv >= 4.17 && (lutning == null || Math.abs(lutning) < 0.01)) return { usb, troligen, full: true, soc: 100 };
+  if (L.bv >= 4.15 && (lutning == null || Math.abs(lutning) < 0.02)) return { usb, troligen, full: true, soc: 100 };
   const soc = batPct(L.bv - 0.08);               // under laddning visar spänningen ca 0,08 V för mycket
   const kap = L.batKap || cfg('batKapMah'), ma = L.laddMa || cfg('laddMa');
   const takt = span >= 30 * 60e3 ? linjar(pts.map(([t, v]) => [t / 3600e3, batPct(v - 0.08)])) : null;   // % per timme
@@ -882,7 +900,7 @@ function renderNow() {
   const est = ladd ? null : batteryEstimate();
   $('vBatSub').textContent = ingenMatning ? (L.usb ? 'laddaren ansluten · ingen batterimätning (A0 är inte kopplad)' : 'ingen batterimätning (A0 är inte kopplad)')
     : num(L.bv) && L.bv < 2.5 ? `${dec(L.bv, 2)} V · inget batteri (går på USB)`
-    : ladd?.full ? `${dec(L.bv, 2)} V · fullt laddat${ladd.usb ? ', kan kopplas ur' : ''}`
+    : ladd?.full ? `${dec(L.bv, 2)} V · laddaren ansluten · batteriet fullt (eller inte anslutet)`
     : ladd ? `${dec(L.bv, 2)} V · laddar${ladd.troligen ? ' (troligen)' : ''} · fullt ca ${hm(ladd.eta)} (om ${dur(ladd.h * 3600)})`
     : `${dec(L.bv, 2)} V` + (est ? ` · räcker ca ${est.text}` : '');
   $('vRs').innerHTML = num(L.rs) ? `${bars(L.rs)}${L.rs}` : '–';
