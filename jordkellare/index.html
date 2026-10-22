@@ -923,7 +923,8 @@ function renderNow() {
   const nx = nextExpected();
   $('nextTxt').innerHTML = L.status === 'skydd' ? 'Skyddsläge: nästa kontroll om ett dygn'
     : live ? 'Uppdateras var 15:e sekund' + (num(L.chip) ? ` · i lådan ${dec(L.chip)} °C` : '')
-    : `Nästa uppladdning ${od ? 'var väntad' : 'ca'} <b>${hm(nx)}</b> · mäter var ${fmtS(matS())}` + (num(L.chip) ? ` · i lådan ${dec(L.chip)} °C` : '');
+    : `Nästa uppladdning ${od ? 'var väntad' : 'ca'} <b>${hm(nx)}</b>` + (L.usb && !od ? ' (varje mätning medan laddaren sitter i)' : '')
+      + ` · mäter var ${fmtS(matS())}` + (num(L.chip) ? ` · i lådan ${dec(L.chip)} °C` : '');
   $('topStatus').textContent = od ? `Ingen uppladdning sedan ${when(L.uppAt || L.at)}` : `Jordkällaren ${dec(L.ti)} °C, ${dec(L.rh, 0)} % · ute ${dec(L.tu)} °C`;
 }
 
