@@ -828,7 +828,7 @@ function trendText(key, unit, d, lim) {
   if (s == null || Math.abs(s) < lim) return '';
   return ` · <span class="trend">${s > 0 ? '↑' : '↓'} ${dec(Math.abs(s), d)} ${unit}/h</span>`;
 }
-// Laddning: säkert om sensorn har R9/R10 (latest.usb), annars gissat från att spänningen stiger
+// Laddning: säkert om sensorn har R9–R11 (latest.usb), annars gissat från att spänningen stiger
 function linjar(pts) {
   const n = pts.length; if (n < 2) return null;
   const mx = pts.reduce((a, p) => a + p[0], 0) / n, my = pts.reduce((a, p) => a + p[1], 0) / n;
@@ -1956,7 +1956,7 @@ function renderDiag() {
     ['Uppladdningar', `${num(d.uppladdningar) ? `${d.uppladdningar} sedan start · ` : ''}${num(d.buffrade) ? `${d.buffrade} mätningar i den senaste (plats för ${d.bufMax || '?'}) · ` : ''}${d.missade ? `${d.missade} misslyckades innan${d.sistaFel ? `: ${esc(d.sistaFel)}` : ''}` : 'alla gick fram'}`],
     ['SHT40', `${esc(d.sht || '–')}${d.shtSerie ? ` · serienr ${esc(d.shtSerie)}` : ''} · pullup ${d.pullup === 'extern' ? 'på kabeln (extern)' : 'ESP32:ans interna'}${num(d.shtRaT) ? ` · rått ${dec(d.shtRaT, 2)} °C, ${dec(d.shtRaRh, 1)} %` : ''}`],
     ['Utomhussonden', `${esc(d.ntc || '–')}${num(d.ntcOhm) ? ` · ${Math.round(d.ntcOhm).toLocaleString('sv')} Ω` : ''} · ${d.ntcMv ?? '–'} mV på A1`],
-    ['Batteri', `${num(latest?.bv) ? dec(latest.bv, 3) + ' V' : '–'} · ${d.batMv ?? '–'} mV på A0 · faktor ${dec(d.kal?.batFaktor, 4)} · laddaren ${d.usb ? 'ansluten' : 'inte ansluten (eller R9/R10 saknas)'}`],
+    ['Batteri', `${num(latest?.bv) ? dec(latest.bv, 3) + ' V' : '–'} · ${d.batMv ?? '–'} mV på A0 · faktor ${dec(d.kal?.batFaktor, 4)} · laddaren ${d.usb ? 'ansluten' : 'inte ansluten (eller R9–R11 saknas)'}`],
     ['I lådan', num(d.chip) ? `${dec(d.chip)} °C (chippets temperatur)` : '–'],
     ['Värmaren', `${d.varmeAuto ? 'automatisk' : 'av'} · körts ${d.varmeAntal || 0} gånger${d.varmeAt ? `, senast ${when(d.varmeAt)}` : ''}`],
     ['Schema', d.schema ? `mäter var ${fmtS(d.schema.matS)} · laddar upp ${d.schema.uppDagMin ? `var ${fmtS(d.schema.uppDagMin * 60)}` : 'varje mätning'}${d.schema.nattPa ? `, natten ${hhmm(d.schema.nattFran)}–${hhmm(d.schema.nattTill)} var ${fmtS(d.schema.uppNattMin * 60)}` : ''}${d.snabb ? ` · snabbläge var ${fmtS(d.snabb.s)} till ${hm(d.snabb.till)}` : ''}` : '–'],
