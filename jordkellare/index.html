@@ -869,19 +869,25 @@ function laddStatus() {
       && (sen == null || sen > 0) && L.bv >= topp - 0.02 && L.bv < 4.15;
   }
   if (!usb && !troligen) return null;
-  if (L.bv >= 4.15 && (lutning == null || Math.abs(lutning) < 0.02)) return { usb, troligen, full: true, soc: 100 };
   const kap = L.batKap || cfg('batKapMah'), ma = L.laddMa || cfg('laddMa');
   // Under laddning ligger spänningen 0,1–0,3 V över batteriets egentliga nivå. Vet vi när laddaren
   // kopplades i och vilospänningen innan, räknas nivån därifrån med laddströmmen (som en mätare),
   // och spänningen används bara som gränser. Annars dras ett ungefärligt påslag av.
+  const matare = usb && num(L.laddStart) && num(L.laddStartBv) && L.laddStartBv > 2.5;
   let soc;
-  if (usb && num(L.laddStart) && num(L.laddStartBv)) {
+  if (matare) {
     soc = batPct(L.laddStartBv) + Math.max(0, nu - L.laddStart) / 3600e3 * ma * 0.95 / kap * 100;
     soc = Math.min(Math.max(soc, batPct(L.bv - 0.35)), batPct(L.bv), 99);
-  } else soc = batPct(L.bv - 0.2);
-  let h;
-  if (L.bv >= 4.15) h = 0.5;                     // sista biten: spänningen står still och strömmen minskar
-  else h = (100 - soc) / 100 * kap * 0.9 / ma + 0.6;
+  } else soc = batPct(L.bv - (usb ? 0.25 : 0.2));
+  // Fullt: mätaren säger det, eller spänningen har legat still vid laddarens 4,2 V i över en och en halv
+  // timme. Bara 4,2 V räcker inte: med glappa kontakter (breadboard) når laddaren dit långt innan
+  // batteriet är fullt och fortsätter sedan med lägre ström.
+  let k = pts.length;
+  while (k > 0 && pts[k - 1][1] >= 4.15) k--;
+  const cvTid = k < pts.length ? nu - pts[k][0] : 0;
+  if (soc >= 98 || (L.bv >= 4.15 && cvTid >= 90 * 60e3 && (lutning == null || Math.abs(lutning) < 0.02))) return { usb, troligen, full: true, soc: 100 };
+  let h = (100 - soc) / 100 * kap * 0.9 / ma + 0.6;
+  if (L.bv >= 4.15) h = Math.max(h, 0.5);        // sista biten: laddaren drar ner strömmen
   return { usb, troligen, full: false, soc, h, eta: nu + h * 3600e3 };
 }
 
