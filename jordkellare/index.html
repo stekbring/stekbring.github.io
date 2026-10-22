@@ -666,12 +666,20 @@ function bars(rssi) {
   return h + '</svg>';
 }
 const signal = r => r >= -55 ? 'utmärkt' : r >= -67 ? 'bra' : r >= -75 ? 'okej' : r >= -85 ? 'svag' : 'mycket svag';
+// Vilospänning ↔ procent för en 18650-cell
+const BAT_V = [3.20, 3.40, 3.55, 3.65, 3.70, 3.75, 3.80, 3.85, 3.92, 4.00, 4.10, 4.20];
+const BAT_P = [0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
 function batPct(v) {
-  const V = [3.20, 3.40, 3.55, 3.65, 3.70, 3.75, 3.80, 3.85, 3.92, 4.00, 4.10, 4.20];
-  const P = [0, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+  const V = BAT_V, P = BAT_P;
   if (!num(v) || v <= V[0]) return 0;
   for (let i = 1; i < V.length; i++) if (v <= V[i]) return P[i - 1] + (P[i] - P[i - 1]) * (v - V[i - 1]) / (V[i] - V[i - 1]);
   return 100;
+}
+function vilaV(p) {
+  const V = BAT_V, P = BAT_P;
+  if (p <= 0) return V[0];
+  for (let i = 1; i < P.length; i++) if (p <= P[i]) return V[i - 1] + (V[i] - V[i - 1]) * (p - P[i - 1]) / (P[i] - P[i - 1]);
+  return V[V.length - 1];
 }
 const histTime = h => (h.at || 0) - (h.ald || 0) * 1000;
 const matS = () => latest?.matS || diag?.schema?.matS || (latest?.intervallMin ? latest.intervallMin * 60 : STD.matS);
@@ -868,29 +876,103 @@ function laddStatus() {
   }
   if (!usb && !troligen) return null;
   const kap = L.batKap || cfg('batKapMah'), ma = L.laddMa || cfg('laddMa');
-  // Under laddning ligger spänningen 0,1–0,3 V över batteriets egentliga nivå. Vet vi när laddaren
-  // kopplades i och vilospänningen innan, räknas nivån därifrån med laddströmmen (som en mätare),
-  // och spänningen används bara som gränser. Annars dras ett ungefärligt påslag av.
+  // Vet vi när laddaren kopplades i och vilospänningen innan, räknas nivån fram med laddströmmen
+  // (laddKurva). Annars dras ett ungefärligt påslag av från spänningen.
   const matare = usb && num(L.laddStart) && num(L.laddStartBv) && L.laddStartBv > 2.5;
-  let soc;
   if (matare) {
-    soc = batPct(L.laddStartBv) + Math.max(0, nu - L.laddStart) / 3600e3 * ma * 0.95 / kap * 100;
-    soc = Math.min(Math.max(soc, batPct(L.bv - 0.7)), batPct(L.bv), 99);
-  } else soc = batPct(L.bv - (usb ? 0.25 : 0.2));
-  // Fullt: mätaren säger det, eller spänningen har legat still vid laddarens 4,2 V i över en och en halv
-  // timme. Bara 4,2 V räcker inte: med glappa kontakter (breadboard) når laddaren dit långt innan
-  // batteriet är fullt och fortsätter sedan med lägre ström.
+    const c = laddKurva(L.laddStart, L.laddStartBv, bvPunkter().filter(q => q[0] <= nu + 60e3), laddOpt());
+    const f = c.fram(nu);
+    const soc = Math.min(Math.max(f.soc, batPct(L.bv - 0.7)), batPct(L.bv), 100);
+    if (soc >= 99 || (soc > 85 && f.I < 0.1 * ma)) return { usb, troligen, full: true, soc: 100 };
+    const h = c.kvar(nu) / 3600e3;
+    return { usb, troligen, full: false, soc, h, eta: nu + h * 3600e3 };
+  }
+  const soc = batPct(L.bv - (usb ? 0.25 : 0.2));
+  // Utan mätaren: fullt när spänningen legat still vid laddarens maxspänning i över en och en halv timme
   let k = pts.length;
   while (k > 0 && pts[k - 1][1] >= 4.15) k--;
-  // Räkna bara från när laddaren senast kopplades i (punkter från en tidigare laddning räknas inte)
-  let iSedan = num(L.laddStart) ? L.laddStart : 0;
+  let iSedan = 0;
   for (let i = logItems.length - 1; i >= 0 && !iSedan; i--) if (/^Laddaren ansluten/.test(logItems[i].text || '')) iSedan = histTime(logItems[i]);
   const cvTid = k < pts.length && usb && iSedan ? nu - Math.max(pts[k][0], iSedan) : 0;
-  // Med mätaren gäller bara den: spänningen kan visa 4,2 V långt innan batteriet är fullt (mätfel, kontakter)
-  if (soc >= 98 || (!matare && L.bv >= 4.15 && cvTid >= 90 * 60e3 && (lutning == null || Math.abs(lutning) < 0.02))) return { usb, troligen, full: true, soc: 100 };
+  if (soc >= 98 || (L.bv >= 4.15 && cvTid >= 90 * 60e3 && (lutning == null || Math.abs(lutning) < 0.02))) return { usb, troligen, full: true, soc: 100 };
   let h = (100 - soc) / 100 * kap * 0.9 / ma + 0.6;
-  if (L.bv >= 4.15) h = Math.max(h, 0.5);        // sista biten: laddaren drar ner strömmen
+  if (L.bv >= 4.15) h = Math.max(h, 0.5);
   return { usb, troligen, full: false, soc, h, eta: nu + h * 3600e3 };
+}
+
+/* ---------- Laddmodell ----------
+   Laddaren ger full ström tills spänningen vid den når taket (4,2 V), sedan minskar strömmen.
+   Allt motstånd mellan laddaren och cellen (kontakter, kablar, cellen själv) gör att den uppmätta
+   spänningen ligger ström × R över batteriets vilospänning. R fås ur hoppet när laddaren kopplas i,
+   och strömmen vid varje mätning blir I = (uppmätt − vilospänning) / R, högst laddströmmen.
+   Faktorn k (laddFaktor) lärs från tidigare laddningar: hur mycket batteriet faktiskt hade ökat
+   (vilospänningen när laddaren drogs ur) jämfört med modellen. Fångar t.ex. att laddkretsen sänker
+   strömmen när den blir varm. */
+function laddOpt() {
+  return { kap: latest?.batKap || cfg('batKapMah'), ma: latest?.laddMa || cfg('laddMa'), k: laddFaktor() };
+}
+// Alla mätningar med batterispänning som finns hämtade: [t, bv], sorterade
+function bvPunkter() {
+  const m = new Map();
+  for (const h of [...raw.rows, ...today]) if (num(h.bv) && h.bv >= 2.5) m.set(histTime(h), h.bv);
+  if (num(latest?.bv) && latest.bv >= 2.5 && num(latest.at)) m.set(latest.at, latest.bv);
+  return [...m.entries()].sort((a, b) => a[0] - b[0]);
+}
+// Vilospänningen strax före laddningen (punkter som redan hunnit hoppa upp hoppas över)
+function vilaFore(a, pts) {
+  let i = -1;
+  for (let j = 0; j < pts.length && pts[j][0] < a - 1000; j++) i = j;
+  while (i > 0 && pts[i][0] > a - 15 * 60e3 && pts[i][1] - pts[i - 1][1] > 0.12) i--;
+  return i >= 0 && a - pts[i][0] < 6 * 3600e3 ? pts[i][1] : null;
+}
+// pts: [t, bv] sorterade, bara från den här laddningen eller tidigare (inget efter urkopplingen)
+function laddKurva(a, bv0, pts, o) {
+  const { kap, ma, k } = o, eff = 0.95;
+  // Med i laddningen: allt från starten, plus mätningar strax före som redan hoppat upp (laddaren
+  // hann i innan den upptäcktes)
+  const med = pts.filter(q => q[0] >= a - 1000 || (q[0] >= a - 15 * 60e3 && q[1] > bv0 + 0.12));
+  const v1 = med.length ? med[0][1] : null;
+  const R = v1 != null ? Math.min(3, Math.max(0.15, (v1 - bv0) / (ma / 1000))) : 0.5;
+  const strom = (v, s) => Math.max(0, Math.min(ma, (v - vilaV(s)) / R * 1000)) * k;
+  const steg = (s, i, dt) => Math.min(100, s + i * eff * dt / 3600e3 / kap * 100);
+  let soc = batPct(bv0), t = a, I = ma * k;
+  const ut = [];
+  for (const [tp, v] of med) {
+    soc = steg(soc, I, Math.max(0, tp - t));
+    I = strom(v, soc); t = Math.max(t, tp);
+    ut.push([tp, soc, v]);
+  }
+  // Taket: högsta spänningen laddaren når (mätningen kan visa lite över 4,2 V), sparas när det syns
+  const sista = med.slice(-6).map(q => q[1]);
+  if (sista.length >= 6 && Math.min(...sista) >= 4.1 && Math.max(...sista) - Math.min(...sista) < 0.02) lsSet('jk-vtak', String(Math.max(...sista)));
+  const tak = Math.max(4.2, Number(lsGet('jk-vtak')) || 0, ...med.map(q => q[1]));
+  const vFram = s => Math.min(tak, vilaV(s) + ma / 1000 * R);
+  // Framåt från senaste mätningen
+  const fram = tt => { let s = soc, i = I, x = t; while (x < tt) { const dt = Math.min(60e3, tt - x); s = steg(s, i, dt); i = strom(vFram(s), s); x += dt; } return { soc: s, I: i }; };
+  // Tid kvar till fullt (laddaren slutar när strömmen fallit till en tiondel)
+  const kvar = tt => { let { soc: s, I: i } = fram(tt), x = 0; while (s < 99.5 && i >= 0.1 * ma && x < 24 * 3600e3) { s = steg(s, i, 60e3); i = strom(vFram(s), s); x += 60e3; } return x; };
+  return { pts: ut, soc, I, t, R, fram, kvar };
+}
+// Lärs från avslutade laddningar: verklig ökning / modellens ökning (k = 1)
+let laddFaktorCache = null;
+function laddFaktor() {
+  const nyckel = `${logItems.length}:${today.length}:${raw.rows.length}:${lg.rows.length}`;
+  if (laddFaktorCache?.nyckel === nyckel) return laddFaktorCache.k;
+  const kap = latest?.batKap || cfg('batKapMah'), ma = latest?.laddMa || cfg('laddMa');
+  const pts = bvPunkter(), ks = [];
+  for (const p of laddPerioder(laddHandelser())) {
+    if (p.z === Infinity || p.z - p.a < 30 * 60e3) continue;
+    const bv0 = vilaFore(p.a, pts);
+    const efter = pts.find(q => q[0] >= p.z - 1000 && q[0] < p.z + 20 * 60e3);
+    if (bv0 == null || !efter) continue;
+    const c = laddKurva(p.a, bv0, pts.filter(q => q[0] < p.z - 1000), { kap, ma, k: 1 });
+    const modell = c.fram(p.z).soc - batPct(bv0), verklig = batPct(efter[1]) - batPct(bv0);
+    if (modell >= 5 && c.pts.length >= 3) ks.push(Math.min(1.2, Math.max(0.25, verklig / modell)));
+  }
+  let k = Number(lsGet('jk-laddk')) || 1;
+  if (ks.length) { const s = ks.slice(-3); k = s.reduce((x, y) => x + y, 0) / s.length; lsSet('jk-laddk', k.toFixed(3)); }
+  laddFaktorCache = { nyckel, k };
+  return k;
 }
 
 /* ---------- Batterinivå över tid (grafen) ---------- */
@@ -907,25 +989,24 @@ function laddPerioder(evs) {
   if (cur && latest?.usb) out.push({ ...cur, z: Infinity, oppen: true });
   return out;
 }
-// Procent för varje mätning: [t, %] eller [t, %, min, max] för timvärden. Under laddning säger
-// spänningen nästan inget, så där räknas nivån fram från vilospänningen före och laddströmmen.
+// Procent för varje mätning: [t, %] eller [t, %, min, max] för timvärden. Under laddning räknas
+// nivån fram med laddKurva (samma som Just nu).
 function batProcentSerie(rows, tid, evs) {
-  const kap = latest?.batKap || cfg('batKapMah'), ma = latest?.laddMa || cfg('laddMa');
   const v = rows.filter(h => num(h.bv) && h.bv >= 2.5);
-  const per = laddPerioder(evs);
-  for (const p of per) {
-    if (p.oppen && num(latest?.laddStart) && latest.laddStartBv > 2.5) { p.a = latest.laddStart; p.bv0 = latest.laddStartBv; continue; }
-    let fore = null;
-    for (const h of v) { if (tid(h) >= p.a - 1000) break; fore = h; }
-    if (fore && p.a - tid(fore) < 6 * 3600e3) p.bv0 = fore.bv;
-    else if (num(p.v)) p.bv0 = p.v - 0.25;
+  const pts = v.map(h => [tid(h), h.bv]);
+  const o = laddOpt(), ladd = new Map();
+  for (const p of laddPerioder(evs)) {
+    let a = p.a, bv0;
+    if (p.oppen && num(latest?.laddStart) && latest.laddStartBv > 2.5) { a = latest.laddStart; bv0 = latest.laddStartBv; }
+    else bv0 = vilaFore(a, pts) ?? (num(p.v) ? p.v - 0.25 : null);
+    if (bv0 == null) continue;
+    const c = laddKurva(a, bv0, pts.filter(q => q[0] < p.z - 1000), o);
+    for (const [t, s, bv] of c.pts) ladd.set(t, Math.min(Math.max(s, batPct(bv - 0.7)), batPct(bv), 100));
   }
-  const takt = ma * 0.95 / kap * 100 / 3600e3;   // procent per millisekund
   return v.map(h => {
-    const t = tid(h), p = per.find(q => t >= q.a - 1000 && t < q.z);
-    if (!p || !num(p.bv0)) return num(h.bvMin) ? [t, batPct(h.bv), batPct(h.bvMin), batPct(h.bvMax)] : [t, batPct(h.bv)];
-    const soc = batPct(p.bv0) + Math.max(0, t - p.a) * takt;
-    return [t, Math.min(Math.max(soc, batPct(h.bv - 0.7)), batPct(h.bv), 100)];
+    const t = tid(h);
+    if (ladd.has(t)) return [t, ladd.get(t)];
+    return num(h.bvMin) ? [t, batPct(h.bv), batPct(h.bvMin), batPct(h.bvMax)] : [t, batPct(h.bv)];
   });
 }
 
@@ -2230,13 +2311,14 @@ function demoData() {
   }
   const last = Object.values(out).sort((a, b) => b.at - a.at)[0];
   const laddar = new URLSearchParams(location.search).has('laddar');
-  // ?laddar: laddaren i sedan 2,5 h (från 3,62 V i vila), spänningen når laddarens 4,2 V efter en stund
-  if (laddar) Object.values(out).filter(h => h.at > now - 3.5 * 3600e3).forEach(h => {
-    const dt = (h.at - (now - 2.5 * 3600e3)) / 3600e3;
-    h.bv = dt < 0 ? 3.62 : +Math.min(4.21, 3.9 + dt * 0.25).toFixed(3);
+  // ?laddar: laddade 3,5 h från 3,70 V (vilan efteråt visade 3,90 V), urkopplad en stund, sedan i igen
+  const T1 = now - 4 * 3600e3, T2 = now - 40 * 60e3, T3 = now - 22 * 60e3;
+  if (laddar) Object.values(out).filter(h => h.at > now - 5 * 3600e3).forEach(h => {
+    const t = h.at;
+    h.bv = t < T1 ? 3.70 : t < T2 ? +Math.min(4.28, 4.0 + (t - T1) / 3600e3 * 0.2).toFixed(3) : t < T3 - 3 * 60e3 ? 3.90 : 4.27;
   });
   const L = { ...last, at: now - 4 * 60000, uppAt: now - 4 * 60000 + 3000, nastaUpp: now + 56 * 60000, matS: 300, larm: 0, bv: 3.91, bp: Math.round(batPct(3.91)), rs: -68, chip: 3.4, ntcOhm: 24500, status: 'ok', granser: { tiLag: 1 }, usb: laddar, batKap: 3400, laddMa: 380 };
-  if (laddar) Object.assign(L, { bv: 4.21, laddStart: now - 2.5 * 3600e3, laddStartBv: 3.62 }); else { const sb = Object.values(out).filter(h => num(h.bv)).sort((a, b) => b.at - a.at)[0]; if (sb) L.bv = sb.bv; L.bp = Math.round(batPct(L.bv)); }
+  if (laddar) Object.assign(L, { bv: 4.27, laddStart: T3, laddStartBv: 3.90 }); else { const sb = Object.values(out).filter(h => num(h.bv)).sort((a, b) => b.at - a.at)[0]; if (sb) L.bv = sb.bv; L.bp = Math.round(batPct(L.bv)); }
   demoDb.data = {
     historik: out, timmar, latest: L,
     diag: { at: L.at, fw: '2.5', vackt: 'timer', varfor: 'schemat', start: 'ström på (nytt batteri eller USB)', startAt: now - 41 * 864e5, vakningar: 11808, uppladdningar: 912, starter: 3, brownouts: 0, krascher: 0,
@@ -2257,7 +2339,10 @@ function demoData() {
       l1: { at: now - 41 * 864e5, text: 'Startade: ström på (nytt batteri eller USB)', niva: 'info' },
       l2: { at: now - 12 * 864e5, text: 'Kunde inte ladda upp 3 gånger (WiFi: tappade routerns signal). Skickade nu 3 sparade mätningar.', niva: 'varning' },
       l3: { at: now - 3 * 864e5, text: 'Värmaren i SHT40 kördes, fukten var 99,6 %', niva: 'info' },
-      ...(laddar ? { l4: { at: now - 2.5 * 3600e3, text: 'Laddaren ansluten (3.90 V). Sensorn laddar upp varje mätning så länge den laddar.', niva: 'info' } } : {}),
+      ...(laddar ? {
+        l4: { at: T1, text: 'Laddaren ansluten (4.00 V). Sensorn laddar upp varje mätning så länge den laddar.', niva: 'info' },
+        l5: { at: T2, text: 'Laddaren urkopplad (3.90 V)', niva: 'info' },
+        l6: { at: T3, text: 'Laddaren ansluten (4.27 V). Sensorn laddar upp varje mätning så länge den laddar.', niva: 'info' } } : {}),
     },
   };
 }
