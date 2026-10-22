@@ -877,14 +877,17 @@ function laddStatus() {
   let soc;
   if (matare) {
     soc = batPct(L.laddStartBv) + Math.max(0, nu - L.laddStart) / 3600e3 * ma * 0.95 / kap * 100;
-    soc = Math.min(Math.max(soc, batPct(L.bv - 0.35)), batPct(L.bv), 99);
+    soc = Math.min(Math.max(soc, batPct(L.bv - 0.7)), batPct(L.bv), 99);
   } else soc = batPct(L.bv - (usb ? 0.25 : 0.2));
   // Fullt: mätaren säger det, eller spänningen har legat still vid laddarens 4,2 V i över en och en halv
   // timme. Bara 4,2 V räcker inte: med glappa kontakter (breadboard) når laddaren dit långt innan
   // batteriet är fullt och fortsätter sedan med lägre ström.
   let k = pts.length;
   while (k > 0 && pts[k - 1][1] >= 4.15) k--;
-  const cvTid = k < pts.length ? nu - pts[k][0] : 0;
+  // Räkna bara från när laddaren senast kopplades i (punkter från en tidigare laddning räknas inte)
+  let iSedan = num(L.laddStart) ? L.laddStart : 0;
+  for (let i = logItems.length - 1; i >= 0 && !iSedan; i--) if (/^Laddaren ansluten/.test(logItems[i].text || '')) iSedan = histTime(logItems[i]);
+  const cvTid = k < pts.length && usb && iSedan ? nu - Math.max(pts[k][0], iSedan) : 0;
   if (soc >= 98 || (L.bv >= 4.15 && cvTid >= 90 * 60e3 && (lutning == null || Math.abs(lutning) < 0.02))) return { usb, troligen, full: true, soc: 100 };
   let h = (100 - soc) / 100 * kap * 0.9 / ma + 0.6;
   if (L.bv >= 4.15) h = Math.max(h, 0.5);        // sista biten: laddaren drar ner strömmen
@@ -909,12 +912,13 @@ function renderNow() {
   const m = $('vBatMeter');
   m.className = 'meter' + (ladd && !ladd.full ? ' laddar' : pct < 10 ? ' bad' : pct < 25 ? ' warn' : '');
   m.firstElementChild.style.width = `calc(${Math.max(0, Math.min(100, pct))}% - 2px)`;
-  const est = ladd || ingenMatning || !num(L.bv) || L.bv < 2.5 ? null : batteryLeft(pct);
+  const est = ladd || ingenMatning || liveActive() || !num(L.bv) || L.bv < 2.5 ? null : batteryLeft(pct);
   const sl = ladd || ingenMatning ? null : senasteLaddning();
   const huvud = ingenMatning ? (L.usb ? 'laddaren ansluten · ingen batterimätning (A0 är inte kopplad)' : 'ingen batterimätning (A0 är inte kopplad)')
     : num(L.bv) && L.bv < 2.5 ? `${dec(L.bv, 2)} V · inget batteri (går på USB)`
     : ladd?.full ? `${dec(L.bv, 2)} V · laddaren ansluten · batteriet fullt (eller inte anslutet)`
     : ladd ? `${dec(L.bv, 2)} V · laddar${ladd.troligen ? ' (troligen)' : ''} · fullt ca ${hm(ladd.eta)} (om ${dur(ladd.h * 3600)})`
+    : liveActive() ? `${dec(L.bv, 2)} V · mätt med WiFi på (visar lite lägre än i vila)`
     : `${dec(L.bv, 2)} V` + (est ? ` · räcker ca ${est.text}` : '');
   $('vBatSub').innerHTML = esc(huvud) + (sl ? `<br>senast laddad till ca ${Math.round(sl.pct)} % · ${esc(when(sl.at))}${sl.fran ? ` (laddade i ${esc(dur((sl.at - sl.fran) / 1000))})` : ''}` : '');
   $('vBatSub').title = !est ? '' : est.matt ? 'Räknat på hur snabbt batteriet faktiskt har sjunkit sedan senaste laddningen.'
