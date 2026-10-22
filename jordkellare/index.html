@@ -870,14 +870,14 @@ function laddStatus() {
   if (!usb && !troligen) return null;
   if (L.bv >= 4.15 && (lutning == null || Math.abs(lutning) < 0.02)) return { usb, troligen, full: true, soc: 100 };
   const kap = L.batKap || cfg('batKapMah'), ma = L.laddMa || cfg('laddMa');
-  // Under laddning ligger spänningen 0,1–0,2 V över batteriets egentliga nivå. Vet vi när laddaren
+  // Under laddning ligger spänningen 0,1–0,3 V över batteriets egentliga nivå. Vet vi när laddaren
   // kopplades i och vilospänningen innan, räknas nivån därifrån med laddströmmen (som en mätare),
   // och spänningen används bara som gränser. Annars dras ett ungefärligt påslag av.
   let soc;
   if (usb && num(L.laddStart) && num(L.laddStartBv)) {
     soc = batPct(L.laddStartBv) + Math.max(0, nu - L.laddStart) / 3600e3 * ma * 0.95 / kap * 100;
-    soc = Math.min(Math.max(soc, batPct(L.bv - 0.2)), batPct(L.bv), 99);
-  } else soc = batPct(L.bv - 0.15);
+    soc = Math.min(Math.max(soc, batPct(L.bv - 0.35)), batPct(L.bv), 99);
+  } else soc = batPct(L.bv - 0.2);
   let h;
   if (L.bv >= 4.15) h = 0.5;                     // sista biten: spänningen står still och strömmen minskar
   else h = (100 - soc) / 100 * kap * 0.9 / ma + 0.6;
