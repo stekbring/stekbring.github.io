@@ -869,12 +869,17 @@ function laddStatus() {
   }
   if (!usb && !troligen) return null;
   if (L.bv >= 4.15 && (lutning == null || Math.abs(lutning) < 0.02)) return { usb, troligen, full: true, soc: 100 };
-  const soc = batPct(L.bv - 0.08);               // under laddning visar spänningen ca 0,08 V för mycket
   const kap = L.batKap || cfg('batKapMah'), ma = L.laddMa || cfg('laddMa');
-  const takt = span >= 30 * 60e3 ? linjar(pts.map(([t, v]) => [t / 3600e3, batPct(v - 0.08)])) : null;   // % per timme
+  // Under laddning ligger spänningen 0,1–0,2 V över batteriets egentliga nivå. Vet vi när laddaren
+  // kopplades i och vilospänningen innan, räknas nivån därifrån med laddströmmen (som en mätare),
+  // och spänningen används bara som gränser. Annars dras ett ungefärligt påslag av.
+  let soc;
+  if (usb && num(L.laddStart) && num(L.laddStartBv)) {
+    soc = batPct(L.laddStartBv) + Math.max(0, nu - L.laddStart) / 3600e3 * ma * 0.95 / kap * 100;
+    soc = Math.min(Math.max(soc, batPct(L.bv - 0.2)), batPct(L.bv), 99);
+  } else soc = batPct(L.bv - 0.15);
   let h;
   if (L.bv >= 4.15) h = 0.5;                     // sista biten: spänningen står still och strömmen minskar
-  else if (takt != null && takt > 2) h = Math.max(0, 97 - soc) / takt + 0.5;
   else h = (100 - soc) / 100 * kap * 0.9 / ma + 0.6;
   return { usb, troligen, full: false, soc, h, eta: nu + h * 3600e3 };
 }
@@ -2124,7 +2129,7 @@ function demoData() {
   const laddar = new URLSearchParams(location.search).has('laddar');
   if (laddar) Object.values(out).filter(h => h.at > now - 2.5 * 3600e3 && num(h.bv)).forEach(h => { h.bv = +(3.62 + (h.at - (now - 2.5 * 3600e3)) / 3600e3 * 0.12).toFixed(3); });
   const L = { ...last, at: now - 4 * 60000, uppAt: now - 4 * 60000 + 3000, nastaUpp: now + 56 * 60000, matS: 300, larm: 0, bv: 3.91, bp: Math.round(batPct(3.91)), rs: -68, chip: 3.4, ntcOhm: 24500, status: 'ok', granser: { tiLag: 1 }, usb: laddar, batKap: 3400, laddMa: 380 };
-  if (laddar) L.bv = 3.92; else { const sb = Object.values(out).filter(h => num(h.bv)).sort((a, b) => b.at - a.at)[0]; if (sb) L.bv = sb.bv; L.bp = Math.round(batPct(L.bv)); }
+  if (laddar) Object.assign(L, { bv: 3.92, laddStart: now - 2.5 * 3600e3, laddStartBv: 3.62 }); else { const sb = Object.values(out).filter(h => num(h.bv)).sort((a, b) => b.at - a.at)[0]; if (sb) L.bv = sb.bv; L.bp = Math.round(batPct(L.bv)); }
   demoDb.data = {
     historik: out, timmar, latest: L,
     diag: { at: L.at, fw: '2.5', vackt: 'timer', varfor: 'schemat', start: 'ström på (nytt batteri eller USB)', startAt: now - 41 * 864e5, vakningar: 11808, uppladdningar: 912, starter: 3, brownouts: 0, krascher: 0,
