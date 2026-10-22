@@ -905,9 +905,9 @@ function laddStatus() {
    Allt motstånd mellan laddaren och cellen (kontakter, kablar, cellen själv) gör att den uppmätta
    spänningen ligger ström × R över batteriets vilospänning. R fås ur hoppet när laddaren kopplas i,
    och strömmen vid varje mätning blir I = (uppmätt − vilospänning) / R, högst laddströmmen.
-   Faktorn k (laddFaktor) lärs från tidigare laddningar: hur mycket batteriet faktiskt hade ökat
-   (vilospänningen när laddaren drogs ur) jämfört med modellen. Fångar t.ex. att laddkretsen sänker
-   strömmen när den blir varm. */
+   Faktorn k (laddFaktor) är hur stor del av laddströmmen laddaren faktiskt orkar ge. Den lärs från
+   tidigare laddningar: det k som gör att modellen hamnar på vilospänningen när laddaren drogs ur.
+   Fångar t.ex. att laddkretsen sänker strömmen när den blir varm. */
 function laddOpt() {
   return { kap: latest?.batKap || cfg('batKapMah'), ma: latest?.laddMa || cfg('laddMa'), k: laddFaktor() };
 }
@@ -933,7 +933,8 @@ function laddKurva(a, bv0, pts, o) {
   const med = pts.filter(q => q[0] >= a - 1000 || (q[0] >= a - 15 * 60e3 && q[1] > bv0 + 0.12));
   const v1 = med.length ? med[0][1] : null;
   const R = v1 != null ? Math.min(3, Math.max(0.15, (v1 - bv0) / (ma / 1000))) : 0.5;
-  const strom = (v, s) => Math.max(0, Math.min(ma, (v - vilaV(s)) / R * 1000)) * k;
+  // k sänker bara den högsta strömmen (t.ex. värmebegränsning), inte slutet där strömmen ändå är låg
+  const strom = (v, s) => Math.max(0, Math.min(ma * k, (v - vilaV(s)) / R * 1000));
   const steg = (s, i, dt) => Math.min(100, s + i * eff * dt / 3600e3 / kap * 100);
   let soc = batPct(bv0), t = a, I = ma * k;
   const ut = [];
@@ -953,7 +954,7 @@ function laddKurva(a, bv0, pts, o) {
   const kvar = tt => { let { soc: s, I: i } = fram(tt), x = 0; while (s < 99.5 && i >= 0.1 * ma && x < 24 * 3600e3) { s = steg(s, i, 60e3); i = strom(vFram(s), s); x += 60e3; } return x; };
   return { pts: ut, soc, I, t, R, fram, kvar };
 }
-// Lärs från avslutade laddningar: verklig ökning / modellens ökning (k = 1)
+// Lärs från avslutade laddningar: det k där modellens ökning blir lika med den verkliga
 let laddFaktorCache = null;
 function laddFaktor() {
   const nyckel = `${logItems.length}:${today.length}:${raw.rows.length}:${lg.rows.length}`;
@@ -965,9 +966,13 @@ function laddFaktor() {
     const bv0 = vilaFore(p.a, pts);
     const efter = pts.find(q => q[0] >= p.z - 1000 && q[0] < p.z + 20 * 60e3);
     if (bv0 == null || !efter) continue;
-    const c = laddKurva(p.a, bv0, pts.filter(q => q[0] < p.z - 1000), { kap, ma, k: 1 });
-    const modell = c.fram(p.z).soc - batPct(bv0), verklig = batPct(efter[1]) - batPct(bv0);
-    if (modell >= 5 && c.pts.length >= 3) ks.push(Math.min(1.2, Math.max(0.25, verklig / modell)));
+    const del = pts.filter(q => q[0] < p.z - 1000);
+    const okning = kk => laddKurva(p.a, bv0, del, { kap, ma, k: kk }).fram(p.z).soc - batPct(bv0);
+    const verklig = batPct(efter[1]) - batPct(bv0), max = okning(1.2);
+    if (max < 5 || verklig >= max - 0.5) continue;      // modellen nådde fullt: säger inget om strömmen
+    let lo = 0.2, hi = 1.2;
+    for (let n = 0; n < 18; n++) { const m = (lo + hi) / 2; if (okning(m) < verklig) lo = m; else hi = m; }
+    ks.push((lo + hi) / 2);
   }
   let k = Number(lsGet('jk-laddk')) || 1;
   if (ks.length) { const s = ks.slice(-3); k = s.reduce((x, y) => x + y, 0) / s.length; lsSet('jk-laddk', k.toFixed(3)); }
