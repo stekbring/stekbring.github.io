@@ -680,7 +680,8 @@ const matS = () => latest?.matS || diag?.schema?.matS || (latest?.intervallMin ?
 const intervalMs = () => matS() * 1000;
 function nextExpected() {
   if (!latest?.at) return 0;
-  if (num(latest.nastaUpp)) return latest.nastaUpp;
+  // Äldre firmware skickade "nu" som nästa uppladdning när den laddar upp varje mätning (laddaren i)
+  if (num(latest.nastaUpp)) return latest.usb && num(latest.matS) ? Math.max(latest.nastaUpp, latest.at + latest.matS * 1000) : latest.nastaUpp;
   return latest.at + (latest.intervallMin || 30) * 60000;
 }
 function overdue() {
