@@ -149,6 +149,46 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
   table.log th{width:auto !important}
   .form2>label,.form2>span{margin-top:6px;margin-bottom:-2px;font-weight:600}
 }
+
+/* ---------- Tillägg: grafverktyg, larm, användare ---------- */
+.histbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 6px}
+.histbar .tabs{margin:0}
+.tabs button{min-width:62px}
+.zoomknappar button{min-width:34px;padding:2px 8px}
+.verktyg{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 2px}
+.chart{cursor:grab;user-select:none;-webkit-user-select:none}
+.chart.drar{cursor:grabbing}
+.rensat{background:#f3edd8;border:2px groove var(--hi);padding:4px 10px;font-size:15px;margin:6px 0}
+.notlista{list-style:none;margin:6px 0 0;padding:0;font-size:15px}
+.notlista li{display:flex;gap:8px;align-items:baseline;padding:2px 0;border-bottom:1px solid #e0ddd6}
+.notlista li .t{color:var(--muted);white-space:nowrap}
+.notlista li button{margin-left:auto;min-height:24px;padding:0 8px;font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:4px 14px}
+.chips label{display:inline-flex;gap:5px;align-items:center}
+.radio{display:flex;flex-wrap:wrap;gap:4px 14px}
+.radio label{display:inline-flex;gap:5px;align-items:center}
+.rad3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.rad2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.notlista li>span{min-width:0;overflow-wrap:anywhere}
+.advice{display:grid;grid-template-columns:18px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid #d9d6cf}
+.advice .lamp{margin-top:5px}
+.advice small{display:block;color:var(--muted);font-size:15px}
+.progress{height:14px;border:2px inset var(--face);background:var(--field);position:relative}
+.progress>i{position:absolute;left:0;top:0;bottom:0;background:var(--sel)}
+table.rows.lista th{width:auto;color:var(--ink)}
+table.rows.lista td{font-size:15px;white-space:nowrap}
+.trend{font-variant-numeric:tabular-nums}
+code{overflow-wrap:anywhere;word-break:break-all}
+.only-admin[hidden]{display:none !important}
+input[type=email],input[type=datetime-local],input[type=time],input[type=file]{background:var(--field);border:2px inset var(--face);padding:3px 6px;border-radius:0;max-width:100%}
+input[type=email]{width:100%}
+dialog.bred{width:min(560px,96vw)}
+.dbody .form2{margin-bottom:6px}
+@media (max-width:760px){
+  .rad3,.rad2{grid-template-columns:1fr}
+  .histbar{gap:6px}
+  .zoomknappar{width:100%}
+}
 </style>
 </head>
 <body>
@@ -181,13 +221,22 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
   <form class="window" id="loginForm" autocomplete="on">
     <div class="dhead"><svg aria-hidden="true" style="filter:invert(1)"><use href="#logo"/></svg>Logga in</div>
     <div class="dbody">
-      <p class="help" style="margin-top:0">Samma användarnamn som på Olles dator, men jordkällarens eget lösenord (LOGIN_PASS i tempsensor\include\secrets.h).</p>
+      <p class="help" style="margin-top:0">Logga in med ditt användarnamn och lösenord för jordkällaren.</p>
       <label class="field"><span>Användarnamn</span><input type="text" id="inUser" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
       <label class="field"><span>Lösenord</span><input type="password" id="inPass" autocomplete="current-password" required></label>
       <p class="err" id="loginErr" role="alert"></p>
     </div>
     <div class="dfoot"><button type="submit" class="default" id="btnLogin">Logga in</button></div>
   </form>
+</div>
+
+<!-- ---------- Ingen behörighet ---------- -->
+<div class="loginwrap" id="viewNoRole" hidden>
+  <div class="window">
+    <div class="dhead">Ingen behörighet</div>
+    <div class="dbody"><p>Kontot <b id="noRoleUser"></b> finns, men har ingen behörighet till jordkällaren än. Be den som administrerar sidan att lägga till dig under <i>Användare</i>.</p></div>
+    <div class="dfoot"><button id="btnNoRoleOut">Logga ut</button></div>
+  </div>
 </div>
 
 <!-- ---------- Huvudvy ---------- -->
@@ -211,13 +260,28 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
 
   <section class="panel wide" aria-labelledby="hHist">
     <h2 class="panel-title" id="hHist">Historik <small id="histRange"></small></h2>
-    <div class="tabs" role="group" aria-label="Period" id="rangeTabs">
-      <button data-range="day" aria-pressed="true">Dygn</button>
-      <button data-range="week" aria-pressed="false">Vecka</button>
-      <button data-range="month" aria-pressed="false">Månad</button>
-      <button data-range="year" aria-pressed="false">År</button>
+    <div class="histbar">
+      <div class="tabs" role="group" aria-label="Period" id="rangeTabs">
+        <button data-range="10m">10 min</button><button data-range="1h">1 h</button><button data-range="6h">6 h</button>
+        <button data-range="day">Dygn</button><button data-range="week">Vecka</button><button data-range="month">Månad</button>
+        <button data-range="year">År</button><button data-range="custom" id="btnCustom">Egen…</button>
+      </div>
+      <div class="zoomknappar" role="group" aria-label="Zooma och flytta">
+        <button id="zIn" title="Zooma in">+</button><button id="zOut" title="Zooma ut">−</button>
+        <button id="zLeft" title="Bakåt i tiden">◀</button><button id="zRight" title="Framåt i tiden">▶</button>
+        <button id="zNow" title="Tillbaka till nu">Nu</button>
+      </div>
     </div>
-    <div class="charthead">Temperatur <span class="key"><i style="background:var(--c-in)"></i>jordkällaren</span><span class="key"><i style="background:var(--c-ut)"></i>ute</span></div>
+    <div class="verktyg">
+      <button id="btnClear" title="Döljer allt som mätts hittills, bara på den här enheten. Inget tas bort i databasen.">Rensa graferna</button>
+      <button id="btnUnclear" hidden>Visa allt igen</button>
+      <button id="btnExport">Exportera CSV…</button>
+      <button id="btnNote" class="only-admin" hidden>Ny anteckning…</button>
+      <label id="lastYearWrap" hidden><input type="checkbox" id="chkLastYear"> Visa förra året</label>
+    </div>
+    <div class="rensat" id="clearInfo" hidden></div>
+    <p class="help" style="margin:2px 0 0">Zooma med mushjulet eller två fingrar, dra i grafen för att flytta, dubbelklicka för att gå tillbaka.</p>
+    <div class="charthead">Temperatur <span class="key"><i style="background:var(--c-in)"></i>jordkällaren</span><span class="key"><i style="background:var(--c-ut)"></i>ute</span><span class="key" id="keyLastYear" hidden><i style="background:repeating-linear-gradient(90deg,#8aa0bf 0 4px,transparent 4px 7px)"></i>förra året</span></div>
     <div class="chart" id="chTemp"></div>
     <div class="charthead">Luftfuktighet i jordkällaren</div>
     <div class="chart" id="chRh"></div>
@@ -227,9 +291,67 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
     </div>
     <div class="tiles" id="statTiles"></div>
     <p class="help" id="histNote"></p>
+    <div id="notesWrap" hidden>
+      <div class="charthead">Anteckningar i perioden</div>
+      <ul class="notlista" id="notesList"></ul>
+    </div>
   </section>
 
-  <section class="panel" aria-labelledby="hSet">
+  <section class="panel" aria-labelledby="hWeather">
+    <h2 class="panel-title" id="hWeather">Väder och vädring <small id="weatherWhen"></small></h2>
+    <div id="advice"></div>
+    <div class="tiles" id="climateTiles"></div>
+    <div class="charthead" id="frostHead" hidden>Kommande nätter (SMHI)</div>
+    <div class="tiles" id="frostTiles"></div>
+    <fieldset class="only-admin" hidden>
+      <legend>Plats för väderdata</legend>
+      <div class="form2">
+        <label for="plNamn">Ort</label><input type="text" id="plNamn" placeholder="t.ex. Linköping">
+        <span>Position</span>
+        <div class="row" style="margin:0"><input type="number" id="plLat" step="0.0001" placeholder="lat" style="width:110px"><input type="number" id="plLon" step="0.0001" placeholder="lon" style="width:110px"><button id="btnGeo">Använd min position</button></div>
+        <label for="plFrost">Frostvarning under</label>
+        <div class="row" style="margin:0"><input type="number" id="plFrost" step="1" style="width:80px"> °C ute <span class="help">(skickas kl 17 till de som valt frostvarning)</span></div>
+      </div>
+      <div class="row"><button id="btnSavePlats">Spara plats</button><span class="msg" id="plMsg"></span></div>
+    </fieldset>
+  </section>
+
+  <section class="panel" aria-labelledby="hStats">
+    <h2 class="panel-title" id="hStats">Statistik <small id="statsRange"></small></h2>
+    <div class="tiles" id="statsTiles"></div>
+    <div class="row"><button id="btnMonths">Visa månadstabell</button><span class="help" id="monthsHelp">Medel, min och max per månad, de senaste 12 månaderna.</span></div>
+    <div id="monthsWrap" hidden style="overflow:auto"><table class="rows lista" id="monthsTable"></table></div>
+  </section>
+
+  <section class="panel wide" aria-labelledby="hAlarm">
+    <h2 class="panel-title" id="hAlarm">Larm och notiser <small id="alarmScript"></small></h2>
+    <div class="rad2">
+      <fieldset style="margin:0">
+        <legend>Mina larm</legend>
+        <div class="form2">
+          <label for="myName">Namn</label><input type="text" id="myName">
+          <label for="myMail">E-post</label><input type="email" id="myMail" placeholder="lämna tomt för inget mejl">
+          <label for="myPush">Pushover</label><input type="text" id="myPush" placeholder="din User Key från pushover.net" spellcheck="false" autocapitalize="none">
+          <span>Skicka vid</span>
+          <div class="chips" id="myTypes"></div>
+        </div>
+        <div class="row"><button id="btnSaveMine" class="default">Spara</button><button id="btnTestMine">Skicka testlarm till mig</button><span class="msg" id="myMsg"></span></div>
+      </fieldset>
+      <div>
+        <div id="alarmNow"></div>
+        <div class="charthead">Senaste notiserna</div>
+        <ul class="notlista" id="noticeList"><li class="help">Inga notiser än.</li></ul>
+      </div>
+    </div>
+    <fieldset class="only-admin" hidden>
+      <legend>Alla mottagare</legend>
+      <div style="overflow:auto"><table class="rows lista"><thead><tr><th>Namn</th><th>E-post</th><th>Pushover</th><th>Skickar vid</th><th></th></tr></thead><tbody id="recipBody"></tbody></table></div>
+      <div class="row"><button id="btnAddRecip">Lägg till mottagare…</button><button id="btnTestAll">Skicka testlarm till alla</button><span class="msg" id="recipMsg"></span></div>
+      <p class="help">Larmen skickas av larmskriptet (Google Apps Script, se GUIDE.md) inom 5 minuter efter att sensorn laddat upp. Alla som loggar in kan välja sina egna larm under <i>Mina larm</i>.</p>
+    </fieldset>
+  </section>
+
+  <section class="panel only-admin" aria-labelledby="hSet" hidden>
     <h2 class="panel-title" id="hSet">Inställningar <small id="setPending"></small></h2>
     <div class="form2" id="setForm">
       <label for="selMat">Mät var</label>
@@ -258,15 +380,30 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
         <label>från <input type="time" id="tNattFran" step="900"></label>
         <label>till <input type="time" id="tNattTill" step="900"></label>
       </div>
-      <span>Larm</span>
+      <span>Larmgränser</span>
       <div style="display:grid;gap:4px">
         <label class="row" style="margin:0"><input type="checkbox" id="chkLTi"> Jordkällaren under <input type="number" id="numLTi" step="0.5" min="-30" max="40" style="width:80px"> °C</label>
         <label class="row" style="margin:0"><input type="checkbox" id="chkHTi"> Jordkällaren över <input type="number" id="numHTi" step="0.5" min="-30" max="40" style="width:80px"> °C</label>
         <label class="row" style="margin:0"><input type="checkbox" id="chkHRh"> Fukten över <input type="number" id="numHRh" step="1" min="0" max="100" style="width:80px"> %</label>
       </div>
+      <label for="selFord">Larma efter</label>
+      <div class="row" style="margin:0">
+        <select id="selFord"><option value="0">direkt</option><option value="10">10 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">1 timme</option><option value="120">2 timmar</option></select>
+        <span class="help">gränsen måste vara passerad så här länge</span>
+      </div>
+      <label for="selPam">Påminn om</label>
+      <div class="row" style="margin:0">
+        <select id="selPam"><option value="0">aldrig</option><option value="1">1 timme</option><option value="3">3 timmar</option><option value="6">6 timmar</option><option value="12">12 timmar</option><option value="24">1 dygn</option></select>
+        <span class="help">om larmet inte kvitterats</span>
+      </div>
       <span>Värmaren</span>
       <div class="row" style="margin:0">
         <label><input type="checkbox" id="chkHeat"> Automatiskt när fukten fastnat på 99–100 %</label>
+      </div>
+      <label for="selGall">Gallring</label>
+      <div class="row" style="margin:0">
+        <select id="selGall"><option value="0">spara allt</option><option value="1">efter 1 år</option><option value="2">efter 2 år</option><option value="5">efter 5 år</option></select>
+        <span class="help">varje enskild mätning tas bort, timvärdena sparas alltid</span>
       </div>
     </div>
     <p class="help" id="schemaHelp"></p>
@@ -296,12 +433,15 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
       <legend>Engångskommandon</legend>
       <div class="row">
         <button id="btnHeatNow" title="SHT40:ans värmare (200 mW i 1 s) torkar bort kondens">Kör värmaren</button>
+        <button id="btnRestart" title="Startar om sensorn efter nästa uppladdning">Starta om sensorn</button>
+        <button id="btnWifiSearch" title="Glömmer sparad kanal och router och söker från början">Sök WiFi på nytt</button>
+        <span class="msg" id="cmdMsg"></span>
       </div>
       <p class="help" id="cmdHelp"></p>
     </fieldset>
   </section>
 
-  <section class="panel" aria-labelledby="hCal">
+  <section class="panel only-admin" aria-labelledby="hCal" hidden>
     <h2 class="panel-title" id="hCal">Kalibrering <small id="calPending"></small></h2>
     <div class="form2">
       <label for="calR25">NTC-sonden</label>
@@ -332,10 +472,36 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
       <button id="btnCalDefault">Standardvärden</button>
       <span class="msg" id="calMsg"></span>
     </div>
-    <p class="help">Gäller nya mätningar från och med nästa vakning. Gamla värden i historiken räknas inte om.</p>
+    <p class="help">Gäller nya mätningar från och med nästa uppladdning. Gamla värden i historiken räknas inte om.</p>
   </section>
 
-  <section class="panel wide" aria-labelledby="hDiag">
+  <section class="panel only-admin" aria-labelledby="hOta" hidden>
+    <h2 class="panel-title" id="hOta">Uppdatera sensorn via WiFi <small id="otaRunning"></small></h2>
+    <p class="help" style="margin-top:0">Bygg i PlatformIO (bocken i den blå raden) och välj sedan <code>tempsensor\.pio\build\xiao_esp32c3\firmware.bin</code>. Sensorn hämtar filen vid nästa uppladdning, kontrollerar den och startar om med den nya versionen. Fungerar den inte går den tillbaka till den förra av sig själv.</p>
+    <div class="row"><input type="file" id="otaFile" accept=".bin,application/octet-stream"><span class="msg" id="otaFileInfo"></span></div>
+    <div class="row"><button id="btnOtaSend" class="default" disabled>Skicka till sensorn</button><button id="btnOtaCancel">Avbryt beställd uppdatering</button><span class="msg" id="otaMsg"></span></div>
+    <div class="progress" id="otaProg" hidden><i style="width:0"></i></div>
+    <table class="rows" style="margin-top:8px"><tbody id="otaStatus"></tbody></table>
+  </section>
+
+  <section class="panel only-admin" aria-labelledby="hUsers" hidden>
+    <h2 class="panel-title" id="hUsers">Användare</h2>
+    <div style="overflow:auto"><table class="rows lista"><thead><tr><th>Användare</th><th>Namn</th><th>Roll</th><th></th></tr></thead><tbody id="userBody"></tbody></table></div>
+    <fieldset>
+      <legend>Nytt konto</legend>
+      <div class="form2">
+        <label for="nuUser">Användarnamn</label><input type="text" id="nuUser" autocapitalize="none" spellcheck="false" placeholder="t.ex. anna">
+        <label for="nuName">Namn</label><input type="text" id="nuName" placeholder="t.ex. Anna">
+        <label for="nuPass">Lösenord</label><input type="text" id="nuPass" autocomplete="new-password" placeholder="minst 6 tecken">
+        <label for="nuRole">Roll</label>
+        <select id="nuRole"><option value="lasare">Läsare – ser värden, grafer och händelser</option><option value="admin">Admin – kan ändra allt</option><option value="skript">Larmskriptet – bara för Google Apps Script</option></select>
+      </div>
+      <div class="row"><button id="btnCreateUser" class="default">Skapa konto</button><span class="msg" id="userMsg"></span></div>
+    </fieldset>
+    <p class="help">Läsare ser Just nu, grafer, väder, statistik och händelser, kan exportera och välja sina egna larm, men kan inte ändra inställningar. Att ta bort åtkomsten räcker för att stänga ute någon. Själva kontot raderas i Firebase-konsolen under Authentication.</p>
+  </section>
+
+  <section class="panel wide only-admin" aria-labelledby="hDiag" hidden>
     <h2 class="panel-title" id="hDiag">Felsökning <small id="diagWhen"></small></h2>
     <ul class="health" id="health"></ul>
     <table class="rows"><tbody id="diagBody"><tr><td class="help">Ingen felsökningsdata än.</td></tr></tbody></table>
@@ -359,42 +525,118 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
   </form>
 </dialog>
 
-<footer id="foot">Jordkällaren · XIAO ESP32-C3, SHT40 och NTC via Firebase</footer>
+<dialog id="dlgCustom">
+  <form method="dialog">
+    <div class="dhead">Egen period</div>
+    <div class="dbody">
+      <div class="form2">
+        <label for="cuFrom">Från</label><input type="datetime-local" id="cuFrom">
+        <label for="cuTo">Till</label><input type="datetime-local" id="cuTo">
+      </div>
+    </div>
+    <div class="dfoot"><button value="cancel">Avbryt</button><button value="ok" class="default">Visa</button></div>
+  </form>
+</dialog>
 
+<dialog id="dlgExport" class="bred">
+  <form method="dialog">
+    <div class="dhead">Exportera till CSV (Excel)</div>
+    <div class="dbody">
+      <div class="form2">
+        <span>Period</span>
+        <div class="radio">
+          <label><input type="radio" name="exP" value="view" checked> det som visas</label>
+          <label><input type="radio" name="exP" value="all"> all tid</label>
+          <label><input type="radio" name="exP" value="custom"> egen:</label>
+        </div>
+        <span></span>
+        <div class="row" style="margin:0"><input type="datetime-local" id="exFrom"> – <input type="datetime-local" id="exTo"></div>
+        <label for="exRes">Upplösning</label>
+        <select id="exRes">
+          <option value="0">varje mätning</option><option value="60">1 minut (medel, min, max)</option><option value="300">5 minuter</option>
+          <option value="900">15 minuter</option><option value="3600" selected>1 timme</option><option value="86400">1 dygn</option>
+        </select>
+        <span>Även</span>
+        <label><input type="checkbox" id="exLog"> händelseloggen (egen fil)</label>
+      </div>
+      <p class="help">Filen öppnas direkt i Excel med svenska inställningar (semikolon och decimalkomma). Rensningen av graferna påverkar inte exporten.</p>
+      <p class="msg" id="exMsg"></p>
+    </div>
+    <div class="dfoot"><button value="cancel">Stäng</button><button value="ok" class="default" id="btnDoExport">Exportera</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlgNote">
+  <form method="dialog">
+    <div class="dhead">Anteckning</div>
+    <div class="dbody">
+      <div class="form2">
+        <label for="noAt">Tid</label><input type="datetime-local" id="noAt">
+        <label for="noText">Text</label><input type="text" id="noText" maxlength="120" placeholder="t.ex. la in potatis">
+      </div>
+    </div>
+    <div class="dfoot"><button value="cancel">Avbryt</button><button value="ok" class="default">Spara</button></div>
+  </form>
+</dialog>
+
+<dialog id="dlgRecip" class="bred">
+  <form method="dialog">
+    <div class="dhead">Mottagare</div>
+    <div class="dbody">
+      <div class="form2">
+        <label for="reName">Namn</label><input type="text" id="reName">
+        <label for="reMail">E-post</label><input type="email" id="reMail">
+        <label for="rePush">Pushover</label><input type="text" id="rePush" placeholder="User Key" spellcheck="false" autocapitalize="none">
+        <span>Skicka vid</span><div class="chips" id="reTypes"></div>
+        <span>Aktiv</span><label><input type="checkbox" id="reActive" checked> skicka larm till den här mottagaren</label>
+      </div>
+    </div>
+    <div class="dfoot"><button value="cancel">Avbryt</button><button value="ok" class="default">Spara</button></div>
+  </form>
+</dialog>
+
+<footer id="foot">Jordkällaren · XIAO ESP32-C3, SHT40 och NTC via Firebase · väderdata från SMHI</footer>
 <script type="module">
 const $ = id => document.getElementById(id);
 const ROOT = 'jordkallare';
 const DEMO = new URLSearchParams(location.search).has('demo');
 const LOG_KEEP_DAYS = 120;
-const RANGES = { day: 864e5, week: 7 * 864e5, month: 30 * 864e5, year: 365 * 864e5 };
-const RANGE_NAMES = { day: 'senaste dygnet', week: 'senaste veckan', month: 'senaste 30 dagarna', year: 'senaste året' };
 const STD = { matS: 300, uppDagMin: 60, uppNattMin: 180, nattPa: true, nattFran: 22 * 60, nattTill: 6 * 60, larmTiLag: 1, larmTiHog: false, larmRhHog: false,
+  larmFordrojMin: 30, paminnelseH: 6, gallringAr: 0,
   varmeAuto: true, ntcR25: 10000, ntcB: 3950, ntcSerie: 55000, ntcOffset: 0, tiOffset: 0, rhOffset: 0, batFaktor: 2.0 };
 const LARM_STD = { larmTiLag: 1, larmTiHog: 12, larmRhHog: 97 };   // förslag när ett larm slås på
+const TYPER = [['temp', 'temperatur'], ['fukt', 'fukt'], ['batteri', 'batteri'], ['sensor', 'sensorfel'], ['tystnat', 'sensorn tystnat'], ['frost', 'frostvarning'], ['vecka', 'veckorapport']];
+const TYPER_STD = { temp: true, fukt: true };
+const RANGES = { '10m': 6e5, '1h': 36e5, '6h': 216e5, day: 864e5, week: 7 * 864e5, month: 30 * 864e5, year: 365 * 864e5 };
 
 let fb = null;                 // Firebase-funktioner (inte i demoläget)
-let demoRaw = [], demoTimmar = [];
-let latest = null, diag = null, inst = null, logItems = [], hist = [], hist14 = [];
-let serverOffset = 0, unsubs = [], histUnsub = null;
-let range = 'day';
-try { range = localStorage.getItem('jk-range') || 'day'; if (!RANGES[range]) range = 'day'; } catch (e) {}
+let user = null, role = null, isAdmin = false;
+let latest = null, diag = null, inst = null, plats = null, larmstatus = null, otaStatus = null;
+let logItems = [], notes = [], notices = [], roller = {}, mottagare = {}, myRecip = null, myRecipLoaded = false;
+let today = [], hist14 = [];
+let serverOffset = 0, unsubs = [];
 
 /* ---------- Hjälpfunktioner ---------- */
 const nowServer = () => Date.now() + serverOffset;
 const pad = n => String(n).padStart(2, '0');
 const hm = ms => { const d = new Date(ms); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const hms = ms => { const d = new Date(ms); return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
 const WD = ['sön', 'mån', 'tis', 'ons', 'tor', 'fre', 'lör'];
 const MON = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
-function when(ms) {
+function when(ms, sek) {
   if (!ms) return '–';
   const d = new Date(ms), t = new Date();
   const y = new Date(); y.setDate(t.getDate() - 1);
   const tm = new Date(); tm.setDate(t.getDate() + 1);
-  if (d.toDateString() === t.toDateString()) return `idag ${hm(ms)}`;
-  if (d.toDateString() === y.toDateString()) return `igår ${hm(ms)}`;
-  if (d.toDateString() === tm.toDateString()) return `imorgon ${hm(ms)}`;
-  return `${WD[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]} ${hm(ms)}`;
+  const k = sek ? hms(ms) : hm(ms);
+  if (d.toDateString() === t.toDateString()) return `idag ${k}`;
+  if (d.toDateString() === y.toDateString()) return `igår ${k}`;
+  if (d.toDateString() === tm.toDateString()) return `imorgon ${k}`;
+  return `${WD[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}${d.getFullYear() !== t.getFullYear() ? ' ' + d.getFullYear() : ''} ${k}`;
 }
+const dateStr = ms => { const d = new Date(ms); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+const isoLocal = ms => { const d = new Date(ms); return `${dateStr(ms)}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fromIsoLocal = v => { const t = new Date(v).getTime(); return Number.isFinite(t) ? t : null; };
 function dur(s) {
   s = Math.max(0, Math.round(s));
   const d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
@@ -404,7 +646,6 @@ function dur(s) {
   return `${s} s`;
 }
 const ago = ms => dur((nowServer() - ms) / 1000) + ' sedan';
-// Exakt ålder som tickar varje sekund (minuter och sekunder under en timme)
 function agoExakt(ms) {
   const s = Math.max(0, Math.floor((nowServer() - ms) / 1000));
   if (s >= 3600) return dur(s) + ' sedan';
@@ -432,7 +673,6 @@ function batPct(v) {
 const histTime = h => (h.at || 0) - (h.ald || 0) * 1000;
 const matS = () => latest?.matS || diag?.schema?.matS || (latest?.intervallMin ? latest.intervallMin * 60 : STD.matS);
 const intervalMs = () => matS() * 1000;
-// När nästa uppladdning väntas (sensorn skickar sin plan; äldre program: mätning + intervall)
 function nextExpected() {
   if (!latest?.at) return 0;
   if (num(latest.nastaUpp)) return latest.nastaUpp;
@@ -444,38 +684,144 @@ function overdue() {
   return nowServer() > nx + Math.max(3 * 60000, (nx - from) * 0.25);
 }
 const snabbOn = () => latest?.status === 'snabb' && num(latest.snabbTill) && latest.snabbTill > nowServer() && !overdue();
+const liveActive = () => diag?.live && typeof diag.live === 'object' && diag.live.at && nowServer() - diag.live.at < 45000 || (latest?.status === 'live' && nowServer() - (latest.uppAt || latest.at) < 45000);
 const fmtS = s => !s ? '–' : s < 60 ? `${s} s` : s % 3600 === 0 ? (s === 3600 ? '1 timme' : `${s / 3600} h`) : s % 60 === 0 ? `${s / 60} min` : `${Math.floor(s / 60)} min ${s % 60} s`;
 const hhmm = m => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
 const fromHHMM = v => { const [h, m] = String(v || '').split(':').map(Number); return num(h) && num(m) ? h * 60 + m : null; };
-const LARM_TXT = [[1, 'larmTiLag', 'jordkällaren under', ' °C'], [2, 'larmTiHog', 'jordkällaren över', ' °C'], [4, 'larmRhHog', 'fukten över', ' %']];
-const liveActive = () => diag?.live && typeof diag.live === 'object' && diag.live.at && nowServer() - diag.live.at < 45000;
+const LARM_TXT = [[1, 'tiLag', 'larmTiLag', 'jordkällaren under', ' °C'], [2, 'tiHog', 'larmTiHog', 'jordkällaren över', ' °C'], [4, 'rhHog', 'larmRhHog', 'fukten över', ' %']];
+const granse = (bit) => { const r = LARM_TXT.find(x => x[0] === bit); return latest?.granser?.[r[1]] ?? diag?.schema?.[r[2]] ?? cfg(r[2]); };
 const cfg = k => (inst && inst[k] != null ? inst[k] : diag?.schema && diag.schema[k] != null ? diag.schema[k] : (diag?.kal && diag.kal[k] != null ? diag.kal[k] : STD[k]));
+const myName = () => myRecip?.namn || roller[user?.uid]?.namn || (user?.email || 'olle').split('@')[0];
+const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
+
+/* ---------- Databasen (Firebase, eller en låtsasdatabas i demoläget) ----------
+   q = { by: 'at' | 'key', start, end, first, last } */
+const demoDb = { data: {}, lyss: [] };
+function demoGet(path) { let o = demoDb.data; for (const p of path.split('/').filter(Boolean)) { o = o?.[p]; if (o == null) return null; } return o ?? null; }
+function demoSet(path, v) {
+  const ps = path.split('/').filter(Boolean); let o = demoDb.data;
+  for (const p of ps.slice(0, -1)) { if (typeof o[p] !== 'object' || o[p] === null) o[p] = {}; o = o[p]; }
+  if (v === null || v === undefined) delete o[ps[ps.length - 1]]; else o[ps[ps.length - 1]] = JSON.parse(JSON.stringify(v, (k, x) => x && x['.sv'] ? Date.now() : x));
+}
+function demoQuery(v, q) {
+  if (!v || !q || typeof v !== 'object') return v;
+  let ks = Object.keys(v);
+  const val = k => q.by === 'key' ? k : v[k]?.[q.by];
+  ks = ks.filter(k => (q.start == null || val(k) >= q.start) && (q.end == null || val(k) <= q.end));
+  ks.sort((a, b) => (val(a) > val(b) ? 1 : val(a) < val(b) ? -1 : 0));
+  if (q.first) ks = ks.slice(0, q.first);
+  if (q.last) ks = ks.slice(-q.last);
+  return ks.length ? Object.fromEntries(ks.map(k => [k, v[k]])) : null;
+}
+function demoNotify() { for (const l of demoDb.lyss) l.cb(demoQuery(demoGet(l.path), l.q)); }
+function fbQuery(path, q) {
+  const r = fb.ref(fb.db, `${ROOT}/${path}`);
+  if (!q) return r;
+  const parts = [];
+  if (q.by === 'key') parts.push(fb.orderByKey()); else if (q.by) parts.push(fb.orderByChild(q.by));
+  if (q.start != null) parts.push(fb.startAt(q.start));
+  if (q.end != null) parts.push(fb.endAt(q.end));
+  if (q.first) parts.push(fb.limitToFirst(q.first));
+  if (q.last) parts.push(fb.limitToLast(q.last));
+  return fb.query(r, ...parts);
+}
+const D = {
+  async get(path, q) {
+    if (DEMO) return demoQuery(demoGet(path), q);
+    const s = await fb.get(fbQuery(path, q)); return s.val();
+  },
+  on(path, q, cb, onErr) {
+    if (DEMO) { const l = { path, q, cb }; demoDb.lyss.push(l); cb(demoQuery(demoGet(path), q)); return () => { demoDb.lyss = demoDb.lyss.filter(x => x !== l); }; }
+    return fb.onValue(fbQuery(path, q), s => cb(s.val()), onErr || denied);
+  },
+  async update(path, obj) {
+    if (DEMO) { for (const [k, v] of Object.entries(obj)) demoSet(`${path}/${k}`, v); demoNotify(); return; }
+    return fb.update(fb.ref(fb.db, `${ROOT}/${path}`), obj);
+  },
+  async set(path, v) { if (DEMO) { demoSet(path, v); demoNotify(); return; } return fb.set(fb.ref(fb.db, `${ROOT}/${path}`), v); },
+  async push(path, v) {
+    if (DEMO) { const k = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); demoSet(`${path}/${k}`, v); demoNotify(); return k; }
+    const r = fb.push(fb.ref(fb.db, `${ROOT}/${path}`)); await fb.set(r, v); return r.key;
+  },
+  async remove(path) { if (DEMO) { demoSet(path, null); demoNotify(); return; } return fb.remove(fb.ref(fb.db, `${ROOT}/${path}`)); },
+  ts: () => DEMO ? Date.now() : fb.serverTimestamp(),
+};
+const lista = v => v ? Object.entries(v).map(([k, x]) => (x && typeof x === 'object' ? { ...x, id: k } : x)).filter(x => x && typeof x === 'object') : [];
+
+let deniedShown = false;
+function denied(err) {
+  if (deniedShown) return; deniedShown = true;
+  $('banners').insertAdjacentHTML('afterbegin', `<div class="banner bad">Databasen nekade läsning (${esc(err.code || err.message)}). Kolla att de nya reglerna för <b>jordkallare</b> är inklistrade i Firebase (se GUIDE.md i tempsensor-mappen).</div>`);
+}
+
+/* ---------- Dialog ---------- */
+function confirmDlg(title, body, yes) {
+  const d = $('dlgConfirm');
+  $('dlgTitle').textContent = title; $('dlgBody').innerHTML = `<p>${esc(body)}</p>`; $('dlgYes').textContent = yes;
+  return new Promise(res => { d.onclose = () => res(d.returnValue === 'ok'); d.returnValue = ''; d.showModal(); });
+}
+function openDlg(id) {
+  const d = $(id);
+  return new Promise(res => { d.onclose = () => res(d.returnValue === 'ok'); d.returnValue = ''; d.showModal(); });
+}
+function msg(el, cls, text) { el.className = 'msg' + (cls ? ' ' + cls : ''); el.textContent = text; }
 
 /* ---------- Banderoller ---------- */
+function larmStart(bit) { return larmstatus?.aktiva?.['b' + bit]?.start || 0; }
 function renderBanners() {
   const b = [];
   if (!latest) b.push(['info', 'Ingen mätning har kommit in än. Starta sensorn (se GUIDE.md i tempsensor-mappen) och vänta tills den skickat sin första mätning.']);
   else {
     if (latest.status === 'skydd') b.push(['bad', `<b>Batteriet är nästan tomt</b> (${dec(latest.bv, 2)} V). Sensorn har gått i skyddsläge: den startar inte WiFi och vaknar bara en gång per dygn. Ladda batteriet.`]);
-    else if (overdue()) b.push(['bad', `<b>Ingen uppladdning sedan ${when(latest.uppAt || latest.at)}</b> (väntades ${hm(nextExpected())}). Vanliga orsaker: tomt batteri, WiFi når inte fram, eller att routern bytt kanal. Se Felsökning nedan.`]);
+    else if (overdue()) b.push(['bad', `<b>Ingen uppladdning sedan ${when(latest.uppAt || latest.at)}</b> (väntades ${hm(nextExpected())}). Vanliga orsaker: tomt batteri, WiFi når inte fram, eller att routern bytt kanal.${isAdmin ? ' Se Felsökning nedan.' : ''}`]);
     if (latest.larm) {
-      const t = LARM_TXT.filter(([bit]) => latest.larm & bit).map(([, k, txt, u]) => `${txt} ${dec(diag?.schema?.[k] ?? cfg(k), k === 'larmRhHog' ? 0 : 1)}${u}`);
-      b.push(['bad', `<b>Larm:</b> ${t.join(', ')}. Nu ${dec(latest.ti)} °C och ${dec(latest.rh, 0)} %.`]);
+      const t = LARM_TXT.filter(([bit]) => latest.larm & bit).map(([bit, , , txt, u]) => `${txt} ${dec(granse(bit), bit === 4 ? 0 : 1)}${u}`);
+      const start = Math.max(...LARM_TXT.filter(([bit]) => latest.larm & bit).map(([bit]) => larmStart(bit)), 0);
+      const kv = larmstatus?.kvitterad;
+      const kvitt = kv && kv.at > start ? ` Kvitterat av ${esc(kv.av || '?')} ${when(kv.at)}.` : ' <button id="btnAckBanner">Kvittera</button>';
+      b.push(['bad', `<b>Larm:</b> ${t.join(', ')}. Nu ${dec(latest.ti)} °C och ${dec(latest.rh, 0)} %.${kvitt}`]);
     }
     if (snabbOn()) b.push(['info', `<b>Snabbläge</b>: mäter var ${fmtS(latest.matS)} och laddar upp varje mätning till ${hm(latest.snabbTill)}.`]);
-    if (liveActive()) b.push(['info', `<b>Live-läget är på</b> (${dur(diag.live.kvarS || 0)} kvar). Värdena uppdateras var 15:e sekund. På hemmanätet: <a href="http://${esc(diag.live.ip)}/">http://${esc(diag.live.ip)}</a> eller <a href="http://jordkallare.local/">jordkallare.local</a>.`]);
-    else if (num(latest.bp) && latest.bp < 15 && latest.bv >= 2.5 && latest.status !== 'skydd') b.push(['', `Batteriet är på ${Math.round(latest.bp)} % (${dec(latest.bv, 2)} V). Dags att ladda snart.`]);
+    if (liveActive()) {
+      const ip = diag?.live?.ip;
+      b.push(['info', `<b>Live-läget är på</b>${diag?.live?.kvarS ? ` (${dur(diag.live.kvarS)} kvar)` : ''}. Värdena uppdateras var 15:e sekund.${ip ? ` På hemmanätet: <a href="http://${esc(ip)}/">http://${esc(ip)}</a>` : ''}`]);
+    } else if (num(latest.bp) && latest.bp < 15 && latest.bv >= 2.5 && latest.status !== 'skydd') b.push(['', `Batteriet är på ${Math.round(latest.bp)} % (${dec(latest.bv, 2)} V). Dags att ladda snart.`]);
+    if (isAdmin && otaStatus?.status && !/klar|fel/.test(otaStatus.status) && inst?.ota && inst.ota.version !== diag?.fw)
+      b.push(['info', `Uppdatering till version <b>${esc(inst.ota.version)}</b> väntar: ${esc(otaStatus.status)}.`]);
   }
   if (DEMO) b.push(['info', 'Demoläge: påhittade värden, inget sparas. Ta bort <b>?demo</b> ur adressen för att se de riktiga.']);
   $('banners').innerHTML = b.map(([c, t]) => `<div class="banner ${c}">${t}</div>`).join('');
+  $('btnAckBanner')?.addEventListener('click', kvittera);
+}
+async function kvittera() {
+  try { await D.update('larmstatus', { kvitterad: { at: D.ts(), av: myName() } }); }
+  catch (e) { alert('Kunde inte kvittera: ' + (e.code || e.message)); }
 }
 
 /* ---------- Just nu ---------- */
 function dayStats(key) {
   const t0 = new Date(); t0.setHours(0, 0, 0, 0);
-  const v = hist.filter(h => histTime(h) >= t0.getTime() && num(h[key]));
+  const c = clearCutoff();
+  const v = today.filter(h => histTime(h) >= Math.max(t0.getTime(), c) && num(h[key]));
   if (!v.length) return null;
-  return { min: Math.min(...v.map(h => num(h[key + 'Min']) ? h[key + 'Min'] : h[key])), max: Math.max(...v.map(h => num(h[key + 'Max']) ? h[key + 'Max'] : h[key])) };
+  return { min: Math.min(...v.map(h => h[key])), max: Math.max(...v.map(h => h[key])) };
+}
+// Förändring per timme de senaste ~2 timmarna (minsta kvadrat)
+function trend(key) {
+  const t1 = nowServer(), v = today.filter(h => num(h[key]) && histTime(h) > t1 - 2 * 3600e3);
+  if (v.length < 3) return null;
+  const xs = v.map(h => histTime(h) / 3600e3), ys = v.map(h => h[key]);
+  if (xs[xs.length - 1] - xs[0] < 0.5) return null;
+  const n = xs.length, mx = xs.reduce((a, b) => a + b) / n, my = ys.reduce((a, b) => a + b) / n;
+  let sxy = 0, sxx = 0;
+  for (let i = 0; i < n; i++) { sxy += (xs[i] - mx) * (ys[i] - my); sxx += (xs[i] - mx) ** 2; }
+  return sxx ? sxy / sxx : null;
+}
+function trendText(key, unit, d, lim) {
+  const s = trend(key);
+  if (s == null || Math.abs(s) < lim) return '';
+  return ` · <span class="trend">${s > 0 ? '↑' : '↓'} ${dec(Math.abs(s), d)} ${unit}/h</span>`;
 }
 function renderNow() {
   const L = latest;
@@ -484,22 +830,22 @@ function renderNow() {
   $('vRh').textContent = num(L.rh) ? `${dec(L.rh, 0)} %` : 'fel';
   $('vTu').textContent = num(L.tu) ? `${dec(L.tu)} °C` : 'fel';
   const sTi = dayStats('ti'), sRh = dayStats('rh'), sTu = dayStats('tu');
-  $('vTiSub').textContent = num(L.ti) ? (sTi ? `idag ${dec(sTi.min)} – ${dec(sTi.max)} °C` : '') : (diag?.sht && diag.sht !== 'ok' ? `SHT40 ${diag.sht}` : 'SHT40 svarar inte');
-  $('vRhSub').textContent = sRh ? `idag ${dec(sRh.min, 0)} – ${dec(sRh.max, 0)} %` : '';
-  $('vTuSub').textContent = num(L.tu) ? (sTu ? `idag ${dec(sTu.min)} – ${dec(sTu.max)} °C` : '') : (diag?.ntc && diag.ntc !== 'ok' ? `sonden: ${diag.ntc}` : 'sonden svarar inte');
+  $('vTiSub').innerHTML = num(L.ti) ? (sTi ? `idag ${dec(sTi.min)} – ${dec(sTi.max)} °C` : '') + trendText('ti', '°C', 1, 0.1) : esc(diag?.sht && diag.sht !== 'ok' ? `SHT40 ${diag.sht}` : 'SHT40 svarar inte');
+  $('vRhSub').innerHTML = (sRh ? `idag ${dec(sRh.min, 0)} – ${dec(sRh.max, 0)} %` : '') + trendText('rh', '%', 0, 1);
+  $('vTuSub').innerHTML = num(L.tu) ? (sTu ? `idag ${dec(sTu.min)} – ${dec(sTu.max)} °C` : '') + trendText('tu', '°C', 1, 0.3) : esc(diag?.ntc && diag.ntc !== 'ok' ? `sonden: ${diag.ntc}` : 'sonden svarar inte');
+  const ingenMatning = num(L.bv) && L.bv < 0.05;
   const pct = num(L.bp) ? L.bp : batPct(L.bv);
-  $('vBat').textContent = num(L.bv) ? (L.bv < 2.5 ? 'USB' : `${Math.round(pct)} %`) : '–';
+  $('vBat').textContent = num(L.bv) && !ingenMatning ? (L.bv < 2.5 ? 'USB' : `${Math.round(pct)} %`) : '–';
   const m = $('vBatMeter');
   m.className = 'meter' + (pct < 10 ? ' bad' : pct < 25 ? ' warn' : '');
   m.firstElementChild.style.width = `calc(${Math.max(0, Math.min(100, pct))}% - 2px)`;
   const est = batteryEstimate();
-  $('vBatSub').textContent = num(L.bv) && L.bv < 2.5 ? `${dec(L.bv, 2)} V · inget batteri (går på USB)` : `${dec(L.bv, 2)} V` + (est ? ` · räcker ca ${est.text}` : '');
+  $('vBatSub').textContent = ingenMatning ? 'ingen batterimätning (A0 är inte kopplad)' : num(L.bv) && L.bv < 2.5 ? `${dec(L.bv, 2)} V · inget batteri (går på USB)` : `${dec(L.bv, 2)} V` + (est ? ` · räcker ca ${est.text}` : '');
   $('vRs').innerHTML = num(L.rs) ? `${bars(L.rs)}${L.rs}` : '–';
   $('vRsSub').textContent = num(L.rs) ? `dBm, ${signal(L.rs)}` : '';
 
-  const od = overdue(), live = liveActive();
-  const sn = snabbOn();
-  lamp($('stLamp'), L.status === 'skydd' || od ? 'bad' : live || sn ? 'wait' : 'ok');
+  const od = overdue(), live = liveActive(), sn = snabbOn();
+  lamp($('stLamp'), L.status === 'skydd' || od || L.larm ? 'bad' : live || sn ? 'wait' : 'ok');
   $('stTxt').innerHTML = `Mätt <b>${when(L.at)}</b> (<span id="agoTick" style="font-variant-numeric:tabular-nums">${agoExakt(L.at)}</span>)` + (live ? ' · live-läge' : sn ? ' · snabbläge' : '');
   $('nowWhen').textContent = '';
   const nx = nextExpected();
@@ -511,20 +857,19 @@ function renderNow() {
 
 /* ---------- Batteritid ---------- */
 function batteryEstimate() {
-  const pts = hist14.filter(h => num(h.bv)).map(h => [histTime(h) / 864e5, batPct(h.bv)]);
+  const pts = hist14.filter(h => num(h.bv) && h.bv >= 2.5).map(h => [histTime(h) / 864e5, batPct(h.bv)]);
   if (pts.length < 10) return null;
   const span = pts[pts.length - 1][0] - pts[0][0];
   if (span < 2) return null;
   const n = pts.length, mx = pts.reduce((s, p) => s + p[0], 0) / n, my = pts.reduce((s, p) => s + p[1], 0) / n;
   let sxy = 0, sxx = 0;
   for (const [x, y] of pts) { sxy += (x - mx) * (y - my); sxx += (x - mx) ** 2; }
-  const slope = sxy / sxx;                         // % per dag
+  const slope = sxy / sxx;
   const nowPct = num(latest?.bp) ? latest.bp : pts[n - 1][1];
   if (!(slope < -0.02)) return { text: 'länge (ingen märkbar minskning än)', days: Infinity };
   const days = nowPct / -slope;
   return { days, text: days > 60 ? `${Math.round(days / 30)} månader` : `${Math.round(days)} dagar` };
 }
-// Uppladdningar per dygn med ett visst schema
 function uploadsPerDay(sc) {
   const perMat = 86400 / sc.matS;
   if (!sc.uppDagMin) return perMat;
@@ -532,36 +877,154 @@ function uploadsPerDay(sc) {
   if (sc.nattPa && sc.nattFran !== sc.nattTill) natt = (sc.nattTill - sc.nattFran + 1440) % 1440;
   return Math.min(perMat, (1440 - natt) / sc.uppDagMin + (natt ? Math.max(1, natt / sc.uppNattMin) : 0));
 }
-// Uppskattad förbrukning (mAh per dygn) utifrån hur länge sensorn är vaken
 function mAhPerDay(sc) {
-  const matVaken = Math.max(0.12, (diag?.vakenMsMatning || 250) / 1000);   // bara mätning, ca 20 mA
-  const uppVaken = Math.max(1, (diag?.vakenMsUpp || 4000) / 1000);           // med WiFi, ca 90 mA i snitt
+  const matVaken = Math.max(0.12, (diag?.vakenMsMatning || 250) / 1000);
+  const uppVaken = Math.max(1, (diag?.vakenMsUpp || 4000) / 1000);
   const perMat = 86400 / sc.matS, ups = uploadsPerDay(sc);
-  return (perMat - ups) * matVaken * 20 / 3600 + ups * uppVaken * 90 / 3600 + 0.054 * 24 + 0.01 * 24;   // + djupsömn och spänningsdelare
+  return (perMat - ups) * matVaken * 20 / 3600 + ups * uppVaken * 90 / 3600 + 0.054 * 24 + 0.01 * 24;
 }
 function lifeText(perDay) {
-  const days = 3400 * 0.85 / (perDay + 3400 * 0.02 / 30);                  // + självurladdning ca 2 %/mån
+  const days = 3400 * 0.85 / (perDay + 3400 * 0.02 / 30);
   return days > 365 ? `ca ${dec(days / 365, 1)} år` : days > 60 ? `ca ${Math.round(days / 30)} mån` : `ca ${Math.round(days)} dagar`;
+}
+
+/* =====================================================================
+   Grafer: period, zoom, panorering, rensning
+   ===================================================================== */
+let range = 'day';
+try { const r = lsGet('jk-range'); if (RANGES[r]) range = r; } catch (e) {}
+const view = { t0: 0, t1: 0, follow: true };
+const raw = { from: 0, to: 0, rows: [] };       // varje mätning (historik)
+const hour = { from: 0, to: 0, rows: [] };      // timsammanfattningar (timmar)
+const ly = { from: 0, to: 0, rows: [] };        // förra året (timmar)
+const RAW_MAX_SPAN = 8 * 864e5;                 // längre perioder visas med timvärden
+const MIN_SPAN = 2 * 60e3, MAX_SPAN = 6 * 365 * 864e5;
+let showLastYear = lsGet('jk-forraaret') === '1';
+
+const clearCutoff = () => Number(lsGet('jk-rensad')) || 0;
+const useHourly = () => view.t1 - view.t0 > RAW_MAX_SPAN;
+
+function setView(t0, t1, follow) {
+  let span = Math.min(MAX_SPAN, Math.max(MIN_SPAN, t1 - t0));
+  const mid = (t0 + t1) / 2;
+  t0 = mid - span / 2; t1 = mid + span / 2;
+  const nu = nowServer();
+  if (t1 > nu + span * 0.05) { t1 = nu + span * 0.02; t0 = t1 - span; }
+  view.t0 = t0; view.t1 = t1;
+  view.follow = follow ?? (nu - t1 < Math.max(60e3, span * 0.03));
+  document.querySelectorAll('#rangeTabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.range === range && view.follow && Math.abs((t1 - t0) - (RANGES[range] || 0)) < 1000 || (b.dataset.range === 'custom' && range === 'custom'))));
+  renderHist();
+  scheduleLoad();
+}
+function setRange(r) {
+  range = r; lsSet('jk-range', r);
+  const nu = nowServer();
+  setView(nu - RANGES[r], nu, true);
+}
+
+/* ---------- Hämtning ---------- */
+let loadTimer = null, loading = 0;
+function scheduleLoad() { clearTimeout(loadTimer); loadTimer = setTimeout(loadView, 150); }
+async function fetchInto(cache, path, from, to) {
+  const v = await D.get(path, { by: 'at', start: Math.floor(from), end: Math.ceil(to) });
+  const rows = lista(v).filter(h => num(h.at));
+  // Slå ihop med det som redan finns (om perioderna hänger ihop), annars ersätt
+  if (cache.rows.length && from <= cache.to && to >= cache.from) {
+    const m = new Map(cache.rows.map(h => [h.id, h]));
+    for (const h of rows) m.set(h.id, h);
+    cache.rows = [...m.values()].sort((a, b) => histTime(a) - histTime(b));
+    cache.from = Math.min(cache.from, from); cache.to = Math.max(cache.to, to);
+  } else {
+    cache.rows = rows.sort((a, b) => histTime(a) - histTime(b)); cache.from = from; cache.to = to;
+  }
+  if (cache.rows.length > 60000) { cache.rows = cache.rows.filter(h => histTime(h) >= view.t0 - (view.t1 - view.t0)); cache.from = view.t0 - (view.t1 - view.t0); }
+}
+async function loadView() {
+  if (!latest && !DEMO && !fb) return;
+  const span = view.t1 - view.t0, nu = nowServer();
+  const from = view.t0 - span * 0.5, to = Math.min(nu + 60e3, view.t1 + span * 0.5);
+  const cache = useHourly() ? hour : raw, path = useHourly() ? 'timmar' : 'historik';
+  const pad = useHourly() ? 3600e3 : 0;
+  const tasks = [];
+  if (!(cache.from <= view.t0 - pad && cache.to >= Math.min(view.t1, nu))) tasks.push(fetchInto(cache, path, from - pad, to));
+  if (lastYearOn()) {
+    const y0 = view.t0 - 365 * 864e5 - 3600e3, y1 = view.t1 - 365 * 864e5;
+    if (!(ly.from <= y0 && ly.to >= y1)) tasks.push(fetchInto(ly, 'timmar', y0 - span * 0.5, y1 + span * 0.5));
+  }
+  if (!tasks.length) return;
+  loading++; $('histRange').textContent = 'Hämtar…';
+  try { await Promise.all(tasks); } catch (e) { console.warn(e); }
+  loading--;
+  renderHist();
+}
+// Ny mätning: hämta det som kommit sedan sist och följ med om man tittar på "nu"
+async function onNewData() {
+  try {
+    const t0 = nowServer() - 864e5 * 1.05;
+    const v = await D.get('historik', { by: 'at', start: Math.floor(t0) });
+    today = lista(v).filter(h => num(h.at)).sort((a, b) => histTime(a) - histTime(b));
+    if (raw.rows.length && raw.to >= nowServer() - 2 * 3600e3) {
+      const ny = await D.get('historik', { by: 'at', start: Math.floor(raw.to - 120e3) });
+      const m = new Map(raw.rows.map(h => [h.id, h]));
+      for (const h of lista(ny)) if (num(h.at)) m.set(h.id, h);
+      raw.rows = [...m.values()].sort((a, b) => histTime(a) - histTime(b)); raw.to = nowServer() + 60e3;
+    }
+    if (hour.rows.length && hour.to >= nowServer() - 3 * 3600e3) await fetchInto(hour, 'timmar', hour.to - 2 * 3600e3, nowServer() + 60e3);
+  } catch (e) { console.warn(e); }
+  if (view.follow) { const span = view.t1 - view.t0, nu = nowServer(); view.t0 = nu - span; view.t1 = nu; }
+  renderNow(); renderHist(); renderStats(); renderWeather();
+  if (view.follow) scheduleLoad();
+}
+async function loadHist14() {
+  try {
+    const from = nowServer() - 14 * 864e5;
+    hist14 = lista(await D.get('timmar', { by: 'at', start: from })).filter(h => num(h.at)).sort((a, b) => a.at - b.at);
+    renderNow(); renderWeather();
+  } catch (e) { /* inte viktigt */ }
+}
+
+/* ---------- Rader i vyn ---------- */
+function viewRows(pad = 0) {
+  const H = useHourly(), c = clearCutoff();
+  const src = H ? hour.rows : raw.rows;
+  const t0 = view.t0 - pad, t1 = view.t1 + pad;
+  return src.map(h => ({ ...h, t: H ? h.at + 1800e3 : histTime(h) })).filter(h => h.t >= t0 && h.t <= t1 && h.t >= c);
+}
+const lastYearOn = () => showLastYear && view.t1 - view.t0 >= 20 * 864e5;
+
+/* ---------- Tidsaxeln ---------- */
+const STEG = [60e3, 2 * 60e3, 5 * 60e3, 10 * 60e3, 15 * 60e3, 30 * 60e3, 36e5, 2 * 36e5, 3 * 36e5, 6 * 36e5, 12 * 36e5, 864e5, 2 * 864e5, 7 * 864e5];
+function xTicks(t0, t1, maxN) {
+  const span = t1 - t0, out = [];
+  if (span / 864e5 > 70) {
+    const mstep = span / 864e5 > 400 ? 3 : 1;
+    const d = new Date(t0); d.setHours(0, 0, 0, 0); d.setDate(1); d.setMonth(d.getMonth() + 1);
+    for (; d.getTime() <= t1; d.setMonth(d.getMonth() + mstep)) out.push([d.getTime(), d.getMonth() === 0 ? String(d.getFullYear()) : MON[d.getMonth()]]);
+    return out;
+  }
+  const step = STEG.find(s => span / s <= maxN) || 7 * 864e5;
+  const off = new Date(t0).getTimezoneOffset() * -60e3;
+  let t = Math.ceil((t0 + off) / step) * step - off;
+  if (step === 7 * 864e5) { const d = new Date(t0); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7)); t = d.getTime(); }
+  for (; t <= t1; t += step) {
+    const d = new Date(t);
+    const midnatt = d.getHours() === 0 && d.getMinutes() === 0;
+    const lab = step >= 864e5 || (midnatt && span > 6 * 3600e3) ? (span > 15 * 864e5 ? `${d.getDate()} ${MON[d.getMonth()]}` : `${WD[d.getDay()]} ${d.getDate()}`) : `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    out.push([t, lab]);
+  }
+  return out;
 }
 
 /* ---------- Diagram ---------- */
 function niceTicks(lo, hi, n = 5) {
   if (lo === hi) { lo -= 1; hi += 1; }
-  const raw = (hi - lo) / n, mag = 10 ** Math.floor(Math.log10(raw));
-  const step = [1, 2, 2.5, 5, 10].map(s => s * mag).find(s => s >= raw) || raw;
+  const r = (hi - lo) / n, mag = 10 ** Math.floor(Math.log10(r));
+  const step = [1, 2, 2.5, 5, 10].map(s => s * mag).find(s => s >= r) || r;
   const t0 = Math.floor(lo / step) * step, t1 = Math.ceil(hi / step) * step;
   const out = []; for (let v = t0; v <= t1 + step / 2; v += step) out.push(+v.toFixed(6));
   return out;
 }
 const tickDecimals = yt => { const st = Math.abs((yt[1] ?? yt[0] + 1) - yt[0]); return st < 0.1 ? 2 : Math.abs(st - Math.round(st)) > 1e-6 ? 1 : 0; };
-function xTicks(t0, t1, rk, narrow) {
-  const out = [], d = new Date(t0);
-  if (rk === 'day') { d.setMinutes(0, 0, 0); d.setHours(Math.ceil(d.getHours() / 3) * 3); for (; d <= t1; d.setHours(d.getHours() + 3)) if (d >= t0) out.push([d.getTime(), `${pad(d.getHours())}:00`]); }
-  else if (rk === 'week') { d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 1); for (; d <= t1; d.setDate(d.getDate() + 1)) out.push([d.getTime(), `${WD[d.getDay()]} ${d.getDate()}`]); }
-  else if (rk === 'month') { d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + 1); for (; d <= t1; d.setDate(d.getDate() + 1)) if ((d.getDate() - 1) % 5 === 0) out.push([d.getTime(), `${d.getDate()} ${MON[d.getMonth()]}`]); }
-  else { d.setHours(0, 0, 0, 0); d.setDate(1); d.setMonth(d.getMonth() + 1); for (; d <= t1; d.setMonth(d.getMonth() + 1)) out.push([d.getTime(), MON[d.getMonth()]]); }
-  return out;
-}
 function bucketize(pts, t0, t1, n) {
   const w = (t1 - t0) / n, b = new Map();
   for (const [t, v, lo, hi] of pts) {
@@ -574,9 +1037,10 @@ function bucketize(pts, t0, t1, n) {
 function drawChart(el, series, opt) {
   const W = Math.max(280, Math.round((el.clientWidth || 800) - 12)), H = opt.h || 210, L = 44, R = 10, T = 10, B = 24;
   const { t0, t1 } = opt;
-  const all = series.flatMap(s => s.pts.flatMap(p => [p[1], p[2] ?? p[1], p[3] ?? p[1]]));
+  const inView = s => s.pts.filter(p => p[0] >= t0 && p[0] <= t1);
+  const all = series.flatMap(s => inView(s).flatMap(p => [p[1], p[2] ?? p[1], p[3] ?? p[1]]));
   el._chart = null;
-  if (!all.length) { el.innerHTML = `<div class="empty">Inga mätningar ${RANGE_NAMES[range]}.</div>`; return; }
+  if (!all.length) { el.innerHTML = `<div class="empty">${loading ? 'Hämtar…' : 'Inga mätningar i den här perioden.'}</div>`; return; }
   let lo = Math.min(...all), hi = Math.max(...all);
   if (opt.minSpan && hi - lo < opt.minSpan) { const m = (hi + lo) / 2; lo = m - opt.minSpan / 2; hi = m + opt.minSpan / 2; }
   if (opt.clamp) { lo = Math.max(opt.clamp[0], lo); hi = Math.min(opt.clamp[1], hi); }
@@ -584,17 +1048,19 @@ function drawChart(el, series, opt) {
   const y0 = yt[0], y1 = yt[yt.length - 1];
   const sx = t => L + (t - t0) / (t1 - t0) * (W - L - R);
   const sy = v => T + (1 - (v - y0) / (y1 - y0 || 1)) * (H - T - B);
-  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt.label)}">`;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt.label)}"><defs><clipPath id="clip-${el.id}"><rect x="${L}" y="${T - 2}" width="${W - L - R}" height="${H - T - B + 4}"/></clipPath></defs>`;
   for (const v of yt) s += `<line x1="${L}" x2="${W - R}" y1="${sy(v)}" y2="${sy(v)}" stroke="${v === 0 && y0 < 0 ? '#b9b6ae' : '#ebe8e1'}"/><text x="${L - 6}" y="${sy(v) + 4}" font-size="12" text-anchor="end" fill="#5c5a55">${dec(v, opt.tickDec ?? tickDecimals(yt))}</text>`;
-  const xt = xTicks(t0, t1, opt.rk), every = Math.max(1, Math.ceil(xt.length / Math.max(2, Math.floor(W / 75))));
-  for (const [t, lab] of xt.filter((_, i) => i % every === 0)) s += `<line x1="${sx(t)}" x2="${sx(t)}" y1="${T}" y2="${H - B}" stroke="#f1eee8"/><text x="${sx(t)}" y="${H - 6}" font-size="12" text-anchor="middle" fill="#5c5a55">${lab}</text>`;
-  const gap = opt.gap;
+  for (const [t, lab] of xTicks(t0, t1, Math.max(2, Math.floor(W / 80)))) s += `<line x1="${sx(t)}" x2="${sx(t)}" y1="${T}" y2="${H - B}" stroke="#f1eee8"/><text x="${sx(t)}" y="${H - 6}" font-size="12" text-anchor="middle" fill="#5c5a55">${lab}</text>`;
+  // Anteckningar
+  for (const n of opt.notes || []) if (n.at >= t0 && n.at <= t1) s += `<line x1="${sx(n.at)}" x2="${sx(n.at)}" y1="${T}" y2="${H - B}" stroke="#8a4b00" stroke-dasharray="2 3"/>${opt.noteFlags ? `<path d="M${sx(n.at)} ${T}h9l-3 4 3 4h-9z" fill="#c99a2e"/>` : ''}`;
+  s += `<g clip-path="url(#clip-${el.id})">`;
   for (const se of series) {
-    if (!se.pts.length) continue;
-    const many = se.pts.length > 500;
-    const pts = many ? bucketize(se.pts, t0, t1, 360) : se.pts.map(([t, v, lo, hi]) => ({ t, v, mn: lo ?? v, mx: hi ?? v }));
-    const band = many || se.pts.some(p => p[2] != null);
-    const gapLim = many ? Math.max(gap, (t1 - t0) / 360 * 2.5) : gap;
+    const vis = se.pts.filter(p => p[0] >= t0 - (t1 - t0) * 0.02 && p[0] <= t1 + (t1 - t0) * 0.02);
+    if (!vis.length) continue;
+    const many = vis.length > 500;
+    const pts = many ? bucketize(vis, t0, t1, 360) : vis.map(([t, v, a, b]) => ({ t, v, mn: a ?? v, mx: b ?? v }));
+    const band = (many || vis.some(p => p[2] != null)) && !se.dash;
+    const gapLim = many ? Math.max(opt.gap, (t1 - t0) / 360 * 2.5) : opt.gap;
     let d = '', bandSvg = '', seg = [];
     const flush = () => {
       if (!seg.length) return;
@@ -605,9 +1071,11 @@ function drawChart(el, series, opt) {
     };
     pts.forEach((p, i) => { if (i && p.t - pts[i - 1].t > gapLim) flush(); seg.push(p); });
     flush();
-    s += bandSvg + `<path d="${d}" fill="none" stroke="${se.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    s += bandSvg + `<path d="${d}" fill="none" stroke="${se.color}" stroke-width="${se.dash ? 1.5 : 2}"${se.dash ? ' stroke-dasharray="5 4" opacity="0.8"' : ''} stroke-linejoin="round" stroke-linecap="round"/>`;
+    // Prickar för varje mätning när man zoomat in
+    if (!many && !se.dash && pts.length <= 150) s += pts.map(p => `<circle cx="${sx(p.t).toFixed(1)}" cy="${sy(p.v).toFixed(1)}" r="2.4" fill="${se.color}"/>`).join('');
   }
-  s += `<line class="hl" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="#44423d" stroke-dasharray="3 3" visibility="hidden"/>`;
+  s += `</g><line class="hl" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="#44423d" stroke-dasharray="3 3" visibility="hidden"/>`;
   for (let i = 0; i < series.length; i++) s += `<circle class="hd${i}" r="4" fill="${series[i].color}" stroke="#fff" stroke-width="1.5" visibility="hidden"/>`;
   s += `</svg><div class="tip" hidden></div>`;
   el.innerHTML = s;
@@ -618,23 +1086,28 @@ function chartHover(el, ev) {
   const svg = el.querySelector('svg'), r = svg.getBoundingClientRect();
   const x = (ev.clientX - r.left) / r.width * c.W;
   const t = c.t0 + (x - c.L) / (c.W - c.L - c.R) * (c.t1 - c.t0);
-  let best = null, lines = [];
+  const span = c.t1 - c.t0;
+  let best = null; const lines = [];
   c.series.forEach((se, i) => {
     const p = se.pts; const dot = svg.querySelector('.hd' + i);
     if (!p.length) { dot.setAttribute('visibility', 'hidden'); return; }
     let a = 0, b = p.length - 1;
     while (b - a > 1) { const m = (a + b) >> 1; if (p[m][0] < t) a = m; else b = m; }
     const q = Math.abs(p[a][0] - t) < Math.abs(p[b][0] - t) ? p[a] : p[b];
-    if (Math.abs(q[0] - t) > (c.t1 - c.t0) / 40 && Math.abs(q[0] - t) > 2 * 3600e3) { dot.setAttribute('visibility', 'hidden'); return; }
+    if (Math.abs(q[0] - t) > span / 40 && Math.abs(q[0] - t) > 3 * intervalMs()) { dot.setAttribute('visibility', 'hidden'); return; }
     dot.setAttribute('cx', c.sx(q[0])); dot.setAttribute('cy', c.sy(q[1])); dot.setAttribute('visibility', 'visible');
-    best = best ?? q[0];
-    lines.push(`<span style="color:${se.color}">●</span> ${esc(se.name)} <b>${dec(q[1], c.opt.dec ?? 1)}${c.opt.unit}</b>`);
+    best = best ?? (se.dash ? null : q[0]);
+    const extra = q[2] != null && !se.dash ? ` <small>(${dec(q[2], c.opt.dec ?? 1)}–${dec(q[3], c.opt.dec ?? 1)})</small>` : '';
+    lines.push(`<span style="color:${se.color}">●</span> ${esc(se.name)} <b>${dec(q[1], c.opt.dec ?? 1)}${c.opt.unit}</b>${extra}`);
   });
+  const note = (c.opt.notes || []).find(n => Math.abs(c.sx(n.at) - x) < 6);
+  if (note) lines.push(`<span style="color:#8a4b00">✎</span> ${esc(note.text)}`);
   const hl = svg.querySelector('.hl'), tip = el.querySelector('.tip');
-  if (best == null) { hl.setAttribute('visibility', 'hidden'); tip.hidden = true; return; }
-  hl.setAttribute('x1', c.sx(best)); hl.setAttribute('x2', c.sx(best)); hl.setAttribute('visibility', 'visible');
-  tip.innerHTML = `${when(best)}<br>${lines.join('<br>')}`; tip.hidden = false;
-  const px = c.sx(best) / c.W * r.width;
+  if (best == null && !note) { hl.setAttribute('visibility', 'hidden'); tip.hidden = true; return; }
+  const bt = best ?? note.at;
+  hl.setAttribute('x1', c.sx(bt)); hl.setAttribute('x2', c.sx(bt)); hl.setAttribute('visibility', 'visible');
+  tip.innerHTML = `${when(bt, span < 3 * 3600e3)}${useHourly() ? ' <small>(timme)</small>' : ''}<br>${lines.join('<br>')}`; tip.hidden = false;
+  const px = c.sx(bt) / c.W * r.width;
   tip.style.top = '8px';
   tip.style.left = px > r.width / 2 ? `${Math.max(4, px - tip.offsetWidth - 12)}px` : `${px + 16}px`;
 }
@@ -644,61 +1117,498 @@ function chartLeave(el) {
   el.querySelectorAll('circle[class^="hd"]').forEach(d => d.setAttribute('visibility', 'hidden'));
   const tip = el.querySelector('.tip'); if (tip) tip.hidden = true;
 }
+
+/* ---------- Zoom och panorering ---------- */
+function plotFrac(el, clientX) {
+  const c = el._chart, svg = el.querySelector('svg');
+  if (!c || !svg) return 0.5;
+  const r = svg.getBoundingClientRect();
+  const x = (clientX - r.left) / r.width * c.W;
+  return Math.min(1, Math.max(0, (x - c.L) / (c.W - c.L - c.R)));
+}
+function zoomAt(frac, factor) {
+  const span = view.t1 - view.t0, tc = view.t0 + span * frac;
+  const ns = Math.min(MAX_SPAN, Math.max(MIN_SPAN, span * factor));
+  range = 'custom';
+  setView(tc - ns * frac, tc + ns * (1 - frac));
+}
+function panBy(fracDx) {
+  const span = view.t1 - view.t0;
+  range = 'custom';
+  setView(view.t0 - span * fracDx, view.t1 - span * fracDx);
+}
 for (const id of ['chTemp', 'chRh', 'chBat', 'chRs']) {
   const el = $(id);
-  el.addEventListener('pointermove', e => chartHover(el, e));
-  el.addEventListener('pointerdown', e => chartHover(el, e));
-  el.addEventListener('pointerleave', () => chartLeave(el));
+  const ptr = new Map();
+  let drag = null, pinch = null;
+  el.addEventListener('pointerdown', e => {
+    ptr.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptr.size === 1) drag = { x: e.clientX, t0: view.t0, t1: view.t1, moved: false, id: e.pointerId };
+    if (ptr.size === 2) {
+      const [a, b] = [...ptr.values()];
+      pinch = { d: Math.abs(a.x - b.x) || 1, t0: view.t0, t1: view.t1, frac: plotFrac(el, (a.x + b.x) / 2) };
+      drag = null;
+    }
+    if (e.pointerType === 'mouse') el.setPointerCapture(e.pointerId);
+    chartHover(el, e);
+  });
+  el.addEventListener('pointermove', e => {
+    if (ptr.has(e.pointerId)) ptr.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && ptr.size === 2) {
+      const [a, b] = [...ptr.values()];
+      const d = Math.abs(a.x - b.x) || 1, span = pinch.t1 - pinch.t0, ns = Math.min(MAX_SPAN, Math.max(MIN_SPAN, span * pinch.d / d));
+      const tc = pinch.t0 + span * pinch.frac;
+      range = 'custom'; setView(tc - ns * pinch.frac, tc + ns * (1 - pinch.frac));
+      return;
+    }
+    if (drag && (e.buttons || e.pointerType !== 'mouse')) {
+      const svg = el.querySelector('svg'); if (!svg || !el._chart) return;
+      const r = svg.getBoundingClientRect(), c = el._chart;
+      const plotW = r.width * (c.W - c.L - c.R) / c.W;
+      const dx = e.clientX - drag.x;
+      if (Math.abs(dx) > 5) drag.moved = true;
+      if (drag.moved) {
+        el.classList.add('drar'); chartLeave(el);
+        const dt = dx / plotW * (drag.t1 - drag.t0);
+        range = 'custom'; setView(drag.t0 - dt, drag.t1 - dt);
+        return;
+      }
+    }
+    chartHover(el, e);
+  });
+  const end = e => { ptr.delete(e.pointerId); if (ptr.size < 2) pinch = null; if (!ptr.size) { drag = null; el.classList.remove('drar'); } };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+  el.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !drag) chartLeave(el); });
+  el.addEventListener('wheel', e => {
+    if (!el._chart) return;
+    e.preventDefault();
+    const f = Math.pow(1.0015, e.deltaY * (e.deltaMode === 1 ? 30 : 1));
+    zoomAt(plotFrac(el, e.clientX), f);
+  }, { passive: false });
+  el.addEventListener('dblclick', () => setRange(RANGES[lsGet('jk-range')] ? lsGet('jk-range') : 'day'));
 }
+$('zIn').addEventListener('click', () => zoomAt(0.5, 0.5));
+$('zOut').addEventListener('click', () => zoomAt(0.5, 2));
+$('zLeft').addEventListener('click', () => panBy(0.5));
+$('zRight').addEventListener('click', () => panBy(-0.5));
+$('zNow').addEventListener('click', () => { const span = view.t1 - view.t0, nu = nowServer(); setView(nu - span, nu, true); });
+document.querySelectorAll('#rangeTabs button[data-range]').forEach(b => b.addEventListener('click', async () => {
+  if (b.dataset.range !== 'custom') return setRange(b.dataset.range);
+  $('cuFrom').value = isoLocal(view.t0); $('cuTo').value = isoLocal(Math.min(view.t1, nowServer()));
+  if (!await openDlg('dlgCustom')) return;
+  const a = fromIsoLocal($('cuFrom').value), z = fromIsoLocal($('cuTo').value);
+  if (a == null || z == null || z <= a) return;
+  range = 'custom'; setView(a, z, false);
+}));
+$('chkLastYear').checked = showLastYear;
+$('chkLastYear').addEventListener('change', () => { showLastYear = $('chkLastYear').checked; lsSet('jk-forraaret', showLastYear ? '1' : '0'); renderHist(); scheduleLoad(); });
 
-const hourly = () => range === 'month' || range === 'year';
+/* ---------- Rensa (bara den här enheten) ---------- */
+$('btnClear').addEventListener('click', async () => {
+  if (!await confirmDlg('Rensa graferna?', 'Allt som mätts hittills döljs i graferna och statistiken, bara här i den här webbläsaren. Inget tas bort i databasen, och andra enheter påverkas inte. Du kan visa allt igen när du vill.', 'Rensa')) return;
+  lsSet('jk-rensad', String(nowServer()));
+  renderAll();
+});
+$('btnUnclear').addEventListener('click', () => { lsSet('jk-rensad', null); renderAll(); });
+
+/* ---------- Rita historiken ---------- */
 function renderHist() {
-  const t1 = nowServer(), t0 = t1 - RANGES[range], H = hourly() && hist.some(h => h.n != null);
-  const rows = hist.map(h => ({ ...h, t: H ? h.at + 1800e3 : histTime(h) })).filter(h => h.t >= t0 && h.t <= t1 + 3600e3).sort((a, b) => a.t - b.t);
+  if (!view.t1) return;
+  const { t0, t1 } = view, H = useHourly();
+  const rows = viewRows((t1 - t0) * 0.03);
   const ser = k => rows.filter(h => num(h[k])).map(h => num(h[k + 'Min']) ? [h.t, h[k], h[k + 'Min'], h[k + 'Max']] : [h.t, h[k]]);
-  // Linjen bryts vid luckor: tre gånger det vanliga avståndet mellan mätningarna
   const dts = rows.slice(1).map((r, i) => r.t - rows[i].t).filter(x => x > 0).sort((x, y) => x - y);
   const medDt = dts.length ? dts[Math.floor(dts.length / 2)] : intervalMs();
-  const gap = H ? 3 * 3600e3 : Math.max(3 * Math.max(intervalMs(), medDt), 20 * 60000);
-  const base = { t0, t1, rk: range, gap };
-  drawChart($('chTemp'), [{ name: 'Jordkällaren', color: '#27456f', pts: ser('ti') }, { name: 'Ute', color: '#b0651a', pts: ser('tu') }], { ...base, unit: ' °C', label: 'Temperatur', minSpan: 2, h: 230 });
-  drawChart($('chRh'), [{ name: 'Fukt', color: '#2d6b2d', pts: ser('rh') }], { ...base, unit: ' %', dec: 0, label: 'Luftfuktighet', minSpan: 5, clamp: [0, 100], h: 170 });
-  // Batteri och signal finns bara vid uppladdningarna: längre glapp är normalt
+  const gap = H ? 3 * 3600e3 : Math.max(3 * Math.max(Math.min(intervalMs(), medDt * 4), medDt), 2 * 60e3);
+  const base = { t0, t1, gap };
+  const nts = notes.filter(n => n.at >= clearCutoff());
+  const tempSer = [{ name: 'Jordkällaren', color: '#27456f', pts: ser('ti') }, { name: 'Ute', color: '#b0651a', pts: ser('tu') }];
+  const lyOn = lastYearOn();
+  $('lastYearWrap').hidden = t1 - t0 < 20 * 864e5;
+  $('keyLastYear').hidden = !lyOn;
+  if (lyOn) {
+    const shift = 365 * 864e5;
+    const lr = ly.rows.map(h => ({ ...h, t: h.at + 1800e3 + shift })).filter(h => h.t >= t0 - 864e5 && h.t <= t1 + 864e5);
+    tempSer.push({ name: 'Jordkällaren förra året', color: '#5f7fae', dash: true, pts: lr.filter(h => num(h.ti)).map(h => [h.t, h.ti]) });
+  }
+  drawChart($('chTemp'), tempSer, { ...base, unit: ' °C', label: 'Temperatur', minSpan: 2, h: 230, notes: nts, noteFlags: true });
+  drawChart($('chRh'), [{ name: 'Fukt', color: '#2d6b2d', pts: ser('rh') }], { ...base, unit: ' %', dec: 0, label: 'Luftfuktighet', minSpan: 5, clamp: [0, 100], h: 170, notes: nts });
   const gapUpp = Math.max(gap, 4 * 3600e3);
-  drawChart($('chBat'), [{ name: 'Batteri', color: '#44423d', pts: ser('bv') }], { ...base, gap: gapUpp, unit: ' V', dec: 2, label: 'Batterispänning', minSpan: 0.1, h: 170, tickDec: 2, ticks: 4 });
+  drawChart($('chBat'), [{ name: 'Batteri', color: '#44423d', pts: ser('bv').filter(p => p[1] >= 2.5) }], { ...base, gap: gapUpp, unit: ' V', dec: 2, label: 'Batterispänning', minSpan: 0.1, h: 170, tickDec: 2, ticks: 4 });
   drawChart($('chRs'), [{ name: 'Signal', color: '#7b4fa0', pts: ser('rs') }], { ...base, gap: gapUpp, unit: ' dBm', dec: 0, label: 'WiFi-signal', minSpan: 10, h: 170, ticks: 4 });
-  const antal = H ? rows.reduce((a, h) => a + (h.n || 0), 0) : rows.length;
-  $('histRange').textContent = `${RANGE_NAMES[range]} · ${antal.toLocaleString('sv')} mätningar`;
+
+  const inV = rows.filter(h => h.t >= t0 && h.t <= t1);
+  const antal = H ? inV.reduce((a, h) => a + (h.n || 0), 0) : inV.length;
+  const sammaDag = new Date(t0).toDateString() === new Date(t1).toDateString();
+  const spanTxt = t1 - t0 < 864e5 * 1.5 ? `${when(t0)} – ${sammaDag ? hm(t1) : when(t1)}` : `${when(t0).replace(/ \d\d:\d\d$/, '')} – ${when(t1).replace(/ \d\d:\d\d$/, '')}`;
+  if (!loading) $('histRange').textContent = `${spanTxt} · ${antal.toLocaleString('sv')} mätningar${H ? ' (timvärden)' : ''}`;
 
   const st = k => {
-    const v = rows.filter(h => num(h[k])); if (!v.length) return null;
+    const v = inV.filter(h => num(h[k])); if (!v.length) return null;
     const w = h => (H ? h.n || 1 : 1), sw = v.reduce((a, h) => a + w(h), 0);
     return { min: Math.min(...v.map(h => h[k + 'Min'] ?? h[k])), max: Math.max(...v.map(h => h[k + 'Max'] ?? h[k])), avg: v.reduce((a, h) => a + h[k] * w(h), 0) / sw };
   };
   const tile = (lab, s, unit, d = 1) => s ? `<div class="tile"><span>${lab}</span><b>${dec(s.avg, d)}${unit}</b><small>min ${dec(s.min, d)} · max ${dec(s.max, d)}</small></div>` : '';
-  const bv = rows.filter(h => num(h.bv));
+  const bv = inV.filter(h => num(h.bv) && h.bv >= 2.5);
   let batTile = '';
   if (bv.length > 1) {
     const dv = bv[bv.length - 1].bv - bv[0].bv;
     batTile = `<div class="tile"><span>Batteri under perioden</span><b>${Math.abs(dv) < 0.005 ? '±' : dv > 0 ? '+' : '−'}${dec(Math.abs(dv), 2)} V</b><small>${dec(bv[0].bv, 2)} → ${dec(bv[bv.length - 1].bv, 2)} V</small></div>`;
   }
-  const missed = (() => {
-    if (rows.length < 2) return '';
-    let gaps = 0;
-    if (H) { for (let i = 1; i < rows.length; i++) if (rows[i].t - rows[i - 1].t > 2.5 * 3600e3) gaps++; }
-    else {
-      const diffs = rows.slice(1).map((r, i) => r.t - rows[i].t).sort((x, y) => x - y);
-      const med = diffs[Math.floor(diffs.length / 2)] || intervalMs();
-      for (let i = 1; i < rows.length; i++) { const dt = rows[i].t - rows[i - 1].t; if (dt > med * 2.5 && dt > 10 * 60000 && dt > 3 * Math.min(med, intervalMs())) gaps++; }
-    }
-    return `<div class="tile"><span>Avbrott i mätningarna</span><b>${gaps}</b><small>${gaps ? 'längre uppehåll än väntat' : 'inga luckor'}</small></div>`;
-  })();
+  let gaps = 0;
+  if (H) { for (let i = 1; i < inV.length; i++) if (inV[i].t - inV[i - 1].t > 2.5 * 3600e3) gaps++; }
+  else for (let i = 1; i < inV.length; i++) { const dt = inV[i].t - inV[i - 1].t; if (dt > medDt * 2.5 && dt > 10 * 60000 && dt > 3 * Math.min(medDt, intervalMs())) gaps++; }
+  const missed = inV.length > 1 ? `<div class="tile"><span>Avbrott i mätningarna</span><b>${gaps}</b><small>${gaps ? 'längre uppehåll än väntat' : 'inga luckor'}</small></div>` : '';
   $('statTiles').innerHTML = tile('Jordkällaren, medel', st('ti'), ' °C') + tile('Fukt, medel', st('rh'), ' %', 0) + tile('Ute, medel', st('tu'), ' °C') + batTile + missed;
-  $('histNote').textContent = H ? 'Linjen visar medelvärdet per timme och det skuggade fältet timmens lägsta och högsta värde.'
-    : rows.length > 500 ? 'Många mätningar: linjen visar medelvärdet och det skuggade fältet min och max.' : '';
+  $('histNote').textContent = H ? 'Linjen visar medelvärdet per timme och det skuggade fältet timmens lägsta och högsta värde. Zooma in under en vecka för att se varje mätning.'
+    : inV.length > 500 ? 'Många mätningar: linjen visar medelvärdet och det skuggade fältet min och max.' : '';
+
+  // Rensat?
+  const c = clearCutoff();
+  $('clearInfo').hidden = !c; $('btnUnclear').hidden = !c; $('btnClear').hidden = !!c;
+  if (c) $('clearInfo').textContent = `Graferna är rensade på den här enheten: visar bara mätningar från ${when(c)}. Allt finns kvar i databasen.`;
+
+  renderStats();
+  // Anteckningar i perioden
+  const nv = nts.filter(n => n.at >= t0 && n.at <= t1).sort((a, b) => a.at - b.at);
+  $('notesWrap').hidden = !nv.length;
+  $('notesList').innerHTML = nv.map(n => `<li><span class="t">${when(n.at)}</span><span>${esc(n.text)}${n.av ? ` <small class="help">(${esc(n.av)})</small>` : ''}</span>${isAdmin ? `<button data-note="${esc(n.id)}" title="Ta bort">Ta bort</button>` : ''}</li>`).join('');
+}
+$('notesList').addEventListener('click', async e => {
+  const id = e.target?.dataset?.note; if (!id) return;
+  if (!await confirmDlg('Ta bort anteckningen?', notes.find(n => n.id === id)?.text || '', 'Ta bort')) return;
+  await D.remove(`anteckningar/${id}`);
+});
+$('btnNote').addEventListener('click', async () => {
+  $('noAt').value = isoLocal(nowServer()); $('noText').value = '';
+  if (!await openDlg('dlgNote')) return;
+  const at = fromIsoLocal($('noAt').value), text = $('noText').value.trim();
+  if (at == null || !text) return;
+  try { await D.push('anteckningar', { at, text, av: myName() }); } catch (e) { alert('Kunde inte spara: ' + (e.code || e.message)); }
+});
+
+/* =====================================================================
+   Export till CSV
+   ===================================================================== */
+function csvNum(v, d) { return num(v) ? Number(v).toFixed(d).replace('.', ',') : ''; }
+function csvTid(ms) { const d = new Date(ms); return `${dateStr(ms)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; }
+function laddaNer(namn, text) {
+  const blob = new Blob(['﻿' + text], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = namn;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+// Medel, min och max per intervall (i svensk tid). Rader från timmar har redan min/max.
+function aggregera(rows, stegMs) {
+  const off = t => new Date(t).getTimezoneOffset() * -60e3;
+  const b = new Map();
+  for (const h of rows) {
+    const t = h.t, k = Math.floor((t + off(t)) / stegMs) * stegMs - off(t);
+    let e = b.get(k); if (!e) { e = { t: k, n: 0, f: {} }; b.set(k, e); }
+    e.n += h.n || 1;
+    for (const f of ['ti', 'rh', 'tu']) {
+      if (!num(h[f])) continue;
+      const w = h.n || 1, q = e.f[f] || (e.f[f] = { s: 0, w: 0, mn: Infinity, mx: -Infinity });
+      q.s += h[f] * w; q.w += w; q.mn = Math.min(q.mn, h[f + 'Min'] ?? h[f]); q.mx = Math.max(q.mx, h[f + 'Max'] ?? h[f]);
+    }
+    if (num(h.bv) && h.bv >= 2.5) e.bv = h.bv;
+    if (num(h.rs)) e.rs = h.rs;
+  }
+  return [...b.values()].sort((a, c) => a.t - c.t);
+}
+$('btnExport').addEventListener('click', async () => {
+  $('exFrom').value = isoLocal(view.t0); $('exTo').value = isoLocal(Math.min(view.t1, nowServer()));
+  msg($('exMsg'), '', '');
+  $('dlgExport').showModal();
+});
+$('btnDoExport').addEventListener('click', async ev => {
+  ev.preventDefault();
+  const per = document.querySelector('input[name=exP]:checked').value;
+  const res = +$('exRes').value;
+  let t0 = view.t0, t1 = Math.min(view.t1, nowServer());
+  if (per === 'all') { t0 = 0; t1 = nowServer() + 60e3; }
+  if (per === 'custom') { t0 = fromIsoLocal($('exFrom').value); t1 = fromIsoLocal($('exTo').value); if (t0 == null || t1 == null || t1 <= t0) return msg($('exMsg'), 'bad', 'Fyll i en giltig period.'); }
+  msg($('exMsg'), '', 'Hämtar…');
+  try {
+    // Timmar och dygn räknas från timsammanfattningarna, kortare från varje mätning
+    const fromHour = res >= 3600;
+    let rows = lista(await D.get(fromHour ? 'timmar' : 'historik', { by: 'at', start: Math.floor(t0 - (fromHour ? 3600e3 : 0)), end: Math.ceil(t1) }))
+      .map(h => ({ ...h, t: fromHour ? h.at : histTime(h) })).filter(h => h.t >= (fromHour ? t0 - 3600e3 : t0) && h.t <= t1).sort((a, b) => a.t - b.t);
+    if (fromHour && !rows.length) {   // äldre data utan timsammanfattningar
+      rows = lista(await D.get('historik', { by: 'at', start: Math.floor(t0), end: Math.ceil(t1) })).map(h => ({ ...h, t: histTime(h) })).sort((a, b) => a.t - b.t);
+    }
+    if (!rows.length) return msg($('exMsg'), 'bad', 'Inga mätningar i perioden.');
+    let csv;
+    if (!res) {
+      csv = 'Tid;Jordkällaren °C;Luftfuktighet %;Ute °C;Batteri V;WiFi dBm\r\n' +
+        rows.map(h => [csvTid(h.t), csvNum(h.ti, 2), csvNum(h.rh, 1), csvNum(h.tu, 2), num(h.bv) && h.bv >= 2.5 ? csvNum(h.bv, 3) : '', num(h.rs) ? h.rs : ''].join(';')).join('\r\n');
+    } else {
+      const g = aggregera(rows, res * 1000);
+      const f3 = (e, f, d) => e.f[f] ? [csvNum(e.f[f].s / e.f[f].w, d), csvNum(e.f[f].mn, d), csvNum(e.f[f].mx, d)] : ['', '', ''];
+      csv = 'Tid (början);Antal mätningar;Jordkällaren medel °C;Jordkällaren min;Jordkällaren max;Fukt medel %;Fukt min;Fukt max;Ute medel °C;Ute min;Ute max;Batteri V;WiFi dBm\r\n' +
+        g.map(e => [csvTid(e.t), e.n, ...f3(e, 'ti', 2), ...f3(e, 'rh', 1), ...f3(e, 'tu', 2), num(e.bv) ? csvNum(e.bv, 3) : '', num(e.rs) ? e.rs : ''].join(';')).join('\r\n');
+    }
+    const upp = { 0: 'varje-matning', 60: 'minut', 300: '5min', 900: '15min', 3600: 'timme', 86400: 'dygn' }[res];
+    const namn = `jordkallare_${dateStr(rows[0].t)}_${dateStr(rows[rows.length - 1].t)}_${upp}`;
+    laddaNer(namn + '.csv', csv);
+    if ($('exLog').checked) {
+      const lg = lista(await D.get('logg', { by: 'at', start: Math.floor(t0), end: Math.ceil(t1) })).sort((a, b) => histTime(a) - histTime(b));
+      laddaNer(namn + '_handelser.csv', 'Tid;Nivå;Händelse\r\n' + lg.map(l => [csvTid(histTime(l)), l.niva || '', '"' + String(l.text || '').replace(/"/g, '""') + '"'].join(';')).join('\r\n'));
+    }
+    msg($('exMsg'), 'ok', `Klart: ${rows.length.toLocaleString('sv')} rader hämtade.`);
+  } catch (e) { msg($('exMsg'), 'bad', `Kunde inte exportera (${e.code || e.message}).`); }
+});
+
+/* =====================================================================
+   Väder och vädring (SMHI)
+   ===================================================================== */
+let smhi = null, smhiAt = 0, smhiFel = '', smhiPlats = '';
+// Absolut fukt (g/m³) och daggpunkt (°C)
+const mattnad = T => 6.112 * Math.exp(17.67 * T / (T + 243.5)) * 2.1674 / (273.15 + T) * 100;  // g/m³ vid 100 %
+const absFukt = (T, RH) => mattnad(T) * RH / 100;
+function daggpunkt(T, RH) { const g = Math.log(Math.max(RH, 1) / 100) + 17.62 * T / (243.12 + T); return 243.12 * g / (17.62 - g); }
+// Kritisk fukt för mögel (VTT-modellen) vid temperaturen T
+const rhKritisk = T => T <= 20 ? Math.max(80, -0.00267 * T ** 3 + 0.16 * T ** 2 - 3.13 * T + 100) : 80;
+
+async function hamtaSmhi(force) {
+  if (!plats?.lat || !plats?.lon) { smhi = null; return; }
+  const nyckel = `${plats.lat},${plats.lon}`;
+  if (!force && smhiPlats === nyckel && Date.now() - smhiAt < (smhi ? 20 : 5) * 60e3) return;
+  try {
+    const url = `https://opendata-download-metfcst.smhi.se/api/category/snow1g/version/1/geotype/point/lon/${(+plats.lon).toFixed(4)}/lat/${(+plats.lat).toFixed(4)}/data.json`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error('SMHI svarade ' + r.status);
+    const j = await r.json();
+    smhi = (j.timeSeries || []).map(p => {
+      const t = new Date(p.time || p.validTime).getTime();
+      let T = p.data?.air_temperature, RH = p.data?.relative_humidity;
+      if (p.parameters) { T = p.parameters.find(x => x.name === 't')?.values?.[0]; RH = p.parameters.find(x => x.name === 'r')?.values?.[0]; }
+      return { t, T: T === 9999 ? null : T, RH: RH === 9999 ? null : RH };
+    }).filter(p => num(p.t));
+    smhiAt = Date.now(); smhiFel = ''; smhiPlats = nyckel;
+  } catch (e) { smhiFel = e.message === 'Failed to fetch' ? 'ingen kontakt med SMHI' : e.message; smhiAt = Date.now(); smhiPlats = nyckel; }
+  renderWeather();
+}
+function renderWeather() {
+  const adv = [], tiles = [];
+  const L = latest;
+  const add = (st, t, sub) => adv.push(`<div class="advice"><span class="lamp ${st}"></span><div>${t}${sub ? `<small>${sub}</small>` : ''}</div></div>`);
+  const nu = nowServer();
+  const now = smhi?.find(p => p.t >= nu - 3600e3 && num(p.RH));
+  if (!plats?.lat) add('', 'Ingen plats inställd för väderdata', isAdmin ? 'Fyll i platsen nedan (eller tryck "Använd min position") för vädringsråd och frostvarning från SMHI.' : 'Den som administrerar sidan kan ställa in platsen.');
+  else if (smhiFel && !smhi) add('wait', 'Väderdata från SMHI gick inte att hämta', esc(smhiFel));
+
+  if (L && num(L.ti) && num(L.rh)) {
+    const ahIn = absFukt(L.ti, L.rh), dp = daggpunkt(L.ti, L.rh);
+    tiles.push(`<div class="tile"><span>Daggpunkt inne</span><b>${dec(dp)} °C</b><small>kalla ytor under det blir blöta</small></div>`);
+    tiles.push(`<div class="tile"><span>Vatten i luften inne</span><b>${dec(ahIn)} g/m³</b><small>absolut fukt</small></div>`);
+    const Tout = num(L.tu) ? L.tu : now?.T, RHout = now?.RH;
+    if (num(Tout) && num(RHout)) {
+      const ahUt = absFukt(Tout, RHout);
+      const rhEfter = Math.min(100, ahUt / mattnad(L.ti) * 100);
+      tiles.push(`<div class="tile"><span>Vatten i luften ute</span><b>${dec(ahUt)} g/m³</b><small>${dec(Tout)} °C och ${dec(RHout, 0)} % (SMHI)</small></div>`);
+      const sub = `Uteluft som får jordkällarens temperatur (${dec(L.ti)} °C) får ${dec(rhEfter, 0)} % fukt. Nu är det ${dec(L.rh, 0)} % inne.`;
+      if (Tout < -2 && L.ti < 4) add('bad', 'Vädra inte nu: risk för frost i källaren', `Det är ${dec(Tout)} °C ute. ` + sub);
+      else if (ahUt < ahIn - 0.3 && Tout < L.ti) add('ok', 'Bra att vädra nu: uteluften är svalare och torrare', (Tout < 0 ? 'Vädra kort, det är minusgrader. ' : '') + sub);
+      else if (ahUt < ahIn - 0.3) add('wait', 'Uteluften är torrare men varmare', 'Vädra bara om det är för fuktigt – källaren blir varmare. ' + sub);
+      else add('bad', 'Vädra inte: uteluften skulle göra källaren fuktigare', sub);
+    }
+    // Mögelrisk de senaste 14 dagarna (timvärden)
+    const h = hist14.filter(x => num(x.ti) && num(x.rh));
+    if (h.length > 24) {
+      const over = h.map(x => x.rh >= rhKritisk(x.ti));
+      const andel = over.filter(Boolean).length / over.length;
+      let svit = 0; for (let i = over.length - 1; i >= 0 && over[i]; i--) svit++;
+      const niv = svit >= 7 * 24 || andel >= 0.75 ? ['bad', 'hög'] : svit >= 48 || andel >= 0.3 ? ['wait', 'måttlig'] : ['ok', 'låg'];
+      add(niv[0], `Mögelrisk: ${niv[1]}`, `Fukten har legat över mögelgränsen (${dec(rhKritisk(L.ti), 0)} % vid ${dec(L.ti)} °C) ${Math.round(andel * 100)} % av tiden de senaste 14 dagarna${svit ? `, nu i ${dur(svit * 3600)} i sträck` : ''}. Jordkällare är fuktiga med flit – det viktiga är att det inte blir för länge utan vädring. Enligt VTT:s mögelmodell.`);
+    }
+  }
+  $('advice').innerHTML = adv.join('');
+  $('climateTiles').innerHTML = tiles.join('');
+  // Kommande nätter
+  const ft = [];
+  if (smhi) {
+    const grans = num(plats?.frostGrans) ? plats.frostGrans : -5;
+    for (let i = 0; i < 3; i++) {
+      const d = new Date(nu); d.setHours(18, 0, 0, 0); d.setDate(d.getDate() + i - (new Date(nu).getHours() < 9 ? 1 : 0));
+      const a = d.getTime(), z = a + 15 * 3600e3;
+      const p = smhi.filter(x => x.t >= Math.max(a, nu - 3600e3) && x.t <= z && num(x.T));
+      if (!p.length) continue;
+      const m = p.reduce((x, y) => (y.T < x.T ? y : x));
+      const namn = i === 0 && a <= nu ? 'I natt' : `Natten mot ${WD[new Date(a + 864e5).getDay()]}`;
+      ft.push(`<div class="tile"><span>${namn}</span><b style="color:${m.T <= grans ? 'var(--bad)' : m.T < 0 ? 'var(--warn)' : 'inherit'}">${dec(m.T)} °C</b><small>lägst kl ${hm(m.t)}${m.T <= grans ? ' · frostvarning' : ''}</small></div>`);
+    }
+  }
+  $('frostHead').hidden = !ft.length;
+  $('frostTiles').innerHTML = ft.join('');
+  $('weatherWhen').textContent = smhi ? `SMHI ${hm(smhiAt)}${plats?.namn ? ', ' + plats.namn : ''}` : '';
+  // Platsfälten
+  if (isAdmin && document.activeElement?.closest('#hWeather') == null) {
+    $('plNamn').value = plats?.namn || ''; $('plLat').value = plats?.lat ?? ''; $('plLon').value = plats?.lon ?? '';
+    $('plFrost').value = num(plats?.frostGrans) ? plats.frostGrans : -5;
+  }
+}
+$('btnGeo').addEventListener('click', () => {
+  if (!navigator.geolocation) return msg($('plMsg'), 'bad', 'Webbläsaren kan inte ge position.');
+  msg($('plMsg'), '', 'Hämtar position…');
+  navigator.geolocation.getCurrentPosition(p => {
+    $('plLat').value = p.coords.latitude.toFixed(4); $('plLon').value = p.coords.longitude.toFixed(4);
+    msg($('plMsg'), 'ok', 'Position ifylld. Tryck Spara plats.');
+  }, e => msg($('plMsg'), 'bad', 'Fick ingen position (' + e.message + ').'), { timeout: 15000 });
+});
+$('btnSavePlats').addEventListener('click', async () => {
+  const lat = parseFloat(String($('plLat').value).replace(',', '.')), lon = parseFloat(String($('plLon').value).replace(',', '.'));
+  const fg = parseFloat(String($('plFrost').value).replace(',', '.'));
+  if (!(lat > 54 && lat < 70 && lon > 10 && lon < 25)) return msg($('plMsg'), 'bad', 'Positionen ligger inte i Sverige (SMHI:s område).');
+  try {
+    await D.set('plats', { lat: +lat.toFixed(4), lon: +lon.toFixed(4), namn: $('plNamn').value.trim(), frostGrans: num(fg) ? fg : -5 });
+    msg($('plMsg'), 'ok', 'Sparat.'); hamtaSmhi(true);
+  } catch (e) { msg($('plMsg'), 'bad', 'Kunde inte spara (' + (e.code || e.message) + ').'); }
+});
+
+/* =====================================================================
+   Statistik
+   ===================================================================== */
+function renderStats() {
+  if (!view.t1) return;
+  const H = useHourly(), rows = viewRows().filter(h => h.t >= view.t0 && h.t <= view.t1);
+  // Tid under/över en gräns: varje mätning räknas fram till nästa (högst 3 intervall)
+  const timmar = (pred) => {
+    if (H) return rows.filter(pred).length;
+    let s = 0; const max = 3 * intervalMs();
+    for (let i = 0; i < rows.length; i++) if (pred(rows[i])) s += Math.min(max, (rows[i + 1]?.t ?? rows[i].t + intervalMs()) - rows[i].t);
+    return s / 3600e3;
+  };
+  const tiles = [];
+  const ti = rows.filter(h => num(h.ti));
+  if (ti.length) {
+    tiles.push(`<div class="tile"><span>Under 2 °C i jordkällaren</span><b>${dec(timmar(h => num(h.ti) && h.ti < 2), 0)} h</b><small>frostrisk för potatis</small></div>`);
+    tiles.push(`<div class="tile"><span>Över 10 °C i jordkällaren</span><b>${dec(timmar(h => num(h.ti) && h.ti > 10), 0)} h</b><small>för varmt för lagring</small></div>`);
+  }
+  const rh = rows.filter(h => num(h.rh));
+  if (rh.length) tiles.push(`<div class="tile"><span>Fukt över 95 %</span><b>${dec(timmar(h => num(h.rh) && h.rh > 95), 0)} h</b><small>risk för kondens</small></div>`);
+  const tu = rows.filter(h => num(h.tu));
+  if (tu.length) {
+    const dagar = new Map();
+    for (const h of tu) { const k = dateStr(h.t); dagar.set(k, Math.min(dagar.get(k) ?? 99, h.tuMin ?? h.tu)); }
+    tiles.push(`<div class="tile"><span>Frostdygn ute</span><b>${[...dagar.values()].filter(v => v < 0).length}</b><small>av ${dagar.size} dygn med minusgrader</small></div>`);
+  }
+  $('statsTiles').innerHTML = tiles.join('') || '<p class="help">Inga mätningar i perioden.</p>';
+  $('statsRange').textContent = $('histRange').textContent.split(' · ')[0];
+}
+$('btnMonths').addEventListener('click', async () => {
+  $('monthsHelp').textContent = 'Hämtar…';
+  try {
+    const rows = lista(await D.get('timmar', { by: 'at', start: nowServer() - 366 * 864e5 })).filter(h => num(h.at) && h.at >= clearCutoff());
+    const m = new Map();
+    for (const h of rows) {
+      const d = new Date(h.at), k = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+      let e = m.get(k); if (!e) { e = { k, ti: [], rh: [], tu: [], tiMin: 99, tiMax: -99, tuMin: 99, kall: 0 }; m.set(k, e); }
+      if (num(h.ti)) { e.ti.push([h.ti, h.n || 1]); e.tiMin = Math.min(e.tiMin, h.tiMin ?? h.ti); e.tiMax = Math.max(e.tiMax, h.tiMax ?? h.ti); if (h.ti < 2) e.kall++; }
+      if (num(h.rh)) e.rh.push([h.rh, h.n || 1]);
+      if (num(h.tu)) { e.tu.push([h.tu, h.n || 1]); e.tuMin = Math.min(e.tuMin, h.tuMin ?? h.tu); }
+    }
+    const medel = a => a.length ? a.reduce((s, [v, w]) => s + v * w, 0) / a.reduce((s, [, w]) => s + w, 0) : null;
+    const rad = [...m.values()].sort((a, b) => (a.k < b.k ? 1 : -1));
+    $('monthsTable').innerHTML = '<thead><tr><th>Månad</th><th>Jordkällaren</th><th>min–max</th><th>Fukt</th><th>Ute</th><th>Ute min</th><th>Timmar &lt; 2 °C</th></tr></thead><tbody>' +
+      (rad.map(e => { const [y, mo] = e.k.split('-'); return `<tr><td>${MON[+mo - 1]} ${y}</td><td>${dec(medel(e.ti))} °C</td><td>${e.ti.length ? `${dec(e.tiMin)} – ${dec(e.tiMax)}` : '–'}</td><td>${dec(medel(e.rh), 0)} %</td><td>${dec(medel(e.tu))} °C</td><td>${e.tu.length ? dec(e.tuMin) : '–'}</td><td>${e.kall}</td></tr>`; }).join('') || '<tr><td colspan="7" class="help">Inga timvärden än.</td></tr>') + '</tbody>';
+    $('monthsWrap').hidden = false; $('monthsHelp').textContent = 'Medel, min och max per månad, de senaste 12 månaderna.';
+  } catch (e) { $('monthsHelp').textContent = 'Kunde inte hämta (' + (e.code || e.message) + ').'; }
+});
+
+/* =====================================================================
+   Larm och notiser
+   ===================================================================== */
+function typChips(el, valda, prefix) {
+  el.innerHTML = TYPER.map(([k, namn]) => `<label><input type="checkbox" data-typ="${k}" id="${prefix}${k}"${valda?.[k] ? ' checked' : ''}> ${namn}</label>`).join('');
+}
+const lasTyper = el => Object.fromEntries([...el.querySelectorAll('input[data-typ]')].map(i => [i.dataset.typ, i.checked]));
+const typText = t => TYPER.filter(([k]) => t?.[k]).map(([, n]) => n).join(', ') || 'inget';
+let myDirty = false;
+function renderAlarm() {
+  if (!myDirty) {
+    $('myName').value = myRecip?.namn ?? myName();
+    $('myMail').value = myRecip?.epost ?? '';
+    $('myPush').value = myRecip?.pushover ?? '';
+    typChips($('myTypes'), myRecip?.typer ?? TYPER_STD, 'my_');
+  }
+  // Aktiva larm, väntande larm och kvittering
+  const L = latest, rad = [];
+  if (L?.larm) {
+    const start = Math.max(...LARM_TXT.filter(([bit]) => L.larm & bit).map(([bit]) => larmStart(bit)), 0);
+    const kv = larmstatus?.kvitterad;
+    rad.push(`<div class="advice"><span class="lamp bad"></span><div><b>Larm:</b> ${LARM_TXT.filter(([bit]) => L.larm & bit).map(([bit, , , txt, u]) => `${txt} ${dec(granse(bit), bit === 4 ? 0 : 1)}${u}`).join(', ')}${start ? ` sedan ${when(start)}` : ''}.
+      <small>${kv && kv.at > start ? `Kvitterat av ${esc(kv.av || '?')} ${when(kv.at)} – inga fler påminnelser.` : '<button id="btnAck">Kvittera</button> stoppar påminnelserna'}</small></div></div>`);
+  } else if (L) rad.push(`<div class="advice"><span class="lamp ok"></span><div>Inga larm just nu${L.granser ? `<small>Gränser: ${LARM_TXT.filter(([, g]) => num(L.granser[g])).map(([, g, , txt, u]) => `${txt} ${dec(L.granser[g], g === 'rhHog' ? 0 : 1)}${u}`).join(', ') || 'inga'}</small>` : ''}</div></div>`);
+  if (L?.larmVantar) rad.push(`<div class="advice"><span class="lamp wait"></span><div>Gränsen är passerad men larmet väntar på fördröjningen<small>Det larmar om värdet inte kommer tillbaka innan dess (ställs in under Inställningar).</small></div></div>`);
+  $('alarmNow').innerHTML = rad.join('');
+  $('btnAck')?.addEventListener('click', kvittera);
+  // Larmskriptet
+  const k = larmstatus?.kontrollerat;
+  $('alarmScript').innerHTML = k ? (nowServer() - k < 15 * 60e3 ? `larmskriptet kontrollerade ${hm(k)}` : `<span style="color:var(--bad)">larmskriptet har inte kört sedan ${when(k)}</span>`) : '<span style="color:var(--warn)">larmskriptet är inte igång (se GUIDE.md)</span>';
+  // Notiser
+  $('noticeList').innerHTML = notices.length ? notices.slice().sort((a, b) => b.at - a.at).slice(0, 12).map(n => `<li><span class="t">${when(n.at)}</span><span><b>${esc(n.rubrik)}</b> – ${esc(n.text)}${n.fel ? ` <small style="color:var(--bad)">(${esc(n.fel)})</small>` : ''} <small class="help">· ${n.antal || 0} skickade</small></span></li>`).join('') : '<li class="help">Inga notiser än.</li>';
+  // Alla mottagare (admin)
+  if (isAdmin) {
+    const rows = lista(mottagare).sort((a, b) => String(a.namn).localeCompare(String(b.namn), 'sv'));
+    $('recipBody').innerHTML = rows.length ? rows.map(m => `<tr><td>${esc(m.namn || '–')}${m.aktiv === false ? ' <small class="help">(avstängd)</small>' : ''}${m.id === user?.uid ? ' <small class="help">(du)</small>' : ''}</td><td>${esc(m.epost || '–')}</td><td>${m.pushover ? '✓' : '–'}</td><td>${esc(typText(m.typer))}</td><td style="white-space:nowrap"><button data-redit="${esc(m.id)}">Ändra</button> <button data-rdel="${esc(m.id)}">Ta bort</button></td></tr>`).join('')
+      : '<tr><td colspan="5" class="help">Inga mottagare än. Fyll i Mina larm, eller lägg till någon nedan.</td></tr>';
+  }
+}
+['myName', 'myMail', 'myPush'].forEach(id => $(id).addEventListener('input', () => { myDirty = true; }));
+$('myTypes').addEventListener('change', () => { myDirty = true; });
+$('btnSaveMine').addEventListener('click', async () => {
+  const epost = $('myMail').value.trim(), push = $('myPush').value.trim();
+  if (epost && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(epost)) return msg($('myMsg'), 'bad', 'E-postadressen ser inte rätt ut.');
+  if (push && !/^[A-Za-z0-9]{30}$/.test(push)) return msg($('myMsg'), 'bad', 'Pushover-nyckeln ska vara 30 tecken (User Key, inte e-post).');
+  try {
+    await D.set(`mottagare/${user.uid}`, { namn: $('myName').value.trim() || myName(), epost: epost || null, pushover: push || null, typer: lasTyper($('myTypes')), aktiv: true, uid: user.uid });
+    myDirty = false; msg($('myMsg'), 'ok', epost || push ? 'Sparat.' : 'Sparat. Fyll i e-post eller Pushover för att få larm.');
+  } catch (e) { msg($('myMsg'), 'bad', 'Kunde inte spara (' + (e.code || e.message) + ').'); }
+});
+async function testlarm(id, el) {
+  try {
+    await D.update('larmstatus', { test: { at: D.ts(), av: myName(), id, klar: false } });
+    msg(el, 'ok', 'Testlarm beställt. Det skickas inom 5 minuter av larmskriptet.');
+  } catch (e) { msg(el, 'bad', 'Kunde inte beställa (' + (e.code || e.message) + ').'); }
+}
+$('btnTestMine').addEventListener('click', () => myRecip ? testlarm(user.uid, $('myMsg')) : msg($('myMsg'), 'bad', 'Spara dina larm först.'));
+$('btnTestAll').addEventListener('click', () => testlarm('alla', $('recipMsg')));
+async function redigeraMottagare(id) {
+  const m = id ? mottagare[id] || {} : { typer: TYPER_STD, aktiv: true };
+  $('reName').value = m.namn || ''; $('reMail').value = m.epost || ''; $('rePush').value = m.pushover || '';
+  typChips($('reTypes'), m.typer, 're_'); $('reActive').checked = m.aktiv !== false;
+  if (!await openDlg('dlgRecip')) return;
+  const obj = { ...m, namn: $('reName').value.trim(), epost: $('reMail').value.trim() || null, pushover: $('rePush').value.trim() || null, typer: lasTyper($('reTypes')), aktiv: $('reActive').checked };
+  delete obj.id;
+  try { if (id) await D.set(`mottagare/${id}`, obj); else await D.push('mottagare', obj); msg($('recipMsg'), 'ok', 'Sparat.'); }
+  catch (e) { msg($('recipMsg'), 'bad', 'Kunde inte spara (' + (e.code || e.message) + ').'); }
+}
+$('btnAddRecip').addEventListener('click', () => redigeraMottagare(null));
+$('recipBody').addEventListener('click', async e => {
+  const ed = e.target.dataset.redit, del = e.target.dataset.rdel;
+  if (ed) redigeraMottagare(ed);
+  if (del && await confirmDlg('Ta bort mottagaren?', `${mottagare[del]?.namn || del} får inga fler larm.`, 'Ta bort')) await D.remove(`mottagare/${del}`);
+});
+
+/* =====================================================================
+   Händelser
+   ===================================================================== */
+function renderLog() {
+  const c = clearCutoff();
+  const items = logItems.filter(l => histTime(l) >= c);
+  if (!items.length) { $('logBody').innerHTML = '<tr><td colspan="3" class="help">Inga händelser än.</td></tr>'; return; }
+  $('logBody').innerHTML = items.slice().reverse().map(l => {
+    const st = l.niva === 'fel' ? 'bad' : l.niva === 'varning' ? 'wait' : 'ok';
+    return `<tr><td class="t">${when(histTime(l))}</td><td style="width:1%"><span class="lamp ${st}"></span></td><td>${esc(l.text)}</td></tr>`;
+  }).join('');
 }
 
-/* ---------- Inställningar ---------- */
+/* =====================================================================
+   Inställningar (admin)
+   ===================================================================== */
 const LARM_UI = [['chkLTi', 'numLTi', 'larmTiLag'], ['chkHTi', 'numHTi', 'larmTiHog'], ['chkHRh', 'numHRh', 'larmRhHog']];
 let setDirty = false;
 function setSelVal(sel, v, label) {
@@ -718,35 +1628,35 @@ function fillSettings(get) {
   $('chkNatt').checked = !!get('nattPa');
   $('tNattFran').value = hhmm(get('nattFran')); $('tNattTill').value = hhmm(get('nattTill'));
   for (const [c, n, k] of LARM_UI) { const v = get(k); $(c).checked = num(v); $(n).value = num(v) ? v : LARM_STD[k]; }
+  setSelVal($('selFord'), get('larmFordrojMin'), `${get('larmFordrojMin')} min`);
+  setSelVal($('selPam'), get('paminnelseH'), `${get('paminnelseH')} h`);
+  setSelVal($('selGall'), get('gallringAr'), `efter ${get('gallringAr')} år`);
   $('chkHeat').checked = !!get('varmeAuto');
 }
 function nextUpText() { const nx = nextExpected(); return nx ? `ca ${hm(Math.max(nx, nowServer()))}` : 'nästa gång den laddar upp'; }
 function renderSettings() {
+  if (!isAdmin) return;
   if (!setDirty) fillSettings(k => k === 'varmeAuto' ? (inst?.varmeAuto ?? diag?.varmeAuto ?? STD.varmeAuto) : cfg(k));
-  const nattOff = !$('chkNatt').checked;
-  $('selNatt').disabled = $('tNattFran').disabled = $('tNattTill').disabled = nattOff;
+  $('selNatt').disabled = $('tNattFran').disabled = $('tNattTill').disabled = !$('chkNatt').checked;
   for (const [c, n] of LARM_UI) $(n).disabled = !$(c).checked;
   const sc = formSchema(), ups = uploadsPerDay(sc);
   $('schemaHelp').textContent = `${Math.round(86400 / sc.matS).toLocaleString('sv')} mätningar och ca ${ups < 10 ? dec(ups, 1) : Math.round(ups)} uppladdningar per dygn – batteriet räcker ${lifeText(mAhPerDay(sc))}.` +
     (sc.uppDagMin && sc.uppDagMin * 60 < sc.matS ? ' Uppladdningen kan inte ske oftare än mätningarna.' : '') + ' Larm och fel laddas upp direkt.';
-
   const pend = [];
   if (inst?.andrad && inst.andrad > (diag?.instMottagen || 0)) pend.push('ändringar');
   if (inst?.varmeNu) pend.push('värmaren');
   if (inst?.snabbMin > 0) pend.push('snabbläge');
   if (inst?.snabbStopp) pend.push('avsluta snabbläget');
   if (inst?.nollstall) pend.push('nollställning');
+  if (inst?.omstart) pend.push('omstart');
+  if (inst?.wifiSok) pend.push('WiFi-sökning');
   $('setPending').innerHTML = pend.length ? `<span class="lamp wait"></span> väntar: ${esc(pend.join(', '))} (${esc(nextUpText())})` : '';
-
   const on = snabbOn(), S = +$('selSnS').value, M = +$('selSnMin').value;
-  if (on) {
-    $('snHelp').textContent = `Pågår: mäter var ${fmtS(latest.matS)} till ${hm(latest.snabbTill)}${diag?.snabb?.antal ? ` (${diag.snabb.antal} mätningar hittills)` : ''}. Varje mätning laddas upp direkt.`;
-  } else {
+  if (on) $('snHelp').textContent = `Pågår: mäter var ${fmtS(latest.matS)} till ${hm(latest.snabbTill)}${diag?.snabb?.antal ? ` (${diag.snabb.antal} mätningar hittills)` : ''}. Varje mätning laddas upp direkt.`;
+  else {
     const uppVaken = Math.max(1, (diag?.vakenMsUpp || 4000) / 1000);
-    const mAh = S < 60 ? M / 60 * 45 : M * 60 / S * uppVaken * 90 / 3600;
-    const pct = mAh / 3400 * 100;
-    $('snHelp').textContent = `Varje mätning laddas upp direkt${S < 60 ? ' och WiFi är på hela tiden' : ''}. Kostar ca ${pct < 1 ? dec(Math.max(pct, 0.1), 1) : Math.round(pct)} % av batteriet. ` +
-      `Startar vid nästa uppladdning (${nextUpText()}) – tryck R på kortet för att starta direkt.`;
+    const pct = (S < 60 ? M / 60 * 45 : M * 60 / S * uppVaken * 90 / 3600) / 3400 * 100;
+    $('snHelp').textContent = `Varje mätning laddas upp direkt${S < 60 ? ' och WiFi är på hela tiden' : ''}. Kostar ca ${pct < 1 ? dec(Math.max(pct, 0.1), 1) : Math.round(pct)} % av batteriet. Startar vid nästa uppladdning (${nextUpText()}) – tryck R på kortet för att starta direkt.`;
   }
   $('btnSnStart').textContent = on ? 'Starta om' : 'Starta';
   $('btnSnStop').disabled = !on && !(inst?.snabbMin > 0);
@@ -757,71 +1667,55 @@ document.querySelectorAll('#setForm input, #setForm select').forEach(el => {
   el.addEventListener('change', () => { setDirty = true; renderSettings(); });
 });
 for (const id of ['selSnS', 'selSnMin']) $(id).addEventListener('change', renderSettings);
-
 async function save(obj, msgEl, okText) {
-  msgEl.className = 'msg'; msgEl.textContent = 'Sparar…';
+  msg(msgEl, '', 'Sparar…');
   try {
-    if (DEMO) { inst = { ...(inst || {}), ...obj, andrad: Date.now() }; }
-    else await fb.update(fb.ref(fb.db, `${ROOT}/installningar`), { ...obj, andrad: fb.serverTimestamp() });
-    msgEl.className = 'msg ok';
-    msgEl.textContent = okText + (liveActive() ? '' : ` Tas emot vid nästa uppladdning (${nextUpText()}).`);
+    await D.update('installningar', { ...obj, andrad: D.ts() });
+    msg(msgEl, 'ok', okText + (liveActive() ? '' : ` Tas emot vid nästa uppladdning (${nextUpText()}).`));
     renderSettings(); renderCal();
-  } catch (e) {
-    msgEl.className = 'msg bad'; msgEl.textContent = `Kunde inte spara (${e.code || e.message}).`;
-  }
+  } catch (e) { msg(msgEl, 'bad', `Kunde inte spara (${e.code || e.message}).`); }
 }
 $('btnSaveSet').addEventListener('click', async () => {
   const sc = formSchema();
-  if (fromHHMM($('tNattFran').value) == null || fromHHMM($('tNattTill').value) == null) { $('setMsg').className = 'msg bad'; $('setMsg').textContent = 'Fyll i när natten börjar och slutar.'; return; }
-  const obj = { ...sc, varmeAuto: $('chkHeat').checked, intervallMin: null, snabbAntal: null };
+  if (fromHHMM($('tNattFran').value) == null || fromHHMM($('tNattTill').value) == null) return msg($('setMsg'), 'bad', 'Fyll i när natten börjar och slutar.');
+  const obj = { ...sc, varmeAuto: $('chkHeat').checked, larmFordrojMin: +$('selFord').value, paminnelseH: +$('selPam').value, gallringAr: +$('selGall').value, intervallMin: null, snabbAntal: null };
   for (const [c, n, k] of LARM_UI) {
     if (!$(c).checked) { obj[k] = false; continue; }
     const v = parseFloat(String($(n).value).replace(',', '.'));
     const [lo, hi] = k === 'larmRhHog' ? [0, 100] : [-30, 40];
-    if (!num(v) || v < lo || v > hi) { $('setMsg').className = 'msg bad'; $('setMsg').textContent = `Orimlig larmgräns (tillåtet ${lo} till ${hi}).`; return; }
+    if (!num(v) || v < lo || v > hi) return msg($('setMsg'), 'bad', `Orimlig larmgräns (tillåtet ${lo} till ${hi}).`);
     obj[k] = v;
   }
   setDirty = false;
   await save(obj, $('setMsg'), 'Sparat.');
 });
-$('btnSetDefault').addEventListener('click', () => {
-  fillSettings(k => STD[k]); setDirty = true; renderSettings();
-  $('setMsg').className = 'msg'; $('setMsg').textContent = 'Standardvärden ifyllda. Tryck på Spara.';
-});
+$('btnSetDefault').addEventListener('click', () => { fillSettings(k => STD[k]); setDirty = true; renderSettings(); msg($('setMsg'), '', 'Standardvärden ifyllda. Tryck på Spara.'); });
 $('btnSnStart').addEventListener('click', () => save({ snabbS: +$('selSnS').value, snabbMin: +$('selSnMin').value, snabbStopp: false }, $('snMsg'), 'Snabbläge beställt.'));
 $('btnSnStop').addEventListener('click', () => save({ snabbStopp: true, snabbMin: 0 }, $('snMsg'), 'Beställt.'));
-$('btnHeatNow').addEventListener('click', () => save({ varmeNu: true }, $('snMsg'), 'Värmaren beställd.'));
+$('btnHeatNow').addEventListener('click', () => save({ varmeNu: true }, $('cmdMsg'), 'Värmaren beställd.'));
+$('btnRestart').addEventListener('click', async () => { if (await confirmDlg('Starta om sensorn?', 'Sensorn startas om direkt efter nästa uppladdning. Mätningarna som inte laddats upp skickas först.', 'Starta om')) save({ omstart: true }, $('cmdMsg'), 'Omstart beställd.'); });
+$('btnWifiSearch').addEventListener('click', () => save({ wifiSok: true }, $('cmdMsg'), 'Beställt.'));
 
 /* ---------- Kalibrering ---------- */
 const CAL_KEYS = ['ntcR25', 'ntcB', 'ntcSerie', 'ntcOffset', 'tiOffset', 'rhOffset', 'batFaktor'];
 let calDirty = false;
-function setSel(sel, inp, v) {
-  const has = [...sel.options].some(o => o.value === String(v));
-  sel.value = has ? String(v) : 'other'; inp.hidden = has; inp.value = v;
-}
+function setSel(sel, inp, v) { const has = [...sel.options].some(o => o.value === String(v)); sel.value = has ? String(v) : 'other'; inp.hidden = has; inp.value = v; }
 function renderCal() {
+  if (!isAdmin) return;
   if (!calDirty) {
-    setSel($('calR25Sel'), $('calR25'), cfg('ntcR25'));
-    setSel($('calSerieSel'), $('calSerie'), cfg('ntcSerie'));
-    $('calB').value = cfg('ntcB');
-    $('calTu').value = cfg('ntcOffset');
-    $('calTi').value = cfg('tiOffset');
-    $('calRh').value = cfg('rhOffset');
+    setSel($('calR25Sel'), $('calR25'), cfg('ntcR25')); setSel($('calSerieSel'), $('calSerie'), cfg('ntcSerie'));
+    $('calB').value = cfg('ntcB'); $('calTu').value = cfg('ntcOffset'); $('calTi').value = cfg('tiOffset'); $('calRh').value = cfg('rhOffset');
     $('calBat').value = (+cfg('batFaktor')).toFixed(4);
   }
   const pend = inst && diag?.kal && CAL_KEYS.some(k => inst[k] != null && Math.abs(inst[k] - (diag.kal[k] ?? STD[k])) > 1e-3);
   $('calPending').innerHTML = pend ? '<span class="lamp wait"></span> väntar på sensorn' : '';
-  // Hjälp att avgöra vilken sorts sond det är
   const d = diag;
   if (d?.ntc && d.ntc !== 'ok') $('ntcHint').textContent = `Utomhussonden: ${d.ntc} (${d.ntcMv} mV på A1). Kolla kabeln och att referensmotståndet matas från D3.`;
   else if (num(d?.ntcOhm)) {
     const ref = num(latest?.chip) ? latest.chip : null;
-    let gissning = '';
-    if (ref != null && num(d.ntcT10) && num(d.ntcT50)) {
-      const t10 = Math.abs(d.ntcT10 - ref), t50 = Math.abs(d.ntcT50 - ref);
-      if (Math.abs(t10 - t50) > 3) gissning = ` Lådan är ${dec(ref)} °C, så det ser ut att vara en <b>${t10 < t50 ? '10' : '50'} kΩ-sond</b>.`;
-    }
-    $('ntcHint').innerHTML = `Sonden mäter ${Math.round(d.ntcOhm).toLocaleString('sv')} Ω just nu. Som 10 kΩ-sond blir det ${dec(d.ntcT10)} °C, som 50 kΩ-sond ${dec(d.ntcT50)} °C.${gissning}` +
+    let g = '';
+    if (ref != null && num(d.ntcT10) && num(d.ntcT50)) { const a = Math.abs(d.ntcT10 - ref), b = Math.abs(d.ntcT50 - ref); if (Math.abs(a - b) > 3) g = ` Lådan är ${dec(ref)} °C, så det ser ut att vara en <b>${a < b ? '10' : '50'} kΩ-sond</b>.`; }
+    $('ntcHint').innerHTML = `Sonden mäter ${Math.round(d.ntcOhm).toLocaleString('sv')} Ω just nu. Som 10 kΩ-sond blir det ${dec(d.ntcT10)} °C, som 50 kΩ-sond ${dec(d.ntcT50)} °C.${g}` +
       (cfg('ntcR25') >= 40000 && cfg('ntcSerie') < 100000 ? ' <b>Tips:</b> med en 50 kΩ-sond bör referensmotståndet vara 220 kΩ, annars slår mätningen i taket när det är kallt.' : '');
   } else $('ntcHint').textContent = '';
 }
@@ -829,74 +1723,180 @@ for (const id of ['calR25', 'calB', 'calSerie', 'calTu', 'calTi', 'calRh', 'calB
 $('calR25Sel').addEventListener('change', () => { calDirty = true; const o = $('calR25Sel').value === 'other'; $('calR25').hidden = !o; if (!o) $('calR25').value = $('calR25Sel').value; });
 $('calSerieSel').addEventListener('change', () => { calDirty = true; const o = $('calSerieSel').value === 'other'; $('calSerie').hidden = !o; if (!o) $('calSerie').value = $('calSerieSel').value; });
 $('btnMatchTu').addEventListener('click', () => {
-  if (!num(latest?.ti) || !num(latest?.tu)) { $('calMsg').className = 'msg bad'; $('calMsg').textContent = 'Behöver både jordkällarens och utetemperaturen från senaste mätningen.'; return; }
+  if (!num(latest?.ti) || !num(latest?.tu)) return msg($('calMsg'), 'bad', 'Behöver både jordkällarens och utetemperaturen från senaste mätningen.');
   const ny = cfg('ntcOffset') + (latest.ti - latest.tu);
   $('calTu').value = ny.toFixed(2); calDirty = true;
-  $('calMsg').className = 'msg'; $('calMsg').textContent = `Korrigeringen blir ${dec(ny, 2)} °C. Tryck på Spara kalibrering.`;
+  msg($('calMsg'), '', `Korrigeringen blir ${dec(ny, 2)} °C. Tryck på Spara kalibrering.`);
 });
 $('btnBatCalc').addEventListener('click', () => {
   const m = parseFloat(String($('calBatMeas').value).replace(',', '.'));
-  if (!num(m) || !num(latest?.bv) || m < 2.5 || m > 4.5) { $('calMsg').className = 'msg bad'; $('calMsg').textContent = 'Skriv in spänningen du mätte över batteriet (t.ex. 3,95).'; return; }
+  if (!num(m) || !num(latest?.bv) || m < 2.5 || m > 4.5 || latest.bv < 1) return msg($('calMsg'), 'bad', 'Skriv in spänningen du mätte över batteriet (t.ex. 3,95). Batterimätningen måste vara kopplad.');
   const f = cfg('batFaktor') * m / latest.bv;
   $('calBat').value = f.toFixed(4); calDirty = true;
-  $('calMsg').className = 'msg'; $('calMsg').textContent = `Faktorn blir ${dec(f, 4)}. Mät helst när sensorn sover. Tryck på Spara kalibrering.`;
+  msg($('calMsg'), '', `Faktorn blir ${dec(f, 4)}. Mät helst när sensorn sover. Tryck på Spara kalibrering.`);
 });
 $('btnCalDefault').addEventListener('click', () => {
   setSel($('calR25Sel'), $('calR25'), STD.ntcR25); setSel($('calSerieSel'), $('calSerie'), STD.ntcSerie);
   $('calB').value = STD.ntcB; $('calTu').value = 0; $('calTi').value = 0; $('calRh').value = 0; $('calBat').value = STD.batFaktor.toFixed(4);
-  calDirty = true; $('calMsg').className = 'msg'; $('calMsg').textContent = 'Standardvärden ifyllda. Tryck på Spara kalibrering.';
+  calDirty = true; msg($('calMsg'), '', 'Standardvärden ifyllda. Tryck på Spara kalibrering.');
 });
 $('btnSaveCal').addEventListener('click', async () => {
   const n = id => parseFloat(String($(id).value).replace(',', '.'));
-  const obj = {
-    ntcR25: $('calR25Sel').value === 'other' ? n('calR25') : +$('calR25Sel').value,
-    ntcSerie: $('calSerieSel').value === 'other' ? n('calSerie') : +$('calSerieSel').value,
-    ntcB: n('calB'), ntcOffset: n('calTu'), tiOffset: n('calTi'), rhOffset: n('calRh'), batFaktor: n('calBat'),
-  };
+  const obj = { ntcR25: $('calR25Sel').value === 'other' ? n('calR25') : +$('calR25Sel').value, ntcSerie: $('calSerieSel').value === 'other' ? n('calSerie') : +$('calSerieSel').value,
+    ntcB: n('calB'), ntcOffset: n('calTu'), tiOffset: n('calTi'), rhOffset: n('calRh'), batFaktor: n('calBat') };
   const lim = { ntcR25: [100, 2e6], ntcB: [2000, 6000], ntcSerie: [1000, 3e6], ntcOffset: [-20, 20], tiOffset: [-20, 20], rhOffset: [-30, 30], batFaktor: [1.5, 2.5] };
-  for (const [k, [a, b]] of Object.entries(lim)) if (!num(obj[k]) || obj[k] < a || obj[k] > b) { $('calMsg').className = 'msg bad'; $('calMsg').textContent = `Orimligt värde för ${k} (tillåtet ${a}–${b}).`; return; }
+  for (const [k, [a, b]] of Object.entries(lim)) if (!num(obj[k]) || obj[k] < a || obj[k] > b) return msg($('calMsg'), 'bad', `Orimligt värde för ${k} (tillåtet ${a}–${b}).`);
   calDirty = false;
   await save(obj, $('calMsg'), 'Kalibreringen sparad.');
 });
 
-/* ---------- Felsökning ---------- */
+/* =====================================================================
+   Uppdatera sensorn via WiFi (OTA)
+   ===================================================================== */
+let otaFil = null;   // { bytes, version, storlek }
+const DEL = 16384;
+function b64(u8) { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+$('otaFile').addEventListener('change', async () => {
+  otaFil = null; $('btnOtaSend').disabled = true;
+  const f = $('otaFile').files[0]; if (!f) return msg($('otaFileInfo'), '', '');
+  const bytes = new Uint8Array(await f.arrayBuffer());
+  const txt = new TextDecoder('latin1').decode(bytes);
+  const m = txt.match(/JKFW:([^:]{1,16}):JKFW/);
+  if (bytes[0] !== 0xE9) return msg($('otaFileInfo'), 'bad', 'Det här är ingen ESP32-programfil (firmware.bin).');
+  if (!m) return msg($('otaFileInfo'), 'bad', 'Filen saknar jordkällarens versionsmärke. Fel projekt, eller ett program äldre än version 3.0.');
+  if (bytes.length > 0x1E0000) return msg($('otaFileInfo'), 'bad', 'Filen är för stor för programplatsen (1,9 MB).');
+  otaFil = { bytes, version: m[1], storlek: bytes.length };
+  const sama = m[1] === diag?.fw;
+  msg($('otaFileInfo'), sama ? 'warn' : 'ok', `Version ${m[1]}, ${dec(bytes.length / 1048576, 2)} MB${sama ? ' – samma version som sensorn redan kör' : ''}.`);
+  $('btnOtaSend').disabled = false;
+});
+$('btnOtaSend').addEventListener('click', async () => {
+  if (!otaFil) return;
+  if (otaFil.version === diag?.fw) return msg($('otaMsg'), 'bad', `Sensorn kör redan version ${otaFil.version}. Höj FW_VERSION i main.cpp och bygg igen – sensorn installerar bara en version med annat nummer.`);
+  $('btnOtaSend').disabled = true; $('otaProg').hidden = false;
+  const bar = $('otaProg').firstElementChild;
+  try {
+    msg($('otaMsg'), '', 'Räknar kontrollsumma…');
+    const sum = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', otaFil.bytes))).map(b => b.toString(16).padStart(2, '0')).join('');
+    const delar = Math.ceil(otaFil.storlek / DEL);
+    await D.update('installningar', { ota: null });
+    await D.remove('ota/delar');
+    for (let i = 0; i < delar; i += 8) {
+      const obj = {};
+      for (let j = i; j < Math.min(delar, i + 8); j++) obj[j] = b64(otaFil.bytes.subarray(j * DEL, Math.min(otaFil.storlek, (j + 1) * DEL)));
+      await D.update('ota/delar', obj);
+      bar.style.width = `${Math.round(Math.min(delar, i + 8) / delar * 100)}%`;
+      msg($('otaMsg'), '', `Laddar upp ${Math.min(delar, i + 8)} av ${delar} delar…`);
+    }
+    const best = { version: otaFil.version, sha256: sum, storlek: otaFil.storlek, delar, at: Date.now(), av: myName() };
+    await D.set('ota/info', best);
+    await D.update('installningar', { ota: best, andrad: D.ts() });
+    await D.set('ota/status', { status: 'beställd', version: otaFil.version, at: D.ts() });
+    msg($('otaMsg'), 'ok', `Klart. Sensorn hämtar version ${otaFil.version} vid nästa uppladdning (${nextUpText()}). Tryck R på kortet för att göra det direkt.`);
+  } catch (e) { msg($('otaMsg'), 'bad', `Kunde inte ladda upp (${e.code || e.message}).`); }
+  $('btnOtaSend').disabled = false;
+});
+$('btnOtaCancel').addEventListener('click', async () => {
+  try { await D.update('installningar', { ota: null }); await D.set('ota/status', { status: 'avbruten', at: D.ts() }); msg($('otaMsg'), 'ok', 'Avbruten.'); }
+  catch (e) { msg($('otaMsg'), 'bad', `Kunde inte avbryta (${e.code || e.message}).`); }
+});
+function renderOta() {
+  if (!isAdmin) return;
+  $('otaRunning').textContent = diag?.fw ? `sensorn kör version ${diag.fw}` : '';
+  const s = otaStatus, b = inst?.ota;
+  const r = [];
+  if (b) r.push(['Beställd', `version ${esc(b.version)} (${dec(b.storlek / 1048576, 2)} MB, ${b.delar} delar)${b.av ? ` av ${esc(b.av)}` : ''}`]);
+  if (s?.status) r.push(['Status', `${esc(s.status)}${s.version ? ` · version ${esc(s.version)}` : ''}${s.at ? ` · ${when(s.at)}` : ''}`]);
+  if (s?.fel) r.push(['Fel', esc(s.fel)]);
+  if (b && diag?.fw === b.version) r.push(['Resultat', `<span style="color:var(--ok)">Sensorn kör nu version ${esc(b.version)}.</span>`]);
+  $('otaStatus').innerHTML = r.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('') || '<tr><td class="help">Ingen uppdatering beställd.</td></tr>';
+}
+
+/* =====================================================================
+   Användare (admin)
+   ===================================================================== */
+const ROLLNAMN = { admin: 'Admin', lasare: 'Läsare', skript: 'Larmskriptet' };
+function renderUsers() {
+  if (!isAdmin) return;
+  const rows = lista(roller).sort((a, b) => String(a.anvandare).localeCompare(String(b.anvandare), 'sv'));
+  const olle = `<tr><td>${esc((user?.email || '').split('@')[0])} <small class="help">(du)</small></td><td>${esc(myName())}</td><td>Admin (ägare)</td><td></td></tr>`;
+  $('userBody').innerHTML = (roller[user?.uid] ? '' : olle) + rows.map(u => `<tr><td>${esc(u.anvandare || u.id)}${u.id === user?.uid ? ' <small class="help">(du)</small>' : ''}</td><td>${esc(u.namn || '')}</td>
+    <td><select data-roll="${esc(u.id)}">${Object.entries(ROLLNAMN).map(([k, n]) => `<option value="${k}"${u.roll === k ? ' selected' : ''}>${n}</option>`).join('')}</select></td>
+    <td>${u.id === user?.uid ? '' : `<button data-udel="${esc(u.id)}">Ta bort åtkomst</button>`}</td></tr>`).join('');
+}
+$('userBody').addEventListener('change', async e => {
+  const id = e.target.dataset.roll; if (!id) return;
+  try { await D.update(`roller/${id}`, { roll: e.target.value }); msg($('userMsg'), 'ok', 'Rollen ändrad.'); }
+  catch (er) { msg($('userMsg'), 'bad', 'Kunde inte ändra (' + (er.code || er.message) + ').'); }
+});
+$('userBody').addEventListener('click', async e => {
+  const id = e.target.dataset.udel; if (!id) return;
+  if (!await confirmDlg('Ta bort åtkomsten?', `${roller[id]?.anvandare || id} kan inte längre logga in på jordkällarsidan. Kontot finns kvar i Firebase tills du raderar det under Authentication.`, 'Ta bort')) return;
+  await D.remove(`roller/${id}`); await D.remove(`mottagare/${id}`).catch(() => {});
+});
+$('btnCreateUser').addEventListener('click', async () => {
+  const u = $('nuUser').value.trim().toLowerCase(), namn = $('nuName').value.trim(), pw = $('nuPass').value, roll = $('nuRole').value;
+  if (!/^[a-z0-9._-]{2,30}$/.test(u)) return msg($('userMsg'), 'bad', 'Användarnamnet får bara innehålla a–z, siffror, punkt och bindestreck.');
+  if (pw.length < 6) return msg($('userMsg'), 'bad', 'Lösenordet måste vara minst 6 tecken.');
+  msg($('userMsg'), '', 'Skapar…');
+  try {
+    let uid;
+    if (DEMO) uid = 'demo-' + u;
+    else {
+      // Ett eget app-exemplar, så att du inte loggas ut när kontot skapas
+      const app2 = fb.initializeApp(fb.config, 'skapa-' + Date.now());
+      const a2 = fb.getAuth(app2);
+      const cred = await fb.createUserWithEmailAndPassword(a2, `${u}@${fb.LOGIN_DOMAIN}`, pw);
+      uid = cred.user.uid;
+      await fb.signOut(a2); await fb.deleteApp(app2);
+    }
+    await D.set(`roller/${uid}`, { roll, namn: namn || u, anvandare: u, skapad: D.ts() });
+    msg($('userMsg'), 'ok', `Kontot ${u} är skapat. Logga in med användarnamnet ${u} och lösenordet.`);
+    $('nuUser').value = $('nuName').value = $('nuPass').value = '';
+  } catch (e) {
+    msg($('userMsg'), 'bad', e.code === 'auth/email-already-in-use' ? 'Det användarnamnet finns redan.' : e.code === 'auth/operation-not-allowed' ? 'Nya konton är avstängda i Firebase (Authentication → Settings → User actions).' : `Kunde inte skapa (${e.code || e.message}).`);
+  }
+});
+
+/* =====================================================================
+   Felsökning (admin)
+   ===================================================================== */
 function health() {
   const out = [], d = diag || {}, L = latest;
   const add = (st, t, sub = '') => out.push([st, t, sub]);
   if (!L) return [['wait', 'Ingen data än', 'Sensorn har inte skickat något. Starta den och titta i Serial Monitor (GUIDE.md).']];
   if (L.status === 'skydd') add('bad', 'Batteriet är tomt – skyddsläge', 'Ladda batteriet. Sensorn startar inte WiFi förrän spänningen är över 3,10 V igen.');
   else if (overdue()) add('bad', `Ingen uppladdning sedan ${when(L.uppAt || L.at)}`, 'Batteriet kan vara slut, eller så når sensorn inte WiFi. Mätningarna sparas i sensorn och skickas när det fungerar igen. Slå på live-brytaren vid lådan och se om live-sidan går att öppna.');
-  if (L.larm) add('bad', 'Larm', LARM_TXT.filter(([bit]) => L.larm & bit).map(([, k, txt, u]) => `${txt[0].toUpperCase() + txt.slice(1)} ${dec(d.schema?.[k] ?? cfg(k), 1)}${u}`).join(', ') + '. Gränserna ställs in under Inställningar.');
-  if (num(d.buffrade) && num(d.bufMax) && d.buffrade > d.bufMax * 0.8) add('warn', `Bufferten var nästan full (${d.buffrade} av ${d.bufMax} mätningar)`, 'Äldre mätningar glesas ut om den blir full. Ladda upp oftare eller mät glesare.');
   if (d.sht && d.sht !== 'ok') add('bad', `SHT40: ${d.sht}`, d.pullup === 'intern' ? 'Kabeln har inga egna pullup-motstånd. Löd in R7 och R8 (4,7 kΩ) enligt ritningen, och kolla färgerna på trådarna.' : 'Kolla trådarna i skruvplinten och skarven på kabeln.');
   if (d.ntc && d.ntc !== 'ok') add('warn', `Utomhussonden: ${d.ntc}`, d.ntc === 'avbrott' ? 'Ingen kontakt med sonden, eller kallare än mätområdet. Kolla kabeln. Är det en 50 kΩ-sond: sätt referensmotståndet till 220 kΩ.' : 'Kortslutning i sonden eller kabeln.');
   if (num(d.rssi) && d.rssi < -85) add('bad', `Mycket svag WiFi-signal (${d.rssi} dBm)`, 'Rikta om antennen med live-läget, flytta den högre upp, eller sätt en WiFi-förstärkare närmare.');
   else if (num(d.rssi) && d.rssi < -78) add('warn', `Svag WiFi-signal (${d.rssi} dBm)`, 'Fungerar, men anslutningen tar längre tid och kostar batteri. Prova att rikta om antennen med live-läget.');
-  if (d.wifiSokte) add('warn', 'Snabbanslutningen fungerade inte senast', d.wifiOrsak ? `Orsak: ${d.wifiOrsak}. ` : 'Routern kan ha bytt kanal. ' + 'Den sparade nu den nya kanalen, så nästa gång bör det gå snabbt igen.');
+  if (d.wifiSokte) add('warn', 'Snabbanslutningen fungerade inte senast', d.wifiOrsak ? `Orsak: ${d.wifiOrsak}.` : 'Routern kan ha bytt kanal. Den sparade nu den nya kanalen, så nästa gång bör det gå snabbt igen.');
   else if (num(d.wifiMs) && d.wifiMs > 3000) add('warn', `WiFi-anslutningen tog ${dec(d.wifiMs / 1000, 1)} s`, 'Normalt är under 1,5 s. Svag signal eller trög router.');
-  if (d.fastIp === false) add('', 'Ingen fast IP-adress', 'Fyll i STATIC_IP i secrets.h för att spara ca en halv sekund per mätning (se GUIDE.md).');
-  if (d.brownouts > 0) add('warn', `${d.brownouts} omstart${d.brownouts > 1 ? 'er' : ''} på grund av låg spänning (brownout)`, `Sändningseffekten är sänkt till 15 dBm. Löd in en kondensator på 1000 µF mellan BAT+ och GND. ${num(L.chip) && L.chip < 0 ? 'Kylan gör det värre.' : ''}`);
+  if (d.fastIp === false) add('', 'Ingen fast IP-adress', 'Fyll i STATIC_IP i secrets.h för att spara ca en halv sekund per uppladdning (se GUIDE.md).');
+  if (d.brownouts > 0) add('warn', `${d.brownouts} omstart${d.brownouts > 1 ? 'er' : ''} på grund av låg spänning (brownout)`, 'Sändningseffekten är sänkt till 15 dBm. Löd in en kondensator på 1000 µF mellan BAT+ och GND.');
   if (d.krascher > 0) add('warn', `${d.krascher} krasch${d.krascher > 1 ? 'er' : ''}`, 'Se Händelser för när. Skicka gärna Serial Monitor-utskriften till Claude om det upprepas.');
   if (d.missade > 0) add('warn', `${d.missade} uppladdning${d.missade > 1 ? 'ar' : ''} misslyckades före den senaste`, d.sistaFel ? `Senaste felet: ${d.sistaFel}. Mätningarna sparades och skickades i efterhand.` : '');
-  if (num(L.bv) && L.bv < 2.5) add('', 'Inget batteri – går på USB', 'Batterimätningen visar inget vettigt värde utan batteri. Allt annat fungerar som vanligt.');
+  if (num(L.bv) && L.bv < 0.05) add('', 'Ingen batterimätning', 'A0 är inte kopplad till spänningsdelaren R1/R2 (2 × 220 kΩ från BAT+). Utan den ser sensorn inte batteriet, och skyddsläget för tomt batteri fungerar inte.');
+  else if (num(L.bv) && L.bv < 2.5) add('', 'Inget batteri – går på USB', 'Batterimätningen visar inget vettigt värde utan batteri. Allt annat fungerar som vanligt.');
   else if (num(L.bp) && L.bp < 10 && L.status !== 'skydd') add('bad', `Batteriet nästan tomt (${Math.round(L.bp)} %)`, 'Ladda snart. Under 3,10 V går sensorn i skyddsläge.');
   else if (num(L.bp) && L.bp < 25) add('warn', `Batteriet är på ${Math.round(L.bp)} %`, '');
   const uppMs = d.vakenMsUpp ?? d.vakenMsForra;
   if (num(uppMs) && uppMs > 8000) add('warn', `Förra uppladdningen tog lång tid (${dec(uppMs / 1000, 1)} s)`, 'Normalt 2–5 s. Kostar batteri. Svag signal eller långsam inloggning brukar vara orsaken.');
-  if (num(d.vakenMsMatning) && d.vakenMsMatning > 1500) add('warn', `Mätningarna tar lång tid (${dec(d.vakenMsMatning / 1000, 1)} s)`, 'Normalt under en halv sekund. Kolla SHT40-kabeln.');
+  if (num(d.buffrade) && num(d.bufMax) && d.buffrade > d.bufMax * 0.8) add('warn', `Bufferten var nästan full (${d.buffrade} av ${d.bufMax} mätningar)`, 'Äldre mätningar glesas ut om den blir full. Ladda upp oftare eller mät glesare.');
   if (num(L.chip) && L.chip < -10) add('warn', `Kallt i lådan (${dec(L.chip)} °C)`, 'Batteriet tappar kapacitet i kyla. Isolera lådan om det går.');
   if (d.brytareGlomd) add('warn', 'Live-brytaren står fortfarande på', 'Slå av den, annars kan live-läget inte startas igen.');
   if (num(L.rh) && L.rh >= 99 && d.hogFuktRad >= 3 && !d.varmeAuto) add('', 'Fukten har legat på 99–100 % ett tag', 'Slå på automatisk värmare under Inställningar, eller kör värmaren en gång.');
+  if (!larmstatus?.kontrollerat || nowServer() - larmstatus.kontrollerat > 15 * 60e3) add('warn', 'Larmskriptet körs inte', 'Larm via Pushover och e-post skickas inte. Följ steget om larmskriptet i GUIDE.md.');
   if (!out.length) add('ok', 'Allt ser bra ut', `WiFi ${dec((d.wifiMs || 0) / 1000, 1)} s · uppladdning ${dec((uppMs || 0) / 1000, 1)} s · mätning ${num(d.vakenMsMatning) ? dec(d.vakenMsMatning / 1000, 2) + ' s' : '–'}.`);
   return out;
 }
 function renderDiag() {
+  if (!isAdmin) return;
   $('health').innerHTML = health().map(([st, t, sub]) => `<li><span class="lamp ${st === 'warn' ? 'wait' : st}"></span><div>${esc(t)}${sub ? `<small>${esc(sub)}</small>` : ''}</div></li>`).join('');
   const d = diag;
   if (!d) { $('diagWhen').textContent = ''; return; }
   $('diagWhen').textContent = d.at ? `från ${when(d.at)}` : '';
-  const yn = b => b ? 'ja' : 'nej';
-  const startTxt = `${esc(d.start || '–')}${d.startAt ? `, ${when(d.startAt)}` : ''}`;
   const r = [
     ['Senaste uppladdningen', `${esc(d.vackt || '–')}${d.varfor ? ` · orsak: ${esc(d.varfor)}` : ''} · programversion ${esc(d.fw || '–')}`],
     ['WiFi', num(d.rssi) ? `${bars(d.rssi)}${d.rssi} dBm (${signal(d.rssi)}) · kanal ${d.kanal} · router ${esc(d.bssid || '–')}` : '–'],
@@ -904,18 +1904,17 @@ function renderDiag() {
     ['IP-adress', `${esc(d.ip || '–')} (${d.fastIp ? 'fast' : 'DHCP'})`],
     ['Sändningseffekt', `${dec(d.txDbm, 1)} dBm${d.lagTx ? ' (sänkt efter brownout)' : ''}`],
     ['Inloggning', `${esc(d.authTyp || '–')}${d.authMs ? `, ${dec(d.authMs / 1000, 2)} s` : ''}`],
-    ['Firebase', num(d.fbMs) ? `${dec(d.fbMs / 1000, 2)} s` : '–'],
-    ['Vaken tid', `${num(d.vakenMsMatning) ? `mätning ${dec(d.vakenMsMatning / 1000, 2)} s` : `förra ${dec((d.vakenMsForra || 0) / 1000, 1)} s`}${num(d.vakenMsUpp) ? ` · förra uppladdningen ${dec(d.vakenMsUpp / 1000, 1)} s` : ''}${num(d.vakenMsNu) ? ` · den här ${dec(d.vakenMsNu / 1000, 1)} s fram till sändningen` : ''}`],
-    ['Uppladdningar', `${num(d.uppladdningar) ? `${d.uppladdningar} sedan start · ` : ''}${num(d.buffrade) ? `${d.buffrade} mätningar i den senaste${num(d.bufMax) ? ` (plats för ${d.bufMax})` : ''} · ` : ''}${d.missade ? `${d.missade} misslyckades innan${d.sistaFel ? `: ${esc(d.sistaFel)}` : ''}` : 'alla gick fram'}`],
+    ['Vaken tid', `${num(d.vakenMsMatning) && d.vakenMsMatning ? `mätning ${dec(d.vakenMsMatning / 1000, 2)} s · ` : ''}${num(d.vakenMsUpp) && d.vakenMsUpp ? `förra uppladdningen ${dec(d.vakenMsUpp / 1000, 1)} s · ` : ''}${num(d.vakenMsNu) ? `den här ${dec(d.vakenMsNu / 1000, 1)} s fram till sändningen` : ''}`],
+    ['Uppladdningar', `${num(d.uppladdningar) ? `${d.uppladdningar} sedan start · ` : ''}${num(d.buffrade) ? `${d.buffrade} mätningar i den senaste (plats för ${d.bufMax || '?'}) · ` : ''}${d.missade ? `${d.missade} misslyckades innan${d.sistaFel ? `: ${esc(d.sistaFel)}` : ''}` : 'alla gick fram'}`],
     ['SHT40', `${esc(d.sht || '–')}${d.shtSerie ? ` · serienr ${esc(d.shtSerie)}` : ''} · pullup ${d.pullup === 'extern' ? 'på kabeln (extern)' : 'ESP32:ans interna'}${num(d.shtRaT) ? ` · rått ${dec(d.shtRaT, 2)} °C, ${dec(d.shtRaRh, 1)} %` : ''}`],
     ['Utomhussonden', `${esc(d.ntc || '–')}${num(d.ntcOhm) ? ` · ${Math.round(d.ntcOhm).toLocaleString('sv')} Ω` : ''} · ${d.ntcMv ?? '–'} mV på A1`],
     ['Batteri', `${num(latest?.bv) ? dec(latest.bv, 3) + ' V' : '–'} · ${d.batMv ?? '–'} mV på A0 · faktor ${dec(d.kal?.batFaktor, 4)}`],
     ['I lådan', num(d.chip) ? `${dec(d.chip)} °C (chippets temperatur)` : '–'],
     ['Värmaren', `${d.varmeAuto ? 'automatisk' : 'av'} · körts ${d.varmeAntal || 0} gånger${d.varmeAt ? `, senast ${when(d.varmeAt)}` : ''}`],
-    ['Schema', d.schema ? `mäter var ${fmtS(d.schema.matS)} · laddar upp ${d.schema.uppDagMin ? `var ${fmtS(d.schema.uppDagMin * 60)}` : 'varje mätning'}${d.schema.nattPa ? `, natten ${hhmm(d.schema.nattFran)}–${hhmm(d.schema.nattTill)} var ${fmtS(d.schema.uppNattMin * 60)}` : ''}${d.snabb ? ` · snabbläge var ${fmtS(d.snabb.s)} till ${hm(d.snabb.till)}` : ''}` : (d.intervallMin ? `var ${d.intervallMin} min (äldre program)` : '–')],
-    ['Larm', d.schema ? (LARM_TXT.filter(([, k]) => num(d.schema[k])).map(([, k, txt, u]) => `${txt} ${dec(d.schema[k], 1)}${u}`).join(' · ') || 'inga') : '–'],
+    ['Schema', d.schema ? `mäter var ${fmtS(d.schema.matS)} · laddar upp ${d.schema.uppDagMin ? `var ${fmtS(d.schema.uppDagMin * 60)}` : 'varje mätning'}${d.schema.nattPa ? `, natten ${hhmm(d.schema.nattFran)}–${hhmm(d.schema.nattTill)} var ${fmtS(d.schema.uppNattMin * 60)}` : ''}${d.snabb ? ` · snabbläge var ${fmtS(d.snabb.s)} till ${hm(d.snabb.till)}` : ''}` : '–'],
+    ['Larm', d.schema ? `${LARM_TXT.filter(([, , k]) => num(d.schema[k])).map(([, , k, txt, u]) => `${txt} ${dec(d.schema[k], 1)}${u}`).join(' · ') || 'inga'}${num(d.schema.larmFordrojMin) ? ` · efter ${d.schema.larmFordrojMin} min` : ''}` : '–'],
     ['Klockan', num(d.klockFaktor) ? (Math.abs(d.klockFaktor - 1) < 0.0005 ? 'går rätt' : `sömntimern går ${dec(Math.abs(d.klockFaktor - 1) * 100, 2)} % för ${d.klockFaktor > 1 ? 'sakta' : 'fort'} – rättas automatiskt`) : '–'],
-    ['Startad', startTxt],
+    ['Startad', `${esc(d.start || '–')}${d.startAt ? `, ${when(d.startAt)}` : ''}`],
     ['Vakningar', `${d.vakningar ?? '–'} sedan start${d.startAt ? ` (${ago(d.startAt).replace(' sedan', '')})` : ''}`],
     ['Starter totalt', `${d.starter ?? 0} · brownouts ${d.brownouts ?? 0} · krascher ${d.krascher ?? 0}`],
     ['Brytaren', d.brytare ? (d.brytareGlomd ? 'på (glömd, live-läget avslutat)' : 'på') : 'av'],
@@ -924,70 +1923,44 @@ function renderDiag() {
   $('diagBody').innerHTML = r.map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join('');
 }
 $('btnReset').addEventListener('click', async () => {
-  if (!await confirmDlg('Nollställ räknare?', 'Starter, brownouts, krascher och värmarräknaren nollställs, och sändningseffekten återställs till det som står i installningar.h. Det sker vid nästa mätning.', 'Nollställ')) return;
+  if (!await confirmDlg('Nollställ räknare?', 'Starter, brownouts, krascher och värmarräknaren nollställs, och sändningseffekten återställs till det som står i installningar.h. Det sker vid nästa uppladdning.', 'Nollställ')) return;
   save({ nollstall: true }, $('resetMsg'), 'Beställt.');
 });
 
-/* ---------- Händelser ---------- */
-function renderLog() {
-  if (!logItems.length) { $('logBody').innerHTML = '<tr><td colspan="3" class="help">Inga händelser än.</td></tr>'; return; }
-  $('logBody').innerHTML = logItems.slice().reverse().map(l => {
-    const st = l.niva === 'fel' ? 'bad' : l.niva === 'varning' ? 'wait' : 'ok';
-    return `<tr><td class="t">${when(histTime(l))}</td><td style="width:1%"><span class="lamp ${st}"></span></td><td>${esc(l.text)}</td></tr>`;
-  }).join('');
-}
-
-/* ---------- Dialog ---------- */
-function confirmDlg(title, body, yes) {
-  const d = $('dlgConfirm');
-  $('dlgTitle').textContent = title; $('dlgBody').innerHTML = `<p>${esc(body)}</p>`; $('dlgYes').textContent = yes;
-  return new Promise(res => { d.onclose = () => res(d.returnValue === 'ok'); d.returnValue = ''; d.showModal(); });
-}
-
-/* ---------- Period ---------- */
-function setRange(r) {
-  range = r;
-  try { localStorage.setItem('jk-range', r); } catch (e) {}
-  document.querySelectorAll('#rangeTabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.range === r)));
-  if (DEMO) { hist = hourly() ? demoTimmar : demoRaw; renderHist(); } else subscribeHist();
-}
-document.querySelectorAll('#rangeTabs button').forEach(b => b.addEventListener('click', () => setRange(b.dataset.range)));
-
-function renderAll() { renderBanners(); renderNow(); renderHist(); renderSettings(); renderCal(); renderDiag(); renderLog(); }
-
-/* ---------- Firebase ---------- */
-// Dygn och vecka: varje mätning. Månad och år: timsammanfattningar (nyckeln är timmar sedan 1970).
-const timmarFran = ms => fb.query(fb.ref(fb.db, `${ROOT}/timmar`), fb.orderByKey(), fb.startAt(String(Math.floor(ms / 3600e3))));
-function subscribeHist() {
-  if (histUnsub) { histUnsub(); histUnsub = null; }
-  const from = nowServer() - RANGES[range] - 3600e3;
-  const q = hourly() ? timmarFran(from) : fb.query(fb.ref(fb.db, `${ROOT}/historik`), fb.orderByChild('at'), fb.startAt(from));
-  histUnsub = fb.onValue(q, s => {
-    const arr = []; s.forEach(ch => { arr.push(ch.val()); }); hist = arr.filter(h => h && h.at && h.at >= from);
-    if (range !== 'day' && range !== 'week') { /* räcker för batteriuppskattningen */ }
-    if (RANGES[range] >= 14 * 864e5) hist14 = hist.filter(h => histTime(h) > nowServer() - 14 * 864e5);
-    renderHist(); renderNow();
-  }, denied);
-}
-async function loadHist14() {
-  if (RANGES[range] >= 14 * 864e5) return;
+/* =====================================================================
+   Underhåll (admin): gamla händelser och gallring av mätningar
+   ===================================================================== */
+async function underhall() {
+  if (!isAdmin || DEMO) return;
+  const senast = Number(lsGet('jk-underhall')) || 0;
+  if (Date.now() - senast < 864e5) return;
+  lsSet('jk-underhall', String(Date.now()));
   try {
-    const from = nowServer() - 14 * 864e5;
-    const s = await fb.get(timmarFran(from));
-    const arr = []; s.forEach(ch => { arr.push(ch.val()); }); hist14 = arr.filter(h => h && h.at && h.at >= from);
-    renderNow();
-  } catch (e) { /* inte viktigt */ }
+    const gamla = await D.get('logg', { by: 'at', end: Date.now() - LOG_KEEP_DAYS * 864e5 });
+    if (gamla) await D.update('logg', Object.fromEntries(Object.keys(gamla).map(k => [k, null])));
+    const nGamla = await D.get('notiser', { by: 'at', end: Date.now() - LOG_KEEP_DAYS * 864e5 });
+    if (nGamla) await D.update('notiser', Object.fromEntries(Object.keys(nGamla).map(k => [k, null])));
+    const ar = Number(inst?.gallringAr) || 0;
+    if (ar > 0) {
+      const grans = Date.now() - ar * 365 * 864e5;
+      // Bara om timvärdena finns för samma tid, så att inget försvinner helt
+      const tim = await D.get('timmar', { by: 'at', end: grans, last: 1 });
+      if (!tim) return;
+      for (let varv = 0; varv < 20; varv++) {
+        const v = await D.get('historik', { by: 'at', end: grans, first: 500 });
+        if (!v) break;
+        await D.update('historik', Object.fromEntries(Object.keys(v).map(k => [k, null])));
+      }
+    }
+  } catch (e) { console.warn('underhåll', e); }
 }
-async function pruneLog() {
-  try {
-    const snap = await fb.get(fb.query(fb.ref(fb.db, `${ROOT}/logg`), fb.orderByChild('at'), fb.endAt(Date.now() - LOG_KEEP_DAYS * 864e5)));
-    const jobs = []; snap.forEach(ch => { jobs.push(fb.remove(ch.ref)); }); await Promise.all(jobs);
-  } catch (e) { /* inte viktigt */ }
-}
-let deniedShown = false;
-function denied(err) {
-  if (deniedShown) return; deniedShown = true;
-  $('banners').insertAdjacentHTML('afterbegin', `<div class="banner bad">Databasen nekade läsning (${esc(err.code || err.message)}). Kolla att reglerna för <b>jordkallare</b> är inklistrade i Firebase (se GUIDE.md i tempsensor-mappen).</div>`);
+
+/* =====================================================================
+   Start, roller och prenumerationer
+   ===================================================================== */
+function renderAll() { renderBanners(); renderNow(); renderHist(); renderStats(); renderWeather(); renderAlarm(); renderSettings(); renderCal(); renderOta(); renderUsers(); renderDiag(); renderLog(); }
+function visaRoll() {
+  document.querySelectorAll('.only-admin').forEach(el => { el.hidden = !isAdmin; });
 }
 
 function authError(code) {
@@ -1002,95 +1975,125 @@ function authError(code) {
     default: return 'Kunde inte logga in (' + code + ').';
   }
 }
-
+function stoppa() { unsubs.forEach(u => u()); unsubs = []; }
 function showLogin() {
-  unsubs.forEach(u => u()); unsubs = [];
-  if (histUnsub) { histUnsub(); histUnsub = null; }
-  latest = diag = inst = null; logItems = []; hist = []; hist14 = [];
-  $('viewMain').hidden = true; $('viewLogin').hidden = false;
+  stoppa();
+  latest = diag = inst = plats = larmstatus = otaStatus = myRecip = null; logItems = []; notes = []; notices = []; roller = {}; mottagare = {}; today = []; hist14 = [];
+  raw.rows = []; raw.from = raw.to = 0; hour.rows = []; hour.from = hour.to = 0; ly.rows = []; ly.from = ly.to = 0;
+  $('viewMain').hidden = true; $('viewNoRole').hidden = true; $('viewLogin').hidden = false;
   $('btnLogout').hidden = true; $('topStatus').textContent = '';
   setTimeout(() => $('inUser').focus(), 50);
 }
-function showMain(user) {
-  $('viewLogin').hidden = true; $('viewMain').hidden = false;
+async function showMain(u) {
+  user = u;
+  // Roll: ägarkontot (samma som sensorn) är alltid admin, andra enligt roller/<uid>
+  const agare = DEMO || String(u.email || '').toLowerCase() === `olle@${fb?.LOGIN_DOMAIN || 'jordkallare.se'}`;
+  let r = null;
+  try { r = await D.get(`roller/${u.uid}`); } catch (e) { /* ingen rätt att läsa = ingen roll */ }
+  role = agare ? 'admin' : r?.roll || null;
+  if (DEMO && new URLSearchParams(location.search).has('lasare')) role = 'lasare';
+  if (!role || role === 'skript') {
+    $('viewLogin').hidden = true; $('viewMain').hidden = true; $('viewNoRole').hidden = false;
+    $('noRoleUser').textContent = String(u.email || '').split('@')[0] + (role === 'skript' ? ' (larmskriptets konto)' : '');
+    $('btnLogout').hidden = false;
+    return;
+  }
+  isAdmin = role === 'admin';
+  if (r) roller[u.uid] = r;
+  visaRoll();
+  $('viewLogin').hidden = true; $('viewNoRole').hidden = true; $('viewMain').hidden = false;
   $('btnLogout').hidden = DEMO;
-  if (user) $('btnLogout').title = `Inloggad som ${user.email.split('@')[0]}`;
-  document.querySelectorAll('#rangeTabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.range === range)));
+  $('btnLogout').title = `Inloggad som ${String(u.email || '').split('@')[0]} (${isAdmin ? 'admin' : 'läsare'})`;
+  if (!view.t1) setRange(range); else setView(view.t0, view.t1, view.follow);
   renderAll();
-  if (DEMO) return;
-  const on = (path, fn) => unsubs.push(fb.onValue(fb.ref(fb.db, `${ROOT}/${path}`), s => { fn(s.val()); }, denied));
-  unsubs.push(fb.onValue(fb.ref(fb.db, '.info/serverTimeOffset'), s => { serverOffset = s.val() || 0; }));
-  on('latest', v => { const ny = v?.at !== latest?.at; latest = v; renderBanners(); renderNow(); renderSettings(); renderCal(); renderDiag(); if (ny) loadHist14(); });
-  on('diag', v => { diag = v; renderBanners(); renderNow(); renderDiag(); renderSettings(); renderCal(); });
-  on('installningar', v => { inst = v; renderSettings(); renderCal(); });
-  unsubs.push(fb.onValue(fb.query(fb.ref(fb.db, `${ROOT}/logg`), fb.orderByChild('at'), fb.limitToLast(300)), s => {
-    const arr = []; s.forEach(ch => { arr.push(ch.val()); }); logItems = arr.filter(l => l && l.at).sort((a, b) => histTime(a) - histTime(b)); renderLog();
-  }, denied));
-  subscribeHist();
-  loadHist14();
-  pruneLog();
+
+  const on = (path, q, fn) => unsubs.push(D.on(path, q, fn));
+  if (!DEMO) unsubs.push(fb.onValue(fb.ref(fb.db, '.info/serverTimeOffset'), s => { serverOffset = s.val() || 0; }));
+  on('latest', null, v => { const ny = v?.at !== latest?.at || v?.uppAt !== latest?.uppAt; latest = v; renderBanners(); renderNow(); renderAlarm(); renderSettings(); renderDiag(); if (ny) { onNewData(); loadHist14(); } });
+  on('logg', { by: 'at', last: 300 }, v => { logItems = lista(v).filter(l => l.at).sort((a, b) => histTime(a) - histTime(b)); renderLog(); });
+  on('anteckningar', null, v => { notes = lista(v).filter(n => num(n.at)); renderHist(); });
+  on('notiser', { by: 'at', last: 30 }, v => { notices = lista(v).filter(n => num(n.at)); renderAlarm(); });
+  on('larmstatus', null, v => { larmstatus = v; renderBanners(); renderAlarm(); renderDiag(); });
+  on('plats', null, v => { plats = v; hamtaSmhi(); renderWeather(); });
+  on(`mottagare/${u.uid}`, null, v => { myRecip = v; renderAlarm(); });
+  if (isAdmin) {
+    on('diag', null, v => { diag = v; renderBanners(); renderNow(); renderDiag(); renderSettings(); renderCal(); renderOta(); });
+    on('installningar', null, v => { inst = v; renderSettings(); renderCal(); renderOta(); renderBanners(); if (inst?.gallringAr) underhall(); });
+    on('ota/status', null, v => { otaStatus = v; renderOta(); renderBanners(); });
+    on('roller', null, v => { roller = v || {}; renderUsers(); });
+    on('mottagare', null, v => { mottagare = v || {}; renderAlarm(); });
+    underhall();
+  }
 }
 
 /* ---------- Demoläge ---------- */
 function demoData() {
-  const now = Date.now(), iv = 30 * 60000, out = [];
+  const now = Date.now(), out = {}, tim = {}, iv = 5 * 60000;
   let bv = 4.12;
-  for (let t = now - 365 * 864e5; t <= now - 60000; t += iv * (t < now - 30 * 864e5 ? 4 : 1)) {
+  for (let t = now - 400 * 864e5; t <= now - 60000; t += t < now - 8 * 864e5 ? 3600e3 : iv) {
     const day = (t - now) / 864e5, yr = Math.sin((day / 365) * 2 * Math.PI - 1.2);
     const daily = Math.sin(((new Date(t).getHours() - 9) / 24) * 2 * Math.PI);
     const tu = 7 + 11 * yr + 4 * daily + Math.sin(day * 1.7) * 3;
-    const ti = 5.5 + 3.5 * Math.sin((day / 365) * 2 * Math.PI - 1.9) + 0.15 * daily;
+    const ti = 5.5 + 3.5 * Math.sin((day / 365) * 2 * Math.PI - 1.9) + 0.15 * daily + (day > -0.3 && day < -0.2 ? -4 : 0);
     const rh = Math.min(100, 88 + 4 * Math.sin(day * 0.9) + 2 * Math.cos(day * 3.1));
-    bv = Math.max(3.4, 4.12 - (t - (now - 365 * 864e5)) / 864e5 * 0.0012 + (tu < 0 ? -0.02 : 0));
-    if (Math.random() < 0.004) continue;
-    out.push({ at: t, ti: +ti.toFixed(2), rh: +rh.toFixed(1), tu: +tu.toFixed(2), bv: +bv.toFixed(3), rs: Math.round(-69 + Math.sin(day * 2) * 4 + (Math.random() - 0.5) * 3) });
-  }
-  // Timsammanfattningar som sensorn bygger (för Månad och År)
-  const tm = new Map();
-  for (const h of out) {
-    const k = Math.floor(h.at / 3600e3); let e = tm.get(k);
-    if (!e) { e = { at: k * 3600e3, n: 0 }; tm.set(k, e); }
+    bv = Math.max(3.4, 4.12 - (t - (now - 400 * 864e5)) / 864e5 * 0.0011);
+    const h = { at: t, ti: +ti.toFixed(2), rh: +rh.toFixed(1), tu: +tu.toFixed(2) };
+    if (t >= now - 8 * 864e5) {
+      if (Math.round(t / iv) % 12 === 0) { h.bv = +bv.toFixed(3); h.rs = Math.round(-69 + Math.sin(day * 2) * 4); }
+      out['h' + t.toString(36)] = h;
+    }
+    const k = Math.floor(t / 3600e3);
+    const e = tim[k] || (tim[k] = { at: k * 3600e3, n: 0, s: {}, mn: {}, mx: {} });
     e.n++;
-    for (const q of ['ti', 'rh', 'tu']) { e[q + 's'] = (e[q + 's'] || 0) + h[q]; e[q + 'Min'] = Math.min(e[q + 'Min'] ?? 1e9, h[q]); e[q + 'Max'] = Math.max(e[q + 'Max'] ?? -1e9, h[q]); }
-    e.bv = h.bv; e.rs = h.rs;
+    for (const f of ['ti', 'rh', 'tu']) { e.s[f] = (e.s[f] || 0) + h[f]; e.mn[f] = Math.min(e.mn[f] ?? 99, h[f]); e.mx[f] = Math.max(e.mx[f] ?? -99, h[f]); }
+    e.bv = +bv.toFixed(3); e.rs = -69;
   }
-  demoTimmar = [...tm.values()].map(e => ({ ...e, ti: e.tis / e.n, rh: e.rhs / e.n, tu: e.tus / e.n }));
-  demoRaw = out;
-  hist = hourly() ? demoTimmar : out; hist14 = demoTimmar.filter(h => h.at > now - 14 * 864e5);
-  const L = out[out.length - 1];
-  latest = { ...L, at: now - 9 * 60000, uppAt: now - 9 * 60000 + 3000, nastaUpp: now + 51 * 60000, matS: 300, larm: 0, bp: Math.round(batPct(L.bv)), chip: 3.4, ntcOhm: 24500, status: 'ok' };
-  diag = { at: latest.at, fw: '2.0', vackt: 'timer', start: 'ström på (nytt batteri eller USB)', startAt: now - 41 * 864e5, vakningar: 1968, starter: 3, brownouts: 0, krascher: 0,
-    wifiMs: 612, wifiSnabb: true, wifiSokte: false, kanal: 6, bssid: 'A4:2B:B0:11:22:33', ip: '192.168.0.60', fastIp: true, rssi: L.rs, txDbm: 19.5, lagTx: false,
-    authTyp: 'förnyad', authMs: 840, fbMs: 1210, vakenMsForra: 240, vakenMsNu: 2650, missade: 0, buffrade: 0, sht: 'ok', shtKod: 0, shtSerie: '1F0A33C2', pullup: 'intern',
-    shtRaT: L.ti, shtRaRh: L.rh, ntc: 'ok', ntcMv: 1018, ntcOhm: 24500, ntcT10: 3.1, ntcT50: 41.2, batMv: Math.round(L.bv * 500), chip: 3.4, varmeAuto: true, varmeAntal: 4,
-    varmeAt: now - 3 * 864e5, hogFuktRad: 0, brytare: false, brytareGlomd: false, heapMin: 201000, live: false, varfor: 'schemat',
-    vakenMsMatning: 240, vakenMsUpp: 3900, uppladdningar: 812, buffrade: 12, bufMax: 300, klockFaktor: 1.0123, instMottagen: 0, snabb: false,
-    schema: { matS: 300, uppDagMin: 60, uppNattMin: 180, nattPa: true, nattFran: 1320, nattTill: 360, larmTiLag: 1, larmTiHog: false, larmRhHog: false },
-    kal: { ntcR25: 10000, ntcB: 3950, ntcSerie: 55000, ntcOffset: 0, tiOffset: 0, rhOffset: 0, batFaktor: 2 } };
-  inst = { varmeAuto: true };
-  logItems = [
-    { at: now - 41 * 864e5, text: 'Startade: ström på (nytt batteri eller USB)', niva: 'info' },
-    { at: now - 20 * 864e5, text: 'Snabbanslutningen misslyckades. Hittade routern på kanal 6 (förut kanal 11)', niva: 'varning' },
-    { at: now - 12 * 864e5, text: 'Kunde inte skicka 3 gånger (WiFi: tappade routerns signal (svag signal)). Skickade nu 3 sparade mätningar.', niva: 'varning' },
-    { at: now - 3 * 864e5, text: 'Värmaren i SHT40 kördes, fukten var 99,6 %', niva: 'info' },
-    { at: now - 2 * 864e5, text: 'Live-läget startade (brytaren)', niva: 'info' },
-    { at: now - 2 * 864e5 + 6 * 60000, text: 'Live-läget slutade efter 6 min (brytaren slogs av)', niva: 'info' },
-  ];
+  const timmar = {};
+  for (const [k, e] of Object.entries(tim)) {
+    const o = { at: e.at, n: e.n, bv: e.bv, rs: e.rs };
+    for (const f of ['ti', 'rh', 'tu']) { o[f] = +(e.s[f] / e.n).toFixed(2); o[f + 'Min'] = e.mn[f]; o[f + 'Max'] = e.mx[f]; }
+    timmar[k] = o;
+  }
+  const last = Object.values(out).sort((a, b) => b.at - a.at)[0];
+  const L = { ...last, at: now - 4 * 60000, uppAt: now - 4 * 60000 + 3000, nastaUpp: now + 56 * 60000, matS: 300, larm: 0, bv: 3.91, bp: Math.round(batPct(3.91)), rs: -68, chip: 3.4, ntcOhm: 24500, status: 'ok', granser: { tiLag: 1 } };
+  demoDb.data = {
+    historik: out, timmar, latest: L,
+    diag: { at: L.at, fw: '2.5', vackt: 'timer', varfor: 'schemat', start: 'ström på (nytt batteri eller USB)', startAt: now - 41 * 864e5, vakningar: 11808, uppladdningar: 912, starter: 3, brownouts: 0, krascher: 0,
+      wifiMs: 612, wifiSnabb: true, wifiSokte: false, kanal: 6, bssid: 'A4:2B:B0:11:22:33', ip: '192.168.0.60', fastIp: true, rssi: -68, txDbm: 19.5, lagTx: false,
+      authTyp: 'förnyad', authMs: 840, fbMs: 1210, vakenMsForra: 240, vakenMsMatning: 240, vakenMsUpp: 3600, vakenMsNu: 2650, missade: 0, buffrade: 12, bufMax: 300, sht: 'ok', shtKod: 0, shtSerie: '1F0A33C2', pullup: 'intern',
+      shtRaT: L.ti, shtRaRh: L.rh, ntc: 'ok', ntcMv: 1018, ntcOhm: 24500, ntcT10: 3.1, ntcT50: 41.2, batMv: 1955, chip: 3.4, varmeAuto: true, varmeAntal: 4,
+      varmeAt: now - 3 * 864e5, hogFuktRad: 0, brytare: false, brytareGlomd: false, heapMin: 201000, live: false, klockFaktor: 1.0123, instMottagen: 0, snabb: false,
+      schema: { matS: 300, uppDagMin: 60, uppNattMin: 180, nattPa: true, nattFran: 1320, nattTill: 360, larmTiLag: 1, larmTiHog: false, larmRhHog: false, larmFordrojMin: 30 },
+      kal: { ntcR25: 10000, ntcB: 3950, ntcSerie: 55000, ntcOffset: 0, tiOffset: 0, rhOffset: 0, batFaktor: 2 } },
+    installningar: { varmeAuto: true },
+    plats: { lat: 58.41, lon: 15.62, namn: 'Linköping', frostGrans: -5 },
+    larmstatus: { kontrollerat: now - 2 * 60000 },
+    anteckningar: { a1: { at: now - 2 * 864e5, text: 'La in potatisen', av: 'olle' }, a2: { at: now - 7 * 3600e3, text: 'Öppnade luckan en stund', av: 'olle' } },
+    notiser: { n1: { at: now - 864e5 * 3, typ: 'vecka', rubrik: 'Veckorapport', text: 'Veckan som gått: jordkällaren medel 4,1 °C …', antal: 2 } },
+    mottagare: { 'demo-olle': { namn: 'Olle', epost: 'olle@example.com', pushover: 'u'.repeat(30), typer: { temp: true, fukt: true, tystnat: true }, aktiv: true, uid: 'demo-olle' } },
+    roller: { 'demo-anna': { roll: 'lasare', namn: 'Anna', anvandare: 'anna' } },
+    logg: {
+      l1: { at: now - 41 * 864e5, text: 'Startade: ström på (nytt batteri eller USB)', niva: 'info' },
+      l2: { at: now - 12 * 864e5, text: 'Kunde inte ladda upp 3 gånger (WiFi: tappade routerns signal). Skickade nu 3 sparade mätningar.', niva: 'varning' },
+      l3: { at: now - 3 * 864e5, text: 'Värmaren i SHT40 kördes, fukten var 99,6 %', niva: 'info' },
+    },
+  };
 }
 
-/* ---------- Inloggning och start ---------- */
+/* ---------- Inloggning ---------- */
 $('loginForm').addEventListener('submit', async ev => {
   ev.preventDefault();
-  const user = $('inUser').value.trim().toLowerCase(), pass = $('inPass').value;
+  const u = $('inUser').value.trim().toLowerCase(), pass = $('inPass').value;
   $('loginErr').textContent = ''; $('btnLogin').disabled = true;
-  try { await fb.signInWithEmailAndPassword(fb.auth, `${user}@${fb.LOGIN_DOMAIN}`, pass); $('inPass').value = ''; }
+  try { await fb.signInWithEmailAndPassword(fb.auth, `${u}@${fb.LOGIN_DOMAIN}`, pass); $('inPass').value = ''; }
   catch (err) { $('loginErr').textContent = authError(err.code); }
   $('btnLogin').disabled = false;
 });
 $('btnLogout').addEventListener('click', () => fb.signOut(fb.auth));
+$('btnNoRoleOut').addEventListener('click', () => fb.signOut(fb.auth));
 
 async function start() {
-  if (DEMO) { demoData(); showMain(null); return; }
+  if (DEMO) { demoData(); showMain({ uid: 'demo-olle', email: 'olle@jordkallare.se' }); return; }
   try {
     const [cfgMod, appMod, authMod, dbMod] = await Promise.all([
       import('./firebase-config.js'),
@@ -1101,7 +2104,8 @@ async function start() {
     // Eget appnamn: inloggningen sparas då skilt från ollesdator, som ligger på samma adress
     const app = appMod.initializeApp(cfgMod.firebaseConfig, 'jordkallare');
     const auth = authMod.getAuth(app);
-    fb = { ...dbMod, ...authMod, db: dbMod.getDatabase(app), auth, LOGIN_DOMAIN: cfgMod.LOGIN_DOMAIN };
+    fb = { ...dbMod, ...authMod, initializeApp: appMod.initializeApp, deleteApp: appMod.deleteApp, config: cfgMod.firebaseConfig,
+      db: dbMod.getDatabase(app), auth, LOGIN_DOMAIN: cfgMod.LOGIN_DOMAIN };
     authMod.setPersistence(auth, authMod.browserLocalPersistence).catch(() => {});
     authMod.onAuthStateChanged(auth, u => {
       // Ett konto från en annan sida (fel domän) loggas ut direkt
@@ -1116,11 +2120,15 @@ async function start() {
 }
 start();
 
-// Uppdatera "för X min sedan" och väntande-status
-setInterval(() => { if (latest) { renderBanners(); renderNow(); renderSettings(); } }, 15000);
+// Uppdatera "för X min sedan", väntande status och följ med i tiden
+setInterval(() => { if (latest) { renderBanners(); renderNow(); renderSettings(); renderAlarm(); } }, 15000);
 setInterval(() => { const e = document.getElementById('agoTick'); if (e && latest) e.textContent = agoExakt(latest.at); }, 1000);
-setInterval(() => { if (latest) { renderHist(); renderDiag(); } }, 120000);
-let rsz; window.addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(() => { if (latest || hist.length) renderHist(); }, 200); });
+setInterval(() => {
+  if (!latest) return;
+  if (view.follow) { const span = view.t1 - view.t0, nu = nowServer(); view.t0 = nu - span; view.t1 = nu; }
+  renderHist(); renderStats(); renderDiag(); hamtaSmhi();
+}, 60000);
+let rsz; window.addEventListener('resize', () => { clearTimeout(rsz); rsz = setTimeout(() => renderHist(), 200); });
 
 /* ---------- App-installation ---------- */
 let installEvt = null;
