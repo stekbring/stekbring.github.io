@@ -903,12 +903,16 @@ function renderNow() {
   const m = $('vBatMeter');
   m.className = 'meter' + (ladd && !ladd.full ? ' laddar' : pct < 10 ? ' bad' : pct < 25 ? ' warn' : '');
   m.firstElementChild.style.width = `calc(${Math.max(0, Math.min(100, pct))}% - 2px)`;
-  const est = ladd ? null : batteryEstimate();
-  $('vBatSub').textContent = ingenMatning ? (L.usb ? 'laddaren ansluten · ingen batterimätning (A0 är inte kopplad)' : 'ingen batterimätning (A0 är inte kopplad)')
+  const est = ladd || ingenMatning || !num(L.bv) || L.bv < 2.5 ? null : batteryLeft(pct);
+  const sl = ladd || ingenMatning ? null : senasteLaddning();
+  const huvud = ingenMatning ? (L.usb ? 'laddaren ansluten · ingen batterimätning (A0 är inte kopplad)' : 'ingen batterimätning (A0 är inte kopplad)')
     : num(L.bv) && L.bv < 2.5 ? `${dec(L.bv, 2)} V · inget batteri (går på USB)`
     : ladd?.full ? `${dec(L.bv, 2)} V · laddaren ansluten · batteriet fullt (eller inte anslutet)`
     : ladd ? `${dec(L.bv, 2)} V · laddar${ladd.troligen ? ' (troligen)' : ''} · fullt ca ${hm(ladd.eta)} (om ${dur(ladd.h * 3600)})`
     : `${dec(L.bv, 2)} V` + (est ? ` · räcker ca ${est.text}` : '');
+  $('vBatSub').innerHTML = esc(huvud) + (sl ? `<br>senast laddad till ca ${Math.round(sl.pct)} % · ${esc(when(sl.at))}${sl.fran ? ` (laddade i ${esc(dur((sl.at - sl.fran) / 1000))})` : ''}` : '');
+  $('vBatSub').title = !est ? '' : est.matt ? 'Räknat på hur snabbt batteriet faktiskt har sjunkit sedan senaste laddningen.'
+    : 'Uppskattat från mätschemat och batteriets storlek. Blir en uppmätt tid när det finns några dagars mätningar efter laddningen.';
   $('vRs').innerHTML = num(L.rs) ? `${bars(L.rs)}${L.rs}` : '–';
   $('vRsSub').textContent = num(L.rs) ? `dBm, ${signal(L.rs)}` : '';
 
@@ -924,6 +928,31 @@ function renderNow() {
 }
 
 /* ---------- Batteritid ---------- */
+// Hur länge batteriet räcker: uppmätt om det finns några dagars mätningar sedan laddningen,
+// annars uppskattat från mätschemat och batteriets storlek
+function batteryLeft(pct) {
+  const m = batteryEstimate();
+  if (m && m.days !== Infinity) return { text: m.text, matt: true };
+  const sc = { matS: cfg('matS'), uppDagMin: cfg('uppDagMin'), uppNattMin: cfg('uppNattMin'), nattPa: !!cfg('nattPa'), nattFran: cfg('nattFran'), nattTill: cfg('nattTill') };
+  if (!num(sc.matS) || sc.matS <= 0) return null;
+  const kap = cfg('batKapMah') || 3400;
+  const perDag = mAhPerDay(sc) + kap * 0.02 / 30;            // plus självurladdning
+  const days = Math.max(0, pct - 2) / 100 * kap * 0.95 / perDag;   // skyddsläget slår till strax över 0 %
+  return { text: days > 365 ? `${dec(days / 365, 1)} år` : days > 60 ? `${Math.round(days / 30)} månader` : days >= 2 ? `${Math.round(days)} dagar` : `${Math.max(1, Math.round(days * 24))} timmar`, matt: false };
+}
+// Senaste laddningen, från händelserna "Laddaren ansluten/urkopplad" (kräver R9–R11)
+function senasteLaddning() {
+  for (let i = logItems.length - 1; i >= 0; i--) {
+    const m = /^Laddaren urkopplad \(([\d.,]+) V\)/.exec(logItems[i].text || '');
+    if (!m) continue;
+    const v = parseFloat(m[1].replace(',', '.'));
+    if (!(v > 2.5)) return null;
+    let fran = null;
+    for (let j = i - 1; j >= 0; j--) if (/^Laddaren ansluten/.test(logItems[j].text || '')) { fran = histTime(logItems[j]); break; }
+    return { at: histTime(logItems[i]), pct: batPct(v), fran };
+  }
+  return null;
+}
 function batteryEstimate() {
   let pts = hist14.filter(h => num(h.bv) && h.bv >= 2.5).map(h => [histTime(h) / 864e5, batPct(h.bv)]);
   // Räkna bara från senaste laddningen (där procenten hoppar upp)
@@ -2100,7 +2129,7 @@ async function showMain(u) {
   const on = (path, q, fn) => unsubs.push(D.on(path, q, fn));
   if (!DEMO) unsubs.push(fb.onValue(fb.ref(fb.db, '.info/serverTimeOffset'), s => { serverOffset = s.val() || 0; }));
   on('latest', null, v => { const ny = v?.at !== latest?.at || v?.uppAt !== latest?.uppAt; latest = v; renderBanners(); renderNow(); renderAlarm(); renderSettings(); renderDiag(); if (ny) { onNewData(); loadHist14(); } });
-  on('logg', { by: 'at', last: 300 }, v => { logItems = lista(v).filter(l => l.at).sort((a, b) => histTime(a) - histTime(b)); renderLog(); });
+  on('logg', { by: 'at', last: 300 }, v => { logItems = lista(v).filter(l => l.at).sort((a, b) => histTime(a) - histTime(b)); renderLog(); renderNow(); });
   on('anteckningar', null, v => { notes = lista(v).filter(n => num(n.at)); renderHist(); });
   on('notiser', { by: 'at', last: 30 }, v => { notices = lista(v).filter(n => num(n.at)); renderAlarm(); });
   on('larmstatus', null, v => { larmstatus = v; renderBanners(); renderAlarm(); renderDiag(); });
