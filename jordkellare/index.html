@@ -886,7 +886,8 @@ function laddStatus() {
   let iSedan = num(L.laddStart) ? L.laddStart : 0;
   for (let i = logItems.length - 1; i >= 0 && !iSedan; i--) if (/^Laddaren ansluten/.test(logItems[i].text || '')) iSedan = histTime(logItems[i]);
   const cvTid = k < pts.length && usb && iSedan ? nu - Math.max(pts[k][0], iSedan) : 0;
-  if (soc >= 98 || (L.bv >= 4.15 && cvTid >= 90 * 60e3 && (lutning == null || Math.abs(lutning) < 0.02))) return { usb, troligen, full: true, soc: 100 };
+  // Med mätaren gäller bara den: spänningen kan visa 4,2 V långt innan batteriet är fullt (mätfel, kontakter)
+  if (soc >= 98 || (!matare && L.bv >= 4.15 && cvTid >= 90 * 60e3 && (lutning == null || Math.abs(lutning) < 0.02))) return { usb, troligen, full: true, soc: 100 };
   let h = (100 - soc) / 100 * kap * 0.9 / ma + 0.6;
   if (L.bv >= 4.15) h = Math.max(h, 0.5);        // sista biten: laddaren drar ner strömmen
   return { usb, troligen, full: false, soc, h, eta: nu + h * 3600e3 };
