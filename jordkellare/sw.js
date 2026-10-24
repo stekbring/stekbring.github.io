@@ -1,6 +1,6 @@
 /* Jordkällaren – service worker: gör sidan installerbar som app.
    Mätvärdena kommer alltid live från Firebase, så bara sidans egna filer sparas. */
-const VERSION = 'jordkallare-v19';
+const VERSION = 'jordkallare-v20';
 const CORE = ['./', './index.html', './firebase-config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

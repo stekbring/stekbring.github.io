@@ -480,7 +480,7 @@ dialog.bred{width:min(560px,96vw)}
 
   <section class="panel only-admin" aria-labelledby="hOta" hidden>
     <h2 class="panel-title" id="hOta">Uppdatera sensorn via WiFi <small id="otaRunning"></small></h2>
-    <p class="help" style="margin-top:0">Välj <code>.pio\build\xiao_esp32c3\firmware.bin</code>. Installeras vid nästa uppladdning, bara om versionen är nyare. Fungerar den inte går sensorn tillbaka till den förra.</p>
+    <p class="help" style="margin-top:0">Välj <code>.pio\build\xiao_esp32c3\firmware.bin</code>. Installeras vid nästa uppladdning. Samma eller äldre version går också, efter en fråga. Fungerar den inte går sensorn tillbaka till den förra.</p>
     <div class="row"><input type="file" id="otaFile" accept=".bin,application/octet-stream"><span class="msg" id="otaFileInfo"></span></div>
     <div class="row"><button id="btnOtaSend" class="default" disabled>Skicka till sensorn</button><button id="btnOtaCancel">Avbryt beställd uppdatering</button><span class="msg" id="otaMsg"></span></div>
     <div class="progress" id="otaProg" hidden><i style="width:0"></i></div>
@@ -799,7 +799,7 @@ function renderBanners() {
       const ip = diag?.live?.ip;
       b.push(['info', `<b>Live-läge</b>${diag?.live?.kvarS ? `, ${dur(diag.live.kvarS)} kvar` : ''}.${ip ? ` Lokalt: <a href="http://${esc(ip)}/">${esc(ip)}</a>` : ''}`]);
     } else if (num(latest.bp) && latest.bp < 15 && latest.bv >= 2.5 && latest.status !== 'skydd') b.push(['', `Batteriet är på ${Math.round(latest.bp)} %. Ladda snart.`]);
-    if (isAdmin && otaStatus?.status && !/klar|fel/.test(otaStatus.status) && inst?.ota && versionJmf(inst.ota.version, diag?.fw) > 0)
+    if (isAdmin && otaStatus?.status && !/klar|fel/.test(otaStatus.status) && inst?.ota && (versionJmf(inst.ota.version, diag?.fw) > 0 || inst.ota.tvinga))
       b.push(['info', `Version <b>${esc(inst.ota.version)}</b> väntar: ${esc(otaStatus.status)}.`]);
   }
   if (DEMO) b.push(['info', 'Demoläge: påhittade värden.']);
@@ -2019,14 +2019,15 @@ $('otaFile').addEventListener('change', async () => {
   if (bytes.length > 0x1E0000) return msg($('otaFileInfo'), 'bad', 'För stor (max 1,9 MB).');
   otaFil = { bytes, version: m[1], storlek: bytes.length };
   const j = diag?.fw ? versionJmf(m[1], diag.fw) : 1;
-  msg($('otaFileInfo'), j > 0 ? 'ok' : 'warn', `Version ${m[1]}, ${dec(bytes.length / 1048576, 2)} MB${j === 0 ? ' (samma som sensorn kör)' : j < 0 ? ` (äldre än ${diag.fw})` : ''}`);
+  msg($('otaFileInfo'), j > 0 ? 'ok' : 'warn', `Version ${m[1]}, ${dec(bytes.length / 1048576, 2)} MB${j === 0 ? ' (samma som sensorn kör, installeras ändå)' : j < 0 ? ` (äldre än ${diag.fw}, installeras ändå)` : ''}`);
   $('btnOtaSend').disabled = false;
 });
 $('btnOtaSend').addEventListener('click', async () => {
   if (!otaFil) return;
   const j = diag?.fw ? versionJmf(otaFil.version, diag.fw) : 1;
-  if (j === 0) return msg($('otaMsg'), 'bad', `Sensorn kör redan ${otaFil.version}. Höj FW_VERSION och bygg igen.`);
-  if (j < 0) return msg($('otaMsg'), 'bad', `${otaFil.version} är äldre än ${diag.fw}.`);
+  // Samma eller äldre version: installeras ändå efter en fråga (kräver firmware 3.11 eller nyare i sensorn)
+  const tvinga = j <= 0;
+  if (tvinga && !await confirmDlg('Installera ändå?', j === 0 ? `Sensorn kör redan ${diag.fw}. Den här filen installeras ändå (t.ex. med ändrade inställningar).` : `${otaFil.version} är äldre än ${diag.fw} som sensorn kör. Den installeras ändå.`, 'Installera')) return;
   $('btnOtaSend').disabled = true; $('otaProg').hidden = false;
   const bar = $('otaProg').firstElementChild;
   try {
@@ -2042,7 +2043,7 @@ $('btnOtaSend').addEventListener('click', async () => {
       bar.style.width = `${Math.round(Math.min(delar, i + 8) / delar * 100)}%`;
       msg($('otaMsg'), '', `Laddar upp ${Math.min(delar, i + 8)} av ${delar} delar…`);
     }
-    const best = { version: otaFil.version, sha256: sum, storlek: otaFil.storlek, delar, at: Date.now(), av: myName() };
+    const best = { version: otaFil.version, sha256: sum, storlek: otaFil.storlek, delar, at: Date.now(), av: myName(), ...(tvinga ? { tvinga: true } : {}) };
     await D.set('ota/info', best);
     await D.update('installningar', { ota: best, andrad: D.ts() });
     await D.set('ota/status', { status: 'beställd', version: otaFil.version, at: D.ts() });
@@ -2060,12 +2061,13 @@ function renderOta() {
   $('otaRunning').textContent = diag?.fw ? `sensorn kör version ${diag.fw}` : '';
   const s = otaStatus, b = inst?.ota;
   const r = [];
-  if (b) r.push(['Beställd', `version ${esc(b.version)} (${dec(b.storlek / 1048576, 2)} MB, ${b.delar} delar)${b.av ? ` av ${esc(b.av)}` : ''}`]);
+  if (b) r.push(['Beställd', `version ${esc(b.version)}${b.tvinga ? ' (tvingad)' : ''} (${dec(b.storlek / 1048576, 2)} MB, ${b.delar} delar)${b.av ? ` av ${esc(b.av)}` : ''}`]);
   if (s?.status) r.push(['Status', `${esc(s.status)}${s.version ? ` · version ${esc(s.version)}` : ''}${s.at ? ` · ${when(s.at)}` : ''}`]);
   if (s?.fel) r.push(['Fel', esc(s.fel)]);
-  if (b && diag?.fw === b.version) r.push(['Resultat', `<span style="color:var(--ok)">Sensorn kör nu version ${esc(b.version)}.</span>`]);
+  // Tvingad med samma version: klar först när sensorn startat om efter beställningen
+  if (b && diag?.fw === b.version && (!b.tvinga || (diag.startAt && diag.startAt > b.at))) r.push(['Resultat', `<span style="color:var(--ok)">Sensorn kör nu version ${esc(b.version)}.</span>`]);
   // En beställning som är äldre än det sensorn kör (t.ex. nyare uppladdad med USB) tas bort direkt
-  if (b && diag?.fw && versionJmf(b.version, diag.fw) < 0 && otaRensad !== b.at) {
+  if (b && !b.tvinga && diag?.fw && versionJmf(b.version, diag.fw) < 0 && otaRensad !== b.at) {
     otaRensad = b.at;
     D.update('installningar', { ota: null }).then(() => D.set('ota/status', { status: 'överhoppad', version: b.version, fel: `Sensorn kör redan ${diag.fw}.`, at: D.ts() })).catch(() => { otaRensad = null; });
   }
