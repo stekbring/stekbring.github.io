@@ -163,8 +163,9 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
 .chart.drar{cursor:grabbing}
 .rensat{background:#f3edd8;border:2px groove var(--hi);padding:4px 10px;font-size:15px;margin:6px 0}
 .notlista{list-style:none;margin:6px 0 0;padding:0;font-size:15px}
-.notlista li{display:flex;gap:8px;align-items:baseline;padding:2px 0;border-bottom:1px solid #e0ddd6}
-.notlista li .t{color:var(--muted);white-space:nowrap}
+.notlista li{display:grid;grid-template-columns:8.6em minmax(0,1fr) auto;gap:0 10px;align-items:baseline;padding:3px 0;border-bottom:1px solid #e0ddd6}
+@media (max-width:600px){.notlista li{grid-template-columns:minmax(0,1fr) auto}.notlista li .t{grid-column:1/-1;font-size:14px}}
+.notlista li .t{color:var(--muted);white-space:nowrap;flex:none}
 .notlista li button{margin-left:auto;min-height:24px;padding:0 8px;font-size:14px}
 .chips{display:flex;flex-wrap:wrap;gap:4px 14px}
 .chips label{display:inline-flex;gap:5px;align-items:center}
@@ -172,7 +173,9 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
 .radio label{display:inline-flex;gap:5px;align-items:center}
 .rad3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .rad2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
-.notlista li>span{min-width:0;overflow-wrap:anywhere}
+.notlista li>span:not(.t){min-width:0;overflow-wrap:anywhere}
+.notlista li.fler,.notlista li.help{display:block;border-bottom:0;padding-top:6px}
+.notlista li.fler button{margin-left:0}
 .advice{display:grid;grid-template-columns:18px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid #d9d6cf}
 .advice .lamp{margin-top:5px}
 .advice small{display:block;color:var(--muted);font-size:15px}
@@ -1764,7 +1767,7 @@ function typChips(el, valda, prefix) {
 }
 const lasTyper = el => Object.fromEntries([...el.querySelectorAll('input[data-typ]')].map(i => [i.dataset.typ, i.checked]));
 const typText = t => TYPER.filter(([k]) => t?.[k]).map(([, n]) => n).join(', ') || 'inget';
-let myDirty = false;
+let myDirty = false, visaAllaNotiser = false;
 function renderAlarm() {
   if (!myDirty) {
     $('myName').value = myRecip?.namn ?? myName();
@@ -1787,7 +1790,11 @@ function renderAlarm() {
   const k = larmstatus?.kontrollerat;
   $('alarmScript').innerHTML = k ? (nowServer() - k < 15 * 60e3 ? `larmskriptet kontrollerade ${hm(k)}` : `<span style="color:var(--bad)">larmskriptet har inte kört sedan ${when(k)}</span>`) : '<span style="color:var(--warn)">larmskriptet är inte igång (se GUIDE.md)</span>';
   // Notiser
-  $('noticeList').innerHTML = notices.length ? notices.slice().sort((a, b) => b.at - a.at).slice(0, 12).map(n => `<li><span class="t">${when(n.at)}</span><span><b>${esc(n.rubrik)}</b> – ${esc(n.text)}${n.fel ? ` <small style="color:var(--bad)">(${esc(n.fel)})</small>` : ''} <small class="help">· ${n.antal || 0} skickade</small></span></li>`).join('') : '<li class="help">Inga notiser än.</li>';
+  const sorterade = notices.slice().sort((a, b) => b.at - a.at), visa = visaAllaNotiser ? sorterade : sorterade.slice(0, 3);
+  $('noticeList').innerHTML = notices.length ? visa.map(n => `<li><span class="t">${when(n.at)}</span><span><b>${esc(n.rubrik)}</b> – ${esc(n.text)}${n.fel ? ` <small style="color:var(--bad)">(${esc(n.fel)})</small>` : ''} <small class="help">· ${n.antal || 0} skickade</small></span></li>`).join('')
+    + (sorterade.length > 3 ? `<li class="fler"><button id="btnNotiser">${visaAllaNotiser ? 'Visa färre' : `Visa fler (${sorterade.length - 3})`}</button></li>` : '')
+    : '<li class="help">Inga notiser än.</li>';
+  $('btnNotiser')?.addEventListener('click', () => { visaAllaNotiser = !visaAllaNotiser; renderAlarm(); });
   // Alla mottagare (admin)
   if (isAdmin) {
     const rows = lista(mottagare).sort((a, b) => String(a.namn).localeCompare(String(b.namn), 'sv'));
@@ -2339,7 +2346,13 @@ function demoData() {
     plats: { lat: 58.41, lon: 15.62, namn: 'Linköping', frostGrans: -5 },
     larmstatus: { kontrollerat: now - 2 * 60000 },
     anteckningar: { a1: { at: now - 2 * 864e5, text: 'La in potatisen', av: 'olle' }, a2: { at: now - 7 * 3600e3, text: 'Öppnade luckan en stund', av: 'olle' } },
-    notiser: { n1: { at: now - 864e5 * 3, typ: 'vecka', rubrik: 'Veckorapport', text: 'Veckan som gått: jordkällaren medel 4,1 °C …', antal: 2 } },
+    notiser: {
+      n1: { at: now - 864e5 * 3, typ: 'vecka', rubrik: 'Veckorapport', text: 'Veckan som gått: jordkällaren medel 4,1 °C, min 3,2, max 5,0. Luftfuktighet medel 91 %. Ute medel 2,4 °C.', antal: 2 },
+      n2: { at: now - 864e5 * 2.1, typ: 'tystnat', rubrik: 'Sensorn har tystnat', text: 'Ingen uppladdning sedan 06:00 (väntades 06:30). Batteriet kan vara slut eller WiFi nere.', antal: 1 },
+      n3: { at: now - 864e5 * 2, typ: 'tystnat', rubrik: 'Sensorn är tillbaka', text: 'Uppladdningarna fungerar igen sedan 07:00.', antal: 1 },
+      n4: { at: now - 864e5 * 1.2, typ: 'frost', rubrik: 'Frostvarning', text: 'SMHI: −8 °C i natt kl 05.', antal: 2 },
+      n5: { at: now - 3600e3 * 5, typ: 'temp', rubrik: 'Larm', text: 'Jordkällaren 0,8 °C (under 1,0 °C).', antal: 2 },
+    },
     mottagare: { 'demo-olle': { namn: 'Olle', epost: 'olle@example.com', pushover: 'u'.repeat(30), typer: { temp: true, fukt: true, tystnat: true }, aktiv: true, uid: 'demo-olle' } },
     roller: { 'demo-anna': { roll: 'lasare', namn: 'Anna', anvandare: 'anna' } },
     logg: {
