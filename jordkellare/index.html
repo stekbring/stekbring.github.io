@@ -163,8 +163,9 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
 .chart.drar{cursor:grabbing}
 .rensat{background:#f3edd8;border:2px groove var(--hi);padding:4px 10px;font-size:15px;margin:6px 0}
 .notlista{list-style:none;margin:6px 0 0;padding:0;font-size:15px}
-.notlista li{display:flex;gap:8px;align-items:baseline;padding:2px 0;border-bottom:1px solid #e0ddd6}
-.notlista li .t{color:var(--muted);white-space:nowrap}
+.notlista li{display:grid;grid-template-columns:8.6em minmax(0,1fr) auto;gap:0 10px;align-items:baseline;padding:3px 0;border-bottom:1px solid #e0ddd6}
+@media (max-width:600px){.notlista li{grid-template-columns:minmax(0,1fr) auto}.notlista li .t{grid-column:1/-1;font-size:14px}}
+.notlista li .t{color:var(--muted);white-space:nowrap;flex:none}
 .notlista li button{margin-left:auto;min-height:24px;padding:0 8px;font-size:14px}
 .chips{display:flex;flex-wrap:wrap;gap:4px 14px}
 .chips label{display:inline-flex;gap:5px;align-items:center}
@@ -172,7 +173,9 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
 .radio label{display:inline-flex;gap:5px;align-items:center}
 .rad3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .rad2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
-.notlista li>span{min-width:0;overflow-wrap:anywhere}
+.notlista li>span:not(.t){min-width:0;overflow-wrap:anywhere}
+.notlista li.fler,.notlista li.help{display:block;border-bottom:0;padding-top:6px}
+.notlista li.fler button{margin-left:0}
 .advice{display:grid;grid-template-columns:18px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid #d9d6cf}
 .advice .lamp{margin-top:5px}
 .advice small{display:block;color:var(--muted);font-size:15px}
@@ -480,7 +483,7 @@ dialog.bred{width:min(560px,96vw)}
 
   <section class="panel only-admin" aria-labelledby="hOta" hidden>
     <h2 class="panel-title" id="hOta">Uppdatera sensorn via WiFi <small id="otaRunning"></small></h2>
-    <p class="help" style="margin-top:0">Välj <code>.pio\build\xiao_esp32c3\firmware.bin</code>. Installeras vid nästa uppladdning, bara om versionen är nyare. Fungerar den inte går sensorn tillbaka till den förra.</p>
+    <p class="help" style="margin-top:0">Välj <code>.pio\build\xiao_esp32c3\firmware.bin</code>. Installeras vid nästa uppladdning. Samma eller äldre version går också, efter en fråga. Fungerar den inte går sensorn tillbaka till den förra.</p>
     <div class="row"><input type="file" id="otaFile" accept=".bin,application/octet-stream"><span class="msg" id="otaFileInfo"></span></div>
     <div class="row"><button id="btnOtaSend" class="default" disabled>Skicka till sensorn</button><button id="btnOtaCancel">Avbryt beställd uppdatering</button><span class="msg" id="otaMsg"></span></div>
     <div class="progress" id="otaProg" hidden><i style="width:0"></i></div>
@@ -799,7 +802,7 @@ function renderBanners() {
       const ip = diag?.live?.ip;
       b.push(['info', `<b>Live-läge</b>${diag?.live?.kvarS ? `, ${dur(diag.live.kvarS)} kvar` : ''}.${ip ? ` Lokalt: <a href="http://${esc(ip)}/">${esc(ip)}</a>` : ''}`]);
     } else if (num(latest.bp) && latest.bp < 15 && latest.bv >= 2.5 && latest.status !== 'skydd') b.push(['', `Batteriet är på ${Math.round(latest.bp)} %. Ladda snart.`]);
-    if (isAdmin && otaStatus?.status && !/klar|fel/.test(otaStatus.status) && inst?.ota && versionJmf(inst.ota.version, diag?.fw) > 0)
+    if (isAdmin && otaStatus?.status && !/klar|fel/.test(otaStatus.status) && inst?.ota && (versionJmf(inst.ota.version, diag?.fw) > 0 || inst.ota.tvinga))
       b.push(['info', `Version <b>${esc(inst.ota.version)}</b> väntar: ${esc(otaStatus.status)}.`]);
   }
   if (DEMO) b.push(['info', 'Demoläge: påhittade värden.']);
@@ -1764,7 +1767,7 @@ function typChips(el, valda, prefix) {
 }
 const lasTyper = el => Object.fromEntries([...el.querySelectorAll('input[data-typ]')].map(i => [i.dataset.typ, i.checked]));
 const typText = t => TYPER.filter(([k]) => t?.[k]).map(([, n]) => n).join(', ') || 'inget';
-let myDirty = false;
+let myDirty = false, visaAllaNotiser = false;
 function renderAlarm() {
   if (!myDirty) {
     $('myName').value = myRecip?.namn ?? myName();
@@ -1787,7 +1790,11 @@ function renderAlarm() {
   const k = larmstatus?.kontrollerat;
   $('alarmScript').innerHTML = k ? (nowServer() - k < 15 * 60e3 ? `larmskriptet kontrollerade ${hm(k)}` : `<span style="color:var(--bad)">larmskriptet har inte kört sedan ${when(k)}</span>`) : '<span style="color:var(--warn)">larmskriptet är inte igång (se GUIDE.md)</span>';
   // Notiser
-  $('noticeList').innerHTML = notices.length ? notices.slice().sort((a, b) => b.at - a.at).slice(0, 12).map(n => `<li><span class="t">${when(n.at)}</span><span><b>${esc(n.rubrik)}</b> – ${esc(n.text)}${n.fel ? ` <small style="color:var(--bad)">(${esc(n.fel)})</small>` : ''} <small class="help">· ${n.antal || 0} skickade</small></span></li>`).join('') : '<li class="help">Inga notiser än.</li>';
+  const sorterade = notices.slice().sort((a, b) => b.at - a.at), visa = visaAllaNotiser ? sorterade : sorterade.slice(0, 3);
+  $('noticeList').innerHTML = notices.length ? visa.map(n => `<li><span class="t">${when(n.at)}</span><span><b>${esc(n.rubrik)}</b> – ${esc(n.text)}${n.fel ? ` <small style="color:var(--bad)">(${esc(n.fel)})</small>` : ''} <small class="help">· ${n.antal || 0} skickade</small></span></li>`).join('')
+    + (sorterade.length > 3 ? `<li class="fler"><button id="btnNotiser">${visaAllaNotiser ? 'Visa färre' : `Visa fler (${sorterade.length - 3})`}</button></li>` : '')
+    : '<li class="help">Inga notiser än.</li>';
+  $('btnNotiser')?.addEventListener('click', () => { visaAllaNotiser = !visaAllaNotiser; renderAlarm(); });
   // Alla mottagare (admin)
   if (isAdmin) {
     const rows = lista(mottagare).sort((a, b) => String(a.namn).localeCompare(String(b.namn), 'sv'));
@@ -2019,14 +2026,15 @@ $('otaFile').addEventListener('change', async () => {
   if (bytes.length > 0x1E0000) return msg($('otaFileInfo'), 'bad', 'För stor (max 1,9 MB).');
   otaFil = { bytes, version: m[1], storlek: bytes.length };
   const j = diag?.fw ? versionJmf(m[1], diag.fw) : 1;
-  msg($('otaFileInfo'), j > 0 ? 'ok' : 'warn', `Version ${m[1]}, ${dec(bytes.length / 1048576, 2)} MB${j === 0 ? ' (samma som sensorn kör)' : j < 0 ? ` (äldre än ${diag.fw})` : ''}`);
+  msg($('otaFileInfo'), j > 0 ? 'ok' : 'warn', `Version ${m[1]}, ${dec(bytes.length / 1048576, 2)} MB${j === 0 ? ' (samma som sensorn kör, installeras ändå)' : j < 0 ? ` (äldre än ${diag.fw}, installeras ändå)` : ''}`);
   $('btnOtaSend').disabled = false;
 });
 $('btnOtaSend').addEventListener('click', async () => {
   if (!otaFil) return;
   const j = diag?.fw ? versionJmf(otaFil.version, diag.fw) : 1;
-  if (j === 0) return msg($('otaMsg'), 'bad', `Sensorn kör redan ${otaFil.version}. Höj FW_VERSION och bygg igen.`);
-  if (j < 0) return msg($('otaMsg'), 'bad', `${otaFil.version} är äldre än ${diag.fw}.`);
+  // Samma eller äldre version: installeras ändå efter en fråga (kräver firmware 3.11 eller nyare i sensorn)
+  const tvinga = j <= 0;
+  if (tvinga && !await confirmDlg('Installera ändå?', j === 0 ? `Sensorn kör redan ${diag.fw}. Den här filen installeras ändå (t.ex. med ändrade inställningar).` : `${otaFil.version} är äldre än ${diag.fw} som sensorn kör. Den installeras ändå.`, 'Installera')) return;
   $('btnOtaSend').disabled = true; $('otaProg').hidden = false;
   const bar = $('otaProg').firstElementChild;
   try {
@@ -2042,7 +2050,7 @@ $('btnOtaSend').addEventListener('click', async () => {
       bar.style.width = `${Math.round(Math.min(delar, i + 8) / delar * 100)}%`;
       msg($('otaMsg'), '', `Laddar upp ${Math.min(delar, i + 8)} av ${delar} delar…`);
     }
-    const best = { version: otaFil.version, sha256: sum, storlek: otaFil.storlek, delar, at: Date.now(), av: myName() };
+    const best = { version: otaFil.version, sha256: sum, storlek: otaFil.storlek, delar, at: Date.now(), av: myName(), ...(tvinga ? { tvinga: true } : {}) };
     await D.set('ota/info', best);
     await D.update('installningar', { ota: best, andrad: D.ts() });
     await D.set('ota/status', { status: 'beställd', version: otaFil.version, at: D.ts() });
@@ -2060,12 +2068,13 @@ function renderOta() {
   $('otaRunning').textContent = diag?.fw ? `sensorn kör version ${diag.fw}` : '';
   const s = otaStatus, b = inst?.ota;
   const r = [];
-  if (b) r.push(['Beställd', `version ${esc(b.version)} (${dec(b.storlek / 1048576, 2)} MB, ${b.delar} delar)${b.av ? ` av ${esc(b.av)}` : ''}`]);
+  if (b) r.push(['Beställd', `version ${esc(b.version)}${b.tvinga ? ' (tvingad)' : ''} (${dec(b.storlek / 1048576, 2)} MB, ${b.delar} delar)${b.av ? ` av ${esc(b.av)}` : ''}`]);
   if (s?.status) r.push(['Status', `${esc(s.status)}${s.version ? ` · version ${esc(s.version)}` : ''}${s.at ? ` · ${when(s.at)}` : ''}`]);
   if (s?.fel) r.push(['Fel', esc(s.fel)]);
-  if (b && diag?.fw === b.version) r.push(['Resultat', `<span style="color:var(--ok)">Sensorn kör nu version ${esc(b.version)}.</span>`]);
+  // Tvingad med samma version: klar först när sensorn startat om efter beställningen
+  if (b && diag?.fw === b.version && (!b.tvinga || (diag.startAt && diag.startAt > b.at))) r.push(['Resultat', `<span style="color:var(--ok)">Sensorn kör nu version ${esc(b.version)}.</span>`]);
   // En beställning som är äldre än det sensorn kör (t.ex. nyare uppladdad med USB) tas bort direkt
-  if (b && diag?.fw && versionJmf(b.version, diag.fw) < 0 && otaRensad !== b.at) {
+  if (b && !b.tvinga && diag?.fw && versionJmf(b.version, diag.fw) < 0 && otaRensad !== b.at) {
     otaRensad = b.at;
     D.update('installningar', { ota: null }).then(() => D.set('ota/status', { status: 'överhoppad', version: b.version, fel: `Sensorn kör redan ${diag.fw}.`, at: D.ts() })).catch(() => { otaRensad = null; });
   }
@@ -2337,7 +2346,13 @@ function demoData() {
     plats: { lat: 58.41, lon: 15.62, namn: 'Linköping', frostGrans: -5 },
     larmstatus: { kontrollerat: now - 2 * 60000 },
     anteckningar: { a1: { at: now - 2 * 864e5, text: 'La in potatisen', av: 'olle' }, a2: { at: now - 7 * 3600e3, text: 'Öppnade luckan en stund', av: 'olle' } },
-    notiser: { n1: { at: now - 864e5 * 3, typ: 'vecka', rubrik: 'Veckorapport', text: 'Veckan som gått: jordkällaren medel 4,1 °C …', antal: 2 } },
+    notiser: {
+      n1: { at: now - 864e5 * 3, typ: 'vecka', rubrik: 'Veckorapport', text: 'Veckan som gått: jordkällaren medel 4,1 °C, min 3,2, max 5,0. Luftfuktighet medel 91 %. Ute medel 2,4 °C.', antal: 2 },
+      n2: { at: now - 864e5 * 2.1, typ: 'tystnat', rubrik: 'Sensorn har tystnat', text: 'Ingen uppladdning sedan 06:00 (väntades 06:30). Batteriet kan vara slut eller WiFi nere.', antal: 1 },
+      n3: { at: now - 864e5 * 2, typ: 'tystnat', rubrik: 'Sensorn är tillbaka', text: 'Uppladdningarna fungerar igen sedan 07:00.', antal: 1 },
+      n4: { at: now - 864e5 * 1.2, typ: 'frost', rubrik: 'Frostvarning', text: 'SMHI: −8 °C i natt kl 05.', antal: 2 },
+      n5: { at: now - 3600e3 * 5, typ: 'temp', rubrik: 'Larm', text: 'Jordkällaren 0,8 °C (under 1,0 °C).', antal: 2 },
+    },
     mottagare: { 'demo-olle': { namn: 'Olle', epost: 'olle@example.com', pushover: 'u'.repeat(30), typer: { temp: true, fukt: true, tystnat: true }, aktiv: true, uid: 'demo-olle' } },
     roller: { 'demo-anna': { roll: 'lasare', namn: 'Anna', anvandare: 'anna' } },
     logg: {
