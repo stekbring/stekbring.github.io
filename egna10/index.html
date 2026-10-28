@@ -483,6 +483,76 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
   .credit.cr-mob{display:flex;justify-content:center;margin:18px 0 0;padding:0}
   .credit.cr-wls{display:flex;justify-content:center;padding:0;margin-top:-6px}
 }
+/* ---------- Skanna in kort ---------- */
+#dlgScan:not([style*="width"]){width:min(1180px,97vw)}
+#dlgScan:not([style*="height"]){height:min(860px,94vh)}
+.scanbody{display:grid;grid-template-columns:280px minmax(0,1fr);gap:8px;padding:8px !important;overflow:hidden !important;min-height:0}
+.scanside{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto}
+.scan-add{display:flex;gap:4px;flex-wrap:wrap}
+.scan-add button{flex:1}
+.scan-mode{display:flex;flex-direction:column;gap:3px}
+.scan-mode select{max-width:100%}
+.scan-look{display:flex;gap:6px;align-items:flex-start;font-size:13px;line-height:1.3}
+.scan-look input{margin-top:2px}
+.scan-look small{color:var(--muted,#666)}
+.scanlist{list-style:none;margin:0;padding:0;background:var(--field);border:2px inset var(--face);flex:1;min-height:120px;overflow:auto}
+.scanlist li{display:flex;align-items:center;gap:8px;padding:5px 6px;border-bottom:1px solid #e3e0d8;cursor:pointer}
+.scanlist li img{width:46px;height:46px;object-fit:cover;flex:none;border:1px solid var(--lo)}
+.scanlist li span{display:flex;flex-direction:column;min-width:0}
+.scanlist li small{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scanlist li.sel{background:var(--sel);color:var(--selink)}
+.scanlist li.sel small{color:#c9d3e6}
+.scanlist .scan-empty{cursor:default;color:var(--muted);display:block}
+.scanmain{display:flex;flex-direction:column;gap:6px;min-height:0}
+.scan-tools{display:flex;flex-wrap:wrap;gap:4px}
+.scan-stage{flex:1;min-height:260px;background:#3b3a37;border:2px inset var(--face);position:relative;overflow:hidden}
+.scan-stage canvas{position:absolute;inset:0;touch-action:none}
+.scanfoot{flex-wrap:wrap;align-items:center}
+.scanstatus{flex:1 1 260px;color:var(--muted);min-width:0}
+.scanref{margin:0 0 10px;padding:4px 8px 8px;border:2px groove var(--hi);background:var(--face)}
+.scanref summary{cursor:pointer;font-weight:600;padding:2px 0}
+.scanref img{display:block;width:100%;max-width:340px;margin:6px auto 0;border:1px solid var(--lo)}
+@media (max-width:720px){
+  #dlgScan{height:100dvh !important;max-height:100dvh}
+  .scanbody{grid-template-columns:1fr;grid-template-rows:auto minmax(320px,1fr);overflow:auto !important}
+  .scanlist{max-height:150px;min-height:60px}
+  .scan-stage{min-height:340px}
+  .scanfoot button{flex:1 1 45%}
+}
+/* ---------- Kameran (skanna som ett dokument) ---------- */
+.camui{position:fixed;inset:0;z-index:50;background:#000;color:#fff;font:15px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;user-select:none;-webkit-user-select:none}
+.camui[hidden]{display:none}
+.camui video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+.camui #camOverlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.cam-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .25s}
+.cam-flash.on{opacity:.75;transition:none}
+.cam-top{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 12px 18px;background:linear-gradient(rgba(0,0,0,.6),transparent)}
+.cam-hint{flex:1;text-align:center;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+.cam-ic{width:42px;height:42px;border-radius:50%;border:0;background:rgba(0,0,0,.35);color:#fff;font-size:20px;display:grid;place-items:center;cursor:pointer;padding:0;min-height:0}
+.cam-auto{border:1.5px solid rgba(255,255,255,.75);background:rgba(0,0,0,.3);color:#fff;border-radius:999px;padding:6px 14px;font-weight:600;cursor:pointer;min-height:0}
+.cam-auto[aria-pressed="true"]{background:#fff;color:#111;border-color:#fff}
+.cam-bottom{position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:22px 20px calc(20px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.65))}
+.cam-shutter{width:76px;height:76px;border-radius:50%;border:4px solid #fff;background:transparent;padding:5px;cursor:pointer;min-height:0}
+.cam-shutter span{display:block;width:100%;height:100%;border-radius:50%;background:#fff;transition:transform .12s}
+.cam-shutter:active span{transform:scale(.88)}
+.cam-shutter.ready{border-color:#5fd38a}
+.cam-stack{justify-self:start;position:relative;width:58px;height:58px;padding:0;border:2px solid #fff;border-radius:8px;background:#222;cursor:pointer;overflow:visible;min-height:0;box-shadow:4px -4px 0 -1px rgba(255,255,255,.35)}
+.cam-stack[disabled]{opacity:0;pointer-events:none}
+.cam-stack img{width:100%;height:100%;object-fit:cover;border-radius:6px;display:block}
+.cam-stack b{position:absolute;top:-9px;right:-9px;min-width:22px;height:22px;border-radius:11px;background:#1d5fa8;color:#fff;font-size:12px;display:grid;place-items:center;padding:0 5px}
+.cam-stack.pop{animation:campop .35s ease}
+@keyframes campop{0%{transform:scale(1.25) translate(18px,-18px)}100%{transform:none}}
+.cam-done{justify-self:end;border:0;border-radius:999px;background:#fff;color:#111;font-weight:700;padding:10px 18px;cursor:pointer;min-height:0}
+.cam-review{position:absolute;inset:0;background:#111;display:flex;flex-direction:column}
+.cam-review[hidden]{display:none}
+.cam-rtop{display:grid;grid-template-columns:42px 1fr 42px;align-items:center;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;font-weight:700;text-align:center}
+.cam-rgrid{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;padding:8px 12px calc(16px + env(safe-area-inset-bottom));align-content:start}
+.cam-rgrid figure{margin:0;background:#1d1d1d;border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.cam-rgrid img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#000}
+.cam-rgrid figcaption{padding:6px 8px 2px;font-size:13px;color:#ddd}
+.cam-rgrid .cam-ract{display:flex;gap:6px;padding:6px 8px 8px}
+.cam-rgrid .cam-ract button{flex:1;border:0;border-radius:6px;padding:7px 4px;background:#2c2c2c;color:#fff;cursor:pointer;min-height:0;font-size:13px}
+.cam-rgrid .cam-ract button.del{color:#ff8a80}
 </style>
 </head>
 <body>
@@ -498,6 +568,7 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
     <span class="sep"></span>
     <button id="btnImport" title="Klistra in frågor från Excel eller en textfil">Klistra in tabell…</button>
     <button id="btnLib" class="js-lib" title="Färdiga frågepaket och dina egna paket – välj frågor till kortleken">Bibliotek…</button>
+    <button id="btnScan" title="Fotografera eller skanna utskrivna kort och gör digitala kort av dem">Skanna in kort…</button>
     <button id="btnExportTsv" title="Spara frågorna som en tabell som kan öppnas i Excel">Exportera tabell</button>
     <span class="sep"></span>
     <button id="btnSettings">Utseende…</button>
@@ -726,6 +797,63 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
       <button value="cancel">Stäng</button>
     </div>
   </form>
+</dialog>
+
+<dialog id="dlgScan">
+  <form method="dialog">
+    <div class="dhead">Skanna in kort</div>
+    <div class="dbody scanbody">
+      <aside class="scanside">
+        <div class="scan-add">
+          <button type="button" id="scanPick">Välj bilder…</button>
+          <button type="button" id="scanCam">Ta foto…</button>
+        </div>
+        <input type="file" id="scanFile" accept="image/*" multiple hidden>
+        <input type="file" id="scanCamFile" accept="image/*" capture="environment" hidden>
+        <label class="scan-mode">Bilderna är
+          <select id="scanMode"><option value="pairs">framsida, baksida, framsida … (två per kort)</option><option value="fronts">bara framsidor (en per kort)</option></select></label>
+        <label class="scan-look"><input type="checkbox" id="scanLook" checked><span>Kopiera färger, etikett och bakgrund från korten <small>(gäller hela kortleken)</small></span></label>
+        <ol id="scanList" class="scanlist"></ol>
+        <p class="help">”Ta foto” öppnar kameran: kortet känns igen och ramas in, och du kan ta många bilder i rad (eller slå på Auto). Lägg korten på ett underlag som skiljer sig från kortet. Du kan också välja färdiga bilder eller dra hit dem.</p>
+      </aside>
+      <section class="scanmain">
+        <div class="scan-tools">
+          <button type="button" id="scanAuto" title="Hitta kortet i bilden igen">Hitta kortet</button>
+          <button type="button" id="scanRot" title="Vrid ett kvarts varv om etiketten hamnat fel">Vrid 90°</button>
+          <button type="button" id="scanDup" title="Finns det flera kort i samma bild? Lägg till ett till och flytta hörnen dit.">Ett kort till i bilden</button>
+          <button type="button" id="scanDel">Ta bort bilden</button>
+        </div>
+        <div class="scan-stage" id="scanStage"><canvas id="scanCanvas"></canvas></div>
+        <p class="help">Dra de gula hörnen till kortets hörn (där kanterna skulle mötas vid de runda hörnen). De blå ringarna ska hamna över kortets mittcirkel och facit, och ”etikett” uppe till höger.</p>
+      </section>
+    </div>
+    <div class="dfoot scanfoot">
+      <span id="scanStatus" class="scanstatus" role="status"></span>
+      <button type="button" id="scanAdd" class="default">Lägg till i kortleken</button>
+      <button type="button" id="scanNewDeck">Skapa ny kortlek</button>
+      <button type="button" id="scanExport">Spara som fil…</button>
+      <button value="cancel">Stäng</button>
+    </div>
+  </form>
+  <div id="scanCamUI" class="camui" hidden>
+    <video id="camVideo" playsinline muted autoplay></video>
+    <canvas id="camOverlay"></canvas>
+    <div class="cam-flash" id="camFlash"></div>
+    <div class="cam-top">
+      <button type="button" class="cam-ic" id="camClose" aria-label="Stäng kameran">✕</button>
+      <span class="cam-hint" id="camHint">Håll kameran över ett kort</span>
+      <button type="button" class="cam-auto" id="camAuto" aria-pressed="false" title="Ta bilden automatiskt när kortet ligger still">Auto</button>
+    </div>
+    <div class="cam-bottom">
+      <button type="button" class="cam-stack" id="camStack" aria-label="Visa tagna bilder" disabled><img alt=""><b id="camCount">0</b></button>
+      <button type="button" class="cam-shutter" id="camShutter" aria-label="Ta bild"><span></span></button>
+      <button type="button" class="cam-done" id="camDone">Klar</button>
+    </div>
+    <div class="cam-review" id="camReview" hidden>
+      <div class="cam-rtop"><button type="button" class="cam-ic" id="camRBack" aria-label="Tillbaka till kameran">‹</button><span id="camRTitle">Tagna bilder</span><span></span></div>
+      <div class="cam-rgrid" id="camRGrid"></div>
+    </div>
+  </div>
 </dialog>
 
 <div id="welcome" class="wl" hidden role="dialog" aria-modal="true" aria-label="Välkommen till Egna10">
@@ -3198,6 +3326,1245 @@ function bindPro() {
   proDeckP();
   renderPreview();
 }
+
+
+/* =====================================================================
+   Egna10 Pro – skanna in utskrivna kort (foto eller skanner) och gör
+   digitala kort av dem. Kortets mått är kända (110 × 110 mm, samma som
+   originalkorten), så när bilden är uträtad vet vi exakt var frågan,
+   alternativen och facit sitter. Texten läses med Tesseract (OCR).
+   ===================================================================== */
+const SCAN_PPM = 16;                       // pixlar per mm i det uträtade kortet
+const SCAN_W = 110 * SCAN_PPM;
+const TESS_URLS = ['https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js', 'https://unpkg.com/tesseract.js@5.1.1/dist/tesseract.min.js'];
+const SCAN = { items: [], sel: -1, sched: null, busy: false, refs: new Map(), drag: null, view: null };
+
+/* ---------- Geometri: homografi mellan kortets mm och bildens pixlar ---------- */
+function scanHomography(src, dst) {          // 4 punktpar → 3×3-matris som tar src till dst
+  const A = [], b = [];
+  for (let i = 0; i < 4; i++) {
+    const [x, y] = src[i], [u, v] = dst[i];
+    A.push([x, y, 1, 0, 0, 0, -u * x, -u * y]); b.push(u);
+    A.push([0, 0, 0, x, y, 1, -v * x, -v * y]); b.push(v);
+  }
+  for (let c = 0; c < 8; c++) {              // Gauss med pivotering
+    let p = c; for (let r = c + 1; r < 8; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
+    [A[c], A[p]] = [A[p], A[c]]; [b[c], b[p]] = [b[p], b[c]];
+    for (let r = 0; r < 8; r++) {
+      if (r === c) continue;
+      const f = A[r][c] / A[c][c]; if (!f) continue;
+      for (let k = c; k < 8; k++) A[r][k] -= f * A[c][k];
+      b[r] -= f * b[c];
+    }
+  }
+  const h = b.map((v, i) => v / A[i][i]);
+  return [h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7], 1];
+}
+function scanApply(H, x, y) { const w = H[6] * x + H[7] * y + H[8]; return [(H[0] * x + H[1] * y + H[2]) / w, (H[3] * x + H[4] * y + H[5]) / w]; }
+const SCAN_MM_CORNERS = [[0, 0], [110, 0], [110, 110], [0, 110]];
+
+/* ---------- Bilder ---------- */
+function scanLoadFile(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const k = Math.min(1, 2800 / Math.max(im.naturalWidth, im.naturalHeight));
+      const c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      res({ canvas: c, data: c.getContext('2d').getImageData(0, 0, c.width, c.height) });
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); rej(new Error('bild')); };
+    im.src = url;
+  });
+}
+function scanLum(d, i) { return (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255; }
+function scanSat(d, i) { const r = d[i], g = d[i + 1], b = d[i + 2], mx = Math.max(r, g, b), mn = Math.min(r, g, b); return mx ? (mx - mn) / mx : 0; }
+function scanHue(r, g, b) {
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; if (!d) return 0;
+  let h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  h *= 60; return h < 0 ? h + 360 : h;
+}
+
+/* ---------- Hitta kortet ----------
+   1. Den ljusa mittcirkeln (Ø66 mm) ger läge och skala.
+   2. Facitmarkeringarna sitter var 36:e grad på 45 mm avstånd – det ger vridningen (modulo 36°).
+   3. Kortets form (två stora runda hörn, etiketten) avgör vilket av de tio lägena som är rätt.
+   4. Markeringarnas mittpunkter finjusterar till en homografi (sned/perspektiv). */
+function scanFindDisc(item) {
+  const { data } = item.src, W = data.width, H = data.height;
+  const k = Math.min(1, 480 / Math.max(W, H)), w = Math.round(W * k), h = Math.round(H * k);
+  const lum = new Float32Array(w * h), sat = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (Math.min(H - 1, Math.round(y / k)) * W + Math.min(W - 1, Math.round(x / k))) * 4;
+    lum[y * w + x] = scanLum(data.data, i); sat[y * w + x] = scanSat(data.data, i);
+  }
+  const sorted = Array.from(lum).sort((a, b) => a - b), hi = sorted[Math.floor(sorted.length * 0.97)];
+  let best = null;
+  for (const t of [0.93, 0.88, 0.82, 0.76]) {
+    const thr = hi * t, lab = new Int32Array(w * h).fill(-1), stack = [];
+    for (let s = 0; s < w * h; s++) {
+      if (lab[s] >= 0 || lum[s] < thr || sat[s] > 0.25) continue;
+      let n = 0, x0 = w, x1 = 0, y0 = h, y1 = 0, sx = 0, sy = 0; stack.push(s); lab[s] = s;
+      while (stack.length) {
+        const p = stack.pop(), px = p % w, py = (p - px) / w; n++; sx += px; sy += py;
+        if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py;
+        for (const q of [p - 1, p + 1, p - w, p + w]) {
+          if (q < 0 || q >= w * h || lab[q] >= 0) continue;
+          if (Math.abs((q % w) - px) > 1) continue;
+          if (lum[q] >= thr && sat[q] <= 0.25) { lab[q] = s; stack.push(q); }
+        }
+      }
+      const bw = x1 - x0 + 1, bh = y1 - y0 + 1, asp = bw / bh, fill = n / (Math.PI * bw * bh / 4);
+      const size = Math.min(bw, bh) / Math.min(w, h);
+      if (asp > 0.7 && asp < 1.43 && fill > 0.55 && fill < 1.12 && size > 0.1 && size < 0.85) {
+        const score = n * (1 - Math.abs(1 - fill));
+        if (!best || score > best.score) best = { score, cx: (x0 + x1) / 2 / k, cy: (y0 + y1) / 2 / k, rx: bw / 2 / k, ry: bh / 2 / k };
+      }
+    }
+    if (best) break;
+  }
+  return best;
+}
+const scanDist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) / 255;
+function scanInCard(x, y) {                    // punkt (mm) innanför kortets kontur?
+  if (x < 0 || y < 0 || x > 110 || y > 110) return false;
+  const R = G.R_BIG, r = G.R_SMALL;
+  if (x < R && y < R) return Math.hypot(x - R, y - R) <= R;
+  if (x < R && y > 110 - R) return Math.hypot(x - R, y - (110 - R)) <= R;
+  if (x > 110 - r && y < r) return Math.hypot(x - (110 - r), y - r) <= r;
+  if (x > 110 - r && y > 110 - r) return Math.hypot(x - (110 - r), y - (110 - r)) <= r;
+  return true;
+}
+function scanEdgeDist(x, y) {                  // ungefärligt avstånd (mm) till kortets kant
+  let best = 99;
+  for (let a = 0; a < 360; a += 30) { const dx = Math.cos(a * Math.PI / 180), dy = Math.sin(a * Math.PI / 180); for (const d of [0.8, 1.6]) if (scanInCard(x + dx * d, y + dy * d) !== scanInCard(x, y)) best = Math.min(best, d); }
+  return best;
+}
+function scanFitH(mm, im) {                    // minsta-kvadrat-homografi, N ≥ 4 punktpar
+  const A = Array.from({ length: 8 }, () => new Float64Array(8)), b = new Float64Array(8);
+  const add = (row, v, wt) => { for (let r = 0; r < 8; r++) { if (!row[r]) continue; b[r] += row[r] * v * wt; for (let c = 0; c < 8; c++) A[r][c] += row[r] * row[c] * wt; } };
+  mm.forEach(([x, y, wt = 1], i) => {
+    const [u, v] = im[i];
+    add([x, y, 1, 0, 0, 0, -u * x, -u * y], u, wt);
+    add([0, 0, 0, x, y, 1, -v * x, -v * y], v, wt);
+  });
+  const M = A.map((r, i) => Array.from(r).concat([b[i]]));
+  for (let c = 0; c < 8; c++) {
+    let p = c; for (let r = c + 1; r < 8; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    [M[c], M[p]] = [M[p], M[c]];
+    if (Math.abs(M[c][c]) < 1e-12) return null;
+    for (let r = 0; r < 8; r++) { if (r === c) continue; const f = M[r][c] / M[c][c]; if (f) for (let k = c; k < 9; k++) M[r][k] -= f * M[c][k]; }
+  }
+  const h = M.map((r, i) => r[8] / r[i]);
+  return [h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7], 1];
+}
+// Kortets kontur som punkter (mm) med utåtriktad normal
+const SCAN_OUTLINE = (() => {
+  const pts = [], path = cardPath(0);
+  let cur = null;
+  const push = (x, y) => { if (!pts.length || Math.hypot(x - pts[pts.length - 1][0], y - pts[pts.length - 1][1]) >= 1.2) pts.push([x, y]); };
+  for (const c of path) {
+    if (c[0] === 'M') { cur = [c[1], c[2]]; push(...cur); }
+    else if (c[0] === 'L') { const n = Math.ceil(Math.hypot(c[1] - cur[0], c[2] - cur[1]) / 0.6); for (let k = 1; k <= n; k++) push(cur[0] + (c[1] - cur[0]) * k / n, cur[1] + (c[2] - cur[1]) * k / n); cur = [c[1], c[2]]; }
+    else if (c[0] === 'C') { for (let k = 1; k <= 24; k++) { const t = k / 24, u = 1 - t; push(u * u * u * cur[0] + 3 * u * u * t * c[1] + 3 * u * t * t * c[3] + t * t * t * c[5], u * u * u * cur[1] + 3 * u * u * t * c[2] + 3 * u * t * t * c[4] + t * t * t * c[6]); } cur = [c[5], c[6]]; }
+  }
+  return pts.map((p, i) => {
+    const a = pts[(i - 1 + pts.length) % pts.length], b = pts[(i + 1) % pts.length], tx = b[0] - a[0], ty = b[1] - a[1], l = Math.hypot(tx, ty) || 1;
+    let nx = ty / l, ny = -tx / l;                                       // utåt: bort från mitten
+    if ((p[0] - 55) * nx + (p[1] - 55) * ny < 0) { nx = -nx; ny = -ny; }
+    return [p[0], p[1], nx, ny];
+  });
+})();
+function scanDetect(item) {
+  const D = item.src.data, W = D.width, H = D.height, d = D.data;
+  const fallback = () => { const s = Math.min(W, H) * 0.4; return [[W / 2 - s, H / 2 - s], [W / 2 + s, H / 2 - s], [W / 2 + s, H / 2 + s], [W / 2 - s, H / 2 + s]]; };
+  const disc = scanFindDisc(item);
+  if (!disc) return fallback();
+  const px = (x, y) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= W || y >= H) return null; const i = (y * W + x) * 4; return [d[i], d[i + 1], d[i + 2]]; };
+  const s = (disc.rx + disc.ry) / 2 / 33, cx = disc.cx, cy = disc.cy;
+  const at = (phi, r) => px(cx + Math.sin(phi) * r * s, cy - Math.cos(phi) * r * s);
+  const ringMed = (r0, r1) => { const c = []; for (let a = 0; a < 360; a += 1) for (let r = r0; r <= r1; r += 0.5) { const p = at(a * Math.PI / 180, r); if (p) c.push(p); } return scanMedianColor(c); };
+  const DC = ringMed(17.2, 19) || [250, 250, 245], C = ringMed(39.6, 40.6) || [200, 200, 170];
+  // vridningen (modulo 36°): de inre strecken på mittcirkeln + facitmarkeringarna
+  const zs = (prof, step, width) => {
+    const n = prof.length, per = n / 10, out = new Float32Array(per);
+    for (let t = 0; t < per; t++) { let sc = 0; for (let i = 0; i < 10; i++) { sc += prof[(t + per * i) % n]; for (const o of [-width, width]) sc -= prof[(t + o + per * i + n) % n] / 2; } out[t] = sc; }
+    const m = out.reduce((a, b) => a + b, 0) / per, sd = Math.sqrt(out.reduce((a, b) => a + (b - m) ** 2, 0) / per) || 1;
+    return out.map(v => (v - m) / sd);
+  };
+  const tick = new Float32Array(1440), mark = new Float32Array(1440);
+  for (let j = 0; j < 1440; j++) {
+    const phi = j * 0.25 * Math.PI / 180; let a = 0, n = 0, b = 0, m = 0;
+    for (let r = 17.1; r <= 19.1; r += 0.4) { const p = at(phi, r); if (p) { a += scanDist(p, DC); n++; } }
+    for (let r = 41; r <= 49; r += 1) { const p = at(phi, r); if (p) { b += scanDist(p, C); m++; } }
+    tick[j] = n ? a / n : 0; mark[j] = m ? b / m : 0;
+  }
+  const zt = zs(tick, 0.25, 8), zm = zs(mark, 0.25, 72);
+  let theta = 0, bs = -1e9;
+  const ztMax = Math.max(...zt);
+  // de inre strecken är skarpa och sitter på den ljusa mittcirkeln – lita på dem när de syns tydligt
+  for (let t = 0; t < 144; t++) { const sc = ztMax > 2.6 ? zt[t] : zt[t] * 1.5 + zm[t]; if (sc > bs) { bs = sc; theta = t * 0.25; } }
+  // vilket av de tio lägena? Kortets kontur ska ligga på en tydlig kant i bilden (runda hörn till vänster).
+  const sim = alpha => { const ca = Math.cos(alpha), sa = Math.sin(alpha); return (x, y) => { const rx = x - 55, ry = y - 55; return [cx + s * (ca * rx - sa * ry), cy + s * (sa * rx + ca * ry)]; }; };
+  const edgeScore = T => { let sum = 0, n = 0; for (const [x, y, nx, ny] of SCAN_OUTLINE) { const a = px(...T(x - nx * 1.4, y - ny * 1.4)), b = px(...T(x + nx * 1.4, y + ny * 1.4)); if (a && b) { sum += scanDist(a, b); n++; } } return n > 30 ? sum / n : 0; };
+  let alpha = theta, best = -1;
+  for (let k = 0; k < 10; k++) { const sc = edgeScore(sim((theta + 36 * k) * Math.PI / 180)); if (sc > best) { best = sc; alpha = theta + 36 * k; } }
+  let T = sim(alpha * Math.PI / 180);
+  if (window.SCAN_DBG) SCAN_DBG.push({ theta, alpha, best, zt: [...zt].indexOf(Math.max(...zt)) * 0.25, ztm: Math.max(...zt), zm: [...zm].indexOf(Math.max(...zm)) * 0.25, zmm: Math.max(...zm), DC, C, sim: SCAN_MM_CORNERS.map(([x, y]) => T(x, y).map(Math.round)) });
+  // finjustera mot kortets kanter (och tydliga facitmarkeringar) → homografi som klarar snett och perspektiv
+  const markers = Array.from({ length: 10 }, (_, i) => scanPt(i, 45));
+  for (let iter = 0; iter < 3; iter++) {
+    const pairsMM = [], pairsIM = [];
+    for (const [x, y, nx, ny] of SCAN_OUTLINE) {
+      let bt = 0, bv = 0;
+      for (let t = -3; t <= 3; t += 0.15) {
+        const a = px(...T(x + nx * (t - 0.45), y + ny * (t - 0.45))), b = px(...T(x + nx * (t + 0.45), y + ny * (t + 0.45)));
+        if (!a || !b) continue; const v = scanDist(a, b); if (v > bv) { bv = v; bt = t; }
+      }
+      if (bv > 0.12) { pairsMM.push([x, y, Math.min(1, bv * 2) * 0.35]); pairsIM.push(T(x + nx * bt, y + ny * bt)); }
+    }
+    const st = Math.max(1, s * 0.3) / s;
+    for (let i = 0; i < 10; i++) {
+      const [mx, my] = markers[i];
+      let lc = []; for (let a = 0; a < 360; a += 10) { const p = px(...T(mx + Math.cos(a * Math.PI / 180) * 8.7, my + Math.sin(a * Math.PI / 180) * 8.7)); if (p) lc.push(p); }
+      const local = scanMedianColor(lc); if (!local) continue;
+      let sx = 0, sy = 0, n = 0, tot = 0;
+      for (let v = -6.5; v <= 6.5; v += st) for (let u = -6.5; u <= 6.5; u += st) {
+        if (u * u + v * v > 42) continue; tot++;
+        const p = px(...T(mx + u, my + v));
+        if (p && scanDist(p, local) > 0.28) { sx += u; sy += v; n++; }
+      }
+      if (n / tot < 0.25) continue;                                  // bara tydliga, fyllda markeringar
+      pairsMM.push([mx, my, 2]); pairsIM.push(T(mx + sx / n, my + sy / n));
+    }
+    if (pairsMM.length < 40) break;
+    const Hn = scanFitH(pairsMM.map(([x, y, w]) => [(x - 55) / 55, (y - 55) / 55, w]), pairsIM.map(([u, v]) => [(u - cx) / (55 * s), (v - cy) / (55 * s)]));
+    if (!Hn) break;
+    const T2 = (x, y) => { const [a, b] = scanApply(Hn, (x - 55) / 55, (y - 55) / 55); return [cx + a * 55 * s, cy + b * 55 * s]; };
+    const moved = Math.max(...SCAN_MM_CORNERS.map(([x, y]) => { const a = T2(x, y), b = T(x, y); return Math.hypot(a[0] - b[0], a[1] - b[1]); }));
+    if (!(moved < 12 * s)) break;
+    T = T2;
+  }
+  item.conf = best;                              // hur tydlig kanten är (används av kameran)
+  return SCAN_MM_CORNERS.map(([x, y]) => T(x, y));
+}
+function scanAutoCorners(item) { return scanDetect(item); }
+
+/* ---------- Räta ut kortet ---------- */
+function scanWarp(item) {
+  const H = scanHomography(SCAN_MM_CORNERS, item.corners);
+  const src = item.src.data, sw = src.width, sh = src.height, s = src.data;
+  const out = new ImageData(SCAN_W, SCAN_W), o = out.data;
+  for (let v = 0; v < SCAN_W; v++) {
+    const my = (v + 0.5) / SCAN_PPM;
+    for (let u = 0; u < SCAN_W; u++) {
+      const mx = (u + 0.5) / SCAN_PPM, w = H[6] * mx + H[7] * my + H[8];
+      const x = (H[0] * mx + H[1] * my + H[2]) / w - 0.5, y = (H[3] * mx + H[4] * my + H[5]) / w - 0.5;
+      const j = (v * SCAN_W + u) * 4;
+      if (x < 0 || y < 0 || x >= sw - 1 || y >= sh - 1) { o[j] = o[j + 1] = o[j + 2] = 255; o[j + 3] = 255; continue; }
+      const x0 = x | 0, y0 = y | 0, fx = x - x0, fy = y - y0, i = (y0 * sw + x0) * 4;
+      for (let c = 0; c < 3; c++) {
+        const a = s[i + c] + (s[i + 4 + c] - s[i + c]) * fx, bb = s[i + sw * 4 + c] + (s[i + sw * 4 + 4 + c] - s[i + sw * 4 + c]) * fx;
+        o[j + c] = a + (bb - a) * fy;
+      }
+      o[j + 3] = 255;
+    }
+  }
+  return out;
+}
+/* ---------- Läs av en uträtad sida ---------- */
+const SC = SCAN_PPM;
+function scanPt(i, r) { const a = i * 36 * Math.PI / 180; return [55 + Math.sin(a) * r, 55 - Math.cos(a) * r]; }
+function scanSpokeDist(x, y, i) {           // avstånd (mm) från punkten till ekern i
+  const a = i * 36 * Math.PI / 180, ux = Math.sin(a), uy = -Math.cos(a), dx = x - 55, dy = y - 55;
+  return Math.abs(dx * uy - dy * ux);
+}
+// Klipper ut ett område (mm). Pixlar utanför masken blir genomskinliga. Bakgrunden är medianfärgen i
+// området; ”bläck” är det som skiljer sig tydligt från den – så det fungerar på alla färger, även ljus text på mörkt.
+function scanCrop(img, x0, y0, w, h, mask, textCol, edgeClean) {
+  const W = Math.round(w * SC), Hh = Math.round(h * SC), c = document.createElement('canvas'); c.width = W; c.height = Hh;
+  const ctx = c.getContext('2d'), out = ctx.createImageData(W, Hh), o = out.data, d = img.data;
+  const cols = [];
+  for (let v = 0; v < Hh; v++) for (let u = 0; u < W; u++) {
+    const mx = x0 + (u + 0.5) / SC, my = y0 + (v + 0.5) / SC, j = (v * W + u) * 4;
+    const X = Math.round(mx * SC), Y = Math.round(my * SC);
+    if (X < 0 || Y < 0 || X >= SCAN_W || Y >= SCAN_W || (mask && !mask(mx, my))) { o[j + 3] = 0; continue; }
+    const i = (Y * SCAN_W + X) * 4;
+    o[j] = d[i]; o[j + 1] = d[i + 1]; o[j + 2] = d[i + 2]; o[j + 3] = 255;
+    if ((u + v) % 2 === 0) cols.push([d[i], d[i + 1], d[i + 2]]);
+  }
+  ctx.putImageData(out, 0, 0);
+  const bg = scanMedianColor(cols) || [255, 255, 255];
+  const cr = { canvas: c, bg, text: textCol && scanDist(textCol, bg) > 0.12 ? textCol : null };
+  const ink = new Float32Array(W * Hh), R = Math.round(1.1 * SC);
+  const dirs = Array.from({ length: 8 }, (_, k) => [Math.round(Math.cos(k * Math.PI / 4) * R), Math.round(Math.sin(k * Math.PI / 4) * R)]);
+  let n = 0, inkN = 0; const inkCols = [];
+  for (let v = 0; v < Hh; v++) for (let u = 0; u < W; u++) {
+    const j = v * W + u, q = j * 4; if (!o[q + 3]) continue; n++;
+    const p = [o[q], o[q + 1], o[q + 2]];
+    let k;
+    if (cr.text) {
+      // bakgrunden just här: median av åtta punkter en bit bort (texten är tunnare än så)
+      const sm = [[], [], []];
+      for (const [dx, dy] of dirs) { const U = u + dx, V = v + dy; if (U < 0 || V < 0 || U >= W || V >= Hh) continue; const t = (V * W + U) * 4; if (!o[t + 3]) continue; sm[0].push(o[t]); sm[1].push(o[t + 1]); sm[2].push(o[t + 2]); }
+      const lb = sm[0].length >= 3 ? sm.map(a => a.sort((x, y) => x - y)[a.length >> 1]) : bg;
+      const T = cr.text, ax = [T[0] - lb[0], T[1] - lb[1], T[2] - lb[2]], L2 = ax[0] ** 2 + ax[1] ** 2 + ax[2] ** 2;
+      if (L2 < (0.12 * 255) ** 2) k = 0;
+      else {
+        const dp = [p[0] - lb[0], p[1] - lb[1], p[2] - lb[2]], t = (dp[0] * ax[0] + dp[1] * ax[1] + dp[2] * ax[2]) / L2;
+        const perp = Math.hypot(dp[0] - t * ax[0], dp[1] - t * ax[1], dp[2] - t * ax[2]);
+        k = perp > Math.max(0.18 * 255, 0.7 * Math.sqrt(L2)) ? 0 : Math.max(0, Math.min(1, (t - 0.18) / 0.35));
+      }
+    } else k = Math.max(0, Math.min(1, (scanDist(p, bg) - 0.1) / 0.4));
+    ink[j] = k;
+    if (k > 0.5) { inkN++; if (inkCols.length < 6000) inkCols.push([scanDist(p, bg), p]); }
+  }
+  if (edgeClean) scanDropEdgeInk(ink, o, W, Hh);
+  inkCols.sort((a, b) => b[0] - a[0]);
+  return Object.assign(cr, { n, ink, dark: n ? inkN / n : 0, inkCols: inkCols.slice(0, Math.ceil(inkCols.length * 0.08)).map(x => x[1]) });
+}
+// Bläck som når kanten av utklippet är kanter i bakgrundsmotivet – inte text (facittexten håller sig inne i cirkeln).
+function scanDropEdgeInk(ink, o, W, H) {
+  const seen = new Uint8Array(W * H), stack = [];
+  const edge = j => { const u = j % W, v = (j - u) / W; for (const [du, dv] of [[3, 0], [-3, 0], [0, 3], [0, -3]]) { const U = u + du, V = v + dv; if (U < 0 || V < 0 || U >= W || V >= H || !o[(V * W + U) * 4 + 3]) return true; } return false; };
+  for (let s0 = 0; s0 < W * H; s0++) {
+    if (seen[s0] || ink[s0] < 0.3) continue;
+    const comp = []; let touch = false; stack.push(s0); seen[s0] = 1;
+    while (stack.length) {
+      const j = stack.pop(); comp.push(j); if (!touch && edge(j)) touch = true;
+      const u = j % W;
+      for (const q of [u > 0 ? j - 1 : -1, u < W - 1 ? j + 1 : -1, j - W, j + W]) if (q >= 0 && q < W * H && !seen[q] && ink[q] >= 0.3) { seen[q] = 1; stack.push(q); }
+    }
+    if (touch) for (const j of comp) ink[j] = 0;
+  }
+}
+// Svart bläck på vit botten åt OCR:en, oavsett kortets färger.
+function scanForOcr(cr) {
+  const c = document.createElement('canvas'); c.width = cr.canvas.width; c.height = cr.canvas.height;
+  const ctx = c.getContext('2d'), im = ctx.createImageData(c.width, c.height), d = im.data;
+  for (let j = 0; j < cr.ink.length; j++) { const v = Math.round(255 * (1 - cr.ink[j])); d[j * 4] = d[j * 4 + 1] = d[j * 4 + 2] = v; d[j * 4 + 3] = 255; }
+  ctx.putImageData(im, 0, 0);
+  return c;
+}
+// Andel pixlar inom radien r0..r1 (mm) runt (cx, cy) som skiljer sig från färgen bg, samt deras färger.
+function scanFar(img, cx, cy, r0, r1, bg, lim = 0.25) {
+  const d = img.data; let n = 0, far = 0; const cols = [];
+  for (let y = cy - r1; y <= cy + r1; y += 1 / SC) for (let x = cx - r1; x <= cx + r1; x += 1 / SC) {
+    const rr = Math.hypot(x - cx, y - cy); if (rr > r1 || rr < r0) continue;
+    const X = Math.round(x * SC), Y = Math.round(y * SC); if (X < 0 || Y < 0 || X >= SCAN_W || Y >= SCAN_W) continue;
+    const i = (Y * SCAN_W + X) * 4, p = [d[i], d[i + 1], d[i + 2]]; n++;
+    if (scanDist(p, bg) > lim) { far++; cols.push(p); }
+  }
+  return { n, frac: n ? far / n : 0, cols };
+}
+function scanRingColor(img, cx, cy, r0, r1, step = 2) {
+  const d = img.data, cols = [];
+  for (let a = 0; a < 360; a += step) for (let r = r0; r <= r1 + 1e-9; r += 0.5) {
+    const X = Math.round((cx + Math.sin(a * Math.PI / 180) * r) * SC), Y = Math.round((cy - Math.cos(a * Math.PI / 180) * r) * SC);
+    if (X < 0 || Y < 0 || X >= SCAN_W || Y >= SCAN_W) continue;
+    const i = (Y * SCAN_W + X) * 4; cols.push([d[i], d[i + 1], d[i + 2]]);
+  }
+  return scanMedianColor(cols);
+}
+function scanMedianColor(cols) {
+  if (!cols.length) return null;
+  const m = k => cols.map(c => c[k]).sort((a, b) => a - b)[cols.length >> 1];
+  return [m(0), m(1), m(2)];
+}
+const scanHex = c => '#' + c.map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
+function scanCleanText(t) {
+  return String(t || '').replace(/ - /g, ' – ').replace(/([A-Za-zÅÄÖåäöÉéÜü])[-‐–]\s*\n\s*(?=[A-Za-zÅÄÖåäöÉéÜü])/g, '$1~').replace(/-\s*\n\s*/g, '').replace(/[|¦]/g, 'I').replace(/\s+/g, ' ').replace(/^[\s.,:;'"`´~_-]+|[\s,:;'"`´~_]+$/g, '').trim();
+}
+
+// Tesseract-resultat → text. Lösa skräptecken i kanterna (rester av linjer o.d.) med låg säkerhet tas bort.
+function scanOcrText(data) {
+  const lines = (data.lines || []).map(l => (l.words || []).slice());
+  if (!lines.length) return scanCleanText(data.text);
+  const alnum = t => /[0-9A-Za-zÅÄÖåäöÉéÜü]/.test(t);
+  // rester av linjer och kanter blir ofta I, l, |, /, \, N, — med låg säkerhet
+  const junk = w => {
+    const t = (w.text || '').trim();
+    if (!t) return true;
+    if (!alnum(t)) return !/^[–\-=()?!&+]$/.test(t);
+    return w.confidence < 80 && /^[|Il!\/\\—_~"”'’`,.:;NS]{1,2}$/.test(t);
+  };
+  const keep = lines.map(ws => { while (ws.length && junk(ws[0])) ws.shift(); while (ws.length && junk(ws[ws.length - 1])) ws.pop(); return ws; })
+    .filter(ws => ws.length && !(ws.length === 1 && ws[0].confidence < 40 && ws[0].text.length <= 3));
+  if (data.text && data.text.trim() && !keep.length && (data.confidence || 0) > 60) return scanCleanText(data.text);
+  return scanCleanText(keep.map(ws => ws.map(w => w.text).join(' ')).join('\n'));
+}
+const SCAN_ALT_C = Array.from({ length: 10 }, (_, i) => scanPt(i, 24.5));
+function scanAltOwner(x, y) {                  // texten går på bredden, så sidled väger mindre
+  let best = 0, bd = 1e9;
+  SCAN_ALT_C.forEach(([cx, cy], j) => { const d = Math.hypot((x - cx) * 0.6, y - cy); if (d < bd) { bd = d; best = j; } });
+  return best;
+}
+// Hur långt sträcker sig ekern i (inre strecket och yttre linjen)? Följer linjen från ändarna in mot texten
+// så att bara själva linjen maskas bort – inte bokstäver som råkar ligga nära.
+function scanLineLum(img, x, y) { const X = Math.round(x * SC), Y = Math.round(y * SC); if (X < 0 || Y < 0 || X >= SCAN_W || Y >= SCAN_W) return 1; return scanLum(img.data, (Y * SCAN_W + X) * 4); }
+function scanSpokeExtent(img, i) {
+  const a = i * 36 * Math.PI / 180, ux = Math.sin(a), uy = -Math.cos(a), px = -uy, py = ux;
+  // var ligger linjen egentligen (små fel i uträtningen)? Leta upp den utanför texten.
+  const offAt = rs => {
+    let bt = 0, bl = 9;
+    for (let t = -1.4; t <= 1.4; t += 0.1) { let l = 0; for (const r of rs) l += scanLineLum(img, 55 + ux * r + px * t, 55 + uy * r + py * t); if (l < bl) { bl = l; bt = t; } }
+    return bt;
+  };
+  const tIn = offAt([17.6, 18.2, 18.8]), tOut = offAt([34, 35, 36]);
+  const off = r => tIn + (tOut - tIn) * (r - 18.2) / (35 - 18.2);
+  const isLine = r => {
+    const t0 = off(r), x = 55 + ux * r, y = 55 + uy * r;
+    let c = 1; for (let t = -0.3; t <= 0.3; t += 0.06) c = Math.min(c, scanLineLum(img, x + px * (t0 + t), y + py * (t0 + t)));
+    const side = [1, -1, 1.4, -1.4].reduce((sum, t) => sum + scanLineLum(img, x + px * (t0 + t), y + py * (t0 + t)), 0) / 4;
+    return side - c > 0.1;
+  };
+  const walk = (from, to, step) => { let last = from, miss = 0; for (let r = from; step > 0 ? r <= to : r >= to; r += step) { if (isLine(r)) { last = r; miss = 0; } else if (++miss > 2) break; } return last; };
+  return { inner: Math.min(20.1, walk(17.2, 22.5, 0.2)), outer: Math.max(28.7, walk(33.2, 26, -0.2)), off, ux, uy, px, py };
+}
+function scanAltCrop(img, i, ext, textCol) {
+  ext = ext || scanSpokeExtent(img, i);
+  const [cx, cy] = scanPt(i, 24.5), w = 19.5, h = 13.5;
+  return scanCrop(img, cx - w / 2, cy - h / 2, w, h, (x, y) => {
+    const r = Math.hypot(x - 55, y - 55);
+    if (r < 17 || r > 32.8) return false;
+    if (scanAltOwner(x, y) !== i) return false;                 // närmast det egna alternativet
+    if (r < ext.inner + 0.4 || r > ext.outer - 0.4) {
+      const d = Math.abs((x - 55) * ext.px + (y - 55) * ext.py - ext.off(r));
+      if (d < 0.55) return false;
+    }
+    return true;
+  }, textCol);
+}
+async function scanReadSide(img, onStep) {
+  const jobs = [], res = { text: '', alts: [], ans: [], ring: null, look: {}, label: null };
+  const d = img.data, px = (x, y) => { const i = (Math.round(y * SC) * SCAN_W + Math.round(x * SC)) * 4; return [d[i], d[i + 1], d[i + 2]]; };
+  // färger: kortet, mittcirkeln, etiketten
+  const L = res.look;
+  L.bg = scanRingColor(img, 55, 55, 39.6, 40.6, 1.5);
+  L.disc = scanRingColor(img, 55, 55, 31.4, 32.4, 1.5);
+  { const cols = []; for (let y = 1.2; y <= 8.8; y += 0.4) for (let x = 84.5; x <= 108.5; x += 0.4) cols.push(px(x, y)); L.tab = scanMedianColor(cols); }
+  // ringens färg: det som skiljer sig mest från mittcirkeln längs ringen
+  { const cols = []; for (let a = 0; a < 360; a += 2) for (const r of [16.0, 16.2, 16.4]) { const p = px(55 + Math.sin(a * Math.PI / 180) * r, 55 - Math.cos(a * Math.PI / 180) * r); if (scanDist(p, L.disc) > 0.2) cols.push(p); }
+    res.ring = cols.length > 60 ? scanMedianColor(cols) : null; }
+  // frågan
+  const q = scanCrop(img, 55 - 15, 55 - 15, 30, 30, (x, y) => (x - 55) ** 2 + (y - 55) ** 2 < 14.9 ** 2);
+  if (q.dark > 0.004) jobs.push({ key: 'q', canvas: scanForOcr(q) });
+  if (q.inkCols.length > 12) L.text = scanMedianColor(q.inkCols);
+  // alternativ
+  const exts = Array.from({ length: 10 }, (_, i) => scanSpokeExtent(img, i));
+  { const cols = [];                            // linjernas färg: mörkaste punkten tvärs över ekern
+    for (const e of exts) for (let r = 33; r <= 37.5; r += 0.5) {
+      let best = null, bl = 9; const t0 = e.off(r);
+      for (let t = -0.4; t <= 0.4; t += 0.06) { const p = px(55 + e.ux * r + e.px * (t0 + t), 55 + e.uy * r + e.py * (t0 + t)), l = scanDist(p, L.bg); if (-l < bl) { bl = -l; best = p; } }
+      if (best && -bl > 0.15) cols.push(best);
+    }
+    if (cols.length > 15) L.line = scanMedianColor(cols); }
+  for (let i = 0; i < 10; i++) {
+    const cr = scanAltCrop(img, i, exts[i], L.text);
+    const [ix, iy] = scanPt(i, 24), ic = scanFar(img, ix, iy, 0, 5.2, cr.bg, 0.22);
+    if (ic.frac > 0.55) {                      // bild som alternativ
+      const c = document.createElement('canvas'); c.width = c.height = 220;
+      const R = 6.8, src = document.createElement('canvas'); src.width = src.height = SCAN_W; src.getContext('2d').putImageData(img, 0, 0);
+      c.getContext('2d').drawImage(src, (ix - R) * SC, (iy - R) * SC, 2 * R * SC, 2 * R * SC, 0, 0, 220, 220);
+      res.alts[i] = { img: c.toDataURL('image/jpeg', 0.88) };
+    } else if (cr.dark > 0.0015) jobs.push({ key: 'a' + i, canvas: scanForOcr(cr) });
+  }
+  // facit: jämför med bakgrunden precis runt markeringen
+  const marks = { ja: [], nej: [] };
+  for (let i = 0; i < 10; i++) {
+    const [cx, cy] = scanPt(i, 45), ext = exts[i];
+    const local = scanRingColor(img, cx, cy, 8.3, 9.1, 6) || L.bg;
+    const core = scanFar(img, cx, cy, 0, 3.2, local), ann = scanFar(img, cx, cy, 4.15, 4.5, local), out = scanFar(img, cx, cy, 5.3, 6.1, local);
+    if (core.frac > 0.7) {
+      if (out.frac > 0.6) {                     // facitbild
+        const c = document.createElement('canvas'); c.width = c.height = 220;
+        const R = 6.6, src = document.createElement('canvas'); src.width = src.height = SCAN_W; src.getContext('2d').putImageData(img, 0, 0);
+        c.getContext('2d').drawImage(src, (cx - R) * SC, (cy - R) * SC, 2 * R * SC, 2 * R * SC, 0, 0, 220, 220);
+        res.ans[i] = { img: c.toDataURL('image/jpeg', 0.88) }; continue;
+      }
+      // ✓/✗ (Ø7,4 med vit symbol) eller färgprick (Ø9,5, enfärgad)?
+      const col = scanMedianColor(core.cols), cl = scanLum(col.concat([0]), 0);
+      const light = core.cols.filter(p => scanLum(p.concat([0]), 0) > cl + 0.18).length / core.cols.length;
+      if (ann.frac < 0.45 || light > 0.07) {
+        const hue = scanHue(...col), sat = scanSat(col.concat([0]), 0);
+        let mk = sat > 0.2 && hue > 70 && hue < 190 ? 'ja' : sat > 0.2 && (hue < 35 || hue > 320) ? 'nej' : null;
+        if (!mk) mk = scanDist(col, [61, 139, 55]) < scanDist(col, [211, 58, 44]) ? 'ja' : 'nej';
+        res.ans[i] = { mark: mk }; marks[mk].push(col); continue;
+      }
+      res.ans[i] = { color: scanHex(scanMedianColor(scanFar(img, cx, cy, 0, 4, local).cols) || col) }; continue;
+    }
+    const cr = scanCrop(img, cx - 8, cy - 8, 16, 16, (x, y) => (x - cx) ** 2 + (y - cy) ** 2 < 7.9 ** 2 && !(Math.hypot(x - 55, y - 55) < 39.3 && Math.abs((x - 55) * ext.px + (y - 55) * ext.py - ext.off(Math.hypot(x - 55, y - 55))) < 0.8), L.text, true);
+    if (cr.dark > 0.0012) jobs.push({ key: 'f' + i, canvas: scanForOcr(cr) });
+  }
+  if (marks.ja.length) L.check = scanMedianColor(marks.ja);
+  if (marks.nej.length) L.cross = scanMedianColor(marks.nej);
+  // etiketten (t.ex. EGNA 10): texten läses och delas upp i mörk och ljus del
+  const tab = scanCrop(img, 84, 0.6, 25.4, 8.8);
+  tab.bg = L.tab || tab.bg;
+  if (tab.dark > 0.01) jobs.push({ key: 'tab', canvas: scanForOcr(tab), raw: tab });
+  let done = 0;
+  await Promise.all(jobs.map(async jb => {
+    const r = await SCAN.sched.addJob('recognize', jb.canvas);
+    if (jb.key === 'tab') { res.label = scanLabelFrom(r.data, jb.raw, L); if (onStep) onStep(++done, jobs.length); return; }
+    const t = scanOcrText(r.data);
+    if (jb.key === 'q') res.text = t;
+    else if (jb.key[0] === 'a') res.alts[Number(jb.key.slice(1))] = { text: t };
+    else res.ans[Number(jb.key.slice(1))] = { text: t };
+    if (onStep) onStep(++done, jobs.length);
+  }));
+  return res;
+}
+// Etikettens ord: mörkare än plattan → ”mörk text”, ljusare → ”ljus text”.
+function scanLabelFrom(data, raw, L) {
+  const words = (data.words || []).filter(w => (w.text || '').trim() && w.confidence > 45);
+  if (!words.length) return null;
+  const ctx = raw.canvas.getContext('2d'), im = ctx.getImageData(0, 0, raw.canvas.width, raw.canvas.height), d = im.data, bgL = scanLum(raw.bg.concat([0]), 0);
+  const dark = [], lightW = [], inkD = [], inkL = [];
+  for (const w of words) {
+    const { x0, y0, x1, y1 } = w.bbox; let sum = 0, n = 0; const cols = [];
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { const i = (y * raw.canvas.width + x) * 4, p = [d[i], d[i + 1], d[i + 2]]; if (scanDist(p, raw.bg) > 0.3) { sum += scanLum(d, i); n++; cols.push(p); } }
+    const t = w.text.replace(/[^0-9A-Za-zÅÄÖåäöÉéÜü&+!?.\-]/g, '');
+    if (!t || !n) continue;
+    if (sum / n < bgL) { dark.push(t); inkD.push(...cols); } else { lightW.push(t); inkL.push(...cols); }
+  }
+  if (!dark.length && !lightW.length) return null;
+  if (inkD.length > 30) L.tabDark = scanMedianColor(inkD);
+  if (inkL.length > 30) L.tabLight = scanMedianColor(inkL);
+  return { dark: dark.join(' '), light: lightW.join(' ') };
+}
+// Gör om avläsningen till en fråga i Egna10-format
+function scanToQuestion(r) {
+  const ans = Array.from({ length: 10 }, (_, i) => r.ans[i] || {});
+  const marks = ans.filter(a => a.mark).length, colors = ans.filter(a => a.color).length;
+  const texts = ans.map(a => (a.text || '').trim());
+  const numLike = s => /^[-−]?[\dOolI|SB ]+([.,]\d+)?$/.test(s) && /\d/.test(s);
+  const fixNum = s => s.replace(/[Oo]/g, '0').replace(/[lI|]/g, '1').replace(/S/g, '5').replace(/B/g, '8').replace(/\s+/g, '').replace('−', '-');
+  let type = 'ovrigt';
+  const ringBrown = r.ring && scanHue(...r.ring) < 40 && r.ring[0] > r.ring[2] + 25;
+  if (marks >= 4 || (ringBrown && marks >= 1)) type = 'sant';
+  else if (colors >= 4) type = 'farg';
+  else if (texts.filter(s => /\d{2,4}\s*-?\s*talet$/i.test(s)).length >= 5) type = 'tid';
+  else if (texts.filter(numLike).length >= 6) {
+    const nums = texts.map(s => numLike(s) ? Number(fixNum(s).replace(',', '.')) : NaN);
+    const perm = nums.every(n => Number.isInteger(n) && n >= 1 && n <= 10) && new Set(nums).size === 10;
+    type = perm ? 'ordning' : 'siffra';
+  } else if (ringBrown) type = 'sant';
+  const q = newQuestion(type);
+  q.text = r.text || '';
+  for (let i = 0; i < 10; i++) {
+    const a = r.alts[i] || {};
+    q.alts[i] = { text: a.text || '', img: a.img || '' };
+    const f = ans[i];
+    if (f.img) { q.ans[i].img = f.img; continue; }
+    if (type === 'sant') q.ans[i].mark = f.mark || '';
+    else if (f.color && type === 'farg') {                // samma färg som i färglistan? Använd den exakt.
+      const c = lookHexToRgb(f.color); let best = f.color, bd = 0.11;
+      for (const h of Object.values(COLOR_NAMES)) { const dd = scanDist(c, lookHexToRgb(h)); if (dd < bd) { bd = dd; best = h; } }
+      q.ans[i].color = best;
+    }
+    else {
+      let t = f.text || '';
+      if ((type === 'siffra' || type === 'ordning') && numLike(t)) t = fixNum(t);
+      if (type === 'tid') t = t.replace(/\s*-?\s*talet$/i, '-talet').replace(/\s+/g, '');
+      q.ans[i].text = t;
+    }
+  }
+  // egen ringfärg om den skiljer sig tydligt från frågetypens
+  if (r.ring) {
+    const def = (TYPE_BY_ID[type] || TYPE_BY_ID.ovrigt).ring, dc = [1, 3, 5].map(k => parseInt(def.slice(k, k + 2), 16));
+    if (Math.hypot(r.ring[0] - dc[0], r.ring[1] - dc[1], r.ring[2] - dc[2]) > 110) q.ring = scanHex(r.ring);
+  }
+  q.pack = 'Inskannade';
+  return q;
+}
+
+/* ---------- OCR-motorn ---------- */
+async function scanLoadTess() {
+  if (!window.Tesseract) {
+    for (const url of TESS_URLS) {
+      try { await new Promise((res, rej) => { const s = document.createElement('script'); s.src = url; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); if (window.Tesseract) break; } catch (e) { /* prova nästa */ }
+    }
+    if (!window.Tesseract) throw new Error('Textigenkänningen kunde inte laddas. Kontrollera internetanslutningen.');
+  }
+  if (SCAN.sched) return SCAN.sched;
+  const sched = Tesseract.createScheduler();
+  const n = Math.max(1, Math.min(3, (navigator.hardwareConcurrency || 2) - 1));
+  for (let i = 0; i < n; i++) {
+    const w = await Tesseract.createWorker('swe', 1);
+    await w.setParameters({ tessedit_pageseg_mode: '6', preserve_interword_spaces: '0' });
+    sched.addWorker(w);
+  }
+  SCAN.sched = sched;
+  return sched;
+}
+
+/* ---------- Gränssnittet ---------- */
+function scanStatus(s) { $('#scanStatus').textContent = s; }
+function scanRenderList() {
+  const ol = $('#scanList'), pairs = $('#scanMode').value === 'pairs';
+  if (!SCAN.items.length) { ol.innerHTML = '<li class="scan-empty">Inga bilder än. Tryck på ”Ta foto” för att skanna korten med kameran, eller välj färdiga bilder.</li>'; return; }
+  ol.innerHTML = SCAN.items.map((it, k) => {
+    const role = pairs ? `Kort ${Math.floor(k / 2) + 1} · ${k % 2 ? 'baksida' : 'framsida'}` : `Kort ${k + 1}`;
+    const st = it.result ? '✓ inläst' : it.err ? 'fel' : '';
+    return `<li class="${k === SCAN.sel ? 'sel' : ''}" data-k="${k}"><img src="${it.thumb}" alt=""><span><b>${role}</b><small>${esc(it.name)}${st ? ' · ' + st : ''}</small></span></li>`;
+  }).join('');
+}
+function scanFit() {                          // bildens placering i ritytan
+  const cv = $('#scanCanvas'), it = SCAN.items[SCAN.sel]; if (!it) return null;
+  const box = $('#scanStage').getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  const W = Math.max(200, box.width), Hh = Math.max(200, box.height);
+  cv.width = W * dpr; cv.height = Hh * dpr; cv.style.width = W + 'px'; cv.style.height = Hh + 'px';
+  const iw = it.src.canvas.width, ih = it.src.canvas.height, s = Math.min(W / iw, Hh / ih) * 0.94;
+  SCAN.view = { s, ox: (W - iw * s) / 2, oy: (Hh - ih * s) / 2, dpr };
+  return SCAN.view;
+}
+function scanDraw() {
+  const cv = $('#scanCanvas'), it = SCAN.items[SCAN.sel], ctx = cv.getContext('2d');
+  if (!it) { ctx.clearRect(0, 0, cv.width, cv.height); return; }
+  const v = SCAN.view || scanFit(), P = ([x, y]) => [v.ox + x * v.s, v.oy + y * v.s];
+  ctx.setTransform(v.dpr, 0, 0, v.dpr, 0, 0);
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.drawImage(it.src.canvas, v.ox, v.oy, it.src.canvas.width * v.s, it.src.canvas.height * v.s);
+  const H = scanHomography(SCAN_MM_CORNERS, it.corners), M = (x, y) => P(scanApply(H, x, y));
+  // förväntad geometri: kortets kontur, mittcirkeln och boxens hål
+  ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(29,95,168,.95)'; ctx.setLineDash([5, 4]);
+  const circ = (cx, cy, r) => { ctx.beginPath(); for (let a = 0; a <= 360; a += 8) { const [x, y] = M(cx + Math.cos(a * Math.PI / 180) * r, cy + Math.sin(a * Math.PI / 180) * r); a ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke(); };
+  circ(55, 55, 33); circ(55, 55, 16.2);
+  for (let i = 0; i < 10; i++) { const [x, y] = scanPt(i, 45); circ(x, y, 8); }
+  ctx.setLineDash([]); ctx.strokeStyle = 'rgba(29,95,168,.9)'; ctx.lineWidth = 2;
+  const path = cardPath(0); ctx.beginPath();
+  for (const c of path) { if (c[0] === 'M') ctx.moveTo(...M(c[1], c[2])); else if (c[0] === 'L') ctx.lineTo(...M(c[1], c[2])); else if (c[0] === 'C') { const a = M(c[1], c[2]), b = M(c[3], c[4]), e = M(c[5], c[6]); ctx.bezierCurveTo(a[0], a[1], b[0], b[1], e[0], e[1]); } else ctx.closePath(); }
+  ctx.stroke();
+  // hörn
+  ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 1.5; ctx.beginPath();
+  it.corners.forEach((c, i) => { const [x, y] = P(c); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); ctx.stroke();
+  const R = isMobile() ? 15 : 10;
+  it.corners.forEach((c, i) => {
+    const [x, y] = P(c);
+    ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,204,0,.35)'; ctx.fill(); ctx.strokeStyle = '#1d1c1a'; ctx.stroke();
+    ctx.fillStyle = '#1d1c1a'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(['↖', '↗', '↘', '↙'][i], x, y);
+  });
+  // etiketten markeras så att man ser vilket håll som är upp
+  const [tx, ty] = M(96.5, 5); ctx.fillStyle = 'rgba(29,95,168,.9)'; ctx.font = 'bold 12px Arial'; ctx.fillText('etikett', tx, ty);
+}
+function scanSelect(k) { SCAN.sel = k; SCAN.view = null; scanRenderList(); scanFit(); scanDraw(); const ok = !!SCAN.items[k]; ['#scanAuto', '#scanRot', '#scanDup', '#scanDel'].forEach(s => { $(s).disabled = !ok; }); }
+function scanMakeItem(name, src) {
+  const t = document.createElement('canvas'), k = 90 / Math.max(src.canvas.width, src.canvas.height); t.width = Math.round(src.canvas.width * k); t.height = Math.round(src.canvas.height * k);
+  t.getContext('2d').drawImage(src.canvas, 0, 0, t.width, t.height);
+  const it = { id: uid(), name, src, thumb: t.toDataURL('image/jpeg', 0.7), corners: null, result: null };
+  it.corners = scanAutoCorners(it);
+  return it;
+}
+async function scanAddFiles(files) {
+  const list = [...files].filter(f => /^image\//.test(f.type) || /\.(jpe?g|png|webp|heic|bmp|gif)$/i.test(f.name));
+  for (const f of list) {
+    scanStatus(`Läser in ${f.name} …`);
+    try {
+      SCAN.items.push(scanMakeItem(f.name, await scanLoadFile(f)));
+    } catch (e) { scanStatus(`${f.name} kunde inte läsas som bild.`); }
+  }
+  scanSelect(SCAN.items.length ? (SCAN.sel >= 0 ? SCAN.sel : 0) : -1);
+  scanStatus(SCAN.items.length ? `${SCAN.items.length} ${SCAN.items.length === 1 ? 'bild' : 'bilder'}. Kontrollera att hörnen sitter rätt och tryck sedan på en av knapparna nedan.` : '');
+}
+async function scanReadAll() {
+  const todo = SCAN.items.filter(it => !it.result);
+  if (!todo.length) return true;
+  scanStatus('Laddar textigenkänningen (första gången tar det en stund) …');
+  try { await scanLoadTess(); } catch (e) { scanStatus(e.message); return false; }
+  let k = 0;
+  for (const it of todo) {
+    k++;
+    const img = scanWarp(it);
+    scanStatus(`Läser bild ${k} av ${todo.length} …`);
+    try {
+      it.result = await scanReadSide(img, (d, n) => scanStatus(`Läser bild ${k} av ${todo.length} … (${d}/${n})`));
+      const c = document.createElement('canvas'); c.width = c.height = 560; const s = document.createElement('canvas'); s.width = s.height = SCAN_W; s.getContext('2d').putImageData(img, 0, 0);
+      c.getContext('2d').drawImage(s, 0, 0, 560, 560); it.ref = c.toDataURL('image/jpeg', 0.8);
+      it.err = false;
+    } catch (e) { it.err = true; }
+    scanRenderList();
+  }
+  return true;
+}
+function scanBuildCards() {
+  const pairs = $('#scanMode').value === 'pairs', ok = SCAN.items.filter(it => it.result), cards = [], refs = [], sides = [];
+  const step = pairs ? 2 : 1;
+  for (let k = 0; k < ok.length; k += step) {
+    const c = newCard();
+    c.sides[0] = scanToQuestion(ok[k].result);
+    refs.push([c.id, 0, ok[k].ref]); sides.push([c.sides[0], 0, ok[k]]);
+    if (pairs && ok[k + 1]) { c.sides[1] = scanToQuestion(ok[k + 1].result); refs.push([c.id, 1, ok[k + 1].ref]); sides.push([c.sides[1], 1, ok[k + 1]]); }
+    cards.push(c);
+  }
+  return { cards, refs, sides };
+}
+// Färger per sida som skiljer sig från resten av korten
+function scanSideStyles(look, sides) {
+  if (!look) return;
+  for (const [q, , it] of sides) { const st = look.sideStyle.get(it); if (st) { q.pro = q.pro || {}; q.pro.design = Object.assign({}, q.pro.design || {}, { style: st }); } }
+}
+async function scanFinish(action) {
+  if (SCAN.busy) return;
+  if (!SCAN.items.length) { scanStatus('Lägg till bilder först.'); return; }
+  SCAN.busy = true; $$('#dlgScan .scanfoot button').forEach(b => { b.disabled = true; });
+  try {
+    if (!(await scanReadAll())) return;
+    const { cards, refs, sides } = scanBuildCards();
+    if (!cards.length) { scanStatus('Inga kort kunde läsas.'); return; }
+    let look = null;
+    if ($('#scanLook').checked) { scanStatus('Kopierar färger och bakgrund …'); await new Promise(r => setTimeout(r, 30)); try { look = scanDeckLook(SCAN.items, $('#scanMode').value === 'pairs'); } catch (e) { look = null; } }
+    scanSideStyles(look, sides);
+    if (action === 'file') {
+      const raw = newDeck(); raw.name = 'Inskannade kort'; raw.cards = cards;
+      scanApplyLook(raw, look, sides.map(([q, si]) => [q, si]));
+      const d = sanitizeDeck(JSON.parse(JSON.stringify(raw)));
+      const json = JSON.stringify(Object.assign({}, d, { format: 'egna10', version: 1, saved: new Date().toISOString() }));
+      download(safeName('Inskannade kort', FILE_EXT), json, 'application/json');
+      scanStatus(`${cards.length} kort sparades som fil. Öppna filen med ”Öppna…” för att redigera dem.`);
+      return;
+    }
+    if (action === 'new') {
+      if (!confirm(`Skapa en ny kortlek med ${cards.length} inskannade kort?` + (fileState.dirty ? ' Ändringar i nuvarande kortlek som inte är sparade i en fil försvinner.' : ''))) return;
+      const d = newDeck(); d.name = 'Inskannade kort'; d.cards = cards;
+      scanApplyLook(d, look, sides.map(([q, si]) => [q, si]));
+      state.deck = sanitizeDeck(d); state.deck.cards.forEach((c, i) => { c.id = cards[i].id; });
+      fileState.handle = null; fileState.name = ''; fileState.dirty = true; updateFileLabel(); storeFileState();
+    } else {
+      const only = state.deck.cards.length === 1 && isEmptyCard(state.deck.cards[0]);
+      if (only) state.deck.cards = cards; else state.deck.cards.push(...cards);
+      if (look) { const d = JSON.parse(JSON.stringify(state.deck)); d.cards = state.deck.cards; scanApplyLook(d, look, sides.map(([q, si]) => [q, si])); state.deck = sanitizeDeck(d); state.deck.cards.forEach((c, i) => { c.id = d.cards[i].id; }); }
+    }
+    for (const [id, si, ref] of refs) SCAN.refs.set(id + ':' + si, ref);
+    state.status.clear();
+    const first = state.deck.cards.findIndex(c => c.id === cards[0].id);
+    renderList(); selectCard(Math.max(0, first), 0); scheduleSave();
+    $('#dlgScan').close();
+    setStatus(`${cards.length} kort är inskannade – kontrollera texten mot bilden överst i redigeringen.`);
+    SCAN.items = []; SCAN.sel = -1;
+  } finally {
+    SCAN.busy = false; $$('#dlgScan .scanfoot button').forEach(b => { b.disabled = false; });
+  }
+}
+function scanRenderRef() {
+  let el = $('#scanRef');
+  const ref = SCAN.refs.get(curCard().id + ':' + state.side);
+  if (!ref) { if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('details'); el.id = 'scanRef'; el.className = 'scanref'; el.open = true; el.innerHTML = '<summary>Inskannad bild – jämför med texten nedan</summary><img alt="Det inskannade kortet">'; $('#pEditor .form').prepend(el); }
+  el.querySelector('img').src = ref;
+}
+function bindScan() {
+  const dlg = $('#dlgScan');
+  $('#btnScan').addEventListener('click', () => { if (isMobile()) { const tb = $('.toolbar'); if (tb) tb.classList.remove('open'); } dlg.showModal(); scanRenderList(); requestAnimationFrame(() => { SCAN.view = null; scanFit(); scanDraw(); }); });
+  $('#scanPick').addEventListener('click', () => $('#scanFile').click());
+  bindCam();
+  for (const id of ['#scanFile', '#scanCamFile']) $(id).addEventListener('change', async e => { const f = e.target.files; await scanAddFiles(f); e.target.value = ''; });
+  $('#scanMode').addEventListener('change', scanRenderList);
+  $('#scanList').addEventListener('click', e => { const li = e.target.closest('li[data-k]'); if (li) scanSelect(Number(li.dataset.k)); });
+  $('#scanAuto').addEventListener('click', () => { const it = SCAN.items[SCAN.sel]; if (!it) return; it.corners = scanAutoCorners(it); it.result = null; scanRenderList(); scanDraw(); });
+  $('#scanRot').addEventListener('click', () => { const it = SCAN.items[SCAN.sel]; if (!it) return; it.corners = it.corners.slice(3).concat(it.corners.slice(0, 3)); it.result = null; scanRenderList(); scanDraw(); });
+  $('#scanDup').addEventListener('click', () => { const it = SCAN.items[SCAN.sel]; if (!it) return; const c = Object.assign({}, it, { id: uid(), result: null, corners: it.corners.map(p => [p[0] + 30, p[1] + 30]) }); SCAN.items.splice(SCAN.sel + 1, 0, c); scanSelect(SCAN.sel + 1); });
+  $('#scanDel').addEventListener('click', () => { if (SCAN.sel < 0) return; SCAN.items.splice(SCAN.sel, 1); scanSelect(Math.min(SCAN.sel, SCAN.items.length - 1)); });
+  $('#scanAdd').addEventListener('click', () => scanFinish('add'));
+  $('#scanNewDeck').addEventListener('click', () => scanFinish('new'));
+  $('#scanExport').addEventListener('click', () => scanFinish('file'));
+  // dra i hörnen
+  const cv = $('#scanCanvas');
+  const toImg = e => { const r = cv.getBoundingClientRect(), v = SCAN.view; return [(e.clientX - r.left - v.ox) / v.s, (e.clientY - r.top - v.oy) / v.s]; };
+  cv.addEventListener('pointerdown', e => {
+    const it = SCAN.items[SCAN.sel]; if (!it || !SCAN.view) return;
+    const [x, y] = toImg(e), R = (isMobile() ? 24 : 16) / SCAN.view.s;
+    let best = -1, bd = R;
+    it.corners.forEach((c, i) => { const d = Math.hypot(c[0] - x, c[1] - y); if (d < bd) { bd = d; best = i; } });
+    if (best < 0) return;
+    e.preventDefault(); cv.setPointerCapture(e.pointerId);
+    SCAN.drag = { i: best, dx: it.corners[best][0] - x, dy: it.corners[best][1] - y };
+  });
+  cv.addEventListener('pointermove', e => {
+    const d = SCAN.drag, it = SCAN.items[SCAN.sel]; if (!d || !it) return;
+    const [x, y] = toImg(e); it.corners[d.i] = [x + d.dx, y + d.dy]; it.result = null; scanDraw();
+  });
+  const up = () => { if (SCAN.drag) { SCAN.drag = null; scanRenderList(); } };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  new ResizeObserver(() => { if (dlg.open) { SCAN.view = null; scanFit(); scanDraw(); } }).observe($('#scanStage'));
+  dlg.addEventListener('dragover', e => e.preventDefault());
+  dlg.addEventListener('drop', e => { e.preventDefault(); if (e.dataTransfer && e.dataTransfer.files.length) scanAddFiles(e.dataTransfer.files); });
+  const _re = renderEditor;
+  renderEditor = function () { _re(); scanRenderRef(); };
+  scanSelect(-1);
+}
+
+/* =====================================================================
+   Egna10 Pro – utseendet från de inskannade korten:
+   färger (kort, mittcirkel, text, linjer, etikett, ✓/✗), etikettens text
+   och – om alla kort har samma bakgrundsmotiv – motivet ritat om som SVG.
+   ===================================================================== */
+const LOOK_PPM = 5, LOOK_X0 = -2, LOOK_MM = 114, LOOK_N = LOOK_MM * LOOK_PPM;
+const LOOK_KEYS = ['bg', 'disc', 'text', 'line', 'tab', 'tabDark', 'tabLight', 'check', 'cross'];
+
+function lookHexToRgb(h) { return [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16)); }
+function lookMedian(list) {
+  list = list.filter(Boolean); if (!list.length) return null;
+  const m = k => list.map(c => c[k]).sort((a, b) => a - b)[list.length >> 1];
+  return [m(0), m(1), m(2)];
+}
+
+// Kortet i låg upplösning (mm −2 … 112), räknat direkt från fotot med homografin
+function lookSmall(it) {
+  const H = scanHomography(SCAN_MM_CORNERS, it.corners), src = it.src.data, sw = src.width, sh = src.height, s = src.data;
+  const out = new Uint8ClampedArray(LOOK_N * LOOK_N * 3), ok = new Uint8Array(LOOK_N * LOOK_N);
+  for (let v = 0; v < LOOK_N; v++) for (let u = 0; u < LOOK_N; u++) {
+    let r = 0, g = 0, b = 0, n = 0;
+    for (const dy of [0.25, 0.75]) for (const dx of [0.25, 0.75]) {
+      const mx = LOOK_X0 + (u + dx) / LOOK_PPM, my = LOOK_X0 + (v + dy) / LOOK_PPM;
+      const [x, y] = scanApply(H, mx, my), X = Math.round(x), Y = Math.round(y);
+      if (X < 0 || Y < 0 || X >= sw || Y >= sh) continue;
+      const i = (Y * sw + X) * 4; r += s[i]; g += s[i + 1]; b += s[i + 2]; n++;
+    }
+    const j = v * LOOK_N + u;
+    if (n) { out[j * 3] = r / n; out[j * 3 + 1] = g / n; out[j * 3 + 2] = b / n; ok[j] = 1; }
+  }
+  // det här kortets egna markeringar och bilder räknas inte till motivet
+  const res = it.result || {}, holes = [];
+  for (let i = 0; i < 10; i++) {
+    const a = (res.ans || [])[i] || {}, al = (res.alts || [])[i] || {};
+    if (a.mark) holes.push([...scanPt(i, 45), 4.5]); else if (a.color) holes.push([...scanPt(i, 45), 5.5]); else if (a.img) holes.push([...scanPt(i, 45), 7.3]);
+    if (al.img) holes.push([...scanPt(i, 24), 7.4]);
+  }
+  for (const [hx, hy, hr] of holes) {
+    const x0 = Math.max(0, Math.floor((hx - hr - LOOK_X0) * LOOK_PPM)), x1 = Math.min(LOOK_N - 1, Math.ceil((hx + hr - LOOK_X0) * LOOK_PPM));
+    const y0 = Math.max(0, Math.floor((hy - hr - LOOK_X0) * LOOK_PPM)), y1 = Math.min(LOOK_N - 1, Math.ceil((hy + hr - LOOK_X0) * LOOK_PPM));
+    for (let v = y0; v <= y1; v++) for (let u = x0; u <= x1; u++) if (Math.hypot(LOOK_X0 + (u + 0.5) / LOOK_PPM - hx, LOOK_X0 + (v + 0.5) / LOOK_PPM - hy) < hr) ok[v * LOOK_N + u] = 0;
+  }
+  return { rgb: out, ok };
+}
+
+// Delar av kortet som alltid ritas av Egna10 självt (text, linjer, facit …) räknas inte till motivet.
+function lookFixedPart(x, y) {
+  const r = Math.hypot(x - 55, y - 55);
+  if (r > 15.3 && r < 17.1) return true;                                  // frågeringen
+  for (let i = 0; i < 10; i++) {
+    const a = i * 36 * Math.PI / 180, ux = Math.sin(a), uy = -Math.cos(a);
+    const along = (x - 55) * ux + (y - 55) * uy, across = Math.abs((x - 55) * uy - (y - 55) * ux);
+    if (across < 0.9 && ((along > 16.2 && along < 20.2) || (along > 28.6 && along < 39))) return true;
+  }
+  if (x > 86 && y > 100.5 && y < 108) return true;                          // kortnumret
+  return false;
+}
+function lookInTab(x, y) { return x > G.TAB_X - 0.6 && y < G.TAB_H + 0.6; }
+
+/* ---------- Bild → SVG: färgkvantisering + konturer ---------- */
+function lookQuantize(rgb, N, mask) {
+  const idx = []; for (let j = 0; j < N * N; j++) if (mask[j]) idx.push(j);
+  const sample = []; for (let t = 0; t < 6000; t++) { const j = idx[Math.floor(Math.random() * idx.length)]; sample.push([rgb[j * 3], rgb[j * 3 + 1], rgb[j * 3 + 2]]); }
+  // k-means++
+  const K = 12, cent = [sample[0]];
+  while (cent.length < K) {
+    const d2 = sample.map(p => Math.min(...cent.map(c => (p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2 + (p[2] - c[2]) ** 2)));
+    const tot = d2.reduce((a, b) => a + b, 0); if (!tot) break;
+    let r = Math.random() * tot, i = 0; while (r > d2[i] && i < d2.length - 1) r -= d2[i++];
+    cent.push(sample[i].slice());
+  }
+  for (let it = 0; it < 10; it++) {
+    const acc = cent.map(() => [0, 0, 0, 0]);
+    for (const p of sample) { let b = 0, bd = 1e9; cent.forEach((c, i) => { const d = (p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2 + (p[2] - c[2]) ** 2; if (d < bd) { bd = d; b = i; } }); const a = acc[b]; a[0] += p[0]; a[1] += p[1]; a[2] += p[2]; a[3]++; }
+    acc.forEach((a, i) => { if (a[3]) cent[i] = [a[0] / a[3], a[1] / a[3], a[2] / a[3]]; });
+  }
+  // slå ihop nästan lika färger
+  let C = cent.slice();
+  for (let changed = true; changed;) {
+    changed = false;
+    outer: for (let i = 0; i < C.length; i++) for (let j = i + 1; j < C.length; j++) if (scanDist(C[i], C[j]) < 0.09) { C[i] = C[i].map((v, k) => (v + C[j][k]) / 2); C.splice(j, 1); changed = true; break outer; }
+  }
+  const lab = new Int16Array(N * N).fill(-1), count = new Array(C.length).fill(0);
+  for (const j of idx) { const p = [rgb[j * 3], rgb[j * 3 + 1], rgb[j * 3 + 2]]; let b = 0, bd = 1e9; C.forEach((c, i) => { const d = (p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2 + (p[2] - c[2]) ** 2; if (d < bd) { bd = d; b = i; } }); lab[j] = b; count[b]++; }
+  lookMajority(lab, N, idx, 2);
+  // exakta medelfärger per grupp
+  const acc = C.map(() => [0, 0, 0, 0]);
+  for (const j of idx) { const a = acc[lab[j]]; a[0] += rgb[j * 3]; a[1] += rgb[j * 3 + 1]; a[2] += rgb[j * 3 + 2]; a[3]++; }
+  C = acc.map((a, i) => a[3] ? [a[0] / a[3], a[1] / a[3], a[2] / a[3]] : C[i]);
+  return { lab, colors: C, counts: acc.map(a => a[3]) };
+}
+// ta bort små prickar: majoritet av grannarna
+function lookMajority(lab, N, idx, passes) {
+  for (let pass = 0; pass < passes; pass++) {
+    const nl = Int16Array.from(lab);
+    for (const j of idx) {
+      const x = j % N, y = (j - x) / N, votes = new Map();
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= N || Y >= N) continue; const l = lab[Y * N + X]; if (l >= 0) votes.set(l, (votes.get(l) || 0) + 1); }
+      let bl = lab[j], bv = votes.get(bl) || 0; for (const [l, v] of votes) if (v > bv + 1) { bl = l; bv = v; }
+      nl[j] = bl;
+    }
+    lab.set(nl);
+  }
+}
+// okända pixlar får färgen från närmaste kända pixel (verkligt avstånd) – kanter fortsätter rakt genom hålen
+function lookFillLabels(lab, N) {
+  const src = new Int32Array(N * N).fill(-1);
+  let front = [];
+  for (let j = 0; j < N * N; j++) if (lab[j] >= 0) { src[j] = j; front.push(j); }
+  const d2 = (q, s) => { const qx = q % N, qy = (q - qx) / N, sx = s % N, sy = (s - sx) / N; return (qx - sx) ** 2 + (qy - sy) ** 2; };
+  while (front.length) {
+    const next = new Set();
+    for (const p of front) {
+      const x = p % N, s0 = src[p];
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dy) continue; const X = x + dx; if (X < 0 || X >= N) continue;
+        const q = p + dy * N + dx; if (q < 0 || q >= N * N || lab[q] >= 0 && src[q] === q) continue;
+        if (src[q] < 0 || d2(q, s0) < d2(q, src[q])) { src[q] = s0; next.add(q); }
+      }
+    }
+    front = [...next];
+  }
+  for (let j = 0; j < N * N; j++) if (lab[j] < 0 && src[j] >= 0) lab[j] = lab[src[j]];
+}
+function lookRemoveSmall(lab, N, minArea) {
+  const seen = new Uint8Array(N * N), stack = [];
+  for (let s0 = 0; s0 < N * N; s0++) {
+    if (seen[s0]) continue;
+    const l = lab[s0], comp = [], nb = new Map(); stack.push(s0); seen[s0] = 1;
+    while (stack.length) {
+      const j = stack.pop(); comp.push(j); const x = j % N;
+      for (const q of [x > 0 ? j - 1 : -1, x < N - 1 ? j + 1 : -1, j - N, j + N]) {
+        if (q < 0 || q >= N * N) continue;
+        if (lab[q] === l) { if (!seen[q]) { seen[q] = 1; stack.push(q); } } else nb.set(lab[q], (nb.get(lab[q]) || 0) + 1);
+      }
+    }
+    if (comp.length < minArea && nb.size) { const to = [...nb].sort((a, b) => b[1] - a[1])[0][0]; for (const j of comp) lab[j] = to; }
+  }
+}
+function lookLoops(lab, N, c) {                  // kanterna runt gruppen c som slutna slingor
+  const out = new Map(), key = (x, y) => y * (N + 1) + x;
+  const add = (x0, y0, x1, y1) => { const k = key(x0, y0); if (!out.has(k)) out.set(k, []); out.get(k).push([x1, y1]); };
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    if (lab[y * N + x] !== c) continue;
+    if (y === 0 || lab[(y - 1) * N + x] !== c) add(x, y, x + 1, y);
+    if (x === N - 1 || lab[y * N + x + 1] !== c) add(x + 1, y, x + 1, y + 1);
+    if (y === N - 1 || lab[(y + 1) * N + x] !== c) add(x + 1, y + 1, x, y + 1);
+    if (x === 0 || lab[y * N + x - 1] !== c) add(x, y + 1, x, y);
+  }
+  const loops = [];
+  for (const [k0, list] of out) {
+    while (list.length) {
+      const sx = k0 % (N + 1), sy = (k0 - sx) / (N + 1), pts = [[sx, sy]];
+      let [x, y] = list.pop(), guard = 0;
+      while (!(x === sx && y === sy) && guard++ < 4 * N * N) {
+        pts.push([x, y]);
+        const l = out.get(key(x, y)); if (!l || !l.length) break;
+        [x, y] = l.pop();
+      }
+      if (pts.length > 3) loops.push(pts);
+    }
+  }
+  return loops;
+}
+function lookSimplify(pts, tol) {               // Douglas–Peucker på en sluten slinga
+  const n = pts.length; if (n < 5) return pts;
+  let far = 0, fd = -1; for (let i = 1; i < n; i++) { const d = (pts[i][0] - pts[0][0]) ** 2 + (pts[i][1] - pts[0][1]) ** 2; if (d > fd) { fd = d; far = i; } }
+  const dp = (a) => {
+    if (a.length < 3) return a;
+    const [x0, y0] = a[0], [x1, y1] = a[a.length - 1], L = Math.hypot(x1 - x0, y1 - y0) || 1;
+    let bi = 0, bd = 0;
+    for (let i = 1; i < a.length - 1; i++) { const d = Math.abs((a[i][0] - x0) * (y1 - y0) - (a[i][1] - y0) * (x1 - x0)) / L; if (d > bd) { bd = d; bi = i; } }
+    if (bd <= tol) return [a[0], a[a.length - 1]];
+    const l = dp(a.slice(0, bi + 1)), r = dp(a.slice(bi));
+    return l.slice(0, -1).concat(r);
+  };
+  const a = dp(pts.slice(0, far + 1)), b = dp(pts.slice(far).concat([pts[0]]));
+  return a.slice(0, -1).concat(b.slice(0, -1));
+}
+function lookPathD(loops) {
+  const f = v => (LOOK_X0 + v / LOOK_PPM).toFixed(2).replace(/\.?0+$/, '');
+  let d = '';
+  for (const raw of loops) {
+    const p = lookSimplify(raw, 1.0); if (p.length < 3) continue;
+    const n = p.length, mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    const sharp = i => {
+      const a = p[(i - 1 + n) % n], b = p[i], c = p[(i + 1) % n];
+      const v1 = [b[0] - a[0], b[1] - a[1]], v2 = [c[0] - b[0], c[1] - b[1]], l1 = Math.hypot(...v1), l2 = Math.hypot(...v2);
+      const cos = (v1[0] * v2[0] + v1[1] * v2[1]) / (l1 * l2 || 1);
+      return cos < 0.5 && l1 > 3 && l2 > 3;
+    };
+    let m = mid(p[n - 1], p[0]); d += `M${f(m[0])} ${f(m[1])}`;
+    for (let i = 0; i < n; i++) {
+      const b = p[i], m2 = mid(b, p[(i + 1) % n]);
+      d += sharp(i) ? `L${f(b[0])} ${f(b[1])}L${f(m2[0])} ${f(m2[1])}` : `Q${f(b[0])} ${f(b[1])} ${f(m2[0])} ${f(m2[1])}`;
+    }
+    d += 'Z';
+  }
+  return d;
+}
+function lookToSVG(lab, colors, N) {
+  const counts = colors.map(() => 0); for (let j = 0; j < N * N; j++) if (lab[j] >= 0) counts[lab[j]]++;
+  const order = colors.map((c, i) => i).filter(i => counts[i]).sort((a, b) => counts[b] - counts[a]);
+  const hex = c => scanHex(c.map(v => Math.max(0, Math.min(255, v))));
+  const v = `${LOOK_X0} ${LOOK_X0} ${LOOK_MM} ${LOOK_MM}`;
+  // etikettens platta lämnas genomskinlig så att Egna10:s egen etikett syns
+  const tab = `M${LOOK_X0} ${LOOK_X0}H${LOOK_X0 + LOOK_MM}V${LOOK_X0 + LOOK_MM}H${LOOK_X0}Z M${G.TAB_X - 0.3} -3H113V${G.TAB_H + 0.3}H${G.TAB_X - 0.3}Z`;
+  let body = `<rect x="${LOOK_X0}" y="${LOOK_X0}" width="${LOOK_MM}" height="${LOOK_MM}" fill="${hex(colors[order[0]])}"/>`;
+  for (const c of order.slice(1)) {
+    const d = lookPathD(lookLoops(lab, N, c)); if (!d) continue;
+    const h = hex(colors[c]);
+    body += `<path fill="${h}" stroke="${h}" stroke-width="0.12" stroke-linejoin="round" fill-rule="evenodd" d="${d}"/>`;
+  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1140" height="1140" viewBox="${v}"><defs><clipPath id="t"><path clip-rule="evenodd" d="${tab}"/></clipPath></defs><g clip-path="url(#t)">${body}</g></svg>`;
+}
+
+/* ---------- Gemensamt motiv för en grupp kort ---------- */
+function lookTheme(items, style) {
+  const N = LOOK_N, use = items.slice(0, 15);
+  if (use.length < 2) return null;
+  const smalls = use.map(lookSmall), M = new Uint8ClampedArray(N * N * 3), known = new Uint8Array(N * N);
+  const bg = lookHexToRgb(style.bg), disc = lookHexToRgb(style.disc);
+  let nKnown = 0, nDiff = 0, nDisc = 0, nDiscDiff = 0;
+  const vals = [[], [], []];
+  for (let j = 0; j < N * N; j++) {
+    const x = j % N, y = (j - x) / N, mx = LOOK_X0 + (x + 0.5) / LOOK_PPM, my = LOOK_X0 + (y + 0.5) / LOOK_PPM;
+    vals[0].length = vals[1].length = vals[2].length = 0;
+    for (const s of smalls) if (s.ok[j]) for (let c = 0; c < 3; c++) vals[c].push(s.rgb[j * 3 + c]);
+    if (vals[0].length < 2) { if (vals[0].length) for (let c = 0; c < 3; c++) M[j * 3 + c] = vals[c][0]; continue; }
+    for (let c = 0; c < 3; c++) { const a = vals[c].sort((p, q) => p - q); M[j * 3 + c] = a[a.length >> 1]; }
+    // bara säkra delar: innanför kanten, inte etiketten eller Egna10:s egna delar, och lika på alla kort
+    if (!scanInCard(mx, my) || scanEdgeDist(mx, my) < 1.2 || lookInTab(mx, my) || lookFixedPart(mx, my)) continue;
+    const m = [M[j * 3], M[j * 3 + 1], M[j * 3 + 2]];
+    const devs = smalls.filter(s => s.ok[j]).map(s => scanDist([s.rgb[j * 3], s.rgb[j * 3 + 1], s.rgb[j * 3 + 2]], m)).sort((p, q) => p - q);
+    if (devs[devs.length >> 1] > 0.1) continue;
+    known[j] = 1; nKnown++;
+    const r = Math.hypot(mx - 55, my - 55), plain = r < 33 ? disc : bg;
+    const diff = Math.abs(r - 33) > 0.8 && scanDist(m, plain) > 0.17;
+    if (diff) nDiff++;
+    if (r < 32) { nDisc++; if (diff) nDiscDiff++; }
+  }
+  if (nKnown < N * N * 0.25 || nDiff / nKnown < 0.02) return null;    // enfärgat kort – färgerna räcker
+  const q = lookQuantize(M, N, known);
+  lookFillLabels(q.lab, N);
+  const all = []; for (let j = 0; j < N * N; j++) all.push(j);
+  lookMajority(q.lab, N, all, 3);
+  lookRemoveSmall(q.lab, N, 8 * LOOK_PPM * LOOK_PPM);                // fläckar under ~8 mm² (textrester o.d.)
+  return { svg: lookToSVG(q.lab, q.colors, N), frac: nDiff / nKnown, disc: nDisc > 0 && nDiscDiff / nDisc > 0.01 };
+}
+
+/* ---------- Hela kortlekens utseende ---------- */
+function scanDeckLook(items, pairs) {
+  const ok = items.filter(it => it.result && it.result.look);
+  if (!ok.length) return null;
+  const style = {}, base = DEFAULT_STYLE;
+  for (const k of LOOK_KEYS) {
+    const m = lookMedian(ok.map(it => it.result.look[k]));
+    if (!m) continue;
+    // nära standardfärgen? Då är det troligen standardfärgen (fotot ändrar färgerna lite)
+    style[k] = scanDist(m, lookHexToRgb(base[k])) < 0.13 ? base[k] : scanHex(m);
+  }
+  const full = Object.assign({}, base, style);
+  // etikett: vanligaste avläsningen
+  const lc = new Map();
+  for (const it of ok) { const l = it.result.label; if (l && (l.dark || l.light)) { const k = JSON.stringify(l); lc.set(k, (lc.get(k) || 0) + 1); } }
+  const label = lc.size ? JSON.parse([...lc].sort((a, b) => b[1] - a[1])[0][0]) : null;
+  // per sida: färger som skiljer sig tydligt från resten
+  const sideStyle = new Map();
+  for (const it of ok) {
+    const st = {};
+    for (const k of ['bg', 'disc']) { const c = it.result.look[k]; if (c && scanDist(c, lookHexToRgb(full[k])) > 0.22) st[k] = scanHex(c); }
+    if (Object.keys(st).length) sideStyle.set(it, st);
+  }
+  // gemensamt motiv – fram- och baksidor var för sig om de skiljer sig
+  const themes = [];
+  const fr = pairs ? ok.filter((it, k) => items.indexOf(it) % 2 === 0) : ok, bk = pairs ? ok.filter(it => items.indexOf(it) % 2 === 1) : [];
+  const plainItems = ok.filter(it => !sideStyle.has(it));
+  if (pairs && fr.length >= 2 && bk.length >= 2) {
+    const a = lookTheme(fr.filter(it => plainItems.includes(it)), full), b = lookTheme(bk.filter(it => plainItems.includes(it)), full);
+    if (a) themes.push({ on: 'front', svg: a.svg, disc: a.disc });
+    if (b) themes.push({ on: 'back', svg: b.svg, disc: b.disc });
+  } else {
+    const a = lookTheme(plainItems, full);
+    if (a) themes.push({ on: 'all', svg: a.svg, disc: a.disc });
+  }
+  return { style, label, sideStyle, themes };
+}
+// Lägg utseendet på kortleken (och sidor med egna färger)
+function scanApplyLook(deck, look, sides) {
+  if (!look) return;
+  deck.style = Object.assign({}, DEFAULT_STYLE, deck.style || {}, look.style);
+  if (look.label) deck.label = { dark: look.label.dark || '', light: look.label.light || '' };
+  deck.pro = deck.pro || {};
+  deck.pro.items = (deck.pro.items || []).filter(it => !String(it.id).startsWith('scanbg'));
+  for (const t of look.themes) {
+    deck.pro.items.unshift({ id: 'scanbg-' + t.on, type: 'img', src: 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(t.svg))), x: 55, y: 55, w: LOOK_MM, h: LOOK_MM, rot: 0, op: 1, layer: 'under', on: t.on, fit: 'cover', rad: 0 });
+  }
+  const dt = look.themes.filter(t => t.disc);                       // mittcirkeln har också ett motiv → rita inte Egna10:s cirkel
+  if (dt.length) {
+    const all = dt.some(t => t.on === 'all');
+    if (all) { deck.pro.design = Object.assign({}, deck.pro.design || {}, { discHide: true }); }
+    else for (const [q, si] of sides) if (dt.some(t => (t.on === 'front' && si === 0) || (t.on === 'back' && si === 1))) { q.pro = q.pro || {}; q.pro.design = Object.assign({}, q.pro.design || {}, { discHide: true }); }
+  }
+}
+
+/* =====================================================================
+   Egna10 Pro – kameran: skanna kort som dokument (som i Google Drive).
+   Kortet känns igen live och ramas in; tagna bilder hamnar i en bunt nere
+   till vänster. Tryck på bunten för att ta bort eller ta om en bild.
+   ===================================================================== */
+const CAM = { stream: null, timer: 0, busy: false, last: null, stable: 0, auto: false, armed: true, retake: -1, small: null, frameCorners: null, shots: 0 };
+
+function camHasLive() { return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && window.isSecureContext !== false; }
+
+async function camOpen() {
+  if (!camHasLive()) { $('#scanCamFile').click(); return; }
+  const ui = $('#scanCamUI'), v = $('#camVideo');
+  try {
+    CAM.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 3840 }, height: { ideal: 2160 } } });
+  } catch (e) {
+    CAM.stream = null;
+    $('#scanCamFile').click();                  // ingen åtkomst – använd telefonens vanliga kamera i stället
+    return;
+  }
+  v.srcObject = CAM.stream;
+  ui.hidden = false;
+  try { await v.play(); } catch (e) { /* spelas när den kan */ }
+  try { CAM.auto = localStorage.getItem('egna10pro.camAuto') === '1'; } catch (e) { CAM.auto = false; }
+  $('#camAuto').setAttribute('aria-pressed', String(CAM.auto));
+  CAM.last = null; CAM.stable = 0; CAM.armed = true; CAM.retake = -1;
+  $('#camReview').hidden = true;
+  camUpdateStack();
+  camHint();
+  clearInterval(CAM.timer);
+  CAM.timer = setInterval(camTick, 220);
+}
+function camClose() {
+  clearInterval(CAM.timer); CAM.timer = 0;
+  if (CAM.stream) CAM.stream.getTracks().forEach(t => t.stop());
+  CAM.stream = null;
+  $('#camVideo').srcObject = null;
+  $('#scanCamUI').hidden = true;
+  scanRenderList();
+  scanSelect(SCAN.items.length ? SCAN.items.length - 1 : -1);
+  if (SCAN.items.length) scanStatus(`${SCAN.items.length} ${SCAN.items.length === 1 ? 'bild' : 'bilder'}. Tryck på en av knapparna nedan när du är klar.`);
+}
+
+// Vilken bild står på tur? I läget ”fram + bak” växlar det mellan framsida och baksida.
+function camNextLabel() {
+  const pairs = $('#scanMode').value === 'pairs', k = CAM.retake >= 0 ? CAM.retake : SCAN.items.length;
+  return pairs ? `Kort ${Math.floor(k / 2) + 1} · ${k % 2 ? 'baksida' : 'framsida'}` : `Kort ${k + 1}`;
+}
+function camHint(found) {
+  const h = $('#camHint');
+  if (found === 'ready') h.textContent = CAM.auto ? 'Håll still …' : `${camNextLabel()} – ta bilden`;
+  else if (found === 'wait') h.textContent = 'Lägg nästa kort i bild';
+  else if (found) h.textContent = camNextLabel();
+  else h.textContent = `${camNextLabel()} – håll kameran över kortet`;
+}
+
+// En bildruta från videon (nedskalad till högst maxSide pixlar)
+function camGrab(maxSide) {
+  const v = $('#camVideo'), w = v.videoWidth, h = v.videoHeight;
+  if (!w || !h) return null;
+  const k = Math.min(1, maxSide / Math.max(w, h)), c = document.createElement('canvas');
+  c.width = Math.round(w * k); c.height = Math.round(h * k);
+  const ctx = c.getContext('2d', { willReadFrequently: true }); ctx.drawImage(v, 0, 0, c.width, c.height);
+  return { canvas: c, data: ctx.getImageData(0, 0, c.width, c.height), k };
+}
+// Är hörnen rimliga: ett konvext kort som tar upp en vettig del av bilden?
+function camPlausible(c, W, H) {
+  const area = Math.abs(c.reduce((s, p, i) => { const q = c[(i + 1) % 4]; return s + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2;
+  if (area < W * H * 0.06 || area > W * H * 1.2) return false;
+  let sign = 0;
+  for (let i = 0; i < 4; i++) {
+    const a = c[i], b = c[(i + 1) % 4], d = c[(i + 2) % 4], cr = (b[0] - a[0]) * (d[1] - b[1]) - (b[1] - a[1]) * (d[0] - b[0]);
+    if (!sign) sign = Math.sign(cr); else if (Math.sign(cr) !== sign) return false;
+  }
+  return true;
+}
+function camTick() {
+  if (CAM.busy || $('#scanCamUI').hidden || !$('#camReview').hidden) return;
+  const fr = camGrab(960); if (!fr) return;
+  const item = { src: fr }, corners = scanDetect(item), W = fr.data.width, H = fr.data.height;
+  const ok = scanFindDisc(item) && item.conf > 0.22 && camPlausible(corners, W, H);
+  if (!ok) { CAM.last = null; CAM.stable = 0; CAM.armed = true; camDraw(null); camHint(false); $('#camShutter').classList.remove('ready'); return; }
+  // stilla? jämför med förra rutan
+  const size = Math.hypot(corners[0][0] - corners[2][0], corners[0][1] - corners[2][1]);
+  const move = CAM.last ? Math.max(...corners.map((p, i) => Math.hypot(p[0] - CAM.last[i][0], p[1] - CAM.last[i][1]))) / size : 1;
+  CAM.stable = move < 0.025 ? CAM.stable + 1 : 0;
+  if (move > 0.25) CAM.armed = true;            // ett nytt kort (eller kameran flyttad) – auto får ta en bild igen
+  CAM.last = corners;
+  const ready = CAM.stable >= 2;
+  camDraw(corners.map(p => [p[0] / fr.k, p[1] / fr.k]), ready);
+  $('#camShutter').classList.toggle('ready', ready);
+  camHint(CAM.auto && !CAM.armed ? 'wait' : ready ? 'ready' : true);
+  if (CAM.auto && CAM.armed && CAM.stable >= 4) { CAM.armed = false; camShoot(); }
+}
+// Rita kortets kontur över videon (videon fyller skärmen, object-fit: cover)
+function camDraw(corners, ready) {
+  const cv = $('#camOverlay'), v = $('#camVideo'), r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  if (cv.width !== Math.round(r.width * dpr) || cv.height !== Math.round(r.height * dpr)) { cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); }
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, r.width, r.height);
+  if (!corners || !v.videoWidth) return;
+  const s = Math.max(r.width / v.videoWidth, r.height / v.videoHeight), ox = (r.width - v.videoWidth * s) / 2, oy = (r.height - v.videoHeight * s) / 2;
+  const Hm = scanHomography(SCAN_MM_CORNERS, corners), M = (x, y) => { const [a, b] = scanApply(Hm, x, y); return [ox + a * s, oy + b * s]; };
+  ctx.beginPath();
+  for (const c of cardPath(0)) {
+    if (c[0] === 'M') ctx.moveTo(...M(c[1], c[2])); else if (c[0] === 'L') ctx.lineTo(...M(c[1], c[2]));
+    else if (c[0] === 'C') { const a = M(c[1], c[2]), b = M(c[3], c[4]), e = M(c[5], c[6]); ctx.bezierCurveTo(a[0], a[1], b[0], b[1], e[0], e[1]); } else ctx.closePath();
+  }
+  ctx.fillStyle = ready ? 'rgba(95,211,138,.20)' : 'rgba(77,163,255,.18)'; ctx.fill();
+  ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.strokeStyle = ready ? '#5fd38a' : '#4da3ff'; ctx.stroke();
+}
+// Ta bilden i full upplösning och hitta kortet i den
+async function camShoot() {
+  if (CAM.busy) return;
+  CAM.busy = true;
+  const fl = $('#camFlash'); fl.classList.add('on'); setTimeout(() => fl.classList.remove('on'), 60);
+  try {
+    const fr = camGrab(2800); if (!fr) return;
+    const name = `Kamera ${new Date().toLocaleTimeString('sv-SE')}`;
+    const it = scanMakeItem(name, { canvas: fr.canvas, data: fr.data });
+    // miniatyr: själva kortet, uträtat
+    try {
+      const img = scanWarp(it), c = document.createElement('canvas'); c.width = c.height = SCAN_W; c.getContext('2d').putImageData(img, 0, 0);
+      const t = document.createElement('canvas'); t.width = t.height = 240; t.getContext('2d').drawImage(c, 0, 0, 240, 240);
+      it.thumb = t.toDataURL('image/jpeg', 0.75); it.camThumb = true;
+    } catch (e) { /* behåll fotot som miniatyr */ }
+    if (CAM.retake >= 0 && CAM.retake <= SCAN.items.length) { SCAN.items.splice(CAM.retake, 0, it); CAM.retake = -1; }
+    else SCAN.items.push(it);
+    CAM.shots++;
+    camUpdateStack(true);
+    camHint(CAM.auto ? 'wait' : true);
+  } finally { CAM.busy = false; }
+}
+function camUpdateStack(pop) {
+  const b = $('#camStack'), n = SCAN.items.length, last = SCAN.items[n - 1];
+  b.disabled = !n; $('#camCount').textContent = n;
+  if (last) b.querySelector('img').src = last.thumb;
+  $('#camDone').textContent = n ? `Klar (${n})` : 'Klar';
+  if (pop) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
+}
+// Översikt över tagna bilder: ta bort eller ta om
+function camReview() {
+  const g = $('#camRGrid'), pairs = $('#scanMode').value === 'pairs';
+  $('#camRTitle').textContent = `Tagna bilder (${SCAN.items.length})`;
+  g.innerHTML = SCAN.items.map((it, k) => `<figure data-k="${k}"><img src="${it.thumb}" alt=""><figcaption>${pairs ? `Kort ${Math.floor(k / 2) + 1} · ${k % 2 ? 'baksida' : 'framsida'}` : `Kort ${k + 1}`}</figcaption><div class="cam-ract"><button type="button" class="re">Ta om</button><button type="button" class="del">Ta bort</button></div></figure>`).join('') || '<p style="padding:12px;color:#bbb">Inga bilder än.</p>';
+  $('#camReview').hidden = false;
+}
+function bindCam() {
+  $('#scanCam').addEventListener('click', e => { e.preventDefault(); camOpen(); });
+  $('#camClose').addEventListener('click', camClose);
+  $('#camDone').addEventListener('click', camClose);
+  $('#camShutter').addEventListener('click', () => { CAM.armed = false; camShoot(); });
+  $('#camAuto').addEventListener('click', () => {
+    CAM.auto = !CAM.auto; CAM.armed = !CAM.last; $('#camAuto').setAttribute('aria-pressed', String(CAM.auto));
+    try { localStorage.setItem('egna10pro.camAuto', CAM.auto ? '1' : '0'); } catch (e) { /* inget sparat */ }
+  });
+  $('#camStack').addEventListener('click', camReview);
+  $('#camRBack').addEventListener('click', () => { $('#camReview').hidden = true; camHint(); });
+  $('#camRGrid').addEventListener('click', e => {
+    const f = e.target.closest('figure[data-k]'); if (!f) return;
+    const k = Number(f.dataset.k);
+    if (e.target.closest('.del')) { SCAN.items.splice(k, 1); camUpdateStack(); camReview(); }
+    else if (e.target.closest('.re')) { SCAN.items.splice(k, 1); CAM.retake = k; camUpdateStack(); $('#camReview').hidden = true; CAM.armed = true; camHint(); }
+  });
+  // stäng kameran om dialogen stängs (t.ex. med Esc)
+  $('#dlgScan').addEventListener('close', () => { if (CAM.stream) camClose(); });
+  $('#dlgScan').addEventListener('cancel', e => { if (!$('#scanCamUI').hidden) { e.preventDefault(); if (!$('#camReview').hidden) $('#camReview').hidden = true; else camClose(); } });
+}
 </script>
 <script>
 'use strict';
@@ -4456,7 +5823,7 @@ async function init() {
   try { const fs = await DB.get('file'); if (fs) { fileState.handle = fs.handle || null; fileState.name = fs.name || ''; fileState.dirty = !!fs.dirty; } } catch (e) { /* ingen lagring */ }
   updateFileLabel();
   bindLayout(); bindMobile(); bindApp(); bindSync();
-  bindEditor(); bindPreview(); bindCards(); bindFiles(); bindImport(); bindSettings(); bindCropper(); bindPdf(); bindLibrary(); bindCardSelect(); bindWelcome(); patchSvgDoc(); bindCredit(); bindPro();
+  bindEditor(); bindPreview(); bindCards(); bindFiles(); bindImport(); bindSettings(); bindCropper(); bindPdf(); bindLibrary(); bindCardSelect(); bindWelcome(); patchSvgDoc(); bindCredit(); bindPro(); bindScan();
   selectCard(0, 0);
   setStatus(d ? 'Kortleken är hämtad från webbläsaren' : 'Exempelkort – skriv över det eller lägg till nya');
   window.addEventListener('beforeunload', () => { if (saveTimer) saveNow(); });
