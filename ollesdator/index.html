@@ -583,7 +583,7 @@ function renderStatus() {
 
   const w = s.wakes || {};
   $('wakeStats').textContent = w.count
-    ? `Startad ${w.count} ${w.count === 1 ? 'gång' : 'gånger'}. Senast ${when(w.lastAt)} ${w.lastBy === 'knapp' ? 'med BOOT-knappen' : w.lastBy === 'siri' ? 'via Siri' : 'från webben'}${w.lastResult === 'timeout' ? ' – svarade inte' : ''}.`
+    ? `Startad ${w.count} ${w.count === 1 ? 'gång' : 'gånger'}. Senast ${when(w.lastAt)} ${w.lastBy === 'knapp' ? 'med BOOT-knappen' : w.lastBy === 'siri' ? 'via Siri' : w.lastBy === 'klocka' ? 'från klockan' : 'från webben'}${w.lastResult === 'timeout' ? ' – svarade inte' : ''}.`
     : 'Datorn har inte startats härifrån än. Du kan också hålla in BOOT-knappen på ESP32:an i 3 sekunder.';
 
   $('topStatus').textContent = online ? `ESP32 online · datorn ${on ? 'på' : 'av'}` : 'ESP32 offline';
@@ -824,8 +824,8 @@ function renderPcCmd() {
   prog.classList.remove('indet');
   msg.className = 'msg';
   const bar = prog.firstElementChild;
-  const by = { datorn: 'vid datorn', knappen: 'med knappen på ESP32:an', siri: 'från Hem-appen', timeout: 'eftersom datorn inte svarade' }[c.cancelledBy] || 'från webben';
-  const from = { siri: ' (begärt från Hem-appen)', knapp: ' (begärt med knappen på ESP32:an)' }[c.by] || '';
+  const by = { datorn: 'vid datorn', knappen: 'med knappen på ESP32:an', siri: 'från Hem-appen', klockan: 'från klockan', timeout: 'eftersom datorn inte svarade' }[c.cancelledBy] || 'från webben';
+  const from = { siri: ' (begärt från Hem-appen)', knapp: ' (begärt med knappen på ESP32:an)', klocka: ' (begärt från klockan)' }[c.by] || '';
   switch (c.state) {
     case 'pending':
       prog.classList.add('indet');
@@ -970,7 +970,7 @@ $('avrVol').addEventListener('change', e => { avrDragging = false; sendAvr('vol'
 function logText(l) {
   switch (l.type) {
     case 'wake': {
-      const who = l.by === 'knapp' ? 'med BOOT-knappen' : l.by === 'siri' ? 'via Siri' : 'från webben';
+      const who = l.by === 'knapp' ? 'med BOOT-knappen' : l.by === 'siri' ? 'via Siri' : l.by === 'klocka' ? 'från klockan' : 'från webben';
       if (l.result === 'ok') return `Datorn startades ${who} – igång efter ${l.secs} s`;
       if (l.result === 'already_on') return `Start ${who} – datorn var redan på`;
       if (l.result === 'no_wifi') return `Start ${who} – ESP32:an saknade WiFi`;
@@ -978,12 +978,13 @@ function logText(l) {
       return `Start ${who} – datorn svarade inte`;
     }
     case 'pc_cmd': {
-      const a = ACT[l.action] || { noun: esc(l.action) }, who = l.by === 'siri' ? 'via Siri' : l.by === 'knapp' ? 'med knappen' : 'från webben';
+      const a = ACT[l.action] || { noun: esc(l.action) }, who = l.by === 'siri' ? 'via Siri' : l.by === 'knapp' ? 'med knappen' : l.by === 'klocka' ? 'från klockan' : 'från webben';
       if (l.result === 'executing' || l.result === 'done') return l.action === 'shutdown' ? `Datorn stängdes av ${who}` : l.action === 'restart' ? `Datorn startades om ${who}` : l.action === 'sleep' ? `Datorn försattes i vila ${who}` : `Datorn låstes ${who}`;
       if (l.result === 'cancelled_pc') return `${a.noun} ${who} – avbröts vid datorn`;
       if (l.result === 'cancelled_web') return `${a.noun} ${who} – avbröts från webben`;
       if (l.result === 'cancelled_btn') return `${a.noun} ${who} – avbröts med knappen`;
       if (l.result === 'cancelled_siri') return `${a.noun} ${who} – avbröts från Hem-appen`;
+      if (l.result === 'cancelled_watch') return `${a.noun} ${who} – avbröts från klockan`;
       return `${a.noun} ${who} (${esc(l.result)})`;
     }
     case 'pc_on': return 'Datorn slogs på';
