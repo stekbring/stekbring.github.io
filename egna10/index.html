@@ -498,8 +498,9 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
 @media (max-width:720px){
   body.pro-design .pro-mini{display:block;position:sticky;top:var(--tbh,0px);z-index:5;margin:0 -8px 10px;padding:6px 22%;background:var(--bg);border-bottom:2px groove var(--hi)}
   .pro-mini svg{display:block;width:100%;height:auto;filter:drop-shadow(1px 2px 2px rgba(0,0,0,.25))}
-  .protabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
-  .protabs button{white-space:nowrap;font-size:14px;padding:4px 9px}
+  .protabs{flex-wrap:wrap;row-gap:3px;border-bottom:0}
+  .protabs button{white-space:nowrap;font-size:14px;padding:4px 6px;flex:1 1 auto;border-bottom:2px outset var(--face);margin:0 1px 0 0}
+  .protabs button[aria-selected="true"]{margin-top:0;padding-bottom:4px;border-style:inset;background:#d8d4c8}
   .pf{grid-template-columns:1fr}
   .pf>span:first-child{font-size:14px}
   .pf-num input[type=range]{min-height:30px}
@@ -621,6 +622,10 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
 .scanref-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:6px}
 .scanref .help{text-align:center;margin:4px 0 0}
 .scan-tools #scanUp,.scan-tools #scanDown{min-width:34px}
+.scanref-pic{position:relative;width:100%;max-width:340px;margin:6px auto 0;cursor:pointer}
+.scanref-pic img{display:block;width:100%;max-width:none;margin:0}
+.scanref-marks{position:absolute;inset:0;pointer-events:none}
+.scanref-marks span{position:absolute;border-radius:50%;background:rgba(255,205,0,.3);border:2px solid #e0a000;box-sizing:border-box}
 </style>
 </head>
 <body>
@@ -668,7 +673,7 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
       <span class="cardscore" id="cardScore" role="group" aria-label="Betyg för kortet"></span>
     </div>
     <div class="protabs" id="proTabs" role="tablist" aria-label="Vad vill du ändra?">
-      <button type="button" role="tab" data-pt="content" aria-selected="true">Innehåll</button><button type="button" role="tab" data-pt="layout" aria-selected="false">Layout</button><button type="button" role="tab" data-pt="items" aria-selected="false">Text och bilder</button><button type="button" role="tab" data-pt="wm" aria-selected="false">Vattenstämpel</button><button type="button" role="tab" data-pt="fonts" aria-selected="false">Typsnitt</button>
+      <button type="button" role="tab" data-pt="content" aria-selected="true">Innehåll</button><button type="button" role="tab" data-pt="look" aria-selected="false">Utseende</button><button type="button" role="tab" data-pt="layout" aria-selected="false">Layout</button><button type="button" role="tab" data-pt="items" aria-selected="false">Text och bilder</button><button type="button" role="tab" data-pt="wm" aria-selected="false">Vattenstämpel</button><button type="button" role="tab" data-pt="fonts" aria-selected="false">Typsnitt</button>
     </div>
     <div class="pro-mini pro-cv" id="proMini" data-side="0"></div>
     <div id="proPanes"></div>
@@ -3046,7 +3051,7 @@ async function proMigrate(db) {
    Egna10 Pro – gränssnitt: flikar i redigeringsrutan, markering och
    dragning direkt på korten, fria element, vattenstämpel och typsnitt.
    ===================================================================== */
-const proUI = { tab: 'content', scope: 'all', sel: null, drag: null, suppressClick: false };
+const proUI = { tab: 'content', scope: 'all', lookScope: 'card', sel: null, drag: null, suppressClick: false };
 const PRO_GROUPS = [
   { id: 'card', title: 'Kortets form', ctl: [['rBig', 'Stora hörnen (vänster)', 0, 55, 0.5, 'mm'], ['rSmall', 'Små hörnen (höger)', 0, 30, 0.5, 'mm']] },
   { id: 'center', title: 'Mittcirkeln', hint: 'Dra i mittcirkeln på kortet för att flytta den – frågan, alternativen och linjerna följer med.', ctl: [['cDx', 'Flytta åt höger', -40, 40, 0.5, 'mm'], ['cDy', 'Flytta nedåt', -40, 40, 0.5, 'mm'], ['discR', 'Radie', 10, 55, 0.5, 'mm'], ['discHide', 'Dölj den ljusa cirkeln', 'bool']] },
@@ -3099,7 +3104,7 @@ function proSideP(create) {
   if (q.pro) { q.pro.design = q.pro.design || {}; q.pro.items = q.pro.items || []; }
   return q.pro || null;
 }
-function proTidySide() { const q = curQ(); if (q.pro && !Object.keys(q.pro.design || {}).length && !(q.pro.items || []).length && !q.pro.noWm) delete q.pro; }
+function proTidySide() { const q = curQ(); if (q.pro && !Object.keys(q.pro.design || {}).length && !(q.pro.items || []).length && !q.pro.noWm && !q.pro.scan) delete q.pro; }
 function proRawGet(d, k) { if (!d) return undefined; if (k.startsWith('style.')) return d.style ? d.style[k.slice(6)] : undefined; return d[k]; }
 function proRawSet(d, k, v) {
   if (k.startsWith('style.')) { const s = k.slice(6); d.style = d.style || {}; if (v === undefined) delete d.style[s]; else d.style[s] = v; if (!Object.keys(d.style).length) delete d.style; }
@@ -3428,7 +3433,7 @@ function proRenderPane() {
   const t = proUI.tab;
   let pane = box.querySelector(`.pro-pane[data-pt="${t}"]`);
   if (t === 'content') return;
-  const html = t === 'layout' ? proLayoutHTML() : t === 'items' ? proItemsHTML() : t === 'wm' ? proWmHTML() : proFontsHTML();
+  const html = t === 'layout' ? proLayoutHTML() : t === 'look' ? proLookHTML() : t === 'items' ? proItemsHTML() : t === 'wm' ? proWmHTML() : proFontsHTML();
   const focus = document.activeElement && pane && pane.contains(document.activeElement) ? document.activeElement : null;
   if (focus && (focus.tagName === 'TEXTAREA' || (focus.tagName === 'INPUT' && !/checkbox|radio|button/.test(focus.type)))) { proSyncValues(pane); return; }
   const scroll = pane ? pane.scrollTop : 0;
@@ -3456,10 +3461,12 @@ function proReadInput(lbl, el) {
 }
 function bindProPanes() {
   const box = $('#proPanes');
-  box.innerHTML = ['layout', 'items', 'wm', 'fonts'].map(t => `<div class="pro-pane" data-pt="${t}" hidden></div>`).join('');
+  box.innerHTML = ['look', 'layout', 'items', 'wm', 'fonts'].map(t => `<div class="pro-pane" data-pt="${t}" hidden></div>`).join('');
   const onInput = e => {
     const el = e.target;
     if (el.name === 'proScope') { proUI.scope = el.value; proRenderPane(); return; }
+    if (el.name === 'lookScope') { proUI.lookScope = el.value; proRenderPane(); return; }
+    const lo = el.closest('[data-lk]'); if (lo) { proLookSet(lo.dataset.lk, el.value); return; }
     const lk = el.closest('[data-k]'), ik = el.closest('[data-ik]'), wk = el.closest('[data-wk]');
     if (el.dataset.none) {                       // ”ingen” fyllning/kant
       const f = proUI.sel && proFindItem(proUI.sel.id); if (!f) return;
@@ -3473,9 +3480,11 @@ function bindProPanes() {
     else if (wk) proWmSet(wk.dataset.wk, v);
   };
   box.addEventListener('input', onInput);
-  box.addEventListener('change', e => { if (e.target.closest('[data-k]') && proUI.scope === 'side') proRenderPane(); });
+  box.addEventListener('change', e => { if ((e.target.closest('[data-k]') && proUI.scope === 'side') || e.target.closest('[data-lk]')) { if (document.activeElement) document.activeElement.blur(); proRenderPane(); } });
   box.addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.lookdef) { proLookSet(b.dataset.lookdef, undefined); proRenderPane(); return; }
+    if (b.dataset.act === 'lookReset') { proLookReset(); proRenderPane(); return; }
     if (b.classList.contains('pf-def')) { const k = b.closest('[data-k]').dataset.k; proSet(k, proUI.scope === 'side' ? proGet(k, 'all') : k.startsWith('style.') ? proBaseValAll(k) : ''); proRenderPane(); return; }
     if (b.dataset.add) { if (b.dataset.add === 'img') proPickImage(async src => { const r = await proImgRatio(src); proAddItem('img', { src, w: 40, h: Math.round(40 / (r || 1) * 10) / 10, fit: 'contain' }); }); else proAddItem(b.dataset.add); return; }
     if (b.classList.contains('pro-it')) { proUI.sel = { kind: 'item', id: b.closest('li').dataset.id, side: state.side }; proRenderPane(); renderPreview(); return; }
@@ -3490,6 +3499,43 @@ function bindProPanes() {
   box.addEventListener('toggle', e => { const d = e.target; if (d.tagName === 'DETAILS' && d.open && proUI.sel && proUI.sel.kind === 'grp' && proUI.sel.id !== d.dataset.g) { proUI.sel = null; renderPreview(); } }, true);
 }
 function proBaseValAll(k) { return styleOf(state.deck)[k.slice(6)]; }
+
+/* ---------- Utseende för just det här kortet (eller den här sidan) ---------- */
+function proLookSides() { const c = curCard(); return proUI.lookScope === 'side' ? [c.sides[state.side]] : c.sides; }
+function proLookVal(q, k) { const st = q.pro && q.pro.design && q.pro.design.style; return st && st[k] !== undefined ? st[k] : styleOf(state.deck)[k]; }
+function proLookOwn(q, k) { const st = q.pro && q.pro.design && q.pro.design.style; return !!(st && st[k] !== undefined); }
+function proLookHTML() {
+  const c = curCard(), q = curQ(), sides = proLookSides();
+  const mixed = k => sides.length > 1 && proLookVal(sides[0], k) !== proLookVal(sides[1], k);
+  let h = `<div class="pro-scope" role="radiogroup" aria-label="Färgerna gäller">
+    <span>Färgerna gäller:</span>
+    <label><input type="radio" name="lookScope" value="card"${proUI.lookScope !== 'side' ? ' checked' : ''}> hela kort ${state.cur + 1} (fram och bak)</label>
+    <label><input type="radio" name="lookScope" value="side"${proUI.lookScope === 'side' ? ' checked' : ''}> bara ${state.side ? 'baksidan' : 'framsidan'}</label>
+  </div>
+  <p class="help">Här ändrar du färgerna på bara det här kortet. Färgerna för hela kortleken ändrar du under Utseende i menyn. Färger som är ändrade här är märkta med •.</p>`;
+  h += Object.keys(DEFAULT_STYLE).map(k => {
+    const own = sides.some(sq => proLookOwn(sq, k));
+    return `<label class="pf" data-lk="${k}"><span>${esc(STYLE_LABELS[k] || k)}${own ? '<span class="pro-mark" title="Ändrad för det här kortet">•</span>' : ''}${mixed(k) ? ' <small class="help">(olika på sidorna)</small>' : ''}</span><span class="pf-col"><input type="color" value="${esc(proLookVal(q, k))}"><button type="button" data-lookdef="${k}" title="Använd kortlekens färg"${own ? '' : ' disabled'}>Kortlekens</button></span></label>`;
+  }).join('');
+  const any = c.sides.some(sq => sq.pro && sq.pro.design && sq.pro.design.style && Object.keys(sq.pro.design.style).length);
+  h += `<div class="pro-grp-foot"><button type="button" data-act="lookReset"${any ? '' : ' disabled'}>Använd kortlekens färger på hela kortet</button></div>`;
+  return h;
+}
+function proLookSet(k, v) {
+  const deckV = styleOf(state.deck)[k];
+  for (const q of proLookSides()) {
+    q.pro = q.pro || { design: {}, items: [] }; q.pro.design = q.pro.design || {}; q.pro.items = q.pro.items || [];
+    const st = Object.assign({}, q.pro.design.style || {});
+    if (v === undefined || String(v).toLowerCase() === String(deckV).toLowerCase()) delete st[k]; else st[k] = v;
+    if (Object.keys(st).length) q.pro.design.style = st; else delete q.pro.design.style;
+    if (!Object.keys(q.pro.design).length && !q.pro.items.length && !q.pro.noWm && !q.pro.scan) delete q.pro;
+  }
+  proChanged();
+}
+function proLookReset() {
+  for (const q of curCard().sides) if (q.pro && q.pro.design) { delete q.pro.design.style; if (!Object.keys(q.pro.design).length && !(q.pro.items || []).length && !q.pro.noWm && !q.pro.scan) delete q.pro; }
+  proChanged();
+}
 
 /* ---------- Markering och dragning på korten ---------- */
 function proSvgPt(svg, e) {
@@ -4856,7 +4902,8 @@ function scanFlagName(k) {
   return (k[0] === 'a' ? 'alternativ ' : 'facit ') + (Number(k.slice(1)) + 1);
 }
 function scanFlagList(f) {
-  const a = f.filter(k => k[0] === 'a').map(k => Number(k.slice(1)) + 1), b = f.filter(k => k[0] === 'f').map(k => Number(k.slice(1)) + 1), out = [];
+  const num = p => f.filter(k => k[0] === p).map(k => Number(k.slice(1)) + 1).sort((x, y) => x - y);
+  const a = num('a'), b = num('f'), out = [];
   if (f.includes('q')) out.push('frågan'); if (f.includes('type')) out.push('frågetypen');
   if (a.length) out.push((a.length === 1 ? 'alternativ ' : 'alternativ ') + a.join(', '));
   if (b.length) out.push('facit ' + b.join(', '));
@@ -4866,7 +4913,17 @@ const _scanBaseBuildSide = buildSide;
 buildSide = function (q, deck, opt = {}) {
   const sc = _scanBaseBuildSide(q, deck, opt);
   const f = scanFlagsOf(q).filter(k => k !== 'img');
-  if (f.length) sc.warn.push(`${opt.sideName || ''}Skanningen är osäker på ${scanFlagList(f)} – kontrollera de gulmarkerade fälten.`);
+  if (f.length) {
+    sc.warn.push(`${opt.sideName || ''}Skanningen är osäker på ${scanFlagList(f)} – kontrollera de gulmarkerade fälten.`);
+    // gul markering på kortet i förhandsvisningen – klicka på den för att hoppa till fältet
+    if (opt.preview) {
+      const want = new Set(f.map(k => k === 'q' ? 'q:-1' : (k[0] === 'a' ? 'alt:' : 'ans:') + k.slice(1)));
+      const hits = sc.prims.filter(p => p.k === 'hit' && want.has(p.kind + ':' + p.pos));
+      const marks = hits.map(p => ({ k: 'circle', cx: p.cx, cy: p.cy, r: p.r + 0.6, fill: 'rgba(255,205,0,.32)', stroke: '#e0a000', sw: 0.6, overlay: true }));
+      const at = sc.prims.findIndex(p => p.k === 'hit');
+      if (marks.length) sc.prims.splice(at < 0 ? sc.prims.length : at, 0, ...marks);
+    }
+  }
   return sc;
 };
 function scanFieldEl(k) {
@@ -4876,6 +4933,7 @@ function scanFieldEl(k) {
   return tr.querySelector(`td[data-label="${k[0] === 'a' ? 'Alternativ' : 'Facit'}"] .cell`);
 }
 function scanRenderFlags() {
+  if ($('#scanRef')) scanRenderRef();
   const q = curQ(), f = scanFlagsOf(q), notes = (q.pro && q.pro.scan && q.pro.scan.n) || [];
   $$('#pEditor .scanflag').forEach(el => { el.classList.remove('scanflag'); el.removeAttribute('data-scanflag'); });
   for (const k of f) { const el = scanFieldEl(k); if (el) { el.classList.add('scanflag'); el.title = 'Osäker avläsning – kontrollera mot bilden'; } }
@@ -5679,8 +5737,15 @@ function scanRenderRef() {
   if (!it) { if (el) el.remove(); return; }
   if (!el) {
     el = document.createElement('details'); el.id = 'scanRef'; el.className = 'scanref'; el.open = true;
-    el.innerHTML = '<summary>Inskannad bild – jämför med texten nedan</summary><img alt="Det inskannade kortet"><div class="scanref-btns"><button type="button" id="refRedo" title="Öppna bilden, justera ramen om det behövs och läs om kortet">Läs om bilden…</button><button type="button" id="refNew" title="Fotografera kortet igen och läs om det">Ta ny bild…</button></div><p class="help">Det du ändrat för hand skrivs inte över.</p>';
+    el.innerHTML = '<summary>Inskannad bild – jämför med texten nedan</summary><div class="scanref-pic" title="Tryck på en text i bilden för att hoppa till fältet"><img alt="Det inskannade kortet"><div class="scanref-marks"></div></div><div class="scanref-btns"><button type="button" id="refRedo" title="Öppna bilden, justera ramen om det behövs och läs om kortet">Läs om bilden…</button><button type="button" id="refNew" title="Fotografera kortet igen och läs om det">Ta ny bild…</button></div><p class="help">Det du ändrat för hand skrivs inte över.</p>';
     $('#pEditor .form').prepend(el);
+    // tryck på bilden → hoppa till frågan, alternativet eller facit som står där
+    el.querySelector('.scanref-pic').addEventListener('click', e => {
+      const r = e.currentTarget.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 110, y = (e.clientY - r.top) / r.height * 110;
+      const t = scanRefTarget(x, y); if (!t) return;
+      if (typeof proUI !== 'undefined' && proUI.tab !== 'content') proSetTab('content');
+      focusTarget(t.kind, t.pos);
+    });
     el.querySelector('#refRedo').addEventListener('click', () => { const x = scanItemFor(curCard().id, state.side); if (x) scanOpen(x); });
     el.querySelector('#refNew').addEventListener('click', () => {
       const x = scanItemFor(curCard().id, state.side); if (!x) return;
@@ -5689,6 +5754,22 @@ function scanRenderRef() {
   }
   const im = el.querySelector('img');
   if (ref) { im.src = ref; im.hidden = false; } else { im.hidden = true; }
+  // samma gula markeringar som i redigeringen, på bilden
+  const marks = el.querySelector('.scanref-marks'), f = scanFlagsOf(curQ()), pct = v => (v / 110 * 100).toFixed(2) + '%';
+  marks.innerHTML = ref ? f.filter(k => k !== 'type' && k !== 'img').map(k => {
+    const [x, y, r] = k === 'q' ? [55, 55, 15.5] : k[0] === 'a' ? [...scanPt(Number(k.slice(1)), 24.5), 7] : [...scanPt(Number(k.slice(1)), 45), 8];
+    return `<span style="left:${pct(x - r)};top:${pct(y - r)};width:${pct(2 * r)};height:${pct(2 * r)}"></span>`;
+  }).join('') : '';
+}
+function scanRefTarget(x, y) {
+  const r = Math.hypot(x - 55, y - 55);
+  if (r < 16.5) return { kind: 'q', pos: -1 };
+  let best = null, bd = 1e9;
+  for (let i = 0; i < 10; i++) for (const [kind, rr, lim] of [['alt', 24.5, 9], ['ans', 45, 10]]) {
+    const [px, py] = scanPt(i, rr), d = Math.hypot(x - px, y - py);
+    if (d < lim && d < bd) { bd = d; best = { kind, pos: i }; }
+  }
+  return best;
 }
 // Öppna skanningsdialogen (valfritt med en viss bild vald)
 async function scanOpen(it) {
