@@ -3,7 +3,7 @@
   "short_name": "Jordkällaren",
   "description": "Temperatur och luftfuktighet i jordkällaren, utetemperatur och batteri för sensorn.",
   "lang": "sv",
-  "id": "./",
+  "id": "/jordkellare/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

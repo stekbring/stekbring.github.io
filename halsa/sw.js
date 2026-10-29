@@ -1,5 +1,5 @@
 /* Olles Hälsa – service worker: gör appen installerbar, användbar utan nät och uppdaterar den automatiskt. */
-const VERSION = 'halsa-v3';
+const VERSION = 'halsa-v4';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

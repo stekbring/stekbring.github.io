@@ -3,7 +3,7 @@
   "short_name": "Hälsa",
   "description": "Logga vikt och kalorier, importera hälsodata och träningspass från klockan och följ planen mot målvikten.",
   "lang": "sv",
-  "id": "./",
+  "id": "/halsa/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
