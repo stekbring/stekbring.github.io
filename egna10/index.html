@@ -5,7 +5,7 @@
 <script>
 /* =====================================================================
    ÄGARINSTÄLLNINGAR – det här är det enda du behöver ändra i filen.
-   Spara, och byt sedan versionen i sw.js i samma mapp (egna10pro-v11 → egna10pro-v12)
+   Spara, och byt sedan versionen i sw.js i samma mapp (egna10pro-v12 → egna10pro-v13)
    så att telefoner som har appen installerad hämtar den nya versionen.
    ===================================================================== */
 window.EGNA_ADMIN = {
@@ -587,8 +587,16 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
 .scan-look small{color:var(--muted,#666)}
 .scanlist{list-style:none;margin:0;padding:0;background:var(--field);border:2px inset var(--face);flex:1;min-height:120px;overflow:auto}
 .scanlist li{display:flex;align-items:center;gap:8px;padding:5px 6px;border-bottom:1px solid #e3e0d8;cursor:pointer}
-.scanlist li img{width:46px;height:46px;object-fit:cover;flex:none;border:1px solid var(--lo)}
-.scanlist li span{display:flex;flex-direction:column;min-width:0}
+.scanlist li .si{position:relative;flex:none;display:block;line-height:0}
+.scanlist li img{width:64px;height:64px;object-fit:cover;flex:none;border:1px solid var(--lo);background:#fff}
+.scanlist li .sb{position:absolute;right:-5px;top:-5px;width:20px;height:20px;border-radius:10px;font-style:normal;font-weight:800;font-size:12px;line-height:20px;text-align:center;border:1.5px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.35)}
+.scanlist li .sb.ok{background:#2e7d32;color:#fff}
+.scanlist li .sb.warn{background:#ffc107;color:#222}
+.scanlist li .sb.no{background:#b3261e;color:#fff}
+.scanlist li em{position:absolute;left:2px;bottom:2px;font-style:normal;font-size:11px;line-height:1;padding:2px 4px;background:rgba(0,0,0,.6);color:#fff;border-radius:3px}
+.scanlist li .sx{display:flex;flex-direction:column;min-width:0}
+.scanlist li .rs{display:none}
+.scanlist li.linked:not(.sel) .sx b{color:#2e5e30}
 .scanlist li small{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .scanlist li.sel{background:var(--sel);color:var(--selink)}
 .scanlist li.sel small{color:#c9d3e6}
@@ -605,7 +613,6 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
 @media (max-width:720px){
   #dlgScan{height:100dvh !important;max-height:100dvh}
   .scanbody{grid-template-columns:1fr;grid-template-rows:auto minmax(320px,1fr);overflow:auto !important}
-  .scanlist{max-height:150px;min-height:60px}
   .scan-stage{min-height:340px}
   .scanfoot button{flex:1 1 45%}
 }
@@ -679,10 +686,46 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
 .scanref-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:6px}
 .scanref .help{text-align:center;margin:4px 0 0}
 .scan-tools #scanUp,.scan-tools #scanDown{min-width:34px}
+.scan-tools #scanUp .h,.scan-tools #scanDown .h{display:none}
+.scan-nav{display:flex;align-items:center;gap:6px}
+.scan-nav[hidden]{display:none}
+.scan-nav button{min-width:48px;font-size:22px;line-height:1;padding:4px 10px;font-weight:700}
+.scan-nav span{flex:1;text-align:center;min-width:0;line-height:1.25}
+.scan-nav .ok{color:#2e7d32;white-space:nowrap}
+.scanhow .dbody{max-width:520px}
+.sh-opts{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.sh-opt{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:8px 10px;white-space:normal}
+.sh-opt small{color:var(--muted);font-weight:normal}
+@media (max-width:720px){
+  /* bilderna som en liggande remsa med stora miniatyrer – svep åt sidan */
+  .scanlist{display:flex;flex-direction:row;flex:none;gap:6px;max-height:none;min-height:0;overflow-x:auto;overflow-y:hidden;padding:8px 6px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+  .scanlist li{flex:none;width:92px;flex-direction:column;align-items:stretch;gap:3px;padding:4px;border:2px solid transparent;border-bottom:2px solid transparent;border-radius:4px;scroll-snap-align:center;background:var(--face)}
+  .scanlist li img{width:80px;height:80px;display:block;margin:0 auto}
+  .scanlist li .si{align-self:center}
+  .scanlist li.sel{border-color:#1d5fa8;background:var(--sel)}
+  .scanlist li .sx{text-align:center}
+  .scanlist li .rl,.scanlist li small{display:none}
+  .scanlist li .rs{display:block;font-size:13px;line-height:1.2;white-space:normal}
+  .scanlist .scan-empty{width:auto;flex:1;white-space:normal}
+  #dlgScan.scan-has .scanside > .help{display:none}
+  .scan-tools #scanUp .v,.scan-tools #scanDown .v{display:none}
+  .scan-tools #scanUp .h,.scan-tools #scanDown .h{display:inline}
+  .scan-nav button{min-width:56px;padding:6px 12px}
+}
 .scanref-pic{position:relative;width:100%;max-width:340px;margin:6px auto 0;cursor:pointer}
 .scanref-pic img{display:block;width:100%;max-width:none;margin:0}
 .scanref-marks{position:absolute;inset:0;pointer-events:none}
 .scanref-marks span{position:absolute;border-radius:50%;background:rgba(255,205,0,.3);border:2px solid #e0a000;box-sizing:border-box}
+/* ---------- Kopiera färgerna till andra kort ---------- */
+#dlgLookCopy .dbody{max-width:560px}
+.lcbody fieldset{margin:6px 0}
+.lc-to{display:flex;flex-wrap:wrap;gap:4px 12px;margin:2px 0 0 24px;align-items:center}
+.lc-to[hidden]{display:none}
+.lcbody .pdfpick{margin:6px 0}
+.lcbody .pp-btns{align-items:center}
+.lcbody .pp-btns .help{margin-left:6px}
+.lcbody .pp-list{max-height:min(300px,40vh)}
+.pro-grp-foot{display:flex;flex-wrap:wrap;gap:6px}
 </style>
 </head>
 <body>
@@ -3794,6 +3837,7 @@ function bindProPanes() {
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.lookdef) { proLookSet(b.dataset.lookdef, undefined); proRenderPane(); return; }
     if (b.dataset.act === 'lookReset') { proLookReset(); proRenderPane(); return; }
+    if (b.dataset.act === 'lookCopy') { proLookCopyOpen(); return; }
     if (b.classList.contains('pf-def')) { const k = b.closest('[data-k]').dataset.k; proSet(k, proUI.scope === 'side' ? proGet(k, 'all') : k.startsWith('style.') ? proBaseValAll(k) : ''); proRenderPane(); return; }
     if (b.dataset.add) { if (b.dataset.add === 'img') proPickImage(async src => { const r = await proImgRatio(src); proAddItem('img', { src, w: 40, h: Math.round(40 / (r || 1) * 10) / 10, fit: 'contain' }); }); else proAddItem(b.dataset.add); return; }
     if (b.classList.contains('pro-it')) { proUI.sel = { kind: 'item', id: b.closest('li').dataset.id, side: state.side }; proRenderPane(); renderPreview(); return; }
@@ -3828,7 +3872,7 @@ function proLookHTML() {
     return `<label class="pf" data-lk="${k}"><span>${esc(STYLE_LABELS[k] || k)}${own ? '<span class="pro-mark" title="Ändrad för det här kortet">•</span>' : ''}${mixed(k) ? ' <small class="help">(olika på sidorna)</small>' : ''}</span><span class="pf-col"><input type="color" value="${esc(proLookVal(q, k))}"><button type="button" data-lookdef="${k}" title="Använd kortlekens färg"${own ? '' : ' disabled'}>Kortlekens</button></span></label>`;
   }).join('');
   const any = c.sides.some(sq => sq.pro && sq.pro.design && sq.pro.design.style && Object.keys(sq.pro.design.style).length);
-  h += `<div class="pro-grp-foot"><button type="button" data-act="lookReset"${any ? '' : ' disabled'}>Använd kortlekens färger på hela kortet</button></div>`;
+  h += `<div class="pro-grp-foot"><button type="button" data-act="lookCopy"${state.deck.cards.length > 1 ? '' : ' disabled'} title="Ge andra kort samma färger som det här">Kopiera färgerna till andra kort…</button><button type="button" data-act="lookReset"${any ? '' : ' disabled'}>Använd kortlekens färger på hela kortet</button></div>`;
   return h;
 }
 function proLookSet(k, v) {
@@ -3845,6 +3889,63 @@ function proLookSet(k, v) {
 function proLookReset() {
   for (const q of curCard().sides) if (q.pro && q.pro.design) { delete q.pro.design.style; if (!Object.keys(q.pro.design).length && !(q.pro.items || []).length && !q.pro.noWm && !q.pro.scan) delete q.pro; }
   proChanged();
+}
+
+/* ---------- Kopiera ett korts färger till andra kort ---------- */
+function proStyleOf(q) { const st = q && q.pro && q.pro.design && q.pro.design.style; return st ? Object.assign({}, st) : {}; }
+function proStyleSet(q, st) {
+  q.pro = q.pro || { design: {}, items: [] }; q.pro.design = q.pro.design || {}; q.pro.items = q.pro.items || [];
+  if (Object.keys(st).length) q.pro.design.style = Object.assign({}, st); else delete q.pro.design.style;
+  if (!Object.keys(q.pro.design).length && !q.pro.items.length && !q.pro.noWm && !q.pro.scan) delete q.pro;
+}
+function proLookCopyOpen() {
+  let dlg = $('#dlgLookCopy');
+  if (!dlg) {
+    dlg = document.createElement('dialog'); dlg.id = 'dlgLookCopy';
+    dlg.innerHTML = `<form method="dialog"><div class="dhead">Kopiera färgerna</div><div class="dbody lcbody">
+      <p id="lcWhat"></p>
+      <fieldset id="lcFrom"><legend>Kopiera</legend>
+        <label class="opt"><input type="radio" name="lcFrom" value="card" checked> <span id="lcCardTxt">framsidans färger till framsidor och baksidans till baksidor</span></label>
+        <label class="opt"><input type="radio" name="lcFrom" value="side"> <span id="lcSideTxt">bara den här sidans färger</span></label>
+        <div class="lc-to" id="lcTo"><span>till</span><label><input type="radio" name="lcTo" value="2" checked> båda sidorna</label><label><input type="radio" name="lcTo" value="0"> framsidorna</label><label><input type="radio" name="lcTo" value="1"> baksidorna</label></div>
+      </fieldset>
+      <div class="pdfpick"><div class="pp-btns"><button type="button" id="lcAll">Alla</button><button type="button" id="lcNone">Inga</button><button type="button" id="lcInv">Omvänt</button><span class="help" id="lcCount"></span></div><div class="pp-list" id="lcList"></div></div>
+      <p class="help">Korten du väljer får exakt samma färger. Färger som inte är ändrade på det här kortet blir kortlekens färger.</p>
+    </div><div class="dfoot"><button id="lcGo" class="default" value="go">Kopiera</button><button value="cancel">Avbryt</button></div></form>`;
+    document.body.appendChild(dlg);
+    const count = () => { const n = $$('#lcList input:checked').length; $('#lcCount').textContent = `${n} ${n === 1 ? 'kort valt' : 'kort valda'}`; $('#lcGo').disabled = !n; };
+    const toUI = () => { $('#lcTo').hidden = dlg.querySelector('[name=lcFrom]:checked').value !== 'side'; };
+    dlg.addEventListener('change', () => { count(); toUI(); });
+    $('#lcAll').addEventListener('click', () => { $$('#lcList input').forEach(i => { i.checked = true; }); count(); });
+    $('#lcNone').addEventListener('click', () => { $$('#lcList input').forEach(i => { i.checked = false; }); count(); });
+    $('#lcInv').addEventListener('click', () => { $$('#lcList input').forEach(i => { i.checked = !i.checked; }); count(); });
+    dlg.addEventListener('close', () => { if (dlg.returnValue === 'go') proLookCopyDo(); });
+    dlg._count = count; dlg._toUI = toUI;
+  }
+  const c = curCard(), side = state.side, t = q => esc(((q.text || '').replace(/[|~]/g, ' ').trim()) || '(tom)');
+  const own = c.sides.map(q => Object.keys(proStyleOf(q)).length);
+  $('#lcWhat').innerHTML = `Från <b>kort ${state.cur + 1}</b>` + (own[0] || own[1] ? ` (egna färger på ${own[0] && own[1] ? 'båda sidorna' : own[0] ? 'framsidan' : 'baksidan'})` : ' – kortet har kortlekens färger, så de valda korten får tillbaka kortlekens färger') + '.';
+  $('#lcSideTxt').textContent = `bara ${side ? 'baksidans' : 'framsidans'} färger`;
+  dlg.querySelector(`[name=lcFrom][value=${proUI.lookScope === 'side' ? 'side' : 'card'}]`).checked = true;
+  $('#lcList').innerHTML = state.deck.cards.map((cc, i) => i === state.cur ? '' : `<label class="pp-card"><input type="checkbox" value="${cc.id}"><span class="n">${i + 1}.</span><span class="q"><span>${t(cc.sides[0])}</span><span>${t(cc.sides[1])}</span></span></label>`).join('');
+  dlg._count(); dlg._toUI();
+  dlg.returnValue = '';
+  dlg.showModal();
+}
+function proLookCopyDo() {
+  const dlg = $('#dlgLookCopy'), c = curCard(), ids = new Set($$('#lcList input:checked').map(i => i.value));
+  const from = dlg.querySelector('[name=lcFrom]:checked').value, to = Number(dlg.querySelector('[name=lcTo]:checked').value);
+  const src = c.sides.map(proStyleOf), one = proStyleOf(c.sides[state.side]);
+  let n = 0;
+  for (const cc of state.deck.cards) {
+    if (!ids.has(cc.id) || cc === c) continue;
+    if (from === 'card') { proStyleSet(cc.sides[0], src[0]); proStyleSet(cc.sides[1], src[1]); }
+    else [0, 1].forEach(si => { if (to === 2 || to === si) proStyleSet(cc.sides[si], one); });
+    n++;
+  }
+  if (!n) return;
+  proChanged(); proRenderPane();
+  setStatus(`Färgerna kopierades till ${n} ${n === 1 ? 'kort' : 'kort'}.`);
 }
 
 /* ---------- Markering och dragning på korten ---------- */
@@ -4898,16 +4999,41 @@ async function scanLoadTess() {
 
 /* ---------- Gränssnittet ---------- */
 function scanStatus(s) { $('#scanStatus').textContent = s; }
+function scanRole(it, k) {                      // vad bilden blir: kort i kortleken eller nytt kort
+  const pairs = $('#scanMode').value === 'pairs';
+  if (it.noCard) return { long: 'Inget kort', short: 'Inget kort' };
+  if (scanIsLinked(it)) { const ci = state.deck.cards.findIndex(c => c.id === it.added.cardId); return { long: `Kort ${ci + 1} · ${it.added.side ? 'baksida' : 'framsida'}`, short: `Kort ${ci + 1} · ${it.added.side ? 'bak' : 'fram'}` }; }
+  const j = SCAN.items.slice(0, k).filter(x => !x.noCard && !scanIsLinked(x)).length;
+  return pairs ? { long: `Nytt kort ${Math.floor(j / 2) + 1} · ${j % 2 ? 'baksida' : 'framsida'}`, short: `Nytt ${Math.floor(j / 2) + 1} · ${j % 2 ? 'bak' : 'fram'}` } : { long: `Nytt kort ${j + 1}`, short: `Nytt kort ${j + 1}` };
+}
 function scanRenderList() {
-  const ol = $('#scanList'), pairs = $('#scanMode').value === 'pairs';
+  const ol = $('#scanList'), dlg = $('#dlgScan');
+  dlg.classList.toggle('scan-has', SCAN.items.length > 0);
+  scanRenderNav();
   if (!SCAN.items.length) { ol.innerHTML = '<li class="scan-empty">Inga bilder än. Tryck på ”Ta foto” för att skanna korten med kameran, eller välj färdiga bilder.</li>'; return; }
   ol.innerHTML = SCAN.items.map((it, k) => {
-    const j = SCAN.items.slice(0, k).filter(x => !x.noCard && !scanIsLinked(x)).length;
-    const role = it.noCard ? 'Inget kort' : scanIsLinked(it) ? 'Redan inläst' : pairs ? `Kort ${Math.floor(j / 2) + 1} · ${j % 2 ? 'baksida' : 'framsida'}` : `Kort ${j + 1}`;
-    const where = scanIsLinked(it) ? scanWhereText(it) : '', st = it.noCard ? 'hoppas över' : where ? '✓ ' + where : it.result ? '✓ inläst' : it.err ? 'fel' : '';
-    const qw = it.quality && it.quality.warn.length ? `<small class="qw">⚠ ${esc(it.quality.warn.join(', '))}</small>` : '';
-    return `<li class="${k === SCAN.sel ? 'sel' : ''}" data-k="${k}"><img src="${it.thumb}" alt=""><span><b>${role}</b><small>${esc(it.name)}${st ? ' · ' + st : ''}</small>${qw}</span></li>`;
+    const r = scanRole(it, k), linked = scanIsLinked(it), warn = it.quality && it.quality.warn.length;
+    const st = it.noCard ? 'hoppas över' : linked ? '✓ finns i kortleken' : it.result ? '✓ inläst' : it.err ? 'fel' : 'ny';
+    const badge = it.noCard ? '<i class="sb no" title="Inget kort hittades">✕</i>' : warn ? '<i class="sb warn" title="Osäker bild">!</i>' : linked ? '<i class="sb ok" title="Finns i kortleken">✓</i>' : '';
+    const qw = warn ? `<small class="qw">⚠ ${esc(it.quality.warn.join(', '))}</small>` : '';
+    return `<li class="${k === SCAN.sel ? 'sel' : ''}${linked ? ' linked' : ''}" data-k="${k}" title="${esc(r.long)}"><span class="si"><img src="${it.thumb}" alt="">${badge}<em>${k + 1}</em></span><span class="sx"><b class="rl">${esc(r.long)}</b><b class="rs">${esc(r.short)}</b><small>${esc(it.name)} · ${st}</small>${qw}</span></li>`;
   }).join('');
+  scanListScroll();
+}
+// håll den valda bilden synlig i listan (liggande remsa i mobilen, lista på datorn)
+function scanListScroll() {
+  const ol = $('#scanList'), li = ol.querySelector('li.sel'); if (!li) return;
+  if (ol.scrollWidth > ol.clientWidth + 4) ol.scrollLeft = li.offsetLeft - ol.offsetLeft - (ol.clientWidth - li.offsetWidth) / 2;
+  else if (li.offsetTop - ol.offsetTop < ol.scrollTop || li.offsetTop - ol.offsetTop + li.offsetHeight > ol.scrollTop + ol.clientHeight) ol.scrollTop = li.offsetTop - ol.offsetTop - (ol.clientHeight - li.offsetHeight) / 2;
+}
+// ‹ Bild 3 av 10 · Kort 2 · baksida ›
+function scanRenderNav() {
+  const pos = $('#scanPos'); if (!pos) return;
+  const n = SCAN.items.length, k = SCAN.sel, it = SCAN.items[k];
+  $('#scanNav').hidden = !n;
+  pos.innerHTML = it ? `<b>Bild ${k + 1} av ${n}</b> · ${esc(scanRole(it, k).long)}${scanIsLinked(it) ? ' <span class="ok">✓ finns i kortleken</span>' : ''}` : '';
+  $('#scanPrev').disabled = !it || k <= 0;
+  $('#scanNext').disabled = !it || k >= n - 1;
 }
 function scanFit() {                          // bildens placering i ritytan
   const cv = $('#scanCanvas'), it = SCAN.items[SCAN.sel]; if (!it || !it.src) return null;
@@ -5033,7 +5159,7 @@ async function scanAddFiles(files) {
   scanStatus(SCAN.items.length ? `${SCAN.items.length} ${SCAN.items.length === 1 ? 'bild' : 'bilder'}. Kontrollera att ramen sitter rätt och tryck sedan på en av knapparna nedan.` : '');
 }
 async function scanReadAll() {
-  const todo = SCAN.items.filter(it => !it.result && !it.noCard && !scanIsLinked(it));
+  const todo = SCAN.items.filter(it => !it.result && scanInPool(it));
   if (!todo.length) return true;
   scanStatus('Laddar textigenkänningen (första gången tar det en stund) …');
   try { await scanLoadTess(); } catch (e) { scanStatus(e.message); return false; }
@@ -5055,7 +5181,7 @@ async function scanReadAll() {
   return true;
 }
 function scanBuildCards() {
-  const pairs = $('#scanMode').value === 'pairs', ok = SCAN.items.filter(it => it.result && !it.noCard && !scanIsLinked(it)), cards = [], refs = [], sides = [];
+  const pairs = $('#scanMode').value === 'pairs', ok = SCAN.items.filter(it => it.result && scanInPool(it)), cards = [], refs = [], sides = [];
   try { scanConsensus(ok.map(it => it.result)); } catch (e) { /* rättningen är bara en hjälp */ }
   const step = pairs ? 2 : 1;
   for (let k = 0; k < ok.length; k += step) {
@@ -5072,17 +5198,23 @@ function scanSideStyles(look, sides) {
   if (!look) return;
   for (const [q, , it] of sides) { const st = look.sideStyle.get(it); if (st) { q.pro = q.pro || {}; q.pro.design = Object.assign({}, q.pro.design || {}, { style: st }); } }
 }
-async function scanFinish(action) {
+async function scanFinish(action, how) {
   if (SCAN.busy) return;
   if (!SCAN.items.length) { scanStatus('Lägg till bilder först.'); return; }
-  if (!SCAN.items.some(it => !scanIsLinked(it) && !it.noCard)) { scanStatus('Alla bilder finns redan i kortleken. Ta nya bilder, eller välj en bild och tryck ”Läs om till kortet”.'); return; }
+  const linked = SCAN.items.filter(it => !it.noCard && scanIsLinked(it)), fresh = SCAN.items.filter(it => !it.noCard && !scanIsLinked(it));
+  if (!linked.length && !fresh.length) { scanStatus('Det finns inget kort i bilderna. Dra handtagen till kortet eller ta nya bilder.'); return; }
+  // några bilder finns redan i kortleken → fråga vad som ska hända med dem
+  if (!how) how = linked.length ? await scanAskHow(action, linked.length, fresh.length) : 'fresh';
+  if (!how) return;
+  if (how === 'replace') { if (!(await scanReplaceLinked(linked))) return; if (!fresh.length) return; how = 'fresh'; }
+  SCAN.useAll = how === 'all';
   SCAN.busy = true; $$('#dlgScan .scanfoot button').forEach(b => { b.disabled = true; });
   try {
     if (!(await scanReadAll())) return;
     const { cards, refs, sides } = scanBuildCards();
     if (!cards.length) { scanStatus('Inga kort kunde läsas.'); return; }
     let look = null;
-    if ($('#scanLook').checked) { scanStatus('Kopierar färger och bakgrund …'); await new Promise(r => setTimeout(r, 30)); try { look = await scanDeckLook(SCAN.items.filter(it => !scanIsLinked(it)), $('#scanMode').value === 'pairs'); } catch (e) { look = null; } }
+    if ($('#scanLook').checked) { scanStatus('Kopierar färger och bakgrund …'); await new Promise(r => setTimeout(r, 30)); try { look = await scanDeckLook(SCAN.items.filter(scanInPool), $('#scanMode').value === 'pairs'); } catch (e) { look = null; } }
     scanSideStyles(look, sides);
     if (action === 'file') {
       const raw = newDeck(); raw.name = 'Inskannade kort'; raw.cards = cards;
@@ -5114,8 +5246,35 @@ async function scanFinish(action) {
     $('#dlgScan').close();
     setStatus(`${cards.length} kort är inskannade – kontrollera texten mot bilden överst i redigeringen.`);
   } finally {
-    SCAN.busy = false; $$('#dlgScan .scanfoot button').forEach(b => { b.disabled = false; });
+    SCAN.busy = false; SCAN.useAll = false; $$('#dlgScan .scanfoot button').forEach(b => { b.disabled = false; });
   }
+}
+// Bilder som är med när korten skapas: nya bilder – eller alla, om man valt att läsa in allt igen
+function scanInPool(it) { return !it.noCard && (SCAN.useAll || !scanIsLinked(it)); }
+// Fråga vad som ska hända med bilder som redan finns i kortleken
+function scanAskHow(action, nLinked, nFresh) {
+  let dlg = $('#dlgScanHow');
+  if (!dlg) {
+    dlg = document.createElement('dialog'); dlg.id = 'dlgScanHow'; dlg.className = 'scanhow';
+    dlg.innerHTML = '<form method="dialog"><div class="dhead">Bilderna finns redan i kortleken</div><div class="dbody"><p id="shText"></p><div class="sh-opts" id="shOpts"></div><p class="help" id="shLook"></p></div><div class="dfoot"><button value="" class="default">Avbryt</button></div></form>';
+    document.body.appendChild(dlg);
+  }
+  const bild = n => `${n} ${n === 1 ? 'bild' : 'bilder'}`, opts = [];
+  if (action === 'add') {
+    opts.push(['replace', nFresh ? `Läs om de ${bild(nLinked)} till sina kort och lägg till de ${bild(nFresh)} som är nya` : `Läs om alla till sina kort`, 'Texten byts mot en ny avläsning. Det du har ändrat för hand behålls.']);
+    if (nFresh) opts.push(['fresh', `Lägg bara till de ${bild(nFresh)} som är nya`, 'Korten som redan finns lämnas som de är.']);
+    opts.push(['all', `Lägg till alla ${bild(nLinked + nFresh)} som nya kort`, 'Korten som redan finns lämnas kvar, så de kommer att finnas två gånger.']);
+  } else {
+    opts.push(['all', `Använd alla ${bild(nLinked + nFresh)}`, action === 'new' ? 'Den nya kortleken får alla kort, även de som redan finns i den här kortleken.' : 'Filen får alla kort.']);
+    if (nFresh) opts.push(['fresh', `Bara de ${bild(nFresh)} som är nya`, '']);
+  }
+  if (action !== 'add' && !nFresh) return Promise.resolve('all');
+  $('#shText').textContent = nFresh ? `${bild(nLinked)} av ${nLinked + nFresh} finns redan i kortleken. Vad vill du göra?` : `Alla ${bild(nLinked)} finns redan i kortleken. Vad vill du göra?`;
+  $('#shOpts').innerHTML = opts.map(([v, t, h]) => `<button value="${v}" class="sh-opt"><b>${esc(t)}</b>${h ? `<small>${esc(h)}</small>` : ''}</button>`).join('');
+  $('#shLook').textContent = $('#scanLook').checked ? 'Färger, etikett och bakgrund kopieras från bilderna (rutan ”Kopiera färger …” är ikryssad).' : 'Färgerna kopieras inte från bilderna (rutan ”Kopiera färger …” är inte ikryssad).';
+  dlg.returnValue = '';
+  dlg.showModal();
+  return new Promise(res => dlg.addEventListener('close', () => res(dlg.returnValue || ''), { once: true }));
 }
 function bindScan() {
   const dlg = $('#dlgScan');
@@ -5125,6 +5284,15 @@ function bindScan() {
   for (const id of ['#scanFile', '#scanCamFile']) $(id).addEventListener('change', async e => { const f = e.target.files; await scanAddFiles(f); e.target.value = ''; });
   $('#scanMode').addEventListener('change', scanRenderList);
   $('#scanList').addEventListener('click', e => { const li = e.target.closest('li[data-k]'); if (li) scanSelect(Number(li.dataset.k)); });
+  $('#scanStage').insertAdjacentHTML('beforebegin', '<div class="scan-nav" id="scanNav" hidden><button type="button" id="scanPrev" aria-label="Föregående bild">‹</button><span id="scanPos" role="status"></span><button type="button" id="scanNext" aria-label="Nästa bild">›</button></div>');
+  $('#scanPrev').addEventListener('click', () => { if (SCAN.sel > 0) scanSelect(SCAN.sel - 1); });
+  $('#scanNext').addEventListener('click', () => { if (SCAN.sel < SCAN.items.length - 1) scanSelect(SCAN.sel + 1); });
+  dlg.addEventListener('keydown', e => {
+    if ((e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') || e.altKey || e.ctrlKey || e.metaKey || $('#scanCamUI:not([hidden])')) return;
+    if (e.target.closest('input,select,textarea')) return;
+    const j = SCAN.sel + (e.key === 'ArrowLeft' ? -1 : 1);
+    if (j >= 0 && j < SCAN.items.length) { e.preventDefault(); scanSelect(j); }
+  });
   $('#scanAuto').addEventListener('click', () => { const it = SCAN.items[SCAN.sel]; if (!it) return; it.corners = scanAutoCorners(it); it.result = null; it.viewCard = null; try { it.quality = scanQuality(it); } catch (e) { /* – */ } SCAN.view = null; scanFit(); scanRenderList(); scanDraw(); });
   $('#scanRot').addEventListener('click', () => { const it = SCAN.items[SCAN.sel]; if (!it) return; it.corners = it.corners.slice(3).concat(it.corners.slice(0, 3)); it.result = null; it.viewCard = null; scanRenderList(); scanDraw(); });
   $('#scanDup').addEventListener('click', () => { const it = SCAN.items[SCAN.sel]; if (!it) return; const c = scanItem(Object.assign({}, it, { id: uid(), result: null, added: null, corners: it.corners.map(p => [p[0] + 30, p[1] + 30]) })); SCAN.items.splice(SCAN.sel + 1, 0, c); scanSelect(SCAN.sel + 1); });
@@ -5996,6 +6164,33 @@ document.addEventListener('egna:scankeep', e => { if (e.detail) scanSave(); else
 /* ---------- Läs om ett kort som redan finns i kortleken ---------- */
 const SCAN_KEYS = ['q', 'type', ...Array.from({ length: 10 }, (_, i) => 'a' + i), ...Array.from({ length: 10 }, (_, i) => 'f' + i)];
 function scanEditedOf(q) { return new Set((q && q.pro && q.pro.scan && q.pro.scan.e) || []); }
+// Läs bilden (igen) – texten, kvaliteten och bilden som visas i redigeringen
+async function scanReadItem(it, progress) {
+  await scanEnsure(it);
+  const img = scanWarp(it);
+  it.result = await scanReadSide(img, progress);
+  try { it.result.quality = (it.quality = scanQuality(it, img)).warn; } catch (e) { it.result.quality = []; }
+  const c = document.createElement('canvas'); c.width = c.height = 560; const s = document.createElement('canvas'); s.width = s.height = SCAN_W; s.getContext('2d').putImageData(img, 0, 0);
+  c.getContext('2d').drawImage(s, 0, 0, 560, 560); it.ref = c.toDataURL('image/jpeg', 0.8); it.viewCard = null; it.err = false;
+  scanTrim();
+}
+// Lägg avläsningen på kortet bilden hör till. Det du har ändrat för hand får vara kvar. Svarar med antalet behållna fält.
+function scanPutResult(it) {
+  const card = state.deck.cards.find(c => c.id === it.added.cardId); if (!card) return -1;
+  const side = it.added.side, q = card.sides[side], nq = scanToQuestion(it.result);
+  const edited = scanEditedOf(q), newFlags = new Set(scanFlagsOf(nq));
+  if (!edited.has('q')) q.text = nq.text;
+  if (!edited.has('type')) { q.type = nq.type; q.ring = nq.ring; }
+  for (let i = 0; i < 10; i++) {
+    if (!edited.has('a' + i)) q.alts[i] = nq.alts[i];
+    if (!edited.has('f' + i)) q.ans[i] = nq.ans[i];
+  }
+  const flags = SCAN_KEYS.filter(k => newFlags.has(k) && !edited.has(k));
+  if (newFlags.has('img')) flags.push('img');
+  q.pro = q.pro || {};
+  q.pro.scan = { f: flags, n: (nq.pro && nq.pro.scan && nq.pro.scan.n) || [], e: [...edited] };
+  return edited.size;
+}
 async function scanRedo(it) {
   const ci = it.added ? state.deck.cards.findIndex(c => c.id === it.added.cardId) : -1;
   if (ci < 0) { scanStatus('Bilden hör inte till något kort i kortleken längre.'); return false; }
@@ -6004,33 +6199,57 @@ async function scanRedo(it) {
   try {
     scanStatus('Laddar textigenkänningen …');
     await scanLoadTess();
-    await scanEnsure(it);
-    const img = scanWarp(it);
-    it.result = await scanReadSide(img, (d, n) => scanStatus(`Läser om kortet … (${d}/${n})`));
-    try { it.result.quality = (it.quality = scanQuality(it, img)).warn; } catch (e) { it.result.quality = []; }
-    const c = document.createElement('canvas'); c.width = c.height = 560; const s = document.createElement('canvas'); s.width = s.height = SCAN_W; s.getContext('2d').putImageData(img, 0, 0);
-    c.getContext('2d').drawImage(s, 0, 0, 560, 560); it.ref = c.toDataURL('image/jpeg', 0.8); it.viewCard = null;
-    const card = state.deck.cards[ci], side = it.added.side, q = card.sides[side], nq = scanToQuestion(it.result);
-    const edited = scanEditedOf(q), newFlags = new Set(scanFlagsOf(nq));
-    // det du har ändrat för hand får vara kvar – resten ersätts med den nya avläsningen
-    if (!edited.has('q')) q.text = nq.text;
-    if (!edited.has('type')) { q.type = nq.type; q.ring = nq.ring; }
-    for (let i = 0; i < 10; i++) {
-      if (!edited.has('a' + i)) q.alts[i] = nq.alts[i];
-      if (!edited.has('f' + i)) q.ans[i] = nq.ans[i];
-    }
-    const flags = SCAN_KEYS.filter(k => newFlags.has(k) && !edited.has(k));
-    if (newFlags.has('img')) flags.push('img');
-    q.pro = q.pro || {};
-    q.pro.scan = { f: flags, n: (nq.pro && nq.pro.scan && nq.pro.scan.n) || [], e: [...edited] };
+    await scanReadItem(it, (d, n) => scanStatus(`Läser om kortet … (${d}/${n})`));
+    const side = it.added.side, kept = scanPutResult(it);
     state.status.clear();
     selectCard(ci, side); scheduleSave(); scanSaveSoon();
-    const kept = edited.size ? ` Det du ändrat för hand (${edited.size} ${edited.size === 1 ? 'fält' : 'fält'}) behölls.` : '';
-    setStatus(`Kort ${ci + 1} är omläst.${kept}`);
-    scanStatus(`Kort ${ci + 1} är omläst.${kept}`);
+    const msg = `Kort ${ci + 1} är omläst.${kept > 0 ? ` Det du ändrat för hand (${kept} fält) behölls.` : ''}`;
+    setStatus(msg); scanStatus(msg);
     return true;
   } catch (e) { scanStatus('Kunde inte läsa om: ' + (e.message || e)); return false; }
   finally { SCAN.busy = false; }
+}
+// Läs om alla bilder som redan finns i kortleken till sina kort (och kopiera färgerna igen om rutan är ikryssad)
+async function scanReplaceLinked(items) {
+  if (SCAN.busy || !items.length) return false;
+  SCAN.busy = true; $$('#dlgScan .scanfoot button').forEach(b => { b.disabled = true; });
+  try {
+    scanStatus('Laddar textigenkänningen (första gången tar det en stund) …');
+    try { await scanLoadTess(); } catch (e) { scanStatus(e.message); return false; }
+    let k = 0, kept = 0, failed = 0;
+    for (const it of items) {
+      k++;
+      scanStatus(`Läser om bild ${k} av ${items.length} …`);
+      try { await scanReadItem(it, (d, n) => scanStatus(`Läser om bild ${k} av ${items.length} … (${d}/${n})`)); } catch (e) { it.err = true; failed++; continue; }
+      kept += Math.max(0, scanPutResult(it));
+      scanRenderList();
+    }
+    const done = items.filter(it => !it.err && it.result);
+    if ($('#scanLook').checked && done.length) {
+      scanStatus('Kopierar färger och bakgrund …'); await new Promise(r => setTimeout(r, 30));
+      // fram- och baksidor i kortlekens ordning, så att motiven hamnar på rätt sida
+      const order = [];
+      for (const c of state.deck.cards) { const f = done.find(it => it.added.cardId === c.id && it.added.side === 0), b = done.find(it => it.added.cardId === c.id && it.added.side === 1); if (f || b) order.push(f || {}, b || {}); }
+      let look = null; try { look = await scanDeckLook(order, true); } catch (e) { look = null; }
+      if (look) {
+        const sides = done.map(it => { const c = state.deck.cards.find(cc => cc.id === it.added.cardId); return [c.sides[it.added.side], it.added.side, it]; });
+        scanSideStyles(look, sides);
+        const d = JSON.parse(JSON.stringify(state.deck)); d.cards = state.deck.cards;
+        scanApplyLook(d, look, sides.map(([q, si]) => [q, si]));
+        const ids = d.cards.map(c => c.id); state.deck = sanitizeDeck(d); state.deck.cards.forEach((c, i) => { c.id = ids[i]; });
+      }
+    }
+    state.status.clear(); scanSaveSoon();
+    const first = done[0] ? state.deck.cards.findIndex(c => c.id === done[0].added.cardId) : 0;
+    renderList(); selectCard(Math.max(0, first), done[0] ? done[0].added.side : 0); scheduleSave();
+    const n = new Set(done.map(it => it.added.cardId)).size;
+    const msg = `${n} ${n === 1 ? 'kort är omläst' : 'kort är omlästa'}.${kept ? ` Det du ändrat för hand (${kept} fält) behölls.` : ''}${failed ? ` ${failed} ${failed === 1 ? 'bild' : 'bilder'} gick inte att läsa.` : ''}`;
+    setStatus(msg); scanStatus(msg);
+    if (!items.some(it => it.err) && !SCAN.items.some(it => !it.noCard && !scanIsLinked(it))) $('#dlgScan').close();
+    return true;
+  } finally {
+    SCAN.busy = false; $$('#dlgScan .scanfoot button').forEach(b => { b.disabled = false; });
+  }
 }
 // Kom ihåg vilka fält man ändrat för hand på ett inskannat kort
 function scanMarkEdited(keys) {
@@ -6090,13 +6309,16 @@ async function scanOpen(it) {
   const k = it ? SCAN.items.indexOf(it) : (SCAN.sel >= 0 && SCAN.sel < SCAN.items.length ? SCAN.sel : SCAN.items.length ? 0 : -1);
   await new Promise(r => requestAnimationFrame(r));
   await scanSelect(k);
-  if (SCAN.items.length && !$('#scanStatus').textContent) scanStatus(`${SCAN.items.length} ${SCAN.items.length === 1 ? 'bild' : 'bilder'} sedan tidigare.`);
+  if (!SCAN.busy) {
+    const n = SCAN.items.length, nl = SCAN.items.filter(x => !x.noCard && scanIsLinked(x)).length, b = k => `${k} ${k === 1 ? 'bild' : 'bilder'}`;
+    scanStatus(!n ? '' : nl === n ? `Alla ${b(n)} finns i kortleken. Tryck på ”Lägg till i kortleken” eller ”Skapa ny kortlek” för att läsa in dem igen.` : nl ? `${b(n)}, varav ${nl} redan finns i kortleken.` : `${b(n)} sedan tidigare.`);
+  }
 }
 
 function bindScanStore() {
   // knappar: flytta upp/ned, ta om, rensa, läs om till kortet
   const tools = $('.scan-tools');
-  tools.insertAdjacentHTML('afterbegin', '<button type="button" id="scanUp" title="Flytta bilden uppåt i listan">▲</button><button type="button" id="scanDown" title="Flytta bilden nedåt i listan">▼</button>');
+  tools.insertAdjacentHTML('afterbegin', '<button type="button" id="scanUp" title="Flytta bilden ett steg bakåt i ordningen"><span class="v">▲</span><span class="h">◀ Flytta</span></button><button type="button" id="scanDown" title="Flytta bilden ett steg framåt i ordningen"><span class="v">▼</span><span class="h">Flytta ▶</span></button>');
   $('#scanDel').insertAdjacentHTML('beforebegin', '<button type="button" id="scanRetake" title="Fotografera det här kortet igen">Ta om</button>');
   $('.scan-add').insertAdjacentHTML('beforeend', '<button type="button" id="scanClear" title="Ta bort alla bilder">Rensa</button>');
   $('#scanAdd').insertAdjacentHTML('beforebegin', '<button type="button" id="scanRedo" class="default" hidden>Läs om till kortet</button>');
