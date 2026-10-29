@@ -504,7 +504,15 @@ dialog.bred{width:min(560px,96vw)}
       </div>
       <div class="row"><button id="btnCreateUser" class="default">Skapa konto</button><span class="msg" id="userMsg"></span></div>
     </fieldset>
-    <p class="help">Läsare ser allt och väljer egna larm men kan inte ändra inställningar.</p>
+    <fieldset>
+      <legend>Vad läsare ser</legend>
+      <div class="form2">
+        <label for="lfFran">Visa mätningar från</label><input type="datetime-local" id="lfFran">
+      </div>
+      <div class="row"><button id="btnLfSpara">Spara</button><button id="btnLfNu">Från nu</button><button id="btnLfAlla">Visa allt</button><span class="msg" id="lfMsg"></span></div>
+      <p class="help" id="lfHelp">Läsare ser mätningar, händelser och anteckningar från den här tiden och framåt, även i exporten. Du som admin ser allt. Inget tas bort.</p>
+    </fieldset>
+    <p class="help">Läsare väljer egna larm men kan inte ändra inställningar.</p>
   </section>
 
   <section class="panel wide only-admin" aria-labelledby="hDiag" hidden>
@@ -1135,7 +1143,10 @@ const RAW_MAX_SPAN = 8 * 864e5;                 // längre perioder visas med ti
 const MIN_SPAN = 2 * 60e3, MAX_SPAN = 6 * 365 * 864e5;
 let showLastYear = lsGet('jk-forraaret') === '1';
 
-const clearCutoff = () => Number(lsGet('jk-rensad')) || 0;
+// Läsare ser bara data från den tid admin valt (plats/lasareFran). Admin ser allt.
+const lasareGrans = () => !isAdmin && num(plats?.lasareFran) ? plats.lasareFran : 0;
+const egenRensning = () => Number(lsGet('jk-rensad')) || 0;
+const clearCutoff = () => Math.max(egenRensning(), lasareGrans());
 const useHourly = () => view.t1 - view.t0 > RAW_MAX_SPAN;
 
 function setView(t0, t1, follow) {
@@ -1507,7 +1518,7 @@ function renderHist() {
   $('statTiles').innerHTML = tile('Jordkällaren, medel', st('ti'), ' °C') + tile('Fukt, medel', st('rh'), ' %', 0) + tile('Ute, medel', st('tu'), ' °C') + batTile + missed;
   $('histNote').textContent = H ? 'Timmedelvärden, skuggat fält visar min–max.' : inV.length > 500 ? 'Skuggat fält visar min–max.' : '';
 
-  const c = clearCutoff();
+  const c = egenRensning();
   $('btnUnclear').hidden = !c; $('btnClear').hidden = !!c;
 
   renderStats();
@@ -1571,6 +1582,8 @@ $('btnDoExport').addEventListener('click', async ev => {
   let t0 = view.t0, t1 = Math.min(view.t1, nowServer());
   if (per === 'all') { t0 = 0; t1 = nowServer() + 60e3; }
   if (per === 'custom') { t0 = fromIsoLocal($('exFrom').value); t1 = fromIsoLocal($('exTo').value); if (t0 == null || t1 == null || t1 <= t0) return msg($('exMsg'), 'bad', 'Fyll i en giltig period.'); }
+  t0 = Math.max(t0, lasareGrans());
+  if (t1 <= t0) return msg($('exMsg'), 'bad', 'Inga mätningar i perioden.');
   msg($('exMsg'), '', 'Hämtar…');
   try {
     // Timmar och dygn räknas från timsammanfattningarna, kortare från varje mätning
@@ -1704,7 +1717,7 @@ $('btnSavePlats').addEventListener('click', async () => {
   const fg = parseFloat(String($('plFrost').value).replace(',', '.'));
   if (!(lat > 54 && lat < 70 && lon > 10 && lon < 25)) return msg($('plMsg'), 'bad', 'Positionen ligger inte i Sverige (SMHI:s område).');
   try {
-    await D.set('plats', { lat: +lat.toFixed(4), lon: +lon.toFixed(4), namn: $('plNamn').value.trim(), frostGrans: num(fg) ? fg : -5 });
+    await D.update('plats', { lat: +lat.toFixed(4), lon: +lon.toFixed(4), namn: $('plNamn').value.trim(), frostGrans: num(fg) ? fg : -5 });
     msg($('plMsg'), 'ok', 'Sparat.'); hamtaSmhi(true);
   } catch (e) { msg($('plMsg'), 'bad', 'Kunde inte spara (' + (e.code || e.message) + ').'); }
 });
@@ -2125,10 +2138,21 @@ function renderUsers() {
   if (!isAdmin) return;
   const rows = lista(roller).sort((a, b) => String(a.anvandare).localeCompare(String(b.anvandare), 'sv'));
   const olle = `<tr><td>${esc((user?.email || '').split('@')[0])} <small class="help">(du)</small></td><td>${esc(myName())}</td><td>Admin (ägare)</td><td></td></tr>`;
+  const lf = num(plats?.lasareFran) ? plats.lasareFran : 0;
+  if (document.activeElement !== $('lfFran')) $('lfFran').value = lf ? isoLocal(lf) : '';
+  $('lfHelp').innerHTML = (lf ? `<b>Läsare ser från ${when(lf)}.</b> ` : '<b>Läsare ser allt.</b> ') + 'Gäller mätningar, händelser och anteckningar, även i exporten. Du som admin ser allt. Inget tas bort.';
   $('userBody').innerHTML = (roller[user?.uid] ? '' : olle) + rows.map(u => `<tr><td>${esc(u.anvandare || u.id)}${u.id === user?.uid ? ' <small class="help">(du)</small>' : ''}</td><td>${esc(u.namn || '')}</td>
     <td><select data-roll="${esc(u.id)}">${Object.entries(ROLLNAMN).map(([k, n]) => `<option value="${k}"${u.roll === k ? ' selected' : ''}>${n}</option>`).join('')}</select></td>
     <td>${u.id === user?.uid ? '' : `<button data-udel="${esc(u.id)}">Ta bort åtkomst</button>`}</td></tr>`).join('');
 }
+async function sparaLasareFran(t) {
+  msg($('lfMsg'), '', 'Sparar…');
+  try { await D.update('plats', { lasareFran: t || null }); msg($('lfMsg'), 'ok', t ? `Läsare ser från ${when(t)}.` : 'Läsare ser allt.'); }
+  catch (e) { msg($('lfMsg'), 'bad', `Kunde inte spara (${e.code || e.message}).`); }
+}
+$('btnLfSpara').addEventListener('click', () => { const t = fromIsoLocal($('lfFran').value); if (t == null) return msg($('lfMsg'), 'bad', 'Fyll i datum och tid.'); sparaLasareFran(t); });
+$('btnLfNu').addEventListener('click', () => sparaLasareFran(nowServer()));
+$('btnLfAlla').addEventListener('click', () => sparaLasareFran(null));
 $('userBody').addEventListener('change', async e => {
   const id = e.target.dataset.roll; if (!id) return;
   try { await D.update(`roller/${id}`, { roll: e.target.value }); msg($('userMsg'), 'ok', 'Rollen ändrad.'); }
@@ -2319,7 +2343,7 @@ async function showMain(u) {
   on('anteckningar', null, v => { notes = lista(v).filter(n => num(n.at)); renderHist(); });
   on('notiser', { by: 'at', last: 30 }, v => { notices = lista(v).filter(n => num(n.at)); renderAlarm(); });
   on('larmstatus', null, v => { larmstatus = v; renderBanners(); renderAlarm(); renderDiag(); });
-  on('plats', null, v => { plats = v; hamtaSmhi(); renderWeather(); });
+  on('plats', null, v => { const g = lasareGrans(); plats = v; hamtaSmhi(); if (lasareGrans() !== g) renderAll(); else renderWeather(); renderUsers(); });
   on(`mottagare/${u.uid}`, null, v => { myRecip = v; renderAlarm(); });
   if (isAdmin) {
     on('diag', null, v => { diag = v; renderBanners(); renderNow(); renderDiag(); renderSettings(); renderCal(); renderOta(); });
