@@ -320,6 +320,38 @@ code{font-family:Consolas,"Courier New",monospace;font-size:.92em;background:#f4
 @media (max-width:720px){
   .layout>.panel{padding-bottom:calc(84px + env(safe-area-inset-bottom)) !important}
 }
+/* ---------- Exportknappar i förhandsvisningen ---------- */
+.pv-export{margin-left:auto;display:inline-flex;gap:4px;font-size:14px;font-weight:400}
+.pv-export button{min-height:26px;padding:2px 9px}
+@media (max-width:720px){ .pv-export button{min-height:36px} }
+/* ---------- PDF: välj kort ---------- */
+.pdfpick{margin:2px 0 6px 22px}
+.pdfpick[hidden]{display:none}
+.pp-btns{display:flex;gap:4px;margin-bottom:4px}
+.pp-list{max-height:210px;overflow:auto;background:var(--field);border:2px inset var(--face)}
+.pp-card{display:grid;grid-template-columns:22px 30px minmax(0,1fr);gap:4px;align-items:start;padding:4px 6px;border-bottom:1px solid #e3e0d8;cursor:pointer;font-size:13px}
+.pp-card .q{display:flex;flex-direction:column;min-width:0}
+.pp-card .q span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pp-card .q span+span{color:var(--muted)}
+.pp-card.empty{opacity:.55}
+.pp-card .n{color:var(--muted);text-align:right}
+/* ---------- Flytta fråga ---------- */
+.sidetabs .mvbtn{margin-left:8px;min-height:26px;padding:2px 9px}
+#dlgMove:not([style*="width"]){width:min(560px,96vw)}
+.mvbody{display:flex;flex-direction:column;gap:8px}
+.mvbody select{width:100%}
+.mv-what{margin:0;font-weight:600}
+.mv-side{display:flex;gap:18px}
+/* ---------- Inställningar ---------- */
+#dlgPrefs:not([style*="width"]){width:min(640px,96vw)}
+.prefbody{display:flex;flex-direction:column;gap:8px;max-height:min(76vh,720px);overflow:auto}
+.pref-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:6px 12px}
+.pref-col{display:flex;align-items:center;gap:6px}
+.pref-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+@media (max-width:720px){ .sidetabs .mvbtn{margin-left:auto} }
+#btnPrefs .gear{font-size:16px;line-height:1}
+@media (min-width:721px){ #btnPrefs .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)} #btnPrefs{min-width:30px;padding-left:6px;padding-right:6px} }
+@media (max-width:720px){ #btnPrefs .gear{display:none} }
 
 /* ---------- Startsida (välkomstruta) – klassisk stil ---------- */
 .wl{position:fixed;inset:0;z-index:900;overflow:auto;overscroll-behavior:contain;background:var(--bg);color:var(--ink);font-family:"KortSerif",Georgia,"Times New Roman",serif;font-size:17px;line-height:1.45}
@@ -586,6 +618,9 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
 .cam-stack i[hidden]{display:none}
 .scanlist li small.qw{color:#a06d00}
 .scanflagbar .sf-ic{flex:none}
+.scanref-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.scanref .help{text-align:center;margin:4px 0 0}
+.scan-tools #scanUp,.scan-tools #scanDown{min-width:34px}
 </style>
 </head>
 <body>
@@ -1003,6 +1038,60 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
   </div>
 </div>
 
+<dialog id="dlgMove">
+  <form method="dialog">
+    <div class="dhead">Flytta frågan</div>
+    <div class="dbody mvbody">
+      <p class="mv-what" id="mvWhat"></p>
+      <label class="block">Till kort <select id="mvCard"></select></label>
+      <div class="mv-side" role="radiogroup" aria-label="Sida"><label><input type="radio" name="mvSide" value="0"> Framsida</label><label><input type="radio" name="mvSide" value="1"> Baksida</label></div>
+      <p class="help" id="mvHint"></p>
+      <fieldset id="mvHow" hidden><legend>Platsen är upptagen</legend>
+        <label class="opt"><input type="radio" name="mvHow" value="swap" checked> Byt plats på frågorna</label>
+        <label class="opt"><input type="radio" name="mvHow" value="new"> Lägg frågan på ett nytt kort direkt efter</label>
+      </fieldset>
+      <label class="opt"><input type="checkbox" id="mvClean" checked> Ta bort kortet frågan kommer ifrån om det blir helt tomt</label>
+    </div>
+    <div class="dfoot">
+      <button id="mvGo" class="default">Flytta</button>
+      <button value="cancel">Avbryt</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="dlgPrefs">
+  <form method="dialog">
+    <div class="dhead">Inställningar</div>
+    <div class="dbody prefbody">
+      <fieldset><legend>Färger för nya kortlekar</legend>
+        <div class="pref-cols" id="prefColors"></div>
+        <div class="pref-row"><button type="button" id="prefColReset">Originalfärgerna</button><button type="button" id="prefColDeck">Hämta från kortleken</button><button type="button" id="prefColApply">Använd i kortleken nu…</button></div>
+      </fieldset>
+      <fieldset><legend>Etikett och numrering för nya kortlekar</legend>
+        <div class="grid2">
+          <span>Etikett, mörk text</span><input type="text" id="prefLabDark">
+          <span>Etikett, ljus text</span><input type="text" id="prefLabLight">
+          <span>Kortnummer</span><span><label><input type="checkbox" id="prefNumShow"> Visa</label> &nbsp; före numret: <input type="text" id="prefNumPrefix" size="5"></span>
+        </div>
+      </fieldset>
+      <fieldset><legend>PDF</legend>
+        <label class="opt"><input type="checkbox" id="prefSkipEmpty"> Hoppa över kort utan frågor</label>
+      </fieldset>
+      <fieldset id="prefScan" hidden><legend>Skanning</legend>
+        <label class="opt"><input type="checkbox" id="prefScanKeep"> Spara inskannade bilder när appen stängs <span class="help">(annars rensas de när du stänger sidan)</span></label>
+        <label class="opt"><input type="checkbox" id="prefScanLook"> Kopiera färger, etikett och bakgrund från korten</label>
+        <label class="opt"><input type="checkbox" id="prefCamAuto"> Ta bilden automatiskt när kortet ligger still (Auto)</label>
+        <div class="grid2"><span>Bilderna är</span><select id="prefScanMode"><option value="pairs">framsida, baksida, framsida … (två per kort)</option><option value="fronts">bara framsidor (en per kort)</option></select></div>
+        <div class="pref-row"><button type="button" id="prefScanClear">Rensa inskannade bilder</button></div>
+      </fieldset>
+
+      <fieldset><legend>Övrigt</legend>
+        <div class="pref-row"><button type="button" id="prefWelcome">Visa startsidan</button></div>
+        <p class="help">Inställningarna sparas i den här webbläsaren och gäller nya kortlekar. Kortlekens egna färger ändrar du under Utseende.</p>
+      </fieldset>
+    </div>
+    <div class="dfoot"><button value="cancel" class="default">Klar</button></div>
+  </form>
+</dialog>
 <div class="busy" id="busy"><div id="busyText">Skapar PDF…</div></div>
 
 <script>
@@ -2442,6 +2531,214 @@ function bindCredit() {
   const ws = $('#welcome .wl-sheet'); if (ws) ws.appendChild(mk('cr-wls'));
 }
 
+/* =====================================================================
+   Gemensamma tillägg (egna10 Pro och egna20):
+   – exportknappar i förhandsvisningen
+   – välj fritt vilka kort som kommer med i PDF:en
+   – flytta en fråga till ett annat kort eller en annan sida
+   – Inställningar (standardfärger, etikett, numrering, skanning …)
+   ===================================================================== */
+const XAPP = typeof bindPro === 'function' ? 'egna10pro' : 'egna20';
+const XSET_DEF = { style: null, label: null, numbering: null, scanKeep: false, scanLook: true, scanMode: 'pairs', camAuto: false, skipEmpty: true };
+function appSettings() {
+  try { return Object.assign({}, XSET_DEF, JSON.parse(localStorage.getItem(XAPP + '.settings') || '{}')); } catch (e) { return Object.assign({}, XSET_DEF); }
+}
+function saveAppSettings(s) { try { localStorage.setItem(XAPP + '.settings', JSON.stringify(s)); } catch (e) { /* inget sparat */ } }
+
+// Nya kortlekar får standardfärger, etikett och numrering från inställningarna (kopplas in i bindExtras)
+let _xNewDeck = null, _xPickCards = null;
+function xNewDeck() {
+  const d = _xNewDeck(), st = appSettings();
+  if (st.style) d.style = Object.assign({}, DEFAULT_STYLE, st.style);
+  if (st.label) d.label = Object.assign({ dark: '', light: '' }, st.label);
+  if (st.numbering) d.numbering = Object.assign({}, d.numbering, st.numbering);
+  return d;
+}
+
+function xEmptySide(q) { return !q.text.trim() && q.alts.every(a => !a.text.trim() && !a.img) && q.ans.every(a => !a.text.trim() && !a.img && !a.mark && !a.color); }
+
+/* ---------- PDF: välj kort fritt ---------- */
+function xPickCards(o) {
+  const cards = state.deck.cards;
+  let idx;
+  if (o.range === 'pick') { const ids = new Set(o.pick || []); idx = cards.map((c, i) => ids.has(c.id) ? i : -1).filter(i => i >= 0); }
+  else idx = _xPickCards(o);
+  if (o.skipEmpty !== false) idx = idx.filter(i => !cards[i].sides.every(xEmptySide));   // kort helt utan frågor
+  return idx;
+}
+function xPdfList() {
+  const box = $('#pdfPick'), e = state.deck.export, ids = new Set(Array.isArray(e.pick) ? e.pick : state.deck.cards.map(c => c.id));
+  const t = q => esc(((q.text || '').replace(/[|~]/g, ' ').trim()) || '(tom)');
+  box.innerHTML = state.deck.cards.map((c, i) => `<label class="pp-card${c.sides.every(xEmptySide) ? ' empty' : ''}"><input type="checkbox" value="${c.id}"${ids.has(c.id) ? ' checked' : ''}><span class="n">${i + 1}.</span><span class="q"><span>${t(c.sides[0])}</span><span>${t(c.sides[1])}</span></span></label>`).join('');
+  xPdfCount();
+}
+function xPdfCount() {
+  const n = $$('#pdfPick input:checked').length;
+  $('#pdfPickCount').textContent = `${n} av ${state.deck.cards.length} valda`;
+}
+function xPdfReadPick() { state.deck.export.pick = $$('#pdfPick input:checked').map(i => i.value); xPdfCount(); }
+function bindPdfPick() {
+  const fs = $('#dlgPdf input[name="range"][value="span"]').closest('fieldset');
+  fs.insertAdjacentHTML('beforeend', `<label class="opt"><input type="radio" name="range" value="pick"> Välj kort själv <span class="help" id="pdfPickCount"></span></label>
+    <div class="pdfpick" id="pdfPickBox" hidden><div class="pp-btns"><button type="button" id="ppAll">Alla</button><button type="button" id="ppNone">Inga</button><button type="button" id="ppInv">Omvänt</button></div><div class="pp-list" id="pdfPick"></div></div>
+    <label class="opt"><input type="checkbox" name="skipEmpty"> Hoppa över kort utan frågor</label>`);
+  const f = $('#dlgPdf form'), boxEl = $('#pdfPickBox');
+  const show = () => { boxEl.hidden = f.range.value !== 'pick'; };
+  const changed = () => { xPdfReadPick(); f.dispatchEvent(new Event('input', { bubbles: true })); };
+  $('#btnPdf').addEventListener('click', () => {
+    const e = state.deck.export;
+    if (e.skipEmpty === undefined) e.skipEmpty = appSettings().skipEmpty;
+    f.skipEmpty.checked = e.skipEmpty !== false;
+    xPdfList(); show();
+  }, true);                                       // före dialogens egen hanterare – listan ska finnas när förhandsvisningen räknas
+  $('#pdfPick').addEventListener('change', () => { xPdfReadPick(); });
+  $('#ppAll').addEventListener('click', () => { $$('#pdfPick input').forEach(i => { i.checked = true; }); changed(); });
+  $('#ppNone').addEventListener('click', () => { $$('#pdfPick input').forEach(i => { i.checked = false; }); changed(); });
+  $('#ppInv').addEventListener('click', () => { $$('#pdfPick input').forEach(i => { i.checked = !i.checked; }); changed(); });
+  f.addEventListener('input', e => {
+    state.deck.export.skipEmpty = f.skipEmpty.checked;
+    if (e.target && e.target.name === 'range') { show(); if (f.range.value === 'pick' && !Array.isArray(state.deck.export.pick)) xPdfReadPick(); }
+  }, true);
+}
+
+/* ---------- Exportknappar överst i förhandsvisningen ---------- */
+function bindPvExport() {
+  const t = $('#pPreview .panel-title'); if (!t) return;
+  t.insertAdjacentHTML('beforeend', `<span class="pv-export"><button type="button" id="pvExpTsv" title="Spara frågorna som en tabell som kan öppnas i Excel">Exportera tabell</button><button type="button" id="pvExpPdf" class="default" title="Skapa en PDF för utskrift">Skapa PDF…</button></span>`);
+  $('#pvExpTsv').addEventListener('click', () => $('#btnExportTsv').click());
+  $('#pvExpPdf').addEventListener('click', () => $('#btnPdf').click());
+}
+
+/* ---------- Flytta en fråga till ett annat kort ---------- */
+function xMoveOpen() {
+  const dlg = $('#dlgMove'), cards = state.deck.cards, q = curQ();
+  const t = s => ((s.text || '').replace(/[|~]/g, ' ').trim() || '(tom)').slice(0, 46);
+  $('#mvWhat').textContent = `Kort ${state.cur + 1} · ${state.side ? 'baksida' : 'framsida'}: ${t(q)}`;
+  const sel = $('#mvCard');
+  sel.innerHTML = cards.map((c, i) => `<option value="${i}">${i + 1}. ${esc(t(c.sides[0]))} / ${esc(t(c.sides[1]))}</option>`).join('') + `<option value="new">Ett nytt kort sist</option>`;
+  // förslag: närmaste kort med en tom sida, annars samma kort, andra sidan
+  let sug = -1, sugSide = 1 - state.side;
+  if (xEmptySide(cards[state.cur].sides[1 - state.side])) { /* det här kortets andra sida är tom – föreslå föregående kort */
+    for (let d = 1; d < cards.length && sug < 0; d++) for (const i of [state.cur - d, state.cur + d]) {
+      if (i < 0 || i >= cards.length || sug >= 0) continue;
+      const si = cards[i].sides.findIndex(xEmptySide); if (si >= 0) { sug = i; sugSide = si; }
+    }
+  }
+  sel.value = String(sug >= 0 ? sug : state.cur);
+  dlg.querySelector(`input[name="mvSide"][value="${sugSide}"]`).checked = true;
+  xMoveHint();
+  dlg.showModal();
+}
+function xMoveTarget() {
+  const v = $('#mvCard').value, side = Number($('#dlgMove input[name="mvSide"]:checked').value);
+  return { ci: v === 'new' ? -1 : Number(v), side };
+}
+function xMoveHint() {
+  const { ci, side } = xMoveTarget(), cards = state.deck.cards, hint = $('#mvHint'), how = $('#mvHow'), go = $('#mvGo');
+  go.disabled = false; how.hidden = true;
+  if (ci === state.cur && side === state.side) { hint.textContent = 'Det är samma plats som frågan redan har.'; go.disabled = true; return; }
+  if (ci < 0) { hint.textContent = 'Frågan läggs på ett nytt kort sist i kortleken.'; return; }
+  const target = cards[ci].sides[side];
+  if (xEmptySide(target)) { hint.textContent = `Kort ${ci + 1} · ${side ? 'baksida' : 'framsida'} är tom – frågan flyttas dit.`; return; }
+  hint.textContent = `Kort ${ci + 1} · ${side ? 'baksida' : 'framsida'} har redan en fråga.`;
+  how.hidden = false;
+}
+function xMoveDo() {
+  const cards = state.deck.cards, from = { ci: state.cur, side: state.side }, { ci, side } = xMoveTarget();
+  const fromCard = cards[from.ci], q = fromCard.sides[from.side];
+  const swap = $('#dlgMove input[name="mvHow"]:checked').value === 'swap';
+  let to;
+  if (ci < 0) {                                  // nytt kort sist
+    const c = newCard(); c.sides[side] = q; fromCard.sides[from.side] = newQuestion('ovrigt'); cards.push(c); to = { card: c, side };
+  } else {
+    const tc = cards[ci], target = tc.sides[side];
+    if (xEmptySide(target) || swap) { tc.sides[side] = q; fromCard.sides[from.side] = target; to = { card: tc, side }; }
+    else {                                     // platsen upptagen: lägg på ett nytt kort direkt efter
+      const c = newCard(); c.sides[side] = q; fromCard.sides[from.side] = newQuestion('ovrigt'); cards.splice(ci + 1, 0, c); to = { card: c, side };
+    }
+  }
+  document.dispatchEvent(new CustomEvent('egna:moved', { detail: { from: { id: fromCard.id, side: from.side }, to: { id: to.card.id, side: to.side }, swap: !!swap } }));
+  if ($('#mvClean').checked && fromCard !== to.card && fromCard.sides.every(xEmptySide) && cards.length > 1) cards.splice(cards.indexOf(fromCard), 1);
+  state.status.clear();
+  selectCard(cards.indexOf(to.card), to.side);
+  scheduleSave();
+  setStatus('Frågan är flyttad.');
+}
+function bindMove() {
+  const tabs = $('.sidetabs');
+  if (tabs) {
+    const b = document.createElement('button'); b.type = 'button'; b.id = 'btnMoveQ'; b.className = 'mvbtn'; b.title = 'Flytta den här frågan till ett annat kort eller en annan sida';
+    b.textContent = 'Flytta…';
+    const ct = $('#cardTitle'); tabs.insertBefore(b, ct);
+    b.addEventListener('click', xMoveOpen);
+  }
+  $('#mvCard').addEventListener('change', xMoveHint);
+  $$('#dlgMove input[name="mvSide"]').forEach(r => r.addEventListener('change', xMoveHint));
+  $('#mvGo').addEventListener('click', e => { e.preventDefault(); xMoveDo(); $('#dlgMove').close(); });
+}
+
+/* ---------- Inställningar ---------- */
+function xPrefsFill() {
+  const s = appSettings(), st = Object.assign({}, DEFAULT_STYLE, s.style || {}), lab = s.label || newDeckBase().label, num = Object.assign({}, newDeckBase().numbering, s.numbering || {});
+  $('#prefColors').innerHTML = Object.keys(DEFAULT_STYLE).map(k => `<label class="pref-col"><input type="color" data-k="${k}" value="${st[k]}"> ${esc(STYLE_LABELS[k] || k)}</label>`).join('');
+  $('#prefLabDark').value = lab.dark || ''; $('#prefLabLight').value = lab.light || '';
+  $('#prefNumShow').checked = !!num.show; $('#prefNumPrefix').value = num.prefix || '';
+  $('#prefSkipEmpty').checked = s.skipEmpty !== false;
+  const pro = $('#prefScan'); if (pro) {
+    pro.hidden = false;
+    $('#prefScanKeep').checked = !!s.scanKeep; $('#prefScanLook').checked = s.scanLook !== false;
+    $('#prefScanMode').value = s.scanMode === 'fronts' ? 'fronts' : 'pairs'; $('#prefCamAuto').checked = !!s.camAuto;
+  }
+}
+function newDeckBase() { return _xNewDeck(); }
+function xPrefsRead() {
+  const s = appSettings(), st = {};
+  $$('#prefColors input[type=color]').forEach(i => { st[i.dataset.k] = i.value; });
+  s.style = Object.keys(st).some(k => st[k].toLowerCase() !== String(DEFAULT_STYLE[k]).toLowerCase()) ? st : null;
+  const base = newDeckBase();
+  const lab = { dark: $('#prefLabDark').value.trim(), light: $('#prefLabLight').value.trim() };
+  s.label = lab.dark === base.label.dark && lab.light === base.label.light ? null : lab;
+  const num = { show: $('#prefNumShow').checked, prefix: $('#prefNumPrefix').value };
+  s.numbering = num.show === base.numbering.show && num.prefix === base.numbering.prefix ? null : num;
+  s.skipEmpty = $('#prefSkipEmpty').checked;
+  if ($('#prefScan')) {
+    const was = s.scanKeep;
+    s.scanKeep = $('#prefScanKeep').checked; s.scanLook = $('#prefScanLook').checked; s.scanMode = $('#prefScanMode').value; s.camAuto = $('#prefCamAuto').checked;
+    try { localStorage.setItem('egna10pro.camAuto', s.camAuto ? '1' : '0'); } catch (e) { /* – */ }
+    if (was !== s.scanKeep) document.dispatchEvent(new CustomEvent('egna:scankeep', { detail: s.scanKeep }));
+  }
+  saveAppSettings(s);
+}
+function bindPrefs() {
+  const ref = $('#btnSettings'); if (!ref) return;
+  const b = document.createElement('button'); b.id = 'btnPrefs'; b.type = 'button'; b.title = 'Standardfärger, etikett, numrering och andra inställningar';
+  b.innerHTML = ref.querySelector('svg') ? '<svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg><span>Inställningar</span>' : '<span class="gear" aria-hidden="true">⚙</span><span class="lbl">Inställningar…</span>';
+  ref.after(b);
+  const dlg = $('#dlgPrefs');
+  b.addEventListener('click', () => { if (isMobile()) { const tb = $('.toolbar'); if (tb) tb.classList.remove('open'); } xPrefsFill(); dlg.showModal(); });
+  dlg.addEventListener('input', xPrefsRead);
+  dlg.addEventListener('change', xPrefsRead);
+  $('#prefColReset').addEventListener('click', () => { $$('#prefColors input[type=color]').forEach(i => { i.value = DEFAULT_STYLE[i.dataset.k]; }); xPrefsRead(); });
+  $('#prefColDeck').addEventListener('click', () => { const st = styleOf(state.deck); $$('#prefColors input[type=color]').forEach(i => { if (st[i.dataset.k]) i.value = st[i.dataset.k]; }); xPrefsRead(); });
+  $('#prefColApply').addEventListener('click', () => {
+    if (!confirm('Använda de här färgerna i kortleken du har öppen nu?')) return;
+    const st = {}; $$('#prefColors input[type=color]').forEach(i => { st[i.dataset.k] = i.value; });
+    state.deck.style = Object.assign({}, state.deck.style || {}, st); state.status.clear(); renderList(); renderPreview(); scheduleSave();
+    setStatus('Färgerna används nu i kortleken.');
+  });
+  $('#prefWelcome').addEventListener('click', () => { try { localStorage.removeItem('egna10.welcomeSeen'); } catch (e) { /* – */ } dlg.close(); const br = $('.toolbar .brand'); if (br) br.click(); });
+  const clr = $('#prefScanClear'); if (clr) clr.addEventListener('click', () => { document.dispatchEvent(new CustomEvent('egna:scanclear')); setStatus('Inskannade bilder är rensade.'); });
+}
+
+function bindExtras() {
+  _xNewDeck = newDeck; newDeck = xNewDeck;
+  _xPickCards = pickCards; pickCards = xPickCards;
+  bindPvExport();
+  bindPdfPick();
+  bindMove();
+  bindPrefs();
+}
+
 
 /* =====================================================================
    Egna10 Pro – motor: layout, fria element, vattenstämpel, typsnitt.
@@ -2522,8 +2819,9 @@ function proCleanSide(p) {
   const out = { design: proCleanDesign(p.design), items: (Array.isArray(p.items) ? p.items : []).map(proCleanItem).filter(Boolean).map(it => { it.on = 'side'; return it; }) };
   if (p.noWm) out.noWm = true;
   if (p.scan && Array.isArray(p.scan.f)) {                      // osäkra fält från skanningen
-    const f = p.scan.f.filter(k => /^(q|type|img|[af]\d)$/.test(k));
-    if (f.length) out.scan = { f, n: (Array.isArray(p.scan.n) ? p.scan.n : []).map(String).slice(0, 6) };
+    const ok = k => /^(q|type|img|[af]\d)$/.test(k);
+    const f = p.scan.f.filter(ok), e = (Array.isArray(p.scan.e) ? p.scan.e : []).filter(ok);
+    if (f.length || e.length) out.scan = { f, n: (Array.isArray(p.scan.n) ? p.scan.n : []).map(String).slice(0, 6), e };
   }
   if (!Object.keys(out.design).length && !out.items.length && !out.noWm && !out.scan) return undefined;
   return out;
@@ -3574,7 +3872,7 @@ function scanFindDisc(item) {
   const all = scanFindDiscs(item);
   return all.length ? all.reduce((a, b) => b.score > a.score ? b : a) : null;
 }
-const scanDist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) / 255;
+const scanDist = (a, b) => { const x = a[0] - b[0], y = a[1] - b[1], z = a[2] - b[2]; return Math.sqrt(x * x + y * y + z * z) / 255; };
 function scanInCard(x, y) {                    // punkt (mm) innanför kortets kontur?
   if (x < 0 || y < 0 || x > 110 || y > 110) return false;
   const R = G.R_BIG, r = G.R_SMALL;
@@ -3784,26 +4082,34 @@ function scanCrop(img, x0, y0, w, h, mask, textCol, edgeClean) {
   const cr = { canvas: c, bg, text: textCol && scanDist(textCol, bg) > 0.12 ? textCol : null };
   const ink = new Float32Array(W * Hh), R = Math.round(1.1 * SC);
   const dirs = Array.from({ length: 8 }, (_, k) => [Math.round(Math.cos(k * Math.PI / 4) * R), Math.round(Math.sin(k * Math.PI / 4) * R)]);
+  const sr = new Float32Array(8), sg = new Float32Array(8), sb = new Float32Array(8);
+  const med = (a, m) => { for (let i = 1; i < m; i++) { const v = a[i]; let j = i - 1; while (j >= 0 && a[j] > v) { a[j + 1] = a[j]; j--; } a[j + 1] = v; } return a[m >> 1]; };
+  const T = cr.text, lim2 = (0.12 * 255) ** 2, pmin = 0.18 * 255, cw = (W + 1) >> 1, cache = T ? new Float32Array(cw * ((Hh + 1) >> 1) * 4) : null;
   let n = 0, inkN = 0; const inkCols = [];
   for (let v = 0; v < Hh; v++) for (let u = 0; u < W; u++) {
     const j = v * W + u, q = j * 4; if (!o[q + 3]) continue; n++;
-    const p = [o[q], o[q + 1], o[q + 2]];
+    const pr = o[q], pg = o[q + 1], pb = o[q + 2];
     let k;
-    if (cr.text) {
+    if (T) {
       // bakgrunden just här: median av åtta punkter en bit bort (texten är tunnare än så)
-      const sm = [[], [], []];
-      for (const [dx, dy] of dirs) { const U = u + dx, V = v + dy; if (U < 0 || V < 0 || U >= W || V >= Hh) continue; const t = (V * W + U) * 4; if (!o[t + 3]) continue; sm[0].push(o[t]); sm[1].push(o[t + 1]); sm[2].push(o[t + 2]); }
-      const lb = sm[0].length >= 3 ? sm.map(a => a.sort((x, y) => x - y)[a.length >> 1]) : bg;
-      const T = cr.text, ax = [T[0] - lb[0], T[1] - lb[1], T[2] - lb[2]], L2 = ax[0] ** 2 + ax[1] ** 2 + ax[2] ** 2;
-      if (L2 < (0.12 * 255) ** 2) k = 0;
-      else {
-        const dp = [p[0] - lb[0], p[1] - lb[1], p[2] - lb[2]], t = (dp[0] * ax[0] + dp[1] * ax[1] + dp[2] * ax[2]) / L2;
-        const perp = Math.hypot(dp[0] - t * ax[0], dp[1] - t * ax[1], dp[2] - t * ax[2]);
-        k = perp > Math.max(0.18 * 255, 0.7 * Math.sqrt(L2)) ? 0 : Math.max(0, Math.min(1, (t - 0.18) / 0.35));
+      const cu = u >> 1, cv = v >> 1, ci = cv * cw + cu;
+      if (!cache[ci * 4 + 3]) {                                  // räknas på halva upplösningen – grannpixlar delar bakgrund
+        let m = 0; const U0 = cu * 2, V0 = cv * 2;
+        for (let d = 0; d < 8; d++) { const U = U0 + dirs[d][0], V = V0 + dirs[d][1]; if (U < 0 || V < 0 || U >= W || V >= Hh) continue; const t = (V * W + U) * 4; if (!o[t + 3]) continue; sr[m] = o[t]; sg[m] = o[t + 1]; sb[m] = o[t + 2]; m++; }
+        cache[ci * 4] = m >= 3 ? med(sr, m) : bg[0]; cache[ci * 4 + 1] = m >= 3 ? med(sg, m) : bg[1]; cache[ci * 4 + 2] = m >= 3 ? med(sb, m) : bg[2]; cache[ci * 4 + 3] = 1;
       }
-    } else k = Math.max(0, Math.min(1, (scanDist(p, bg) - 0.1) / 0.4));
+      const l0 = cache[ci * 4], l1 = cache[ci * 4 + 1], l2 = cache[ci * 4 + 2];
+      const a0 = T[0] - l0, a1 = T[1] - l1, a2 = T[2] - l2, L2 = a0 * a0 + a1 * a1 + a2 * a2;
+      if (L2 < lim2) k = 0;
+      else {
+        const d0 = pr - l0, d1 = pg - l1, d2 = pb - l2, t = (d0 * a0 + d1 * a1 + d2 * a2) / L2;
+        const e0 = d0 - t * a0, e1 = d1 - t * a1, e2 = d2 - t * a2, perp = Math.sqrt(e0 * e0 + e1 * e1 + e2 * e2);
+        k = perp > Math.max(pmin, 0.7 * Math.sqrt(L2)) ? 0 : Math.max(0, Math.min(1, (t - 0.18) / 0.35));
+      }
+    } else { const d0 = pr - bg[0], d1 = pg - bg[1], d2 = pb - bg[2]; k = Math.max(0, Math.min(1, (Math.sqrt(d0 * d0 + d1 * d1 + d2 * d2) / 255 - 0.1) / 0.4)); }
+    const p = k > 0.5 ? [pr, pg, pb] : null;
     ink[j] = k;
-    if (k > 0.5) { inkN++; if (inkCols.length < 6000) inkCols.push([scanDist(p, bg), p]); }
+    if (p) { inkN++; if (inkCols.length < 6000) inkCols.push([scanDist(p, bg), p]); }
   }
   if (edgeClean) scanDropEdgeInk(ink, o, W, Hh);
   inkCols.sort((a, b) => b[0] - a[0]);
@@ -3832,6 +4138,24 @@ function scanForOcr(cr) {
   ctx.putImageData(im, 0, 0);
   return c;
 }
+// Andra varianten åt OCR:en: mjukare (behåller svaga bokstavskanter som den hårda varianten kan äta upp)
+function scanForOcrSoft(cr) {
+  const src = cr.canvas, c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
+  const im = src.getContext('2d').getImageData(0, 0, c.width, c.height), d = im.data, bg = cr.bg;
+  for (let j = 0; j < d.length; j += 4) {
+    let v = 255;
+    if (d[j + 3]) { const k = cr.ink ? Math.max(cr.ink[j / 4], Math.max(0, Math.min(1, (scanDist([d[j], d[j + 1], d[j + 2]], bg) - 0.05) / 0.55))) : 0; v = Math.round(255 * (1 - k)); }
+    d[j] = d[j + 1] = d[j + 2] = v; d[j + 3] = 255;
+  }
+  c.getContext('2d').putImageData(im, 0, 0);
+  return c;
+}
+// Vit marginal runt utsnittet – Tesseract läser bokstäver i kanten bättre då
+function scanPad(c, m = 24) {
+  const o = document.createElement('canvas'); o.width = c.width + 2 * m; o.height = c.height + 2 * m;
+  const x = o.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, o.width, o.height); x.drawImage(c, m, m);
+  return o;
+}
 // Andel pixlar inom radien r0..r1 (mm) runt (cx, cy) som skiljer sig från färgen bg, samt deras färger.
 function scanFar(img, cx, cy, r0, r1, bg, lim = 0.25) {
   const d = img.data; let n = 0, far = 0; const cols = [];
@@ -3853,9 +4177,11 @@ function scanRingColor(img, cx, cy, r0, r1, step = 2) {
   return scanMedianColor(cols);
 }
 function scanMedianColor(cols) {
-  if (!cols.length) return null;
-  const m = k => cols.map(c => c[k]).sort((a, b) => a - b)[cols.length >> 1];
-  return [m(0), m(1), m(2)];
+  const n = cols.length; if (!n) return null;
+  const h = [new Uint32Array(256), new Uint32Array(256), new Uint32Array(256)];
+  for (let i = 0; i < n; i++) { const c = cols[i]; h[0][c[0] | 0]++; h[1][c[1] | 0]++; h[2][c[2] | 0]++; }
+  const half = n >> 1;
+  return h.map(hh => { let acc = 0; for (let v = 0; v < 256; v++) { acc += hh[v]; if (acc > half) return v; } return 255; });
 }
 const scanHex = c => '#' + c.map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
 function scanCleanText(t) {
@@ -3867,22 +4193,37 @@ function scanCleanText(t) {
 }
 
 // Tesseract-resultat → text. Lösa skräptecken i kanterna (rester av linjer o.d.) med låg säkerhet tas bort.
-function scanOcrText(data) {
-  const lines = (data.lines || []).map(l => (l.words || []).slice());
-  if (!lines.length) return scanCleanText(data.text);
-  const alnum = t => /[0-9A-Za-zÅÄÖåäöÉéÜü]/.test(t);
-  // rester av linjer och kanter blir ofta I, l, |, /, \, N, — med låg säkerhet
-  const junk = w => {
-    const t = (w.text || '').trim();
-    if (!t) return true;
-    if (!alnum(t)) return !/^[–—\-()?!&+]$/.test(t) || w.confidence < 40;
-    return w.confidence < 80 && /^[|Il!\/\\—_~"”'’`,.:;NS]{1,2}$/.test(t);
-  };
-  const keep = lines.map(ws => { while (ws.length && junk(ws[0])) ws.shift(); while (ws.length && junk(ws[ws.length - 1])) ws.pop(); return ws; })
-    .filter(ws => ws.length && !(ws.length === 1 && ws[0].confidence < 40 && ws[0].text.length <= 3));
-  if (data.text && data.text.trim() && !keep.length && (data.confidence || 0) > 60) return scanCleanText(data.text);
-  return scanCleanText(keep.map(ws => ws.map(w => w.text).join(' ')).join('\n'));
+// korta ord som är vanliga på riktigt – andra 1–2-teckens ”ord” är oftast skräp från linjer och kanter
+const SCAN_SHORT = new Set('i å ö a en ett av på om och är de du vi ja nej nr år ut in ny nu så se ta to of the it is an at by or no up mr dr st ok tv os eu fn usa ii iv vi ix xi xx el la le di da do e o y'.split(' '));
+const scanNorm = t => String(t || '').toLowerCase().replace(/[~\-‐–—]/g, '').replace(/[^0-9a-zåäöéü]/g, '');
+function scanIsJunkWord(w, atEdge) {
+  const t = (w.text || '').trim(), c = w.confidence || 0;
+  if (!t) return true;
+  const an = t.replace(/[^0-9A-Za-zÅÄÖåäöÉéÜü]/g, '');
+  if (!an) return !/^[–—\-()?!&+]$/.test(t) || c < 40;
+  if (/^\d+([.,]\d+)?$/.test(an)) return false;                         // siffror är aldrig skräp
+  if (/^([A-ZÅÄÖ]\.){1,3}$/.test(t)) return false;                       // förkortningar som E.T.
+  if (an.length === 1 && !SCAN_SHORT.has(an.toLowerCase())) return atEdge ? c < 95 : c < 60;
+  if (an.length === 2 && !SCAN_SHORT.has(an.toLowerCase())) return atEdge ? c < 75 : c < 50;
+  if (/^[|Il!\/\\—_~"”'’`,.:;NS]{1,2}$/.test(t)) return c < 80;
+  return false;
 }
+// Tesseract-resultat → { text, conf, low } där low = ord som lästes osäkert
+function scanOcrRead(data) {
+  const lines = (data.lines || []).map(l => (l.words || []).slice());
+  if (!lines.length) return { text: scanCleanText(data.text), conf: data.confidence || 0, low: [], words: 0 };
+  const keep = lines.map(ws => {
+    while (ws.length && scanIsJunkWord(ws[0], true)) ws.shift();
+    while (ws.length && scanIsJunkWord(ws[ws.length - 1], true)) ws.pop();
+    return ws.filter((w, i) => i === 0 || i === ws.length - 1 || !scanIsJunkWord(w, false));
+  }).filter(ws => ws.length && !(ws.length === 1 && ws[0].confidence < 40 && ws[0].text.length <= 3));
+  const all = keep.flat();
+  if (!all.length) return { text: '', conf: 0, low: [], words: 0 };
+  let cs = 0, cn = 0; for (const w of all) { const n = Math.max(1, w.text.length); cs += (w.confidence || 0) * n; cn += n; }
+  const low = all.filter(w => (w.confidence || 0) < 78 || (/^[A-ZÅÄÖ]{2,}$/.test(w.text) && !/^[IVXLC]+$/.test(w.text) && keep.length && all.some(o => /[a-zåäö]{3,}/.test(o.text)))).map(w => scanNorm(w.text)).filter(Boolean);
+  return { text: scanCleanText(keep.map(ws => ws.map(w => w.text).join(' ')).join('\n')), conf: cn ? cs / cn : 0, low, words: all.length };
+}
+function scanOcrText(data) { return scanOcrRead(data).text; }
 const SCAN_ALT_C = Array.from({ length: 10 }, (_, i) => scanPt(i, 24.5));
 function scanAltOwner(x, y) {                  // texten går på bredden, så sidled väger mindre
   let best = 0, bd = 1e9;
@@ -3940,6 +4281,7 @@ function scanAltWords(data, cr) {
   return Object.assign({}, data, { lines, text: lines.map(l => l.words.map(w => w.text).join(' ')).join('\n') });
 }
 async function scanReadSide(img, onStep) {
+  const T0 = performance.now();
   const jobs = [], res = { text: '', alts: [], ans: [], ring: null, look: {}, label: null, unsure: new Set() };
   const d = img.data, px = (x, y) => { const i = (Math.round(y * SC) * SCAN_W + Math.round(x * SC)) * 4; return [d[i], d[i + 1], d[i + 2]]; };
   // färger: kortet, mittcirkeln, etiketten
@@ -3958,7 +4300,7 @@ async function scanReadSide(img, onStep) {
   });
   // frågan
   const q = scanCrop(img, 55 - 15, 55 - 15, 30, 30, (x, y) => (x - 55) ** 2 + (y - 55) ** 2 < 14.9 ** 2);
-  if (q.dark > 0.004) jobs.push({ key: 'q', canvas: scanForOcr(q) });
+  if (q.dark > 0.004) jobs.push({ key: 'q', canvas: scanForOcr(q), cr: q });
   if (q.inkCols.length > 6) L.text = scanMedianColor(q.inkCols);
   // alternativ
   const exts = Array.from({ length: 10 }, (_, i) => scanSpokeExtent(img, i));
@@ -4004,7 +4346,7 @@ async function scanReadSide(img, onStep) {
       res.ans[i] = { color: scanHex(scanMedianColor(scanFar(img, cx, cy, 0, 4, local).cols) || col) }; continue;
     }
     const cr = scanCrop(img, cx - 9.6, cy - 9.6, 19.2, 19.2, (x, y) => (x - cx) ** 2 + (y - cy) ** 2 < 9.5 ** 2 && scanInCard(x, y) && !(x > G.TAB_X - 0.5 && y < G.TAB_H + 0.5) && !(Math.hypot(x - 55, y - 55) < 38.3 && Math.abs((x - 55) * ext.px + (y - 55) * ext.py - ext.off(Math.hypot(x - 55, y - 55))) < 0.5), L.text, true);
-    if (cr.dark > 0.0012) jobs.push({ key: 'f' + i, canvas: scanForOcr(cr) });
+    if (cr.dark > 0.0012) jobs.push({ key: 'f' + i, canvas: scanForOcr(cr), cr });
   }
   if (marks.ja.length) L.check = scanMedianColor(marks.ja);
   if (marks.nej.length) L.cross = scanMedianColor(marks.nej);
@@ -4012,13 +4354,30 @@ async function scanReadSide(img, onStep) {
   const tab = scanCrop(img, 84, 0.6, 25.4, 8.8);
   tab.bg = L.tab || tab.bg;
   if (tab.dark > 0.01) jobs.push({ key: 'tab', canvas: scanForOcr(tab), raw: tab });
+  window.SCAN_TPREP = (window.SCAN_TPREP || 0) + performance.now() - T0;
   let done = 0;
+  res.conf = {}; res.low = {};
   await Promise.all(jobs.map(async jb => {
-    const r = await SCAN.sched.addJob('recognize', jb.canvas);
-    if (jb.key === 'tab') { res.label = scanLabelFrom(r.data, jb.raw, L); if (onStep) onStep(++done, jobs.length); return; }
-    const t = scanOcrText(jb.key[0] === 'a' ? scanAltWords(r.data, jb.cr) : r.data);
-    // osäkert: inget lästes fast det finns text, eller låg säkerhet
-    if (!t || (r.data.confidence || 0) < 72) res.unsure.add(jb.key);
+    if (jb.key === 'tab') { const r = await SCAN.sched.addJob('recognize', jb.canvas); res.label = scanLabelFrom(r.data, jb.raw, L); if (onStep) onStep(++done, jobs.length); return; }
+    // två varianter av samma utsnitt – den som läses säkrast vinner
+    const pad = 0, off = pad / SC;
+    const variants = [jb.canvas, jb.cr ? scanForOcrSoft(jb.cr) : null].filter(Boolean);
+    const reads = [];
+    for (const cv of variants) {
+      if (reads.length && reads[0].conf >= 88 && !reads[0].low.length && reads[0].text) break;   // första läsningen var säker nog
+      window.SCAN_NOCR = (window.SCAN_NOCR || 0) + 1;
+      const r = await SCAN.sched.addJob('recognize', pad ? scanPad(cv, pad) : cv);
+      let data = r.data;
+      if (jb.key[0] === 'a') data = scanAltWords(data, Object.assign({}, jb.cr, { x0: jb.cr.x0 - off, y0: jb.cr.y0 - off }));
+      reads.push(scanOcrRead(data));
+    }
+    const score = x => x.conf * Math.min(1, x.words / 1) + (x.text ? 0 : -50);
+    reads.sort((a, b) => score(b) - score(a));
+    const best = reads[0], t = best.text;
+    const agree = reads.length > 1 && scanNorm(reads[0].text) === scanNorm(reads[1].text);
+    res.conf[jb.key] = agree ? Math.max(best.conf, 90) : best.conf; res.low[jb.key] = agree ? [] : best.low;
+    // osäkert: inget lästes fast det finns text, låg säkerhet eller enskilda osäkra ord
+    if (!t || res.conf[jb.key] < 72 || res.low[jb.key].length) res.unsure.add(jb.key);
     if (jb.key === 'q') res.text = t;
     else if (jb.key[0] === 'a') res.alts[Number(jb.key.slice(1))] = { text: t };
     else res.ans[Number(jb.key.slice(1))] = { text: t };
@@ -4043,6 +4402,57 @@ function scanLabelFrom(data, raw, L) {
   if (inkD.length > 30) L.tabDark = scanMedianColor(inkD);
   if (inkL.length > 30) L.tabLight = scanMedianColor(inkL);
   return { dark: dark.join(' '), light: lightW.join(' ') };
+}
+/* ---------- Rätta osäkra ord med hjälp av resten av skanningen ----------
+   Samma svar står ofta på flera kort (”Pippi Långstrump”, ”Emil i Lönneberga”). Ett osäkert ord som nästan
+   stämmer med ett säkert läst ord någon annanstans byts mot det. */
+function scanLev(a, b) {
+  if (Math.abs(a.length - b.length) > 2) return 9;
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+function scanConsensus(results) {
+  const vocab = new Map();                       // normaliserat ord → { form, n, conf }
+  const add = (tok, conf, n = 1) => { const k = scanNorm(tok); if (k.length < 4) return; const v = vocab.get(k) || { form: tok.replace(/[.,!?:;]+$/, ''), n: 0, conf: 0 }; v.n += n; v.conf = Math.max(v.conf, conf); if (/~/.test(tok) && !/~/.test(v.form)) v.form = tok.replace(/[.,!?:;]+$/, ''); vocab.set(k, v); };
+  const fields = [];
+  for (const r of results) {
+    const each = (key, get, set) => { const t = get(); if (!t) return; fields.push({ r, key, get, set }); const low = new Set((r.low && r.low[key]) || []), conf = (r.conf && r.conf[key]) || 80; for (const tok of t.split(' ')) if (!low.has(scanNorm(tok))) add(tok, conf); };
+    each('q', () => r.text, v => { r.text = v; });
+    for (let i = 0; i < 10; i++) {
+      each('a' + i, () => r.alts[i] && r.alts[i].text, v => { r.alts[i].text = v; });
+      each('f' + i, () => r.ans[i] && r.ans[i].text, v => { r.ans[i].text = v; });
+    }
+  }
+  // ord som redan finns i kortleken räknas också som säkra
+  try { for (const c of state.deck.cards) for (const q of c.sides) for (const t of [q.text, ...q.alts.map(a => a.text), ...q.ans.map(a => a.text)]) for (const tok of String(t || '').split(/\s+/)) add(tok, 90, 2); } catch (e) { /* ingen kortlek */ }
+  for (const f of fields) {
+    const low = new Set((f.r.low && f.r.low[f.key]) || []), conf = (f.r.conf && f.r.conf[f.key]) || 0;
+    let changed = false;
+    const toks = f.get().split(' ').map(tok => {
+      const k = scanNorm(tok); if (k.length < 3) return tok;
+      if (!low.has(k) && conf >= 80) return tok;
+      const own = vocab.get(k);
+      let best = null;
+      for (const [vk, v] of vocab) {
+        if (vk === k || (v.n < 2 && v.conf < 88)) continue;
+        const dist = scanLev(k, vk), lim = vk.length >= 7 ? 2 : 1;
+        if (dist > lim) continue;
+        if (own && own.n >= v.n) continue;
+        if (!best || v.n > best.n || (v.n === best.n && v.conf > best.conf)) best = v;
+      }
+      if (!best) return tok;
+      changed = true; low.delete(k);
+      const tail = (tok.match(/[.,!?:;]+$/) || [''])[0];
+      return best.form + tail;
+    });
+    if (changed) {
+      f.set(toks.join(' '));
+      if (f.r.low) f.r.low[f.key] = [...low];
+      if (!low.size && conf >= 60 && f.r.unsure) f.r.unsure.delete(f.key);
+    }
+  }
 }
 // Gör om avläsningen till en fråga i Egna10-format
 function scanToQuestion(r) {
@@ -4136,15 +4546,15 @@ function scanRenderList() {
   const ol = $('#scanList'), pairs = $('#scanMode').value === 'pairs';
   if (!SCAN.items.length) { ol.innerHTML = '<li class="scan-empty">Inga bilder än. Tryck på ”Ta foto” för att skanna korten med kameran, eller välj färdiga bilder.</li>'; return; }
   ol.innerHTML = SCAN.items.map((it, k) => {
-    const j = SCAN.items.slice(0, k).filter(x => !x.noCard).length;
-    const role = it.noCard ? 'Inget kort' : pairs ? `Kort ${Math.floor(j / 2) + 1} · ${j % 2 ? 'baksida' : 'framsida'}` : `Kort ${j + 1}`;
-    const st = it.noCard ? 'hoppas över' : it.result ? '✓ inläst' : it.err ? 'fel' : '';
+    const j = SCAN.items.slice(0, k).filter(x => !x.noCard && !scanIsLinked(x)).length;
+    const role = it.noCard ? 'Inget kort' : scanIsLinked(it) ? 'Redan inläst' : pairs ? `Kort ${Math.floor(j / 2) + 1} · ${j % 2 ? 'baksida' : 'framsida'}` : `Kort ${j + 1}`;
+    const where = scanIsLinked(it) ? scanWhereText(it) : '', st = it.noCard ? 'hoppas över' : where ? '✓ ' + where : it.result ? '✓ inläst' : it.err ? 'fel' : '';
     const qw = it.quality && it.quality.warn.length ? `<small class="qw">⚠ ${esc(it.quality.warn.join(', '))}</small>` : '';
     return `<li class="${k === SCAN.sel ? 'sel' : ''}" data-k="${k}"><img src="${it.thumb}" alt=""><span><b>${role}</b><small>${esc(it.name)}${st ? ' · ' + st : ''}</small>${qw}</span></li>`;
   }).join('');
 }
 function scanFit() {                          // bildens placering i ritytan
-  const cv = $('#scanCanvas'), it = SCAN.items[SCAN.sel]; if (!it) return null;
+  const cv = $('#scanCanvas'), it = SCAN.items[SCAN.sel]; if (!it || !it.src) return null;
   const box = $('#scanStage').getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
   const W = Math.max(200, box.width), Hh = Math.max(200, box.height);
   cv.width = W * dpr; cv.height = Hh * dpr; cv.style.width = W + 'px'; cv.style.height = Hh + 'px';
@@ -4157,7 +4567,7 @@ function scanFit() {                          // bildens placering i ritytan
 }
 function scanDraw() {
   const cv = $('#scanCanvas'), it = SCAN.items[SCAN.sel], ctx = cv.getContext('2d');
-  if (!it) { ctx.clearRect(0, 0, cv.width, cv.height); return; }
+  if (!it || !it.src) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); if (it) scanEnsure(it).then(() => { if (SCAN.items[SCAN.sel] === it) { SCAN.view = null; scanFit(); scanDraw(); } }); return; }
   const v = SCAN.view || scanFit(), P = ([x, y]) => [v.ox + x * v.s, v.oy + y * v.s];
   ctx.setTransform(v.dpr, 0, 0, v.dpr, 0, 0);
   ctx.clearRect(0, 0, cv.width, cv.height);
@@ -4208,17 +4618,26 @@ function scanLoupe(ctx, it, v, i) {
 const SCAN_HANDLE_MM = (() => { const R = G.R_BIG, r = G.R_SMALL, c = Math.SQRT1_2; return [[R - R * c, R - R * c], [110 - r + r * c, r - r * c], [110 - r + r * c, 110 - r + r * c], [R - R * c, 110 - R + R * c]]; })();
 function scanHandles(it) { const Hm = scanHomography(SCAN_MM_CORNERS, it.corners); return SCAN_HANDLE_MM.map(([x, y]) => scanApply(Hm, x, y)); }
 function scanSetHandles(it, hs) { const Hm = scanHomography(SCAN_HANDLE_MM, hs); it.corners = SCAN_MM_CORNERS.map(([x, y]) => scanApply(Hm, x, y)); }
-function scanSelect(k) { SCAN.sel = k; SCAN.view = null; scanRenderList(); scanFit(); scanDraw(); const ok = !!SCAN.items[k]; ['#scanAuto', '#scanRot', '#scanDup', '#scanDel'].forEach(s => { $(s).disabled = !ok; }); }
-function scanMakeItem(name, src, disc) {
+async function scanSelect(k) {
+  SCAN.sel = k; SCAN.view = null; scanRenderList();
+  const it = SCAN.items[k], ok = !!it;
+  ['#scanAuto', '#scanRot', '#scanDup', '#scanDel', '#scanUp', '#scanDown', '#scanRetake'].forEach(s => { const b = $(s); if (b) b.disabled = !ok; });
+  scanToolsState();
+  if (it) { await scanEnsure(it); scanTrim(); }
+  if (SCAN.sel !== k) return;
+  scanFit(); scanDraw();
+}
+function scanMakeItem(name, src, disc, blob) {
   const t = document.createElement('canvas'), k = 90 / Math.max(src.canvas.width, src.canvas.height); t.width = Math.round(src.canvas.width * k); t.height = Math.round(src.canvas.height * k);
   t.getContext('2d').drawImage(src.canvas, 0, 0, t.width, t.height);
-  const it = { id: uid(), name, src, thumb: t.toDataURL('image/jpeg', 0.7), corners: null, result: null };
+  const it = scanItem({ id: uid(), name, srcId: src.id || scanSrcAdd(src, blob), thumb: t.toDataURL('image/jpeg', 0.7), corners: null, result: null });
   if (disc && disc.corners) { it.corners = disc.corners; it.conf = disc.conf; it.spokes = disc.spokes; }
   else it.corners = disc ? scanDetect(it, disc) : scanAutoCorners(it);
   return it;
 }
 // En bild (eller PDF-sida) kan innehålla flera kort, t.ex. en skanner- eller Drive-skanning. Ett objekt per kort.
-function scanItemsFrom(name, src) {
+function scanItemsFrom(name, src, blob) {
+  scanSrcAdd(src, blob);
   const probe = { src }, found = [];
   for (const c of scanFindCircles(probe).slice(0, 12)) {
     const r = scanDetectFrom(probe, c);
@@ -4249,22 +4668,24 @@ async function scanAddFiles(files) {
     try {
       if (/\.pdf$/i.test(f.name) || f.type === 'application/pdf') {
         const pages = await scanLoadPdf(f, (p, n) => scanStatus(`Läser ${f.name}: sida ${p} av ${n} …`));
-        pages.forEach((src, i) => SCAN.items.push(...scanItemsFrom(pages.length > 1 ? `${f.name} s. ${i + 1}` : f.name, src)));
-      } else SCAN.items.push(...scanItemsFrom(f.name, await scanLoadFile(f)));
+        pages.forEach((src, i) => { SCAN.items.push(...scanItemsFrom(pages.length > 1 ? `${f.name} s. ${i + 1}` : f.name, src)); scanTrim(); });
+      } else { SCAN.items.push(...scanItemsFrom(f.name, await scanLoadFile(f), f)); scanTrim(); }
     } catch (e) { scanStatus(`${f.name} kunde inte läsas${/pdf$/i.test(f.name) ? ' (PDF-läsaren kräver internet första gången)' : ' som bild'}.`); await new Promise(r => setTimeout(r, 1500)); }
   }
+  scanSaveSoon();
   scanSelect(SCAN.items.length ? (SCAN.sel >= 0 ? SCAN.sel : 0) : -1);
   scanStatus(SCAN.items.length ? `${SCAN.items.length} ${SCAN.items.length === 1 ? 'bild' : 'bilder'}. Kontrollera att ramen sitter rätt och tryck sedan på en av knapparna nedan.` : '');
 }
 async function scanReadAll() {
-  const todo = SCAN.items.filter(it => !it.result && !it.noCard);
+  const todo = SCAN.items.filter(it => !it.result && !it.noCard && !scanIsLinked(it));
   if (!todo.length) return true;
   scanStatus('Laddar textigenkänningen (första gången tar det en stund) …');
   try { await scanLoadTess(); } catch (e) { scanStatus(e.message); return false; }
   let k = 0;
   for (const it of todo) {
     k++;
-    const img = scanWarp(it);
+    await scanEnsure(it);
+    const img = scanWarp(it); scanTrim();
     scanStatus(`Läser bild ${k} av ${todo.length} …`);
     try {
       it.result = await scanReadSide(img, (d, n) => scanStatus(`Läser bild ${k} av ${todo.length} … (${d}/${n})`));
@@ -4278,7 +4699,8 @@ async function scanReadAll() {
   return true;
 }
 function scanBuildCards() {
-  const pairs = $('#scanMode').value === 'pairs', ok = SCAN.items.filter(it => it.result && !it.noCard), cards = [], refs = [], sides = [];
+  const pairs = $('#scanMode').value === 'pairs', ok = SCAN.items.filter(it => it.result && !it.noCard && !scanIsLinked(it)), cards = [], refs = [], sides = [];
+  try { scanConsensus(ok.map(it => it.result)); } catch (e) { /* rättningen är bara en hjälp */ }
   const step = pairs ? 2 : 1;
   for (let k = 0; k < ok.length; k += step) {
     const c = newCard();
@@ -4297,13 +4719,14 @@ function scanSideStyles(look, sides) {
 async function scanFinish(action) {
   if (SCAN.busy) return;
   if (!SCAN.items.length) { scanStatus('Lägg till bilder först.'); return; }
+  if (!SCAN.items.some(it => !scanIsLinked(it) && !it.noCard)) { scanStatus('Alla bilder finns redan i kortleken. Ta nya bilder, eller välj en bild och tryck ”Läs om till kortet”.'); return; }
   SCAN.busy = true; $$('#dlgScan .scanfoot button').forEach(b => { b.disabled = true; });
   try {
     if (!(await scanReadAll())) return;
     const { cards, refs, sides } = scanBuildCards();
     if (!cards.length) { scanStatus('Inga kort kunde läsas.'); return; }
     let look = null;
-    if ($('#scanLook').checked) { scanStatus('Kopierar färger och bakgrund …'); await new Promise(r => setTimeout(r, 30)); try { look = scanDeckLook(SCAN.items, $('#scanMode').value === 'pairs'); } catch (e) { look = null; } }
+    if ($('#scanLook').checked) { scanStatus('Kopierar färger och bakgrund …'); await new Promise(r => setTimeout(r, 30)); try { look = await scanDeckLook(SCAN.items.filter(it => !scanIsLinked(it)), $('#scanMode').value === 'pairs'); } catch (e) { look = null; } }
     scanSideStyles(look, sides);
     if (action === 'file') {
       const raw = newDeck(); raw.name = 'Inskannade kort'; raw.cards = cards;
@@ -4325,23 +4748,18 @@ async function scanFinish(action) {
       if (only) state.deck.cards = cards; else state.deck.cards.push(...cards);
       if (look) { const d = JSON.parse(JSON.stringify(state.deck)); d.cards = state.deck.cards; scanApplyLook(d, look, sides.map(([q, si]) => [q, si])); state.deck = sanitizeDeck(d); state.deck.cards.forEach((c, i) => { c.id = d.cards[i].id; }); }
     }
-    for (const [id, si, ref] of refs) SCAN.refs.set(id + ':' + si, ref);
+    for (const [q, si, it] of sides) { const c = state.deck.cards.find(cc => cc.sides[si] === q) || cards.find(cc => cc.sides[si] === q); if (c) it.added = { cardId: c.id, side: si }; }
+    // i en ny kortlek har korten fått nya objekt – koppla via kort-id och sida
+    for (const [, si, it] of sides) if (it.added && !state.deck.cards.some(c => c.id === it.added.cardId)) it.added = null;
+    scanSaveSoon();
     state.status.clear();
     const first = state.deck.cards.findIndex(c => c.id === cards[0].id);
     renderList(); selectCard(Math.max(0, first), 0); scheduleSave();
     $('#dlgScan').close();
     setStatus(`${cards.length} kort är inskannade – kontrollera texten mot bilden överst i redigeringen.`);
-    SCAN.items = []; SCAN.sel = -1;
   } finally {
     SCAN.busy = false; $$('#dlgScan .scanfoot button').forEach(b => { b.disabled = false; });
   }
-}
-function scanRenderRef() {
-  let el = $('#scanRef');
-  const ref = SCAN.refs.get(curCard().id + ':' + state.side);
-  if (!ref) { if (el) el.remove(); return; }
-  if (!el) { el = document.createElement('details'); el.id = 'scanRef'; el.className = 'scanref'; el.open = true; el.innerHTML = '<summary>Inskannad bild – jämför med texten nedan</summary><img alt="Det inskannade kortet">'; $('#pEditor .form').prepend(el); }
-  el.querySelector('img').src = ref;
 }
 function bindScan() {
   const dlg = $('#dlgScan');
@@ -4353,8 +4771,8 @@ function bindScan() {
   $('#scanList').addEventListener('click', e => { const li = e.target.closest('li[data-k]'); if (li) scanSelect(Number(li.dataset.k)); });
   $('#scanAuto').addEventListener('click', () => { const it = SCAN.items[SCAN.sel]; if (!it) return; it.corners = scanAutoCorners(it); it.result = null; it.viewCard = null; try { it.quality = scanQuality(it); } catch (e) { /* – */ } SCAN.view = null; scanFit(); scanRenderList(); scanDraw(); });
   $('#scanRot').addEventListener('click', () => { const it = SCAN.items[SCAN.sel]; if (!it) return; it.corners = it.corners.slice(3).concat(it.corners.slice(0, 3)); it.result = null; it.viewCard = null; scanRenderList(); scanDraw(); });
-  $('#scanDup').addEventListener('click', () => { const it = SCAN.items[SCAN.sel]; if (!it) return; const c = Object.assign({}, it, { id: uid(), result: null, corners: it.corners.map(p => [p[0] + 30, p[1] + 30]) }); SCAN.items.splice(SCAN.sel + 1, 0, c); scanSelect(SCAN.sel + 1); });
-  $('#scanDel').addEventListener('click', () => { if (SCAN.sel < 0) return; SCAN.items.splice(SCAN.sel, 1); scanSelect(Math.min(SCAN.sel, SCAN.items.length - 1)); });
+  $('#scanDup').addEventListener('click', () => { const it = SCAN.items[SCAN.sel]; if (!it) return; const c = scanItem(Object.assign({}, it, { id: uid(), result: null, added: null, corners: it.corners.map(p => [p[0] + 30, p[1] + 30]) })); SCAN.items.splice(SCAN.sel + 1, 0, c); scanSelect(SCAN.sel + 1); });
+  $('#scanDel').addEventListener('click', () => { if (SCAN.sel < 0) return; SCAN.items.splice(SCAN.sel, 1); scanSaveSoon(); scanSelect(Math.min(SCAN.sel, SCAN.items.length - 1)); });
   $('#scanAdd').addEventListener('click', () => scanFinish('add'));
   $('#scanNewDeck').addEventListener('click', () => scanFinish('new'));
   $('#scanExport').addEventListener('click', () => scanFinish('file'));
@@ -4382,7 +4800,7 @@ function bindScan() {
     else { d.hs[d.i] = [x + d.dx, y + d.dy]; scanSetHandles(it, d.hs); }
     it.result = null; scanDraw();
   });
-  const up = () => { if (SCAN.drag) { SCAN.drag = null; scanDraw(); const it = SCAN.items[SCAN.sel]; if (it) { it.conf = 1; if (it.noCard) { it.noCard = false; } try { it.quality = scanQuality(it); } catch (e) { /* – */ } it.viewCard = null; } scanRenderList(); } };
+  const up = () => { if (SCAN.drag) { SCAN.drag = null; scanDraw(); scanSaveSoon(); const it = SCAN.items[SCAN.sel]; if (it) { it.conf = 1; if (it.noCard) { it.noCard = false; } try { it.quality = scanQuality(it); } catch (e) { /* – */ } it.viewCard = null; } scanRenderList(); } };
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
   new ResizeObserver(() => { if (dlg.open) { SCAN.view = null; scanFit(); scanDraw(); } }).observe($('#scanStage'));
   dlg.addEventListener('dragover', e => e.preventDefault());
@@ -4390,6 +4808,7 @@ function bindScan() {
   const _re = renderEditor;
   renderEditor = function () { _re(); scanRenderRef(); scanRenderFlags(); };
   bindScanFlags();
+  bindScanStore();
   scanSelect(-1);
 }
 
@@ -4471,8 +4890,10 @@ function scanClearFlag(keys) {
   const before = q.pro.scan.f.length;
   q.pro.scan.f = keys === 'all' ? [] : q.pro.scan.f.filter(k => !keys.includes(k));
   if (keys === 'all' || !q.pro.scan.f.some(k => k !== 'img')) q.pro.scan.f = [];
-  if (!q.pro.scan.f.length) { delete q.pro.scan; if (!Object.keys(q.pro).some(k => q.pro[k] !== undefined && !(k === 'design' && !Object.keys(q.pro.design || {}).length) && !(k === 'items' && !(q.pro.items || []).length))) delete q.pro; }
+  if (!q.pro.scan.f.length && !(q.pro.scan.e || []).length) { delete q.pro.scan; if (!Object.keys(q.pro).some(k => q.pro[k] !== undefined && !(k === 'design' && !Object.keys(q.pro.design || {}).length) && !(k === 'items' && !(q.pro.items || []).length))) delete q.pro; }
   return before !== (q.pro && q.pro.scan ? q.pro.scan.f.length : 0);
+}
+function scanIsLinked(it) { return !!(it && it.added && state.deck.cards.some(c => c.id === it.added.cardId)); 
 }
 function bindScanFlags() {
   const ed = $('#pEditor');
@@ -4484,7 +4905,7 @@ function bindScanFlags() {
     if (!td) return null;
     return [(td.dataset.label === 'Alternativ' ? 'a' : 'f') + i];
   };
-  const onEdit = e => { const k = keyOf(e.target); if (k && scanFlagsOf(curQ()).some(x => k.includes(x)) && scanClearFlag(k)) { scanRenderFlags(); changed(); } };
+  const onEdit = e => { const k = keyOf(e.target); if (!k) return; scanMarkEdited(k); if (scanFlagsOf(curQ()).some(x => k.includes(x)) && scanClearFlag(k)) { scanRenderFlags(); changed(); } };
   ed.addEventListener('input', onEdit);
   ed.addEventListener('change', onEdit);
   ed.addEventListener('click', e => {
@@ -4713,7 +5134,7 @@ function lookToSVG(lab, colors, N) {
 function lookTheme(items, style) {
   const N = LOOK_N, use = items.slice(0, 15);
   if (use.length < 2) return null;
-  const smalls = use.map(lookSmall), M = new Uint8ClampedArray(N * N * 3), known = new Uint8Array(N * N);
+  const smalls = use.map(it => it.small || lookSmall(it)), M = new Uint8ClampedArray(N * N * 3), known = new Uint8Array(N * N);
   const bg = lookHexToRgb(style.bg), disc = lookHexToRgb(style.disc);
   let nKnown = 0, nDiff = 0, nDisc = 0, nDiscDiff = 0;
   const vals = [[], [], []];
@@ -4744,7 +5165,7 @@ function lookTheme(items, style) {
 }
 
 /* ---------- Hela kortlekens utseende ---------- */
-function scanDeckLook(items, pairs) {
+async function scanDeckLook(items, pairs) {
   const ok = items.filter(it => it.result && it.result.look);
   if (!ok.length) return null;
   const style = {}, base = DEFAULT_STYLE;
@@ -4770,6 +5191,8 @@ function scanDeckLook(items, pairs) {
   const themes = [];
   const fr = pairs ? ok.filter((it, k) => items.indexOf(it) % 2 === 0) : ok, bk = pairs ? ok.filter(it => items.indexOf(it) % 2 === 1) : [];
   const plainItems = ok.filter(it => !sideStyle.has(it));
+  // lågupplösta kopior av korten (bilderna laddas in en i taget för att spara minne)
+  for (const it of plainItems) { await scanEnsure(it); it.small = lookSmall(it); scanTrim(); }
   if (pairs && fr.length >= 2 && bk.length >= 2) {
     const a = lookTheme(fr.filter(it => plainItems.includes(it)), full), b = lookTheme(bk.filter(it => plainItems.includes(it)), full);
     if (a) themes.push({ on: 'front', svg: a.svg, disc: a.disc });
@@ -4778,6 +5201,7 @@ function scanDeckLook(items, pairs) {
     const a = lookTheme(plainItems, full);
     if (a) themes.push({ on: 'all', svg: a.svg, disc: a.disc });
   }
+  for (const it of plainItems) delete it.small;
   return { style, label, sideStyle, themes };
 }
 // Lägg utseendet på kortleken (och sidor med egna färger)
@@ -4807,7 +5231,7 @@ const CAM = { stream: null, timer: 0, busy: false, last: null, stable: 0, auto: 
 
 function camHasLive() { return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && window.isSecureContext !== false; }
 
-async function camOpen() {
+async function camOpen(opts = {}) {
   if (!camHasLive()) { $('#scanCamFile').click(); return; }
   const ui = $('#scanCamUI'), v = $('#camVideo');
   try {
@@ -4824,7 +5248,7 @@ async function camOpen() {
   setTimeout(camTorchSetup, 700);               // vissa telefoner visar ficklampan först när bilden har startat
   try { CAM.auto = localStorage.getItem('egna10pro.camAuto') === '1'; } catch (e) { CAM.auto = false; }
   $('#camAuto').setAttribute('aria-pressed', String(CAM.auto));
-  CAM.last = null; CAM.stable = 0; CAM.armed = true; CAM.retake = -1;
+  CAM.last = null; CAM.stable = 0; CAM.armed = true; CAM.retake = -1; CAM.replace = opts.replace || null; CAM.onShot = opts.onShot || null;
   $('#camReview').hidden = true;
   camUpdateStack();
   camHint();
@@ -4861,7 +5285,8 @@ function camClose() {
 
 // Vilken bild står på tur? I läget ”fram + bak” växlar det mellan framsida och baksida.
 function camNextLabel() {
-  const pairs = $('#scanMode').value === 'pairs', k = CAM.retake >= 0 ? CAM.retake : SCAN.items.length;
+  const pairs = $('#scanMode').value === 'pairs', k = CAM.replace && SCAN.items.includes(CAM.replace) ? SCAN.items.indexOf(CAM.replace) : CAM.retake >= 0 ? CAM.retake : SCAN.items.length;
+  if (CAM.replace && CAM.replace.added) { const c = state.deck.cards.findIndex(cc => cc.id === CAM.replace.added.cardId); if (c >= 0) return `Ny bild: kort ${c + 1} · ${CAM.replace.added.side ? 'baksida' : 'framsida'}`; }
   return pairs ? `Kort ${Math.floor(k / 2) + 1} · ${k % 2 ? 'baksida' : 'framsida'}` : `Kort ${k + 1}`;
 }
 function camHint(found) {
@@ -4943,8 +5368,12 @@ async function camShoot() {
       it.thumb = t.toDataURL('image/jpeg', 0.75); it.camThumb = true;
       it.quality = scanQuality(it, img);
     } catch (e) { /* behåll fotot som miniatyr */ }
-    if (CAM.retake >= 0 && CAM.retake <= SCAN.items.length) { SCAN.items.splice(CAM.retake, 0, it); CAM.retake = -1; }
+    const old = CAM.replace, oi = old ? SCAN.items.indexOf(old) : -1;
+    if (oi >= 0) { it.added = old.added || null; SCAN.items[oi] = it; CAM.replace = null; }
+    else if (CAM.retake >= 0 && CAM.retake <= SCAN.items.length) { SCAN.items.splice(CAM.retake, 0, it); CAM.retake = -1; }
     else SCAN.items.push(it);
+    scanTrim(); scanSaveSoon();
+    if (CAM.onShot) { const cb = CAM.onShot; CAM.onShot = null; camClose(); cb(it); return; }
     CAM.shots++;
     camUpdateStack(true);
     camHint(CAM.auto ? 'wait' : true);
@@ -4984,8 +5413,8 @@ function bindCam() {
     const f = e.target.closest('figure[data-k]'); if (!f) return;
     const k = Number(f.dataset.k);
     if (e.target.tagName === 'IMG') { camViewOpen(k); return; }
-    if (e.target.closest('.del')) { SCAN.items.splice(k, 1); camUpdateStack(); camReview(); }
-    else if (e.target.closest('.re')) { SCAN.items.splice(k, 1); CAM.retake = k; camUpdateStack(); $('#camReview').hidden = true; CAM.armed = true; camHint(); }
+    if (e.target.closest('.del')) { SCAN.items.splice(k, 1); scanSaveSoon(); camUpdateStack(); camReview(); }
+    else if (e.target.closest('.re')) { CAM.replace = SCAN.items[k]; camUpdateStack(); $('#camReview').hidden = true; CAM.armed = true; CAM.hold = 0; camHint(); }
   });
   // stäng kameran om dialogen stängs (t.ex. med Esc)
   $('#dlgScan').addEventListener('close', () => { if (CAM.stream) camClose(); });
@@ -5002,8 +5431,9 @@ function camViewImage(it, mode) {
   }
   return it.viewCard;
 }
-function camViewOpen(k) {
+async function camViewOpen(k) {
   const it = SCAN.items[k]; if (!it) return;
+  await scanEnsure(it);
   CV.k = k; $('#camView').hidden = false;
   const pairs = $('#scanMode').value === 'pairs';
   $('#camVTitle').textContent = pairs ? `Kort ${Math.floor(k / 2) + 1} · ${k % 2 ? 'baksida' : 'framsida'}` : `Kort ${k + 1}`;
@@ -5041,8 +5471,8 @@ function bindCamView() {
   $('#camVMode').addEventListener('click', () => { CV.mode = CV.mode === 'card' ? 'photo' : 'card'; camViewOpen(CV.k); });
   $('#camVPrev').addEventListener('click', () => camViewOpen(CV.k - 1));
   $('#camVNext').addEventListener('click', () => camViewOpen(CV.k + 1));
-  $('#camVDel').addEventListener('click', () => { SCAN.items.splice(CV.k, 1); camUpdateStack(); if (!SCAN.items.length) { camViewClose(); return; } camViewOpen(Math.min(CV.k, SCAN.items.length - 1)); });
-  $('#camVRe').addEventListener('click', () => { const k = CV.k; SCAN.items.splice(k, 1); CAM.retake = k; camUpdateStack(); $('#camView').hidden = true; $('#camReview').hidden = true; CAM.armed = true; CAM.hold = 0; camHint(); });
+  $('#camVDel').addEventListener('click', () => { SCAN.items.splice(CV.k, 1); scanSaveSoon(); camUpdateStack(); if (!SCAN.items.length) { camViewClose(); return; } camViewOpen(Math.min(CV.k, SCAN.items.length - 1)); });
+  $('#camVRe').addEventListener('click', () => { CAM.replace = SCAN.items[CV.k]; camUpdateStack(); $('#camView').hidden = true; $('#camReview').hidden = true; CAM.armed = true; CAM.hold = 0; camHint(); });
   st.addEventListener('pointerdown', e => {
     st.setPointerCapture(e.pointerId); CV.pts.set(e.pointerId, rel(e));
     if (CV.pts.size === 2) { const [a, b] = [...CV.pts.values()]; CV.pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), s: CV.s }; CV.swipe = null; }
@@ -5074,6 +5504,224 @@ function bindCamView() {
   st.addEventListener('pointerup', up); st.addEventListener('pointercancel', up);
   st.addEventListener('wheel', e => { e.preventDefault(); const [x, y] = rel(e); camViewZoomAt(x, y, CV.s * (e.deltaY < 0 ? 1.2 : 1 / 1.2)); }, { passive: false });
   new ResizeObserver(() => { if (!$('#camView').hidden) camViewFit(); }).observe(st);
+}
+
+/* =====================================================================
+   Egna10 Pro – skanningens bilder: minne, sparande och omläsning
+   – bilderna ligger kvar när man stänger och öppnar ”Skanna in kort” igen
+   – (val i Inställningar) de sparas även när appen stängs
+   – ”Läs om” / ”Ta ny bild” för ett kort som redan finns i kortleken
+   ===================================================================== */
+SCAN.srcs = new Map();                         // id → { blob, canvas, data, used }
+let scanSrcSeq = 0;
+function scanItem(o) {                          // ett skanningsobjekt med .src som pekar på den inlästa bilden (om den är inläst)
+  Object.defineProperty(o, 'src', { configurable: true, enumerable: false, get() { const s = SCAN.srcs.get(this.srcId); return s && s.canvas ? s : null; } });
+  return o;
+}
+function scanSrcAdd(src, blob) {
+  if (src.id && SCAN.srcs.has(src.id)) return src.id;
+  const id = 's' + Date.now().toString(36) + (scanSrcSeq++).toString(36);
+  src.id = id; src.used = Date.now(); src.blob = blob || null;
+  SCAN.srcs.set(id, src);
+  if (!src.blob) src.canvas.toBlob(b => { src.blob = b; scanSaveSoon(); }, 'image/jpeg', 0.92);
+  return id;
+}
+// Läs in bilden igen om den har släppts ur minnet
+async function scanEnsure(it) {
+  const s = SCAN.srcs.get(it.srcId); if (!s) return null;
+  s.used = Date.now();
+  if (s.canvas) return s;
+  if (!s.loading) s.loading = (async () => {
+    const bmp = await createImageBitmap(s.blob);
+    const k = Math.min(1, 2800 / Math.max(bmp.width, bmp.height)), c = document.createElement('canvas');
+    c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    const ctx = c.getContext('2d', { willReadFrequently: true }); ctx.drawImage(bmp, 0, 0, c.width, c.height); bmp.close && bmp.close();
+    s.canvas = c; s.data = ctx.getImageData(0, 0, c.width, c.height); s.loading = null;
+  })();
+  await s.loading;
+  return s;
+}
+// Högst några fullstora bilder i minnet samtidigt – telefoner har inte obegränsat minne
+function scanTrim(keep = 3) {
+  const live = [...SCAN.srcs.values()].filter(s => s.canvas && s.blob).sort((a, b) => b.used - a.used);
+  const sel = SCAN.items[SCAN.sel], selId = sel && sel.srcId;
+  for (const s of live.slice(keep)) if (s.id !== selId) { s.canvas = null; s.data = null; }
+}
+
+/* ---------- Sparande mellan besök (val i Inställningar) ---------- */
+const SCAN_DB = 'egna10pro-scan';
+function scanKeepOn() { try { return appSettings().scanKeep; } catch (e) { return false; } }
+function scanDb() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(SCAN_DB, 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore('kv'); r.result.createObjectStore('src'); };
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+}
+let scanSaveTimer = 0;
+function scanSaveSoon() { clearTimeout(scanSaveTimer); if (scanKeepOn()) scanSaveTimer = setTimeout(scanSave, 900); }
+async function scanSave() {
+  if (!scanKeepOn()) return;
+  try {
+    const db = await scanDb();
+    const items = SCAN.items.map(it => ({ id: it.id, srcId: it.srcId, name: it.name, thumb: it.thumb, corners: it.corners, conf: it.conf, spokes: it.spokes, noCard: !!it.noCard, quality: it.quality || null, added: it.added || null, ref: it.ref || null }));
+    const used = new Set(items.map(i => i.srcId));
+    await new Promise((res, rej) => {
+      const tx = db.transaction(['kv', 'src'], 'readwrite'), kv = tx.objectStore('kv'), st = tx.objectStore('src');
+      kv.put(items, 'items'); kv.put($('#scanMode').value, 'mode');
+      for (const [id, s] of SCAN.srcs) if (used.has(id) && s.blob && !s.saved) { st.put(s.blob, id); s.saved = true; }
+      const keys = st.getAllKeys(); keys.onsuccess = () => { for (const k of keys.result) if (!used.has(k)) st.delete(k); };
+      tx.oncomplete = res; tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error);
+    });
+    db.close();
+    for (const [id] of SCAN.srcs) if (!used.has(id)) SCAN.srcs.delete(id);
+  } catch (e) { /* sparandet är en bekvämlighet */ }
+}
+async function scanLoadSaved() {
+  if (!scanKeepOn()) return;
+  try {
+    const db = await scanDb();
+    const get = (store, k) => new Promise(res => { const r = db.transaction(store).objectStore(store).get(k); r.onsuccess = () => res(r.result); r.onerror = () => res(undefined); });
+    const items = (await get('kv', 'items')) || [], mode = await get('kv', 'mode');
+    for (const o of items) {
+      if (!SCAN.srcs.has(o.srcId)) { const blob = await get('src', o.srcId); if (!blob) continue; SCAN.srcs.set(o.srcId, { id: o.srcId, blob, canvas: null, data: null, used: 0, saved: true }); }
+      SCAN.items.push(scanItem(Object.assign({ result: null }, o)));
+    }
+    if (mode) $('#scanMode').value = mode;
+    db.close();
+  } catch (e) { /* inget sparat */ }
+}
+async function scanClearSaved() {
+  try { const db = await scanDb(); await new Promise(res => { const tx = db.transaction(['kv', 'src'], 'readwrite'); tx.objectStore('kv').clear(); tx.objectStore('src').clear(); tx.oncomplete = res; tx.onerror = res; }); db.close(); } catch (e) { /* – */ }
+}
+function scanClearAll() {
+  SCAN.items = []; SCAN.srcs.clear(); SCAN.sel = -1;
+  scanClearSaved();
+  if ($('#dlgScan').open) { scanRenderList(); scanSelect(-1); scanStatus('Alla bilder är borttagna.'); }
+  if (typeof renderEditor === 'function') renderEditor();
+}
+
+/* ---------- Koppling bild ↔ kort ---------- */
+function scanItemFor(cardId, side) { return SCAN.items.find(it => it.added && it.added.cardId === cardId && it.added.side === side) || null; }
+function scanWhereText(it) {
+  if (!it.added) return '';
+  const ci = state.deck.cards.findIndex(c => c.id === it.added.cardId);
+  return ci < 0 ? '' : `i kortleken: kort ${ci + 1} · ${it.added.side ? 'baksida' : 'framsida'}`;
+}
+function scanToolsState() {
+  const it = SCAN.items[SCAN.sel], b = $('#scanRedo');
+  if (b) { const ok = !!(it && it.added && scanWhereText(it)); b.hidden = !ok; b.textContent = ok ? `Läs om till kort ${state.deck.cards.findIndex(c => c.id === it.added.cardId) + 1}` : 'Läs om till kortet'; }
+  const up = $('#scanUp'), dn = $('#scanDown');
+  if (up) up.disabled = !it || SCAN.sel <= 0;
+  if (dn) dn.disabled = !it || SCAN.sel >= SCAN.items.length - 1;
+}
+// Frågan flyttades till ett annat kort → bilderna följer med
+document.addEventListener('egna:moved', e => {
+  const { from, to, swap } = e.detail, a = scanItemFor(from.id, from.side), b = swap ? scanItemFor(to.id, to.side) : null;
+  if (a) a.added = { cardId: to.id, side: to.side };
+  if (b) b.added = { cardId: from.id, side: from.side };
+  scanSaveSoon();
+});
+document.addEventListener('egna:scanclear', scanClearAll);
+document.addEventListener('egna:scankeep', e => { if (e.detail) scanSave(); else scanClearSaved(); });
+
+/* ---------- Läs om ett kort som redan finns i kortleken ---------- */
+const SCAN_KEYS = ['q', 'type', ...Array.from({ length: 10 }, (_, i) => 'a' + i), ...Array.from({ length: 10 }, (_, i) => 'f' + i)];
+function scanEditedOf(q) { return new Set((q && q.pro && q.pro.scan && q.pro.scan.e) || []); }
+async function scanRedo(it) {
+  const ci = it.added ? state.deck.cards.findIndex(c => c.id === it.added.cardId) : -1;
+  if (ci < 0) { scanStatus('Bilden hör inte till något kort i kortleken längre.'); return false; }
+  if (SCAN.busy) return false;
+  SCAN.busy = true;
+  try {
+    scanStatus('Laddar textigenkänningen …');
+    await scanLoadTess();
+    await scanEnsure(it);
+    const img = scanWarp(it);
+    it.result = await scanReadSide(img, (d, n) => scanStatus(`Läser om kortet … (${d}/${n})`));
+    try { it.result.quality = (it.quality = scanQuality(it, img)).warn; } catch (e) { it.result.quality = []; }
+    const c = document.createElement('canvas'); c.width = c.height = 560; const s = document.createElement('canvas'); s.width = s.height = SCAN_W; s.getContext('2d').putImageData(img, 0, 0);
+    c.getContext('2d').drawImage(s, 0, 0, 560, 560); it.ref = c.toDataURL('image/jpeg', 0.8); it.viewCard = null;
+    const card = state.deck.cards[ci], side = it.added.side, q = card.sides[side], nq = scanToQuestion(it.result);
+    const edited = scanEditedOf(q), newFlags = new Set(scanFlagsOf(nq));
+    // det du har ändrat för hand får vara kvar – resten ersätts med den nya avläsningen
+    if (!edited.has('q')) q.text = nq.text;
+    if (!edited.has('type')) { q.type = nq.type; q.ring = nq.ring; }
+    for (let i = 0; i < 10; i++) {
+      if (!edited.has('a' + i)) q.alts[i] = nq.alts[i];
+      if (!edited.has('f' + i)) q.ans[i] = nq.ans[i];
+    }
+    const flags = SCAN_KEYS.filter(k => newFlags.has(k) && !edited.has(k));
+    if (newFlags.has('img')) flags.push('img');
+    q.pro = q.pro || {};
+    q.pro.scan = { f: flags, n: (nq.pro && nq.pro.scan && nq.pro.scan.n) || [], e: [...edited] };
+    state.status.clear();
+    selectCard(ci, side); scheduleSave(); scanSaveSoon();
+    const kept = edited.size ? ` Det du ändrat för hand (${edited.size} ${edited.size === 1 ? 'fält' : 'fält'}) behölls.` : '';
+    setStatus(`Kort ${ci + 1} är omläst.${kept}`);
+    scanStatus(`Kort ${ci + 1} är omläst.${kept}`);
+    return true;
+  } catch (e) { scanStatus('Kunde inte läsa om: ' + (e.message || e)); return false; }
+  finally { SCAN.busy = false; }
+}
+// Kom ihåg vilka fält man ändrat för hand på ett inskannat kort
+function scanMarkEdited(keys) {
+  const q = curQ(), c = curCard();
+  if (!(q.pro && q.pro.scan) && !scanItemFor(c.id, state.side)) return;
+  q.pro = q.pro || {}; q.pro.scan = q.pro.scan || { f: [], n: [] };
+  const e = new Set(q.pro.scan.e || []); keys.forEach(k => e.add(k)); q.pro.scan.e = [...e];
+}
+
+/* ---------- Den inskannade bilden i redigeringen, med ”Läs om” och ”Ta ny bild” ---------- */
+function scanRenderRef() {
+  let el = $('#scanRef');
+  const it = scanItemFor(curCard().id, state.side), ref = it && it.ref;
+  if (!it) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('details'); el.id = 'scanRef'; el.className = 'scanref'; el.open = true;
+    el.innerHTML = '<summary>Inskannad bild – jämför med texten nedan</summary><img alt="Det inskannade kortet"><div class="scanref-btns"><button type="button" id="refRedo" title="Öppna bilden, justera ramen om det behövs och läs om kortet">Läs om bilden…</button><button type="button" id="refNew" title="Fotografera kortet igen och läs om det">Ta ny bild…</button></div><p class="help">Det du ändrat för hand skrivs inte över.</p>';
+    $('#pEditor .form').prepend(el);
+    el.querySelector('#refRedo').addEventListener('click', () => { const x = scanItemFor(curCard().id, state.side); if (x) scanOpen(x); });
+    el.querySelector('#refNew').addEventListener('click', () => {
+      const x = scanItemFor(curCard().id, state.side); if (!x) return;
+      scanOpen(x).then(() => camOpen({ replace: x, onShot: nit => { scanSelect(SCAN.items.indexOf(nit)); scanRedo(nit).then(ok => { if (ok) $('#dlgScan').close(); }); } }));
+    });
+  }
+  const im = el.querySelector('img');
+  if (ref) { im.src = ref; im.hidden = false; } else { im.hidden = true; }
+}
+// Öppna skanningsdialogen (valfritt med en viss bild vald)
+async function scanOpen(it) {
+  const dlg = $('#dlgScan');
+  if (isMobile()) { const tb = $('.toolbar'); if (tb) tb.classList.remove('open'); }
+  if (!dlg.open) dlg.showModal();
+  scanRenderList();
+  const k = it ? SCAN.items.indexOf(it) : (SCAN.sel >= 0 && SCAN.sel < SCAN.items.length ? SCAN.sel : SCAN.items.length ? 0 : -1);
+  await new Promise(r => requestAnimationFrame(r));
+  await scanSelect(k);
+  if (SCAN.items.length && !$('#scanStatus').textContent) scanStatus(`${SCAN.items.length} ${SCAN.items.length === 1 ? 'bild' : 'bilder'} sedan tidigare.`);
+}
+
+function bindScanStore() {
+  // knappar: flytta upp/ned, ta om, rensa, läs om till kortet
+  const tools = $('.scan-tools');
+  tools.insertAdjacentHTML('afterbegin', '<button type="button" id="scanUp" title="Flytta bilden uppåt i listan">▲</button><button type="button" id="scanDown" title="Flytta bilden nedåt i listan">▼</button>');
+  $('#scanDel').insertAdjacentHTML('beforebegin', '<button type="button" id="scanRetake" title="Fotografera det här kortet igen">Ta om</button>');
+  $('.scan-add').insertAdjacentHTML('beforeend', '<button type="button" id="scanClear" title="Ta bort alla bilder">Rensa</button>');
+  $('#scanAdd').insertAdjacentHTML('beforebegin', '<button type="button" id="scanRedo" class="default" hidden>Läs om till kortet</button>');
+  const move = d => { const k = SCAN.sel, j = k + d; if (k < 0 || j < 0 || j >= SCAN.items.length) return; [SCAN.items[k], SCAN.items[j]] = [SCAN.items[j], SCAN.items[k]]; scanSaveSoon(); scanSelect(j); };
+  $('#scanUp').addEventListener('click', () => move(-1));
+  $('#scanDown').addEventListener('click', () => move(1));
+  $('#scanRetake').addEventListener('click', () => { const it = SCAN.items[SCAN.sel]; if (!it) return; camOpen({ replace: it, onShot: nit => { scanSelect(SCAN.items.indexOf(nit)); if (nit.added) scanStatus('Ny bild tagen. Tryck ”Läs om till kortet” för att uppdatera kortet.'); } }); });
+  $('#scanClear').addEventListener('click', () => { if (!SCAN.items.length || confirm(`Ta bort alla ${SCAN.items.length} bilder? Korten i kortleken påverkas inte.`)) scanClearAll(); });
+  $('#scanRedo').addEventListener('click', () => { const it = SCAN.items[SCAN.sel]; if (it) scanRedo(it).then(ok => { if (ok) $('#dlgScan').close(); }); });
+  $('#scanMode').addEventListener('change', scanSaveSoon);
+  // öppna: bilderna ligger kvar
+  const btn = $('#btnScan'), nb = btn.cloneNode(true); btn.replaceWith(nb);
+  nb.addEventListener('click', () => scanOpen());
+  // standardval från inställningarna
+  try { const st = appSettings(); $('#scanLook').checked = st.scanLook !== false; $('#scanMode').value = st.scanMode === 'fronts' ? 'fronts' : 'pairs'; if (st.camAuto) localStorage.setItem('egna10pro.camAuto', '1'); } catch (e) { /* – */ }
+  scanLoadSaved().then(() => { if (SCAN.items.length) { scanRenderList(); if (typeof renderEditor === 'function') renderEditor(); } });
 }
 </script>
 <script>
@@ -6333,7 +6981,7 @@ async function init() {
   try { const fs = await DB.get('file'); if (fs) { fileState.handle = fs.handle || null; fileState.name = fs.name || ''; fileState.dirty = !!fs.dirty; } } catch (e) { /* ingen lagring */ }
   updateFileLabel();
   bindLayout(); bindMobile(); bindApp(); bindSync();
-  bindEditor(); bindPreview(); bindCards(); bindFiles(); bindImport(); bindSettings(); bindCropper(); bindPdf(); bindLibrary(); bindCardSelect(); bindWelcome(); patchSvgDoc(); bindCredit(); bindPro(); bindScan();
+  bindEditor(); bindPreview(); bindCards(); bindFiles(); bindImport(); bindSettings(); bindCropper(); bindPdf(); bindLibrary(); bindCardSelect(); bindWelcome(); patchSvgDoc(); bindCredit(); bindPro(); bindScan(); bindExtras();
   selectCard(0, 0);
   setStatus(d ? 'Kortleken är hämtad från webbläsaren' : 'Exempelkort – skriv över det eller lägg till nya');
   window.addEventListener('beforeunload', () => { if (saveTimer) saveNow(); });

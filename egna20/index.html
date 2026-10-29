@@ -461,6 +461,36 @@ html[data-theme="light"] #btnTheme .ic-moon{display:none}
   .credit.cr-mob{display:flex;justify-content:center;margin:18px 0 0;padding:0;background:transparent}
   .credit.cr-wls{display:flex;justify-content:center;padding:0;margin-top:-6px;background:transparent;color:#96a0ac}
 }
+/* ---------- Exportknappar i förhandsvisningen ---------- */
+.pv-export{margin-left:auto;display:inline-flex;gap:6px;text-transform:none;letter-spacing:normal;font-family:var(--font);font-weight:500}
+.pv-export button{min-height:30px;padding:4px 11px;font-size:13px}
+/* ---------- PDF: välj kort ---------- */
+.pdfpick{margin:4px 0 8px 24px}
+.pdfpick[hidden]{display:none}
+.pp-btns{display:flex;gap:6px;margin-bottom:6px}
+.pp-list{max-height:220px;overflow:auto;background:var(--field);border:1px solid var(--border-strong);border-radius:var(--radius-sm)}
+.pp-card{display:grid;grid-template-columns:22px 30px minmax(0,1fr);gap:6px;align-items:start;padding:6px 8px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px}
+.pp-card .q{display:flex;flex-direction:column;min-width:0}
+.pp-card .q span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pp-card .q span+span{color:var(--muted)}
+.pp-card.empty{opacity:.55}
+.pp-card .n{color:var(--muted);text-align:right}
+/* ---------- Flytta fråga ---------- */
+.sidetabs .mvbtn{margin-left:8px;min-height:30px;padding:4px 11px;font-size:13px}
+#dlgMove{width:min(560px,96vw)}
+.mvbody{display:flex;flex-direction:column;gap:10px}
+.mvbody select{width:100%}
+.mv-what{margin:0;font-weight:600}
+.mv-side{display:flex;gap:18px}
+/* ---------- Inställningar ---------- */
+#dlgPrefs{width:min(640px,96vw)}
+.prefbody{display:flex;flex-direction:column;gap:10px;max-height:min(76vh,720px);overflow:auto}
+.pref-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px 12px}
+.pref-col{display:flex;align-items:center;gap:8px}
+.pref-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+@media (max-width:720px){ .sidetabs .mvbtn{margin-left:auto} }
+#pPreview .panel-title{flex-wrap:wrap;row-gap:6px}
+@media (max-width:720px){ .pv-export button{padding:4px 9px;min-height:32px} }
 
 /* ---------- Startsida (välkomstruta) ---------- */
 .wl{--wl-head:Sora,system-ui,-apple-system,"Segoe UI",sans-serif;position:fixed;inset:0;z-index:900;overflow:auto;overscroll-behavior:contain;background:#101216;color:#e8eaee;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;color-scheme:dark}
@@ -581,6 +611,7 @@ body.wl-open{overflow:hidden}
 <symbol id="i-col1" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="2"/></symbol>
 <symbol id="i-col2" viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="16" rx="2"/><rect x="13" y="4" width="8" height="16" rx="2"/></symbol>
 <symbol id="i-books" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h3v18H6a2 2 0 0 1-2-2z"/><path d="M9 3h4v18H9"/><path d="m14.6 4.3 3.8-1 3.5 16.4-3.8 1z"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
 </defs></svg>
 <header class="toolbar">
   <span class="brand" title="Egna10 – egna frågekort"><svg class="logo" viewBox="-67.6 -65.8 132 132" aria-hidden="true"><path fill-rule="evenodd" d="M-57.5 -63H57.8A2.5 2.5 0 0 1 60.3 -60.5V-11.02A11.1 11.1 0 0 0 60.3 11.02V60.9A2.5 2.5 0 0 1 57.8 63.4H-57.5A6.0 6.0 0 0 1 -63.5 57.4V-57A6.0 6.0 0 0 1 -57.5 -63ZM-33 0a33 33 0 1 0 66 0a33 33 0 1 0 -66 0ZM-8 -45.2a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM18.57 -36.57a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM34.99 -13.97a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM34.99 13.97a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM18.57 36.57a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM-8 45.2a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM-34.57 36.57a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM-50.99 13.97a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM-50.99 -13.97a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM-34.57 -36.57a8 8 0 1 0 16 0a8 8 0 1 0 -16 0Z"/></svg><span class="brand-text"><span class="b1">Egna</span><span class="b2">10</span></span></span>
@@ -930,6 +961,53 @@ body.wl-open{overflow:hidden}
   </div>
 </div>
 
+<dialog id="dlgMove">
+  <form method="dialog">
+    <div class="dhead">Flytta frågan</div>
+    <div class="dbody mvbody">
+      <p class="mv-what" id="mvWhat"></p>
+      <label class="block">Till kort <select id="mvCard"></select></label>
+      <div class="mv-side" role="radiogroup" aria-label="Sida"><label><input type="radio" name="mvSide" value="0"> Framsida</label><label><input type="radio" name="mvSide" value="1"> Baksida</label></div>
+      <p class="help" id="mvHint"></p>
+      <fieldset id="mvHow" hidden><legend>Platsen är upptagen</legend>
+        <label class="opt"><input type="radio" name="mvHow" value="swap" checked> Byt plats på frågorna</label>
+        <label class="opt"><input type="radio" name="mvHow" value="new"> Lägg frågan på ett nytt kort direkt efter</label>
+      </fieldset>
+      <label class="opt"><input type="checkbox" id="mvClean" checked> Ta bort kortet frågan kommer ifrån om det blir helt tomt</label>
+    </div>
+    <div class="dfoot">
+      <button id="mvGo" class="default">Flytta</button>
+      <button value="cancel">Avbryt</button>
+    </div>
+  </form>
+</dialog>
+<dialog id="dlgPrefs">
+  <form method="dialog">
+    <div class="dhead">Inställningar</div>
+    <div class="dbody prefbody">
+      <fieldset><legend>Färger för nya kortlekar</legend>
+        <div class="pref-cols" id="prefColors"></div>
+        <div class="pref-row"><button type="button" id="prefColReset">Originalfärgerna</button><button type="button" id="prefColDeck">Hämta från kortleken</button><button type="button" id="prefColApply">Använd i kortleken nu…</button></div>
+      </fieldset>
+      <fieldset><legend>Etikett och numrering för nya kortlekar</legend>
+        <div class="grid2">
+          <span>Etikett, mörk text</span><input type="text" id="prefLabDark">
+          <span>Etikett, ljus text</span><input type="text" id="prefLabLight">
+          <span>Kortnummer</span><span><label><input type="checkbox" id="prefNumShow"> Visa</label> &nbsp; före numret: <input type="text" id="prefNumPrefix" size="5"></span>
+        </div>
+      </fieldset>
+      <fieldset><legend>PDF</legend>
+        <label class="opt"><input type="checkbox" id="prefSkipEmpty"> Hoppa över kort utan frågor</label>
+      </fieldset>
+      
+      <fieldset><legend>Övrigt</legend>
+        <div class="pref-row"><button type="button" id="prefWelcome">Visa startsidan</button></div>
+        <p class="help">Inställningarna sparas i den här webbläsaren och gäller nya kortlekar. Kortlekens egna färger ändrar du under Utseende.</p>
+      </fieldset>
+    </div>
+    <div class="dfoot"><button value="cancel" class="default">Klar</button></div>
+  </form>
+</dialog>
 <div class="busy" id="busy"><div id="busyText">Skapar PDF…</div></div>
 
   <script>
@@ -2369,6 +2447,214 @@ function bindCredit() {
   const wl = $('#welcome .wl-page'); if (wl) wl.appendChild(mk('cr-wl'));
   const ws = $('#welcome .wl-sheet'); if (ws) ws.appendChild(mk('cr-wls'));
 }
+
+/* =====================================================================
+   Gemensamma tillägg (egna10 Pro och egna20):
+   – exportknappar i förhandsvisningen
+   – välj fritt vilka kort som kommer med i PDF:en
+   – flytta en fråga till ett annat kort eller en annan sida
+   – Inställningar (standardfärger, etikett, numrering, skanning …)
+   ===================================================================== */
+const XAPP = typeof bindPro === 'function' ? 'egna10pro' : 'egna20';
+const XSET_DEF = { style: null, label: null, numbering: null, scanKeep: false, scanLook: true, scanMode: 'pairs', camAuto: false, skipEmpty: true };
+function appSettings() {
+  try { return Object.assign({}, XSET_DEF, JSON.parse(localStorage.getItem(XAPP + '.settings') || '{}')); } catch (e) { return Object.assign({}, XSET_DEF); }
+}
+function saveAppSettings(s) { try { localStorage.setItem(XAPP + '.settings', JSON.stringify(s)); } catch (e) { /* inget sparat */ } }
+
+// Nya kortlekar får standardfärger, etikett och numrering från inställningarna (kopplas in i bindExtras)
+let _xNewDeck = null, _xPickCards = null;
+function xNewDeck() {
+  const d = _xNewDeck(), st = appSettings();
+  if (st.style) d.style = Object.assign({}, DEFAULT_STYLE, st.style);
+  if (st.label) d.label = Object.assign({ dark: '', light: '' }, st.label);
+  if (st.numbering) d.numbering = Object.assign({}, d.numbering, st.numbering);
+  return d;
+}
+
+function xEmptySide(q) { return !q.text.trim() && q.alts.every(a => !a.text.trim() && !a.img) && q.ans.every(a => !a.text.trim() && !a.img && !a.mark && !a.color); }
+
+/* ---------- PDF: välj kort fritt ---------- */
+function xPickCards(o) {
+  const cards = state.deck.cards;
+  let idx;
+  if (o.range === 'pick') { const ids = new Set(o.pick || []); idx = cards.map((c, i) => ids.has(c.id) ? i : -1).filter(i => i >= 0); }
+  else idx = _xPickCards(o);
+  if (o.skipEmpty !== false) idx = idx.filter(i => !cards[i].sides.every(xEmptySide));   // kort helt utan frågor
+  return idx;
+}
+function xPdfList() {
+  const box = $('#pdfPick'), e = state.deck.export, ids = new Set(Array.isArray(e.pick) ? e.pick : state.deck.cards.map(c => c.id));
+  const t = q => esc(((q.text || '').replace(/[|~]/g, ' ').trim()) || '(tom)');
+  box.innerHTML = state.deck.cards.map((c, i) => `<label class="pp-card${c.sides.every(xEmptySide) ? ' empty' : ''}"><input type="checkbox" value="${c.id}"${ids.has(c.id) ? ' checked' : ''}><span class="n">${i + 1}.</span><span class="q"><span>${t(c.sides[0])}</span><span>${t(c.sides[1])}</span></span></label>`).join('');
+  xPdfCount();
+}
+function xPdfCount() {
+  const n = $$('#pdfPick input:checked').length;
+  $('#pdfPickCount').textContent = `${n} av ${state.deck.cards.length} valda`;
+}
+function xPdfReadPick() { state.deck.export.pick = $$('#pdfPick input:checked').map(i => i.value); xPdfCount(); }
+function bindPdfPick() {
+  const fs = $('#dlgPdf input[name="range"][value="span"]').closest('fieldset');
+  fs.insertAdjacentHTML('beforeend', `<label class="opt"><input type="radio" name="range" value="pick"> Välj kort själv <span class="help" id="pdfPickCount"></span></label>
+    <div class="pdfpick" id="pdfPickBox" hidden><div class="pp-btns"><button type="button" id="ppAll">Alla</button><button type="button" id="ppNone">Inga</button><button type="button" id="ppInv">Omvänt</button></div><div class="pp-list" id="pdfPick"></div></div>
+    <label class="opt"><input type="checkbox" name="skipEmpty"> Hoppa över kort utan frågor</label>`);
+  const f = $('#dlgPdf form'), boxEl = $('#pdfPickBox');
+  const show = () => { boxEl.hidden = f.range.value !== 'pick'; };
+  const changed = () => { xPdfReadPick(); f.dispatchEvent(new Event('input', { bubbles: true })); };
+  $('#btnPdf').addEventListener('click', () => {
+    const e = state.deck.export;
+    if (e.skipEmpty === undefined) e.skipEmpty = appSettings().skipEmpty;
+    f.skipEmpty.checked = e.skipEmpty !== false;
+    xPdfList(); show();
+  }, true);                                       // före dialogens egen hanterare – listan ska finnas när förhandsvisningen räknas
+  $('#pdfPick').addEventListener('change', () => { xPdfReadPick(); });
+  $('#ppAll').addEventListener('click', () => { $$('#pdfPick input').forEach(i => { i.checked = true; }); changed(); });
+  $('#ppNone').addEventListener('click', () => { $$('#pdfPick input').forEach(i => { i.checked = false; }); changed(); });
+  $('#ppInv').addEventListener('click', () => { $$('#pdfPick input').forEach(i => { i.checked = !i.checked; }); changed(); });
+  f.addEventListener('input', e => {
+    state.deck.export.skipEmpty = f.skipEmpty.checked;
+    if (e.target && e.target.name === 'range') { show(); if (f.range.value === 'pick' && !Array.isArray(state.deck.export.pick)) xPdfReadPick(); }
+  }, true);
+}
+
+/* ---------- Exportknappar överst i förhandsvisningen ---------- */
+function bindPvExport() {
+  const t = $('#pPreview .panel-title'); if (!t) return;
+  t.insertAdjacentHTML('beforeend', `<span class="pv-export"><button type="button" id="pvExpTsv" title="Spara frågorna som en tabell som kan öppnas i Excel">Exportera tabell</button><button type="button" id="pvExpPdf" class="default" title="Skapa en PDF för utskrift">Skapa PDF…</button></span>`);
+  $('#pvExpTsv').addEventListener('click', () => $('#btnExportTsv').click());
+  $('#pvExpPdf').addEventListener('click', () => $('#btnPdf').click());
+}
+
+/* ---------- Flytta en fråga till ett annat kort ---------- */
+function xMoveOpen() {
+  const dlg = $('#dlgMove'), cards = state.deck.cards, q = curQ();
+  const t = s => ((s.text || '').replace(/[|~]/g, ' ').trim() || '(tom)').slice(0, 46);
+  $('#mvWhat').textContent = `Kort ${state.cur + 1} · ${state.side ? 'baksida' : 'framsida'}: ${t(q)}`;
+  const sel = $('#mvCard');
+  sel.innerHTML = cards.map((c, i) => `<option value="${i}">${i + 1}. ${esc(t(c.sides[0]))} / ${esc(t(c.sides[1]))}</option>`).join('') + `<option value="new">Ett nytt kort sist</option>`;
+  // förslag: närmaste kort med en tom sida, annars samma kort, andra sidan
+  let sug = -1, sugSide = 1 - state.side;
+  if (xEmptySide(cards[state.cur].sides[1 - state.side])) { /* det här kortets andra sida är tom – föreslå föregående kort */
+    for (let d = 1; d < cards.length && sug < 0; d++) for (const i of [state.cur - d, state.cur + d]) {
+      if (i < 0 || i >= cards.length || sug >= 0) continue;
+      const si = cards[i].sides.findIndex(xEmptySide); if (si >= 0) { sug = i; sugSide = si; }
+    }
+  }
+  sel.value = String(sug >= 0 ? sug : state.cur);
+  dlg.querySelector(`input[name="mvSide"][value="${sugSide}"]`).checked = true;
+  xMoveHint();
+  dlg.showModal();
+}
+function xMoveTarget() {
+  const v = $('#mvCard').value, side = Number($('#dlgMove input[name="mvSide"]:checked').value);
+  return { ci: v === 'new' ? -1 : Number(v), side };
+}
+function xMoveHint() {
+  const { ci, side } = xMoveTarget(), cards = state.deck.cards, hint = $('#mvHint'), how = $('#mvHow'), go = $('#mvGo');
+  go.disabled = false; how.hidden = true;
+  if (ci === state.cur && side === state.side) { hint.textContent = 'Det är samma plats som frågan redan har.'; go.disabled = true; return; }
+  if (ci < 0) { hint.textContent = 'Frågan läggs på ett nytt kort sist i kortleken.'; return; }
+  const target = cards[ci].sides[side];
+  if (xEmptySide(target)) { hint.textContent = `Kort ${ci + 1} · ${side ? 'baksida' : 'framsida'} är tom – frågan flyttas dit.`; return; }
+  hint.textContent = `Kort ${ci + 1} · ${side ? 'baksida' : 'framsida'} har redan en fråga.`;
+  how.hidden = false;
+}
+function xMoveDo() {
+  const cards = state.deck.cards, from = { ci: state.cur, side: state.side }, { ci, side } = xMoveTarget();
+  const fromCard = cards[from.ci], q = fromCard.sides[from.side];
+  const swap = $('#dlgMove input[name="mvHow"]:checked').value === 'swap';
+  let to;
+  if (ci < 0) {                                  // nytt kort sist
+    const c = newCard(); c.sides[side] = q; fromCard.sides[from.side] = newQuestion('ovrigt'); cards.push(c); to = { card: c, side };
+  } else {
+    const tc = cards[ci], target = tc.sides[side];
+    if (xEmptySide(target) || swap) { tc.sides[side] = q; fromCard.sides[from.side] = target; to = { card: tc, side }; }
+    else {                                     // platsen upptagen: lägg på ett nytt kort direkt efter
+      const c = newCard(); c.sides[side] = q; fromCard.sides[from.side] = newQuestion('ovrigt'); cards.splice(ci + 1, 0, c); to = { card: c, side };
+    }
+  }
+  document.dispatchEvent(new CustomEvent('egna:moved', { detail: { from: { id: fromCard.id, side: from.side }, to: { id: to.card.id, side: to.side }, swap: !!swap } }));
+  if ($('#mvClean').checked && fromCard !== to.card && fromCard.sides.every(xEmptySide) && cards.length > 1) cards.splice(cards.indexOf(fromCard), 1);
+  state.status.clear();
+  selectCard(cards.indexOf(to.card), to.side);
+  scheduleSave();
+  setStatus('Frågan är flyttad.');
+}
+function bindMove() {
+  const tabs = $('.sidetabs');
+  if (tabs) {
+    const b = document.createElement('button'); b.type = 'button'; b.id = 'btnMoveQ'; b.className = 'mvbtn'; b.title = 'Flytta den här frågan till ett annat kort eller en annan sida';
+    b.textContent = 'Flytta…';
+    const ct = $('#cardTitle'); tabs.insertBefore(b, ct);
+    b.addEventListener('click', xMoveOpen);
+  }
+  $('#mvCard').addEventListener('change', xMoveHint);
+  $$('#dlgMove input[name="mvSide"]').forEach(r => r.addEventListener('change', xMoveHint));
+  $('#mvGo').addEventListener('click', e => { e.preventDefault(); xMoveDo(); $('#dlgMove').close(); });
+}
+
+/* ---------- Inställningar ---------- */
+function xPrefsFill() {
+  const s = appSettings(), st = Object.assign({}, DEFAULT_STYLE, s.style || {}), lab = s.label || newDeckBase().label, num = Object.assign({}, newDeckBase().numbering, s.numbering || {});
+  $('#prefColors').innerHTML = Object.keys(DEFAULT_STYLE).map(k => `<label class="pref-col"><input type="color" data-k="${k}" value="${st[k]}"> ${esc(STYLE_LABELS[k] || k)}</label>`).join('');
+  $('#prefLabDark').value = lab.dark || ''; $('#prefLabLight').value = lab.light || '';
+  $('#prefNumShow').checked = !!num.show; $('#prefNumPrefix').value = num.prefix || '';
+  $('#prefSkipEmpty').checked = s.skipEmpty !== false;
+  const pro = $('#prefScan'); if (pro) {
+    pro.hidden = false;
+    $('#prefScanKeep').checked = !!s.scanKeep; $('#prefScanLook').checked = s.scanLook !== false;
+    $('#prefScanMode').value = s.scanMode === 'fronts' ? 'fronts' : 'pairs'; $('#prefCamAuto').checked = !!s.camAuto;
+  }
+}
+function newDeckBase() { return _xNewDeck(); }
+function xPrefsRead() {
+  const s = appSettings(), st = {};
+  $$('#prefColors input[type=color]').forEach(i => { st[i.dataset.k] = i.value; });
+  s.style = Object.keys(st).some(k => st[k].toLowerCase() !== String(DEFAULT_STYLE[k]).toLowerCase()) ? st : null;
+  const base = newDeckBase();
+  const lab = { dark: $('#prefLabDark').value.trim(), light: $('#prefLabLight').value.trim() };
+  s.label = lab.dark === base.label.dark && lab.light === base.label.light ? null : lab;
+  const num = { show: $('#prefNumShow').checked, prefix: $('#prefNumPrefix').value };
+  s.numbering = num.show === base.numbering.show && num.prefix === base.numbering.prefix ? null : num;
+  s.skipEmpty = $('#prefSkipEmpty').checked;
+  if ($('#prefScan')) {
+    const was = s.scanKeep;
+    s.scanKeep = $('#prefScanKeep').checked; s.scanLook = $('#prefScanLook').checked; s.scanMode = $('#prefScanMode').value; s.camAuto = $('#prefCamAuto').checked;
+    try { localStorage.setItem('egna10pro.camAuto', s.camAuto ? '1' : '0'); } catch (e) { /* – */ }
+    if (was !== s.scanKeep) document.dispatchEvent(new CustomEvent('egna:scankeep', { detail: s.scanKeep }));
+  }
+  saveAppSettings(s);
+}
+function bindPrefs() {
+  const ref = $('#btnSettings'); if (!ref) return;
+  const b = document.createElement('button'); b.id = 'btnPrefs'; b.type = 'button'; b.title = 'Standardfärger, etikett, numrering och andra inställningar';
+  b.innerHTML = ref.querySelector('svg') ? '<svg class="ic" aria-hidden="true"><use href="#i-gear"/></svg><span>Inställningar</span>' : '<span class="gear" aria-hidden="true">⚙</span><span class="lbl">Inställningar…</span>';
+  ref.after(b);
+  const dlg = $('#dlgPrefs');
+  b.addEventListener('click', () => { if (isMobile()) { const tb = $('.toolbar'); if (tb) tb.classList.remove('open'); } xPrefsFill(); dlg.showModal(); });
+  dlg.addEventListener('input', xPrefsRead);
+  dlg.addEventListener('change', xPrefsRead);
+  $('#prefColReset').addEventListener('click', () => { $$('#prefColors input[type=color]').forEach(i => { i.value = DEFAULT_STYLE[i.dataset.k]; }); xPrefsRead(); });
+  $('#prefColDeck').addEventListener('click', () => { const st = styleOf(state.deck); $$('#prefColors input[type=color]').forEach(i => { if (st[i.dataset.k]) i.value = st[i.dataset.k]; }); xPrefsRead(); });
+  $('#prefColApply').addEventListener('click', () => {
+    if (!confirm('Använda de här färgerna i kortleken du har öppen nu?')) return;
+    const st = {}; $$('#prefColors input[type=color]').forEach(i => { st[i.dataset.k] = i.value; });
+    state.deck.style = Object.assign({}, state.deck.style || {}, st); state.status.clear(); renderList(); renderPreview(); scheduleSave();
+    setStatus('Färgerna används nu i kortleken.');
+  });
+  $('#prefWelcome').addEventListener('click', () => { try { localStorage.removeItem('egna10.welcomeSeen'); } catch (e) { /* – */ } dlg.close(); const br = $('.toolbar .brand'); if (br) br.click(); });
+  const clr = $('#prefScanClear'); if (clr) clr.addEventListener('click', () => { document.dispatchEvent(new CustomEvent('egna:scanclear')); setStatus('Inskannade bilder är rensade.'); });
+}
+
+function bindExtras() {
+  _xNewDeck = newDeck; newDeck = xNewDeck;
+  _xPickCards = pickCards; pickCards = xPickCards;
+  bindPvExport();
+  bindPdfPick();
+  bindMove();
+  bindPrefs();
+}
 </script>
 <script>
   'use strict';
@@ -3639,7 +3925,7 @@ async function init() {
   try { const fs = await DB.get('file'); if (fs) { fileState.handle = fs.handle || null; fileState.name = fs.name || ''; fileState.dirty = !!fs.dirty; } } catch (e) { /* ingen lagring */ }
   updateFileLabel();
   bindTheme(); bindLayout(); bindMobile(); bindApp(); bindSync();
-  bindEditor(); bindPreview(); bindCards(); bindFiles(); bindImport(); bindSettings(); bindCropper(); bindPdf(); bindLibrary(); bindCardSelect(); bindWelcome(); patchSvgDoc(); bindCredit();
+  bindEditor(); bindPreview(); bindCards(); bindFiles(); bindImport(); bindSettings(); bindCropper(); bindPdf(); bindLibrary(); bindCardSelect(); bindWelcome(); patchSvgDoc(); bindCredit(); bindExtras();
   selectCard(0, 0);
   setStatus(d ? 'Kortleken är hämtad från webbläsaren' : 'Exempelkort – skriv över det eller lägg till nya');
   window.addEventListener('beforeunload', () => { if (saveTimer) saveNow(); });
