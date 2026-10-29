@@ -5,7 +5,7 @@
 <script>
 /* =====================================================================
    ÄGARINSTÄLLNINGAR – det här är det enda du behöver ändra i filen.
-   Spara, och byt sedan versionen i sw.js i samma mapp (egna10pro-v12 → egna10pro-v13)
+   Spara, och byt sedan versionen i sw.js i samma mapp (egna10pro-v13 → egna10pro-v14)
    så att telefoner som har appen installerad hämtar den nya versionen.
    ===================================================================== */
 window.EGNA_ADMIN = {
@@ -409,6 +409,26 @@ code{font-family:Consolas,"Courier New",monospace;font-size:.92em;background:#f4
 .pal-row select{max-width:240px}
 .pal-rings{margin-top:4px}
 .pal-own{margin:4px 0}
+/* ---------- Hjälp ---------- */
+#btnHelp .qm{display:inline-grid;place-items:center;width:17px;height:17px;border:1.5px solid currentColor;border-radius:50%;font-size:12px;font-weight:700;line-height:1}
+@media (min-width:721px){ #btnHelp .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)} #btnHelp{min-width:30px;padding-left:6px;padding-right:6px} }
+@media (max-width:720px){ #btnHelp .qm{display:none} }
+#dlgHelp:not([style*="width"]){width:min(760px,96vw)}
+.helpbody{max-height:min(78vh,760px);overflow:auto;line-height:1.45}
+.helpbody .hp-lead{margin:0 0 8px;color:var(--muted)}
+.helpbody details{border:2px groove var(--hi);background:var(--face);margin:0 0 6px;padding:0 10px}
+.helpbody summary{cursor:pointer;font-weight:600;padding:7px 0;font-size:15px}
+.helpbody details[open] summary{border-bottom:1px solid var(--lo);margin-bottom:6px}
+.helpbody ul,.helpbody ol{margin:4px 0 10px;padding-left:20px}
+.helpbody ul ul{margin:2px 0 4px}
+.helpbody li{margin:3px 0}
+.helpbody p{margin:4px 0 8px}
+.hp-tab{border-collapse:collapse;margin:6px 0 10px;font-size:14px;background:var(--field)}
+.hp-tab th,.hp-tab td{border:1px solid var(--lo);padding:4px 8px;text-align:left;vertical-align:top}
+.hp-tab th{background:var(--face)}
+.helpbody kbd{display:inline-block;border:1px solid var(--lo);border-bottom-width:2px;background:var(--field);padding:0 5px;font:12px/1.5 inherit;border-radius:3px}
+.hp-foot{margin-top:10px}
+@media (max-width:720px){ #dlgHelp{height:100dvh !important;max-height:100dvh} .helpbody{max-height:none;flex:1} }
 
 /* ---------- Startsida (välkomstruta) – klassisk stil ---------- */
 .wl{position:fixed;inset:0;z-index:900;overflow:auto;overscroll-behavior:contain;background:var(--bg);color:var(--ink);font-family:"KortSerif",Georgia,"Times New Roman",serif;font-size:17px;line-height:1.45}
@@ -726,6 +746,7 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
 .lcbody .pp-btns .help{margin-left:6px}
 .lcbody .pp-list{max-height:min(300px,40vh)}
 .pro-grp-foot{display:flex;flex-wrap:wrap;gap:6px}
+@media (max-width:720px){ #dlgScan:not(.scan-has) .scanmain{display:none} #dlgScan:not(.scan-has) .scanbody{grid-template-rows:auto} }
 </style>
 </head>
 <body>
@@ -789,7 +810,7 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
         <thead><tr><th>#</th><th>Alternativ – syns i mitthålet<span class="colgrip" title="Dra för att ändra kolumnbredd (dubbelklicka för standard)"></span></th><th>Facit – göms under markören</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
-      <p class="help">Position 1 är högst upp, sedan medurs. Skriv <code>|</code> för att byta rad och <code>~</code> där ett långt ord får avstavas. Texten krymper automatiskt om den inte får plats. Klicka på förhandsvisningen för att hoppa till en position.</p>
+      <p class="help">Position 1 är överst, sedan medurs. <code>|</code> ger radbrytning, <code>~</code> avstavning.</p>
     </div>
   </section>
 
@@ -836,7 +857,7 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
       </fieldset>
       <fieldset><legend>Skärning</legend>
         <div class="grid2">
-          <span>Utfallande bakgrund</span><span><input type="number" name="bleed" min="0" max="3" step="0.5"> mm <span class="help">(färgen fortsätter utanför kanten så att inget vitt syns om du klipper lite utanför)</span></span>
+          <span>Utfallande bakgrund</span><span><input type="number" name="bleed" min="0" max="3" step="0.5"> mm <span class="help">(färgen fortsätter förbi kanten)</span></span>
         </div>
         <label class="opt"><input type="checkbox" name="cutline"> Tunn skärlinje längs kortets kant (bara på framsidan)</label>
         <label class="opt"><input type="checkbox" name="crop"> Skärmärken i hörnen</label>
@@ -846,10 +867,10 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
       </fieldset>
       <fieldset><legend>Finjustering för skrivaren</legend>
         <div class="grid2">
-          <span>Flytta baksidan</span><span><input type="number" name="dx" step="0.1"> mm åt höger &nbsp; <input type="number" name="dy" step="0.1"> mm nedåt <span class="help">(sett från framsidan, minus = vänster/uppåt)</span></span>
+          <span>Flytta baksidan</span><span><input type="number" name="dx" step="0.1"> mm åt höger &nbsp; <input type="number" name="dy" step="0.1"> mm nedåt <span class="help">(sett framifrån)</span></span>
           <span>Skala</span><span><input type="number" name="scale" step="0.1" min="90" max="110"> % <span class="help">(normalt 100)</span></span>
         </div>
-        <p class="help">Gör en provutskrift först. Skriv ut i <b>100 % / Faktisk storlek</b>, inte ”Anpassa till sida”. Håll sedan arket mot ljuset: baksidans ram ska ligga exakt bakom framsidans. Mät hur mycket den är förskjuten och fyll i det ovan.</p>
+        <p class="help">Skriv ut i <b>100 %</b>, inte ”Anpassa till sida”. Justera efter en provutskrift.</p>
       </fieldset>
       <div class="grid2"><span>Filnamn</span><input type="text" name="filename"></div>
       </div>
@@ -881,13 +902,13 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
       <fieldset><legend>Numrering</legend>
         <label class="opt"><input type="checkbox" name="numShow"> Skriv nummer nere till höger på varje sida</label>
         <div class="grid2"><span>Text före</span><input type="text" name="numPrefix" size="6"><span>Första numret</span><input type="number" name="numStart" min="0"></div>
-        <p class="help">Framsidan på kort 1 får första numret, baksidan nästa, och så vidare.</p>
+        <p class="help">Numreras i ordning: kort 1 fram, kort 1 bak, kort 2 fram …</p>
       </fieldset>
       <fieldset><legend>Färger</legend>
         <div class="colors" id="colorFields"></div>
       </fieldset>
       <fieldset><legend>Fönster och rutor</legend>
-        <p class="help" style="margin-top:0">Dra i de lodräta strecken mellan rutorna för att ändra bredd, och i det prickiga greppet i en rutas rubrik för att flytta rutan. Dialogfönster flyttas i den blå rubriken och ändrar storlek i nedre högra hörnet. Dubbelklicka på ett streck eller en rubrik för att återställa just den. Inställningen sparas bara i den här webbläsaren.</p>
+        <p class="help" style="margin-top:0">Dra i strecken mellan rutorna för att ändra bredd. Dubbelklicka för att återställa.</p>
         <button type="button" id="layoutReset">Återställ alla rutor och fönster</button>
       </fieldset>
     </div>
@@ -907,7 +928,7 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
         <label>Zoom <input type="range" id="cropZoom" min="1" max="5" step="0.01" value="1"></label>
         <button type="button" id="cropFile">Välj fil…</button>
       </div>
-      <p class="help" style="text-align:center">Dra i bilden för att flytta den. Du kan också klistra in en bild (Ctrl+V) eller släppa en fil här.</p>
+      <p class="help" style="text-align:center">Dra för att flytta. Klistra in (Ctrl+V) eller släpp en bild här.</p>
     </div>
     <div class="dfoot">
       <button type="button" id="cropRemove" class="left">Ta bort bilden</button>
@@ -921,9 +942,9 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
   <form method="dialog">
     <div class="dhead">Klistra in frågor som tabell</div>
     <div class="dbody">
-      <p class="help" style="margin-top:0">Varje rad är en fråga. Två rader efter varandra blir ett kort (framsida och baksida). Kolumner, åtskilda med tabb (som när du kopierar från Excel) eller semikolon:</p>
+      <p class="help" style="margin-top:0">En rad per fråga – två rader blir ett kort. Kolumner med tabb eller semikolon:</p>
       <p class="help"><code>Typ</code> · <code>Fråga</code> · <code>Alt 1</code> … <code>Alt 10</code> · <code>Facit 1</code> … <code>Facit 10</code></p>
-      <p class="help">Typ: <i>sant/falskt, siffra, ordning, århundrade, färg, övrigt</i>. Facit för sant/falskt: <i>sant/falskt, ja/nej</i> eller <i>✓/✗</i>. Facit för färg: färgnamn (röd, blå …) eller <code>#ff0000</code>. En rubrikrad som börjar med ”Typ” hoppas över.</p>
+      <p class="help">Typ: <i>sant/falskt, siffra, ordning, århundrade, färg, övrigt</i>. Facit: <i>ja/nej</i> eller <i>✓/✗</i>, färger som namn eller <code>#ff0000</code>.</p>
       <textarea id="importText" spellcheck="false" placeholder="Klistra in här…"></textarea>
       <p class="help" id="importInfo"></p>
     </div>
@@ -987,9 +1008,9 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
         <input type="file" id="scanCamFile" accept="image/*" capture="environment" hidden>
         <label class="scan-mode">Bilderna är
           <select id="scanMode"><option value="pairs">framsida, baksida, framsida … (två per kort)</option><option value="fronts">bara framsidor (en per kort)</option></select></label>
-        <label class="scan-look"><input type="checkbox" id="scanLook" checked><span>Kopiera färger, etikett och bakgrund från korten <small>(gäller hela kortleken)</small></span></label>
+        <label class="scan-look"><input type="checkbox" id="scanLook" checked><span>Kopiera färger, etikett och bakgrund</span></label>
         <ol id="scanList" class="scanlist"></ol>
-        <p class="help">”Ta foto” öppnar kameran: kortet känns igen och ramas in, och du kan ta många bilder i rad (eller slå på Auto). Lägg korten på ett underlag som skiljer sig från kortet. Du kan också välja färdiga bilder eller en PDF (t.ex. skannad med Google Drive) – flera kort på samma sida går bra.</p>
+        <p class="help">Använd ett underlag som skiljer sig från korten. PDF:er med flera kort per sida fungerar.</p>
       </aside>
       <section class="scanmain">
         <div class="scan-tools">
@@ -999,7 +1020,7 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
           <button type="button" id="scanDel">Ta bort bilden</button>
         </div>
         <div class="scan-stage" id="scanStage"><canvas id="scanCanvas"></canvas></div>
-        <p class="help">Sitter ramen fel? De gula handtagen sitter på kortets runda hörn – dra var som helst i närheten så följer närmaste handtag med. Förstoringsglaset visar kortets kontur: lägg den gula linjen på kortets kant. Dra mitt i kortet för att flytta hela ramen. ”etikett” ska hamna uppe till höger.</p>
+        <p class="help">Dra de gula handtagen till kortets hörn. ”etikett” ska vara uppe till höger.</p>
       </section>
     </div>
     <div class="dfoot scanfoot">
@@ -1193,10 +1214,183 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
 
       <fieldset><legend>Övrigt</legend>
         <div class="pref-row"><button type="button" id="prefWelcome">Visa startsidan</button></div>
-        <p class="help">Inställningarna sparas i den här webbläsaren och gäller nya kortlekar. Kortlekens egna färger ändrar du under Utseende.</p>
+        <p class="help">Gäller nya kortlekar och sparas i den här webbläsaren.</p>
       </fieldset>
     </div>
     <div class="dfoot"><button value="cancel" class="default">Klar</button></div>
+  </form>
+</dialog>
+<dialog id="dlgHelp">
+  <form method="dialog">
+    <div class="dhead">Hjälp</div>
+    <div class="dbody helpbody">
+      <p class="hp-lead">Här finns en genomgång av alla funktioner. Tryck på ett avsnitt för att öppna det.</p>
+
+      <details open><summary>Kom igång</summary>
+        <ol>
+          <li><b>Skriv frågor</b> – en på framsidan och en på baksidan av varje kort. Eller hämta färdiga frågor från <b>Biblioteket</b>.</li>
+          <li><b>Kontrollera</b> korten i förhandsvisningen.</li>
+          <li><b>Skapa PDF</b> och skriv ut dubbelsidigt i 100 % storlek.</li>
+          <li><b>Klipp ut</b> korten (110 × 110 mm) och lägg dem i Smart10-lådan.</li>
+        </ol>
+        <p>Allt sparas automatiskt i webbläsaren. Spara en fil om du vill ha en säkerhetskopia eller fortsätta på en annan enhet.</p>
+      </details>
+
+      <details><summary>Korten</summary>
+        <ul>
+          <li><b>Nytt kort</b> lägger till ett kort efter det valda. <b>Duplicera</b> kopierar det valda kortet.</li>
+          <li><b>Upp</b> och <b>Ned</b> ändrar ordningen. Piltangenterna byter kort när listan är markerad.</li>
+          <li><b>Markera flera</b>: Ctrl-klicka för ett i taget, Skift-klicka för ett intervall, Ctrl+A för alla. På mobilen håller du in ett kort.</li>
+          <li><b>Sortera…</b> ordnar korten efter text, betyg, paket, frågetyp eller slumpvis. Den senaste sorteringen går att ångra.</li>
+        </ul>
+      </details>
+
+      <details><summary>Skriva frågor</summary>
+        <ul>
+          <li>Välj <b>Framsida</b> eller <b>Baksida</b> och sedan <b>Frågetyp</b>. Frågetypen bestämmer hur facit skrivs och vilken färg ringen får.</li>
+          <li><b>Frågan</b> står i mitten. <b>Alternativen</b> står runt om, och <b>facit</b> göms under markörerna.</li>
+          <li>Position 1 är överst, sedan går det medurs.</li>
+          <li>Skriv <code>|</code> för radbrytning och <code>~</code> där ett långt ord får avstavas. Texten krymps automatiskt om den inte får plats.</li>
+          <li>Klicka i förhandsvisningen för att hoppa till ett fält.</li>
+          <li><b>Flytta…</b> flyttar en fråga till ett annat kort eller en annan sida. Är platsen upptagen kan frågorna byta plats.</li>
+        </ul>
+        <table class="hp-tab">
+          <tr><th>Frågetyp</th><th>Facit</th></tr>
+          <tr><td>Sant eller falskt</td><td>✓ eller ✗ för varje alternativ</td></tr>
+          <tr><td>Siffra</td><td>Det exakta talet eller året</td></tr>
+          <tr><td>Ordning</td><td>Platsen i ordningen, t.ex. 3. Förklara ordningen i frågan.</td></tr>
+          <tr><td>Århundrade / decennium</td><td>T.ex. 1800-talet eller 1960-talet</td></tr>
+          <tr><td>Färg</td><td>En färg (eller text)</td></tr>
+          <tr><td>Övrigt</td><td>Ord, namn eller liknande</td></tr>
+        </table>
+      </details>
+
+      <details><summary>Biblioteket</summary>
+        <ul>
+          <li><b>Frågepaket</b>: färdiga frågor sorterade efter tema. Ta alla, bara de bästa eller välj själv.</li>
+          <li><b>Mina paket</b>: lägg till egna .egna10-filer som paket och återanvänd frågorna i andra kortlekar.</li>
+          <li><b>Färgpaletter</b>: färdiga färgsättningar. En palett kan användas på alla kort eller på ett valt kort. Du kan också spara egna paletter, spara dem som fil och ta bort dem.</li>
+        </ul>
+      </details>
+
+      <details><summary>Tabeller (Excel)</summary>
+        <ul>
+          <li><b>Klistra in tabell…</b> tar emot frågor från Excel eller en textfil. Varje rad är en fråga och två rader i följd blir ett kort.</li>
+          <li>Kolumnerna skiljs åt med tabb eller semikolon: <code>Typ · Fråga · Alt 1 … Alt 10 · Facit 1 … Facit 10</code>.</li>
+          <li>Typ: <i>sant/falskt, siffra, ordning, århundrade, färg</i> eller <i>övrigt</i>.</li>
+          <li>Facit för sant/falskt skrivs <i>sant/falskt</i>, <i>ja/nej</i> eller <i>✓/✗</i>. Facit för färg skrivs som ett färgnamn eller <code>#ff0000</code>.</li>
+          <li>En rubrikrad som börjar med ”Typ” hoppas över.</li>
+          <li><b>Exportera tabell</b> sparar frågorna i samma format, så att du kan redigera dem i Excel och klistra in dem igen.</li>
+        </ul>
+      </details>
+
+      <details><summary>Utseende och inställningar</summary>
+        <ul>
+          <li><b>Utseende…</b> i menyn ändrar hela kortlekens färger, frågeringar, etikett och numrering. Där kan du också välja en färgpalett och spara dina färger som en egen palett.</li>
+          <li><b>Inställningar</b> (⚙) bestämmer vad nya kortlekar börjar med: färger, etikett och numrering. Där finns även standardval för PDF och skanning. Inställningarna sparas i den här webbläsaren.</li>
+          <li><b>Numrering</b>: kort 1 framsida får det första numret, kort 1 baksida nästa, och så vidare.</li>
+          <li><b>Mörkt/ljust läge</b> byter bara utseendet på appen, inte på korten.</li>
+        </ul>
+      </details>
+
+      <details><summary>Skriva ut (PDF)</summary>
+        <ul>
+          <li><b>Skapa PDF…</b> finns i menyn och överst i förhandsvisningen.</li>
+          <li><b>Utskrift</b>: dubbelsidigt med vändning längs långsidan (vanligast) eller kortsidan. Du kan också välja ”vik och limma”, med fram- och baksida bredvid varandra.</li>
+          <li><b>Vilka kort</b>: alla kort, det valda kortet, ett intervall, eller <b>Välj kort själv</b> med kryssrutor. ”Hoppa över kort utan frågor” tar bort tomma kort.</li>
+          <li><b>Skärning</b>: utfallande bakgrund gör att färgen fortsätter förbi kanten, så att inget vitt syns om du klipper lite fel. Du kan också välja skärlinje, skärmärken och kortnummer i marginalen.</li>
+          <li><b>Skriv ut i 100 % / Faktisk storlek</b>, aldrig ”Anpassa till sida”, annars blir korten fel storlek.</li>
+          <li><b>Finjustering</b>: gör en provutskrift och håll arket mot ljuset. Om baksidan inte ligger exakt bakom framsidan fyller du i förskjutningen i millimeter. Inställningen sparas i kortleken.</li>
+        </ul>
+      </details>
+
+      <details><summary>Spara och öppna</summary>
+        <ul>
+          <li>Kortleken sparas automatiskt i webbläsaren medan du arbetar.</li>
+          <li><b>Spara</b> (Ctrl+S) och <b>Spara som…</b> (Ctrl+Skift+S) skapar en projektfil med frågor, bilder och inställningar. <b>Öppna…</b> (Ctrl+O) läser in en sådan fil.</li>
+          <li><b>Ny kortlek</b> börjar om från början. Spara först om du vill behålla den gamla.</li>
+          <li><b>Installera som app</b> lägger appen på hemskärmen eller skrivbordet. Den fungerar då även utan internet.</li>
+        </ul>
+      </details>
+
+      <details><summary>Skanna in kort</summary>
+        <p>Gör om utskrivna Smart10-kort till digitala kort: texten läses av och du kan redigera den.</p>
+        <ul>
+          <li><b>Ta foto…</b> öppnar kameran. Kortet hittas och ramas in automatiskt.
+            <ul>
+              <li>Tryck på avtryckaren, eller slå på <b>Auto</b> så tas bilden när kortet ligger still.</li>
+              <li>Ficklampan slås på uppe till höger.</li>
+              <li>Högen nere till vänster visar bilderna du har tagit. Där kan du förstora en bild, ta om den eller ta bort den.</li>
+            </ul>
+          </li>
+          <li><b>Välj bilder/PDF…</b> läser färdiga foton eller PDF:er, t.ex. från Google Drive-skanning. Flera kort på samma sida hittas automatiskt.</li>
+          <li><b>Bästa resultat</b>: lägg kortet på ett underlag som skiljer sig från kortet, med jämnt ljus och utan reflexer.</li>
+          <li><b>Ordning</b>: välj om bilderna är framsida, baksida, framsida … eller bara framsidor.</li>
+          <li><b>Bilderna</b> visas som en remsa. Tryck på en bild eller använd ‹ › för att bläddra.
+            <ul>
+              <li>✓ betyder att bilden redan finns i kortleken.</li>
+              <li>! betyder att bilden är osäker, t.ex. suddig eller mörk.</li>
+              <li>✕ betyder att inget kort hittades.</li>
+              <li>◀ Flytta och Flytta ▶ ändrar ordningen.</li>
+            </ul>
+          </li>
+          <li><b>Rätta ramen</b>: dra de gula handtagen till kortets runda hörn. Förstoringsglaset visar kortets kant. Dra mitt i kortet för att flytta hela ramen. ”etikett” ska hamna uppe till höger.
+            <ul>
+              <li><b>Hitta kortet</b> söker igen.</li>
+              <li><b>Vrid 90°</b> vrider ramen ett kvarts varv.</li>
+              <li><b>Ett kort till i bilden</b> lägger till en ram till.</li>
+            </ul>
+          </li>
+          <li><b>Kopiera färger, etikett och bakgrund</b> tar färger och bakgrundsmotiv från korten och använder dem i kortleken.</li>
+          <li><b>Lägg till i kortleken</b> eller <b>Skapa ny kortlek</b> läser texten. Om bilderna redan finns i kortleken får du välja mellan att läsa om dem till sina kort eller att lägga till dem igen som nya kort.</li>
+          <li><b>Osäkra fält</b> markeras gula, både i redigeringen och på kortet. Tryck på en markering för att hoppa till fältet. Markeringen försvinner när du ändrar fältet.</li>
+          <li>Överst i redigeringen visas den inskannade bilden. Där finns <b>Läs om bilden…</b> och <b>Ta ny bild…</b>. Det du har ändrat för hand skrivs aldrig över.</li>
+          <li>Bilderna finns kvar när du öppnar dialogen igen. Under Inställningar kan du välja att de sparas även när sidan stängs.</li>
+        </ul>
+      </details>
+
+      <details><summary>Kortets utseende (Pro)</summary>
+        <p>Flikarna i redigeringen gäller det valda kortet:</p>
+        <ul>
+          <li><b>Utseende</b>: egna färger för hela kortet eller bara en sida, och en palett för kortet. <b>Kopiera färgerna till andra kort…</b> ger valda kort samma färger.</li>
+          <li><b>Layout</b>: storlek och placering av fråga, mittcirkel, facit och nummer. Klicka på en del i förhandsvisningen för att välja den. Delarna kan också dras.</li>
+          <li><b>Text och bilder</b>: egna texter och bilder på en sida eller på alla kort.
+            <ul>
+              <li>Dra för att flytta.</li>
+              <li>Dra i hörnet för att ändra storlek.</li>
+              <li>Dra i den runda knoppen för att vrida.</li>
+            </ul>
+          </li>
+          <li><b>Vattenstämpel</b>: text eller bild på korten. Den klipps vid kortets kant.</li>
+          <li><b>Typsnitt</b>: gratis typsnitt från Google Fonts. De sparas i kortleken, så PDF:en blir rätt även utan internet.</li>
+        </ul>
+      </details>
+
+      <details><summary>Skärmlayout</summary>
+        <ul>
+          <li>Dra i strecken mellan rutorna för att ändra bredd.</li>
+          <li>Dra i greppet ⠿ i en rutas rubrik för att flytta rutan.</li>
+          <li>Dialogfönster flyttas i rubriken och ändrar storlek i nedre högra hörnet.</li>
+          <li>Dubbelklicka på ett streck eller en rubrik för att återställa.</li>
+          <li>På mobilen byter du vy med knapparna längst ned: Kort, Redigera och Förhandsvisning.</li>
+        </ul>
+      </details>
+
+      <details><summary>Kortkommandon</summary>
+        <table class="hp-tab">
+          <tr><td><kbd>Ctrl</kbd>+<kbd>S</kbd></td><td>Spara</td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>Skift</kbd>+<kbd>S</kbd></td><td>Spara som</td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>O</kbd></td><td>Öppna</td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>A</kbd></td><td>Markera alla kort</td></tr>
+          <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Byt kort i listan</td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>V</kbd></td><td>Klistra in en bild i bildrutan</td></tr>
+          <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Bläddra bland skannade bilder</td></tr>
+        </table>
+      </details>
+
+      <p class="hp-foot"><button type="button" id="helpWelcome">Visa startsidan</button></p>
+    </div>
+    <div class="dfoot"><button value="cancel" class="default">Stäng</button></div>
   </form>
 </dialog>
 <div class="busy" id="busy"><div id="busyText">Skapar PDF…</div></div>
@@ -2841,6 +3035,21 @@ function bindPrefs() {
   const clr = $('#prefScanClear'); if (clr) clr.addEventListener('click', () => { document.dispatchEvent(new CustomEvent('egna:scanclear')); setStatus('Inskannade bilder är rensade.'); });
 }
 
+/* ---------- Hjälp ---------- */
+function bindHelp() {
+  const dlg = $('#dlgHelp'), ref = $('#btnPrefs') || $('#btnSettings'); if (!dlg || !ref) return;
+  const b = document.createElement('button'); b.id = 'btnHelp'; b.type = 'button'; b.title = 'Hjälp – så fungerar allt';
+  b.innerHTML = ref.querySelector('svg') ? '<svg class="ic" aria-hidden="true"><use href="#i-help"/></svg><span>Hjälp</span>' : '<span class="qm" aria-hidden="true">?</span><span class="lbl">Hjälp</span>';
+  ref.after(b);
+  b.addEventListener('click', () => {
+    if (isMobile()) { const tb = $('.toolbar'); if (tb) tb.classList.remove('open'); }
+    dlg.showModal(); const body = dlg.querySelector('.helpbody'); if (body) body.scrollTop = 0;
+  });
+  // ett avsnitt i taget på mobilen
+  dlg.addEventListener('toggle', e => { const d = e.target; if (d.tagName === 'DETAILS' && d.open && isMobile()) dlg.querySelectorAll('details[open]').forEach(x => { if (x !== d) x.open = false; }); }, true);
+  $('#helpWelcome').addEventListener('click', () => { try { localStorage.removeItem('egna10.welcomeSeen'); } catch (e) { /* – */ } dlg.close(); const br = $('.toolbar .brand'); if (br) br.click(); });
+}
+
 function bindExtras() {
   _xNewDeck = newDeck; newDeck = xNewDeck;
   _xPickCards = pickCards; pickCards = xPickCards;
@@ -2848,6 +3057,7 @@ function bindExtras() {
   bindPdfPick();
   bindMove();
   bindPrefs();
+  bindHelp();
 }
 
 /* =====================================================================
@@ -3001,7 +3211,7 @@ function palShowInLib(id) {
       ${p.src === 'mine' ? '<button type="button" data-palact="del">Ta bort</button>' : ''}
     </div>
     ${anyOwn ? '<label class="opt pal-own"><input type="checkbox" id="palCardsToo" checked> Gäller även kort som har egna färger</label>' : ''}
-    <p class="help">Paletten ändrar kortets färger och frågeringarna. Du kan finjustera efteråt under Utseende.</p>`;
+    <p class="help">Ändrar kortets färger och frågeringar.</p>`;
   $('#libQs').innerHTML = '';
 }
 function bindPalLib() {
@@ -3527,7 +3737,7 @@ function proLayoutHTML() {
     <label><input type="radio" name="proScope" value="side"${proUI.scope === 'side' ? ' checked' : ''}> bara den här sidan</label>
   </div>`;
   if (hasSide) h += `<p class="pro-note">Den här sidan har egna layoutinställningar (märkta med •). <button type="button" data-act="clearSide">Ta bort sidans egna</button></p>`;
-  h += `<p class="help">Klicka på en del av kortet i förhandsvisningen för att hoppa till dess inställningar. Frågan, mittcirkeln, facit och numret kan dras dit du vill.</p>`;
+  h += `<p class="help">Klicka på en del av kortet för att välja den, eller dra den.</p>`;
   for (const g of PRO_GROUPS) {
     const ctl = typeof g.ctl === 'function' ? g.ctl() : g.ctl;
     const open = proUI.sel && proUI.sel.kind === 'grp' && proUI.sel.id === g.id;
@@ -3564,7 +3774,7 @@ function proItemsHTML() {
     <button type="button" data-add="text">+ Text</button><button type="button" data-add="img">+ Bild…</button>
     <button type="button" data-add="rect">+ Ruta</button><button type="button" data-add="ellipse">+ Cirkel</button><button type="button" data-add="line">+ Linje</button>
   </div>`;
-  h += `<p class="help">Det du lägger till hamnar på ${state.side ? 'baksidan' : 'framsidan'} av kort ${state.cur + 1}. Under ”Visas på” kan du låta det synas på alla kort. Dra i elementet på kortet för att flytta det, i hörnet för att ändra storlek och i den runda knoppen för att vrida.</p>`;
+  h += `<p class="help">Läggs på ${state.side ? 'baksidan' : 'framsidan'} av kort ${state.cur + 1}. Välj ”Visas på” för fler kort.</p>`;
   if (!list.length) h += `<p class="pro-empty">Inga egna element på den här sidan än.</p>`;
   else h += `<ul class="pro-items">${list.map(({ it, global }) => `<li data-id="${esc(it.id)}"${it.id === selId ? ' class="sel"' : ''}><button type="button" class="pro-it">${esc(proItemLabel(it))}${global ? ' <small>(' + ({ all: 'alla sidor', front: 'alla framsidor', back: 'alla baksidor' })[it.on] + ')</small>' : ''}</button></li>`).join('')}</ul>`;
   const f = selId && proFindItem(selId);
@@ -3689,7 +3899,7 @@ function proWmHTML() {
   const sel = (k, opts) => `<label class="pf" data-wk="${k}"><span>${opts.label}</span><select>${opts.o.map(([v, t]) => `<option value="${v}"${String(w[k]) === v ? ' selected' : ''}>${t}</option>`).join('')}</select></label>`;
   const num = (k, label, v, a, b, st, u) => `<label class="pf" data-wk="${k}"><span>${label}</span><span class="pf-num"><input type="range" min="${a}" max="${b}" step="${st}" value="${v}"><input type="number" min="${a}" max="${b}" step="${st}" value="${v}"><small>${u}</small></span></label>`;
   let h = `<label class="pf pf-bool pro-wm-on" data-wk="on"><input type="checkbox"${w.on ? ' checked' : ''}> Visa vattenstämpel på korten</label>`;
-  h += `<p class="help">Vattenstämpeln hamnar på korten i förhandsvisningen och i PDF:en. Den klipps vid kortets kant.</p>`;
+  h += `<p class="help">Visas på korten och i PDF:en.</p>`;
   h += `<div class="pro-wm${w.on ? '' : ' off'}">`;
   h += sel('kind', { label: 'Typ', o: [['text', 'Text'], ['img', 'Bild (t.ex. din logga)']] });
   if (w.kind === 'text') {
@@ -3722,14 +3932,14 @@ function proWmSet(k, v) {
 function proFontsHTML() {
   const fonts = proDeckP().fonts;
   const have = new Set(fonts.map(f => f.src).filter(Boolean));
-  let h = `<p class="help">Typsnitten sparas i kortleken (och i .egna10-filen), så PDF:en blir rätt även utan internet. Välj sedan typsnitt under Layout eller på dina egna texter.</p>`;
+  let h = `<p class="help">Typsnitten sparas i kortleken och fungerar utan internet.</p>`;
   h += `<fieldset><legend>I kortleken</legend><ul class="pro-fonts">`;
   h += `<li><span style="font-family:KortSerif">EB Garamond</span> <small>inbyggt – frågor och svar</small></li>`;
   h += `<li><span style="font-family:KortSans">Montserrat ExtraBold</span> <small>inbyggt – etiketten</small></li>`;
   for (const f of fonts) h += `<li><span style="font-family:'PF${esc(f.id)}'">${esc(f.name)}</span> <button type="button" data-act="fontDel" data-id="${esc(f.id)}">Ta bort</button></li>`;
   h += `</ul></fieldset>`;
   h += `<fieldset><legend>Lägg till</legend><div class="pro-btns"><button type="button" data-act="fontUpload">Eget typsnitt (.ttf)…</button></div>`;
-  h += `<p class="help">Gratis typsnitt från Google Fonts (hämtas en gång):</p><ul class="pro-gfonts">`;
+  h += `<p class="help">Google Fonts:</p><ul class="pro-gfonts">`;
   for (const [name, path, desc] of PRO_GOOGLE) h += `<li><span><b>${esc(name)}</b> <small>${esc(desc)}</small></span>${have.has(path) ? '<span class="pro-ok">✓ tillagt</span>' : `<button type="button" data-act="fontGoogle" data-path="${esc(path)}" data-name="${esc(name)}">Lägg till</button>`}</li>`;
   h += `</ul><p class="pro-fontstatus" id="proFontStatus" role="status"></p></fieldset>`;
   return h;
@@ -3866,7 +4076,7 @@ function proLookHTML() {
     <label><input type="radio" name="lookScope" value="side"${proUI.lookScope === 'side' ? ' checked' : ''}> bara ${state.side ? 'baksidan' : 'framsidan'}</label>
   </div>
   ${typeof palCardPickHTML === 'function' ? palCardPickHTML() : ''}
-  <p class="help">Här ändrar du färgerna på bara det här kortet. Färgerna för hela kortleken ändrar du under Utseende i menyn. Färger som är ändrade här är märkta med •.</p>`;
+  <p class="help">Gäller bara det här kortet. Ändrade färger är märkta med •.</p>`;
   h += Object.keys(DEFAULT_STYLE).map(k => {
     const own = sides.some(sq => proLookOwn(sq, k));
     return `<label class="pf" data-lk="${k}"><span>${esc(STYLE_LABELS[k] || k)}${own ? '<span class="pro-mark" title="Ändrad för det här kortet">•</span>' : ''}${mixed(k) ? ' <small class="help">(olika på sidorna)</small>' : ''}</span><span class="pf-col"><input type="color" value="${esc(proLookVal(q, k))}"><button type="button" data-lookdef="${k}" title="Använd kortlekens färg"${own ? '' : ' disabled'}>Kortlekens</button></span></label>`;
@@ -3910,7 +4120,7 @@ function proLookCopyOpen() {
         <div class="lc-to" id="lcTo"><span>till</span><label><input type="radio" name="lcTo" value="2" checked> båda sidorna</label><label><input type="radio" name="lcTo" value="0"> framsidorna</label><label><input type="radio" name="lcTo" value="1"> baksidorna</label></div>
       </fieldset>
       <div class="pdfpick"><div class="pp-btns"><button type="button" id="lcAll">Alla</button><button type="button" id="lcNone">Inga</button><button type="button" id="lcInv">Omvänt</button><span class="help" id="lcCount"></span></div><div class="pp-list" id="lcList"></div></div>
-      <p class="help">Korten du väljer får exakt samma färger. Färger som inte är ändrade på det här kortet blir kortlekens färger.</p>
+      <p class="help">De valda korten får exakt samma färger.</p>
     </div><div class="dfoot"><button id="lcGo" class="default" value="go">Kopiera</button><button value="cancel">Avbryt</button></div></form>`;
     document.body.appendChild(dlg);
     const count = () => { const n = $$('#lcList input:checked').length; $('#lcCount').textContent = `${n} ${n === 1 ? 'kort valt' : 'kort valda'}`; $('#lcGo').disabled = !n; };
@@ -5010,7 +5220,7 @@ function scanRenderList() {
   const ol = $('#scanList'), dlg = $('#dlgScan');
   dlg.classList.toggle('scan-has', SCAN.items.length > 0);
   scanRenderNav();
-  if (!SCAN.items.length) { ol.innerHTML = '<li class="scan-empty">Inga bilder än. Tryck på ”Ta foto” för att skanna korten med kameran, eller välj färdiga bilder.</li>'; return; }
+  if (!SCAN.items.length) { ol.innerHTML = '<li class="scan-empty">Inga bilder än.</li>'; return; }
   ol.innerHTML = SCAN.items.map((it, k) => {
     const r = scanRole(it, k), linked = scanIsLinked(it), warn = it.quality && it.quality.warn.length;
     const st = it.noCard ? 'hoppas över' : linked ? '✓ finns i kortleken' : it.result ? '✓ inläst' : it.err ? 'fel' : 'ny';
