@@ -857,7 +857,7 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
           <button type="button" id="scanDel">Ta bort bilden</button>
         </div>
         <div class="scan-stage" id="scanStage"><canvas id="scanCanvas"></canvas></div>
-        <p class="help">Sitter ramen fel? Dra från var som helst nära ett hörn – närmaste gula hörn följer med, och ett förstoringsglas visar exakt var det hamnar. Dra mitt i kortet för att flytta hela ramen. De blå ringarna ska hamna över mittcirkeln och facit, och ”etikett” uppe till höger.</p>
+        <p class="help">Sitter ramen fel? De gula handtagen sitter på kortets runda hörn – dra var som helst i närheten så följer närmaste handtag med. Förstoringsglaset visar kortets kontur: lägg den gula linjen på kortets kant. Dra mitt i kortet för att flytta hela ramen. ”etikett” ska hamna uppe till höger.</p>
       </section>
     </div>
     <div class="dfoot scanfoot">
@@ -3469,27 +3469,29 @@ function scanFindDiscs(item) {
     const i = (Math.min(H - 1, Math.round(y / k)) * W + Math.min(W - 1, Math.round(x / k))) * 4;
     lum[y * w + x] = scanLum(data.data, i); sat[y * w + x] = scanSat(data.data, i);
   }
-  const sorted = Array.from(lum).sort((a, b) => a - b), hi = sorted[Math.floor(sorted.length * 0.97)];
-  const found = [];
+  const hist = new Uint32Array(256); for (let j = 0; j < w * h; j++) hist[Math.min(255, (lum[j] * 255) | 0)]++;
+  let hi = 1; for (let v = 255, acc = 0; v >= 0; v--) { acc += hist[v]; if (acc >= w * h * 0.03) { hi = v / 255; break; } }
+  const found = [], ok = new Uint8Array(w * h), lab = new Int32Array(w * h), stack = new Int32Array(w * h);
   for (const t of [0.93, 0.88, 0.82, 0.76]) {
-    const thr = hi * t, lab = new Int32Array(w * h).fill(-1), stack = [];
+    const thr = hi * t; lab.fill(-1);
+    for (let j = 0; j < w * h; j++) ok[j] = lum[j] >= thr && sat[j] <= 0.25 ? 1 : 0;
     for (let s = 0; s < w * h; s++) {
-      if (lab[s] >= 0 || lum[s] < thr || sat[s] > 0.25) continue;
-      let n = 0, x0 = w, x1 = 0, y0 = h, y1 = 0, sx = 0, sy = 0; stack.push(s); lab[s] = s;
-      while (stack.length) {
-        const p = stack.pop(), px = p % w, py = (p - px) / w; n++; sx += px; sy += py;
+      if (lab[s] >= 0 || !ok[s]) continue;
+      let n = 0, x0 = w, x1 = 0, y0 = h, y1 = 0, sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0, sp = 0; stack[sp++] = s; lab[s] = s;
+      while (sp) {
+        const p = stack[--sp], px = p % w, py = (p - px) / w; n++; sx += px; sy += py; sxx += px * px; syy += py * py; sxy += px * py;
         if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py;
-        for (const q of [p - 1, p + 1, p - w, p + w]) {
-          if (q < 0 || q >= w * h || lab[q] >= 0) continue;
-          if (Math.abs((q % w) - px) > 1) continue;
-          if (lum[q] >= thr && sat[q] <= 0.25) { lab[q] = s; stack.push(q); }
-        }
+        if (px > 0 && lab[p - 1] < 0 && ok[p - 1]) { lab[p - 1] = s; stack[sp++] = p - 1; }
+        if (px < w - 1 && lab[p + 1] < 0 && ok[p + 1]) { lab[p + 1] = s; stack[sp++] = p + 1; }
+        if (py > 0 && lab[p - w] < 0 && ok[p - w]) { lab[p - w] = s; stack[sp++] = p - w; }
+        if (py < h - 1 && lab[p + w] < 0 && ok[p + w]) { lab[p + w] = s; stack[sp++] = p + w; }
       }
       const bw = x1 - x0 + 1, bh = y1 - y0 + 1, asp = bw / bh, fill = n / (Math.PI * bw * bh / 4);
       const size = Math.min(bw, bh) / Math.min(w, h);
       if (asp > 0.75 && asp < 1.33 && fill > 0.3 && fill < 1.12 && size > 0.08 && size < 0.85) {
         const score = n * (1 - Math.abs(1 - fill)) * (fill < 0.55 ? 0.5 : 1);   // glesa cirklar (bilder runt om) räknas lite lägre
-        const c = { score, cx: (x0 + x1) / 2 / k, cy: (y0 + y1) / 2 / k, rx: bw / 2 / k, ry: bh / 2 / k };
+        const mx = sx / n, my = sy / n, cov = [(sxx / n - mx * mx) / (k * k), (sxy / n - mx * my) / (k * k), (syy / n - my * my) / (k * k)];
+        const c = { score, cx: (x0 + x1) / 2 / k, cy: (y0 + y1) / 2 / k, rx: bw / 2 / k, ry: bh / 2 / k, cov };
         // vid lägre trösklar växer ofta hela kortet ihop till en ”cirkel” runt den riktiga – hoppa över den
         if (!found.some(o => Math.hypot(o.cx - c.cx, o.cy - c.cy) < Math.max(c.rx, c.ry) && Math.max(c.rx, c.ry) > 1.4 * Math.max(o.rx, o.ry))) found.push(c);
       }
@@ -3509,7 +3511,64 @@ function scanFindDiscs(item) {
     if (rr > R * 0.72 && rr < R * 1.4 && c.score > out[0].score * 0.35) res.push(c);
     else if (rr > R * 0.38 && rr < R * 0.56 && !res.some(o => Math.hypot(o.cx - c.cx, o.cy - c.cy) < o.rx)) res.push(Object.assign({}, c, { rx: c.rx * 33 / 15.8, ry: c.ry * 33 / 15.8, inner: true }));
   }
+  // ellipsens form → matris mm → pixlar (fylld cirkel: kovarians = r²/4 · M·Mᵀ)
+  for (const c of res) { const r = c.inner ? 15.8 : 33; c.M = scanSqrt2(c.cov.map(v => v * 4 / (r * r))); }
   return res.sort((a, b) => Math.abs(a.cy - b.cy) > R ? a.cy - b.cy : a.cx - b.cx);
+}
+// symmetrisk kvadratrot av 2×2-matrisen [a b; b c] → [m00, m01, m10, m11]
+function scanSqrt2([a, b, c]) {
+  const det = Math.max(1e-9, a * c - b * b), sd = Math.sqrt(det), t = Math.sqrt(Math.max(1e-9, a + c + 2 * sd));
+  return [(a + sd) / t, b / t, b / t, (c + sd) / t];
+}
+// Frågeringen: en färgad, tunn ring (Ø32,4 mm) mitt på kortet – syns även när mittcirkeln och kortet har nästan samma färg.
+function scanFindRings(item) {
+  const { data } = item.src, W = data.width, H = data.height;
+  const k = Math.min(1, 800 / Math.max(W, H)), w = Math.round(W * k), h = Math.round(H * k);
+  const mask = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (Math.min(H - 1, Math.round(y / k)) * W + Math.min(W - 1, Math.round(x / k))) * 4, l = scanLum(data.data, i), sa = scanSat(data.data, i);
+    if (sa > 0.28 && l > 0.1 && l < 0.92) mask[y * w + x] = 1;
+  }
+  const lab = new Int32Array(w * h).fill(-1), out = [], stack = new Int32Array(w * h);
+  for (let s0 = 0; s0 < w * h; s0++) {
+    if (!mask[s0] || lab[s0] >= 0) continue;
+    const pts = []; let sp = 0; stack[sp++] = s0; lab[s0] = s0;
+    while (sp) {
+      const p = stack[--sp], x = p % w; pts.push(p);
+      for (let dy = -w; dy <= w; dy += w) for (let dx = -1; dx <= 1; dx++) {
+        const q = p + dy + dx; if (q < 0 || q >= w * h || x + dx < 0 || x + dx >= w || !mask[q] || lab[q] >= 0) continue;
+        lab[q] = s0; stack[sp++] = q;
+      }
+    }
+    if (pts.length < 40 || pts.length > w * h * 0.05) continue;
+    let mx = 0, my = 0; for (const p of pts) { mx += p % w; my += (p - p % w) / w; } mx /= pts.length; my /= pts.length;
+    let a = 0, b = 0, c = 0; for (const p of pts) { const dx = p % w - mx, dy = (p - p % w) / w - my; a += dx * dx; b += dx * dy; c += dy * dy; }
+    a /= pts.length; b /= pts.length; c /= pts.length;
+    const det = a * c - b * b; if (det <= 0) continue;
+    const tr = a + c, l1 = tr / 2 + Math.sqrt(tr * tr / 4 - det), l2 = tr / 2 - Math.sqrt(Math.max(0, tr * tr / 4 - det));
+    if (l1 / Math.max(1e-9, l2) > 6 || Math.sqrt(2 * l2) < 6) continue;                   // för avlång eller för liten
+    // ligger punkterna på en ellips? (ring: kovarians = r²/2 · A)
+    const ia = c / det, ib = -b / det, ic = a / det; let sq = 0, sq2 = 0;
+    for (const p of pts) { const dx = p % w - mx, dy = (p - p % w) / w - my, q = Math.sqrt((dx * dx * ia + 2 * dx * dy * ib + dy * dy * ic) / 2); sq += q; sq2 += q * q; }
+    const mq = sq / pts.length, sdq = Math.sqrt(Math.max(0, sq2 / pts.length - mq * mq));
+    const ringArea = Math.PI * Math.sqrt(4 * det);                                    // π·r1·r2 med r = √(2λ)
+    if (sdq > 0.12 || Math.abs(mq - 1) > 0.15 || pts.length / ringArea > 0.45) continue;
+    if (mask[Math.round(my) * w + Math.round(mx)]) continue;                          // mitten ska vara tom
+    const cov = [a / (k * k), b / (k * k), c / (k * k)];
+    out.push({ ring: true, score: pts.length, cx: mx / k, cy: my / k, rx: Math.sqrt(2 * a) / k, ry: Math.sqrt(2 * c) / k, M: scanSqrt2(cov.map(v => v * 2 / (16.2 * 16.2))) });
+  }
+  return out.sort((p, q) => q.score - p.score);
+}
+// Alla tänkbara kort: mittcirklar och frågeringar (samma ställe räknas en gång per sort)
+function scanFindCircles(item) {
+  const discs = scanFindDiscs(item), rings = scanFindRings(item);
+  const out = discs.slice();
+  for (const r of rings) {
+    const R = 16.2 * Math.sqrt(Math.abs(r.M[0] * r.M[3] - r.M[1] * r.M[2]));
+    const same = discs.find(d => Math.hypot(d.cx - r.cx, d.cy - r.cy) < R * 0.4);
+    if (same) { same.alt = r; out.push(r); } else out.unshift(r);
+  }
+  return out;
 }
 function scanFindDisc(item) {
   const all = scanFindDiscs(item);
@@ -3565,14 +3624,14 @@ const SCAN_OUTLINE = (() => {
     return [p[0], p[1], nx, ny];
   });
 })();
-function scanDetect(item, disc) {
+// Ett kort i bilden utifrån en hittad cirkel (mittcirkeln eller frågeringen). M = 2×2-matris mm → pixlar (snett/perspektiv
+// ger en ellips), vridningen bestäms här. Returnerar hörnen och hur säkert det är.
+function scanDetectFrom(item, disc, fast) {
   const D = item.src.data, W = D.width, H = D.height, d = D.data;
-  const fallback = () => { const s = Math.min(W, H) * 0.4; return [[W / 2 - s, H / 2 - s], [W / 2 + s, H / 2 - s], [W / 2 + s, H / 2 + s], [W / 2 - s, H / 2 + s]]; };
-  disc = disc || scanFindDisc(item);
-  if (!disc) return fallback();
   const px = (x, y) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= W || y >= H) return null; const i = (y * W + x) * 4; return [d[i], d[i + 1], d[i + 2]]; };
-  const s = (disc.rx + disc.ry) / 2 / 33, cx = disc.cx, cy = disc.cy;
-  const at = (phi, r) => px(cx + Math.sin(phi) * r * s, cy - Math.cos(phi) * r * s);
+  const cx = disc.cx, cy = disc.cy, M = disc.M || [disc.rx / 33, 0, 0, disc.ry / 33], s = Math.sqrt(Math.abs(M[0] * M[3] - M[1] * M[2]));
+  const mm2 = (u, v) => [cx + M[0] * u + M[1] * v, cy + M[2] * u + M[3] * v];
+  const at = (phi, r) => px(...mm2(Math.sin(phi) * r, -Math.cos(phi) * r));
   const ringMed = (r0, r1) => { const c = []; for (let a = 0; a < 360; a += 1) for (let r = r0; r <= r1; r += 0.5) { const p = at(a * Math.PI / 180, r); if (p) c.push(p); } return scanMedianColor(c); };
   const DC = ringMed(17.2, 19) || [250, 250, 245], C = ringMed(39.6, 40.6) || [200, 200, 170];
   // vridningen (modulo 36°): de inre strecken på mittcirkeln + facitmarkeringarna
@@ -3595,7 +3654,7 @@ function scanDetect(item, disc) {
   // de inre strecken är skarpa och sitter på den ljusa mittcirkeln – lita på dem när de syns tydligt
   for (let t = 0; t < 144; t++) { const sc = ztMax > 2.6 ? zt[t] : zt[t] * 1.5 + zm[t]; if (sc > bs) { bs = sc; theta = t * 0.25; } }
   // vilket av de tio lägena? Kortets kontur ska ligga på en tydlig kant i bilden (runda hörn till vänster).
-  const sim = alpha => { const ca = Math.cos(alpha), sa = Math.sin(alpha); return (x, y) => { const rx = x - 55, ry = y - 55; return [cx + s * (ca * rx - sa * ry), cy + s * (sa * rx + ca * ry)]; }; };
+  const sim = alpha => { const ca = Math.cos(alpha), sa = Math.sin(alpha); return (x, y) => { const rx = x - 55, ry = y - 55; return mm2(ca * rx - sa * ry, sa * rx + ca * ry); }; };
   const edgeScore = T => { let sum = 0, n = 0; for (const [x, y, nx, ny] of SCAN_OUTLINE) { const a = px(...T(x - nx * 1.4, y - ny * 1.4)), b = px(...T(x + nx * 1.4, y + ny * 1.4)); if (a && b) { sum += scanDist(a, b); n++; } } return n > 30 ? sum / n : 0; };
   // etiketten (platta uppe till höger) skiljer sig från kortet bredvid och under den
   const med = (T, pts) => scanMedianColor(pts.map(([x, y]) => px(...T(x, y))).filter(Boolean));
@@ -3621,11 +3680,11 @@ function scanDetect(item, disc) {
   if (window.SCAN_DBG) SCAN_DBG.push({ theta, alpha, best, zt: [...zt].indexOf(Math.max(...zt)) * 0.25, ztm: Math.max(...zt), zm: [...zm].indexOf(Math.max(...zm)) * 0.25, zmm: Math.max(...zm), DC, C, sim: SCAN_MM_CORNERS.map(([x, y]) => T(x, y).map(Math.round)) });
   // finjustera mot kortets kanter (och tydliga facitmarkeringar) → homografi som klarar snett och perspektiv
   const markers = Array.from({ length: 10 }, (_, i) => scanPt(i, 45));
-  for (let iter = 0; iter < 3; iter++) {
-    const pairsMM = [], pairsIM = [];
-    for (const [x, y, nx, ny] of SCAN_OUTLINE) {
+  for (let iter = 0; iter < (fast ? 2 : 4); iter++) {
+    const pairsMM = [], pairsIM = [], reach = iter ? 2.5 : 4.5;
+    for (const [x, y, nx, ny] of (fast ? SCAN_OUTLINE.filter((_, j) => j % 2 === 0) : SCAN_OUTLINE)) {
       let bt = 0, bv = 0;
-      for (let t = -3; t <= 3; t += 0.15) {
+      for (let t = -reach; t <= reach; t += 0.15) {
         const a = px(...T(x + nx * (t - 0.45), y + ny * (t - 0.45))), b = px(...T(x + nx * (t + 0.45), y + ny * (t + 0.45)));
         if (!a || !b) continue; const v = scanDist(a, b); if (v > bv) { bv = v; bt = t; }
       }
@@ -3645,16 +3704,35 @@ function scanDetect(item, disc) {
       if (n / tot < 0.25) continue;                                  // bara tydliga, fyllda markeringar
       pairsMM.push([mx, my, 2]); pairsIM.push(T(mx + sx / n, my + sy / n));
     }
-    if (pairsMM.length < 40) break;
+    if (pairsMM.length < (fast ? 20 : 40)) break;
     const Hn = scanFitH(pairsMM.map(([x, y, w]) => [(x - 55) / 55, (y - 55) / 55, w]), pairsIM.map(([u, v]) => [(u - cx) / (55 * s), (v - cy) / (55 * s)]));
     if (!Hn) break;
     const T2 = (x, y) => { const [a, b] = scanApply(Hn, (x - 55) / 55, (y - 55) / 55); return [cx + a * 55 * s, cy + b * 55 * s]; };
     const moved = Math.max(...SCAN_MM_CORNERS.map(([x, y]) => { const a = T2(x, y), b = T(x, y); return Math.hypot(a[0] - b[0], a[1] - b[1]); }));
-    if (!(moved < 12 * s)) break;
+    if (!(moved < 20 * s)) break;
     T = T2;
   }
-  item.conf = best;                              // hur tydlig kanten är (används av kameran)
-  return SCAN_MM_CORNERS.map(([x, y]) => T(x, y));
+  // slutligt betyg: hur väl konturen nu ligger på en kant
+  // finns ekrarna där de ska? (skiljer ett riktigt kort från andra runda saker)
+  let sp = 0, spn = 0;
+  for (let i = 0; i < 10; i++) for (const r of [17.6, 18.4, 30.5, 32, 33.5, 35, 36.5]) {
+    const [x, y] = scanPt(i, r), a = i * 36 * Math.PI / 180, ox = Math.cos(a) * 1.6, oy = Math.sin(a) * 1.6;
+    const c = px(...T(x, y)), l = px(...T(x + ox, y + oy)), rr = px(...T(x - ox, y - oy));
+    if (c && l && rr) { sp += Math.min(scanDist(c, l), scanDist(c, rr)); spn++; }
+  }
+  const spokes = spn ? sp / spn : 0;
+  const fin = edgeScore(T) + 0.3 * tabScore(T) + spokes;
+  return { corners: SCAN_MM_CORNERS.map(([x, y]) => T(x, y)), conf: edgeScore(T), spokes, score: fin };
+}
+function scanDetect(item, disc, fast) {
+  const D = item.src.data, W = D.width, H = D.height;
+  const fallback = () => { const s = Math.min(W, H) * 0.4; return [[W / 2 - s, H / 2 - s], [W / 2 + s, H / 2 - s], [W / 2 + s, H / 2 + s], [W / 2 - s, H / 2 + s]]; };
+  const cands = disc ? [disc] : scanFindCircles(item);
+  let best = null;
+  for (const c of cands.slice(0, fast ? 3 : 6)) { const r = scanDetectFrom(item, c, fast); if (!best || r.score > best.score) best = r; }
+  if (!best) { item.conf = 0; return fallback(); }
+  item.conf = best.conf; item.spokes = best.spokes;
+  return best.corners;
 }
 function scanAutoCorners(item) { return scanDetect(item); }
 
@@ -3781,7 +3859,11 @@ function scanMedianColor(cols) {
 }
 const scanHex = c => '#' + c.map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
 function scanCleanText(t) {
-  return String(t || '').replace(/([A-Za-zÅÄÖåäöÉéÜü])[-‐–]\s*\n\s*(?=[A-Za-zÅÄÖåäöÉéÜü])/g, '$1~').replace(/-\s*\n\s*/g, '').replace(/[|¦]/g, 'I').replace(/\s+/g, ' ').replace(/^[\s.,:;'"`´~_-]+|[\s,:;'"`´~_]+$/g, '').replace(/ - /g, ' – ').trim();
+  return String(t || '')
+    // avstavning vid radbrytning: riktiga bindestreck (1980-talet, Coca-Cola) behålls, annars mjuk avstavning (~)
+    // som Egna10 bara visar om ordet behöver delas – och då på samma ställe som på kortet
+    .replace(/([0-9A-Za-zÅÄÖåäöÉéÜü])[-‐‑–—]\s*\n\s*([0-9A-Za-zÅÄÖåäöÉéÜü])/g, (m, a, b) => /[0-9]/.test(a) || /[A-ZÅÄÖÉÜ0-9]/.test(b) ? a + '-' + b : a + '~' + b)
+    .replace(/([a-zåäöéü]{2})[-‐‑] (?=[a-zåäöéü]{2})/g, '$1~').replace(/-\s*\n\s*/g, '').replace(/[|¦]/g, 'I').replace(/\s+/g, ' ').replace(/^[\s.,:;'"`´~_-]+|[\s,:;'"`´~_]+$/g, '').replace(/ [-—] /g, ' – ').replace(/ [-–—]$/, '').trim();
 }
 
 // Tesseract-resultat → text. Lösa skräptecken i kanterna (rester av linjer o.d.) med låg säkerhet tas bort.
@@ -3793,7 +3875,7 @@ function scanOcrText(data) {
   const junk = w => {
     const t = (w.text || '').trim();
     if (!t) return true;
-    if (!alnum(t)) return !/^[–\-=()?!&+]$/.test(t);
+    if (!alnum(t)) return !/^[–—\-()?!&+]$/.test(t) || w.confidence < 40;
     return w.confidence < 80 && /^[|Il!\/\\—_~"”'’`,.:;NS]{1,2}$/.test(t);
   };
   const keep = lines.map(ws => { while (ws.length && junk(ws[0])) ws.shift(); while (ws.length && junk(ws[ws.length - 1])) ws.pop(); return ws; })
@@ -3827,21 +3909,35 @@ function scanSpokeExtent(img, i) {
     return side - c > 0.1;
   };
   const walk = (from, to, step) => { let last = from, miss = 0; for (let r = from; step > 0 ? r <= to : r >= to; r += step) { if (isLine(r)) { last = r; miss = 0; } else if (++miss > 2) break; } return last; };
-  return { inner: Math.min(20.1, walk(17.2, 22.5, 0.2)), outer: Math.max(28.7, walk(33.2, 26, -0.2)), off, ux, uy, px, py };
+  return { inner: Math.min(19.8, walk(17.2, 22.5, 0.2)), outer: Math.max(29.1, walk(33.2, 26, -0.2)), off, ux, uy, px, py };
 }
-function scanAltCrop(img, i, ext, textCol) {
-  ext = ext || scanSpokeExtent(img, i);
-  const [cx, cy] = scanPt(i, 24.5), w = 19.5, h = 13.5;
-  return scanCrop(img, cx - w / 2, cy - h / 2, w, h, (x, y) => {
+// Alternativets text: ett generöst utsnitt (bara ringen och linjerna maskas bort). Grannarnas ord som råkar komma med
+// sorteras bort ord för ord efter OCR:en (scanAltWords) – så klipps inga bokstäver av.
+function scanAltCrop(img, i, exts, textCol, ringCol) {
+  const [cx, cy] = scanPt(i, 24.5), w = 21, h = 15.5, x0 = cx - w / 2, y0 = cy - h / 2;
+  const near = [(i + 9) % 10, i, (i + 1) % 10, (i + 8) % 10, (i + 2) % 10];
+  const cr = scanCrop(img, x0, y0, w, h, (x, y) => {
     const r = Math.hypot(x - 55, y - 55);
-    if (r < 17 || r > 32.8) return false;
-    if (scanAltOwner(x, y) !== i) return false;                 // närmast det egna alternativet
-    if (r < ext.inner + 0.4 || r > ext.outer - 0.4) {
-      const d = Math.abs((x - 55) * ext.px + (y - 55) * ext.py - ext.off(r));
-      if (d < 0.55) return false;
+    if (r < 16.75 || r > 32.3) return false;                     // ringen och mittcirkelns kant
+    if (ringCol && r < 18.8) {                                   // ringen kan ligga lite fel – den uppmätta radien gäller
+      const a = ((Math.atan2(x - 55, 55 - y) * 180 / Math.PI) + 360) % 360, rr = ringCol[Math.round(a / 5) % 72];
+      if (Math.abs(r - rr) < 0.85) return false;
+    }
+    if (r < 19.9 || r > 28.9) for (const j of near) {
+      const e = exts[j]; if (r > e.inner + 0.4 && r < e.outer - 0.4) continue;
+      const along = (x - 55) * e.ux + (y - 55) * e.uy; if (along < 0) continue;
+      if (Math.abs((x - 55) * e.px + (y - 55) * e.py - e.off(r)) < 0.42) return false;
     }
     return true;
   }, textCol);
+  cr.x0 = x0; cr.y0 = y0; cr.alt = i;
+  return cr;
+}
+// behåll bara ord som ligger närmast det här alternativets mitt
+function scanAltWords(data, cr) {
+  const own = w => { const b = w.bbox, x = cr.x0 + (b.x0 + b.x1) / 2 / SC, y = cr.y0 + (b.y0 + b.y1) / 2 / SC; let best = 0, bd = 1e9; SCAN_ALT_C.forEach(([cx, cy], j) => { const d = Math.hypot(x - cx, y - cy); if (d < bd) { bd = d; best = j; } }); return best === cr.alt; };
+  const lines = (data.lines || []).map(l => Object.assign({}, l, { words: (l.words || []).filter(own) })).filter(l => l.words.length);
+  return Object.assign({}, data, { lines, text: lines.map(l => l.words.map(w => w.text).join(' ')).join('\n') });
 }
 async function scanReadSide(img, onStep) {
   const jobs = [], res = { text: '', alts: [], ans: [], ring: null, look: {}, label: null, unsure: new Set() };
@@ -3854,6 +3950,12 @@ async function scanReadSide(img, onStep) {
   // ringens färg: det som skiljer sig mest från mittcirkeln längs ringen
   { const cols = []; for (let a = 0; a < 360; a += 2) for (const r of [16.0, 16.2, 16.4]) { const p = px(55 + Math.sin(a * Math.PI / 180) * r, 55 - Math.cos(a * Math.PI / 180) * r); if (scanDist(p, L.disc) > 0.2) cols.push(p); }
     res.ring = cols.length > 60 ? scanMedianColor(cols) : null; }
+  // frågeringens verkliga radie runt om (var 5:e grad) – den maskas bort ur alternativen
+  const ringR = Array.from({ length: 72 }, (_, k) => {
+    const a = k * 5 * Math.PI / 180; let best = 16.2, bv = -1;
+    for (let r = 15; r <= 17.8; r += 0.1) { const p = px(55 + Math.sin(a) * r, 55 - Math.cos(a) * r), v = scanDist(p, L.disc || [250, 250, 245]); if (v > bv) { bv = v; best = r; } }
+    return best;
+  });
   // frågan
   const q = scanCrop(img, 55 - 15, 55 - 15, 30, 30, (x, y) => (x - 55) ** 2 + (y - 55) ** 2 < 14.9 ** 2);
   if (q.dark > 0.004) jobs.push({ key: 'q', canvas: scanForOcr(q) });
@@ -3868,14 +3970,14 @@ async function scanReadSide(img, onStep) {
     }
     if (cols.length > 15) L.line = scanMedianColor(cols); }
   for (let i = 0; i < 10; i++) {
-    const cr = scanAltCrop(img, i, exts[i], L.text);
+    const cr = scanAltCrop(img, i, exts, L.text, ringR);
     const [ix, iy] = scanPt(i, 24), ic = scanFar(img, ix, iy, 0, 5.2, L.disc || cr.bg, 0.22);
     if (ic.frac > 0.55) {                      // bild som alternativ
       const c = document.createElement('canvas'); c.width = c.height = 220;
       const R = 6.8, src = document.createElement('canvas'); src.width = src.height = SCAN_W; src.getContext('2d').putImageData(img, 0, 0);
       c.getContext('2d').drawImage(src, (ix - R) * SC, (iy - R) * SC, 2 * R * SC, 2 * R * SC, 0, 0, 220, 220);
       res.alts[i] = { img: c.toDataURL('image/jpeg', 0.88) }; res.unsure.add('a' + i);
-    } else if (cr.dark > 0.0015) jobs.push({ key: 'a' + i, canvas: scanForOcr(cr) });
+    } else if (cr.dark > 0.0015) jobs.push({ key: 'a' + i, canvas: scanForOcr(cr), cr });
   }
   // facit: jämför med bakgrunden precis runt markeringen
   const marks = { ja: [], nej: [] };
@@ -3901,7 +4003,7 @@ async function scanReadSide(img, onStep) {
       }
       res.ans[i] = { color: scanHex(scanMedianColor(scanFar(img, cx, cy, 0, 4, local).cols) || col) }; continue;
     }
-    const cr = scanCrop(img, cx - 8, cy - 8, 16, 16, (x, y) => (x - cx) ** 2 + (y - cy) ** 2 < 7.9 ** 2 && !(Math.hypot(x - 55, y - 55) < 39.3 && Math.abs((x - 55) * ext.px + (y - 55) * ext.py - ext.off(Math.hypot(x - 55, y - 55))) < 0.8), L.text, true);
+    const cr = scanCrop(img, cx - 9.6, cy - 9.6, 19.2, 19.2, (x, y) => (x - cx) ** 2 + (y - cy) ** 2 < 9.5 ** 2 && scanInCard(x, y) && !(x > G.TAB_X - 0.5 && y < G.TAB_H + 0.5) && !(Math.hypot(x - 55, y - 55) < 38.3 && Math.abs((x - 55) * ext.px + (y - 55) * ext.py - ext.off(Math.hypot(x - 55, y - 55))) < 0.5), L.text, true);
     if (cr.dark > 0.0012) jobs.push({ key: 'f' + i, canvas: scanForOcr(cr) });
   }
   if (marks.ja.length) L.check = scanMedianColor(marks.ja);
@@ -3914,7 +4016,7 @@ async function scanReadSide(img, onStep) {
   await Promise.all(jobs.map(async jb => {
     const r = await SCAN.sched.addJob('recognize', jb.canvas);
     if (jb.key === 'tab') { res.label = scanLabelFrom(r.data, jb.raw, L); if (onStep) onStep(++done, jobs.length); return; }
-    const t = scanOcrText(r.data);
+    const t = scanOcrText(jb.key[0] === 'a' ? scanAltWords(r.data, jb.cr) : r.data);
     // osäkert: inget lästes fast det finns text, eller låg säkerhet
     if (!t || (r.data.confidence || 0) < 72) res.unsure.add(jb.key);
     if (jb.key === 'q') res.text = t;
@@ -4070,14 +4172,13 @@ function scanDraw() {
   const path = cardPath(0); ctx.beginPath();
   for (const c of path) { if (c[0] === 'M') ctx.moveTo(...M(c[1], c[2])); else if (c[0] === 'L') ctx.lineTo(...M(c[1], c[2])); else if (c[0] === 'C') { const a = M(c[1], c[2]), b = M(c[3], c[4]), e = M(c[5], c[6]); ctx.bezierCurveTo(a[0], a[1], b[0], b[1], e[0], e[1]); } else ctx.closePath(); }
   ctx.stroke();
-  // hörn
-  ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 1.5; ctx.beginPath();
-  it.corners.forEach((c, i) => { const [x, y] = P(c); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); ctx.stroke();
+  // handtagen sitter på kortets kant mitt på de runda hörnen – där man ser kortet
   const R = isMobile() ? 15 : 10;
-  it.corners.forEach((c, i) => {
-    const [x, y] = P(c);
-    ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,204,0,.35)'; ctx.fill(); ctx.strokeStyle = '#1d1c1a'; ctx.stroke();
-    ctx.fillStyle = '#1d1c1a'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(['↖', '↗', '↘', '↙'][i], x, y);
+  scanHandles(it).forEach(([x0, y0], i) => {
+    const [x, y] = P([x0, y0]);
+    ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI * 2); ctx.fillStyle = SCAN.drag && SCAN.drag.i === i ? 'rgba(255,204,0,.8)' : 'rgba(255,204,0,.4)'; ctx.fill();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = '#1d1c1a'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fillStyle = '#1d1c1a'; ctx.fill();
   });
   // etiketten markeras så att man ser vilket håll som är upp
   const [tx, ty] = M(96.5, 5); ctx.fillStyle = 'rgba(29,95,168,.9)'; ctx.font = 'bold 12px Arial'; ctx.fillText('etikett', tx, ty);
@@ -4085,40 +4186,50 @@ function scanDraw() {
 }
 // Förstoringsglas när man drar ett hörn: visar exakt var hörnet hamnar (fingret skymmer annars)
 function scanLoupe(ctx, it, v, i) {
-  const c = it.corners[i], [px, py] = [v.ox + c[0] * v.s, v.oy + c[1] * v.s];
-  const R = Math.min(70, v.W / 5), zoom = 4, src = it.src.canvas;
-  const lx = px < v.W / 2 ? v.W - R - 10 : R + 10, ly = R + 10;     // på andra sidan om fingret
+  const h = scanHandles(it)[i], src = it.src.canvas;
+  const R = Math.min(80, v.W / 4.5), zoom = 3.5, k = v.s * zoom;
+  const px = v.ox + h[0] * v.s, lx = px < v.W / 2 ? v.W - R - 10 : R + 10, ly = R + 10;     // på andra sidan om fingret
   ctx.save();
-  ctx.beginPath(); ctx.arc(lx, ly, R, 0, Math.PI * 2); ctx.closePath();
-  ctx.fillStyle = '#222'; ctx.fill(); ctx.clip();
-  const k = v.s * zoom;                                               // bildpixel → loupe-pixel
-  ctx.drawImage(src, 0, 0, src.width, src.height, lx - c[0] * k, ly - c[1] * k, src.width * k, src.height * k);
-  // kanterna som möts i hörnet
-  ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 2;
-  const P = q => [lx + (q[0] - c[0]) * k, ly + (q[1] - c[1]) * k];
-  ctx.beginPath(); ctx.moveTo(...P(it.corners[(i + 3) % 4])); ctx.lineTo(lx, ly); ctx.lineTo(...P(it.corners[(i + 1) % 4])); ctx.stroke();
-  ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(lx - 10, ly); ctx.lineTo(lx + 10, ly); ctx.moveTo(lx, ly - 10); ctx.lineTo(lx, ly + 10); ctx.stroke();
+  ctx.beginPath(); ctx.arc(lx, ly, R, 0, Math.PI * 2); ctx.closePath(); ctx.fillStyle = '#222'; ctx.fill(); ctx.clip();
+  ctx.drawImage(src, 0, 0, src.width, src.height, lx - h[0] * k, ly - h[1] * k, src.width * k, src.height * k);
+  // kortets runda kontur så som den ligger nu – ska följa kortets kant i fotot
+  const Hm = scanHomography(SCAN_MM_CORNERS, it.corners), L = (x, y) => { const [a, b] = scanApply(Hm, x, y); return [lx + (a - h[0]) * k, ly + (b - h[1]) * k]; };
+  ctx.beginPath();
+  for (const c of cardPath(0)) {
+    if (c[0] === 'M') ctx.moveTo(...L(c[1], c[2])); else if (c[0] === 'L') ctx.lineTo(...L(c[1], c[2]));
+    else if (c[0] === 'C') { const a = L(c[1], c[2]), b = L(c[3], c[4]), e = L(c[5], c[6]); ctx.bezierCurveTo(a[0], a[1], b[0], b[1], e[0], e[1]); } else ctx.closePath();
+  }
+  ctx.lineWidth = 2; ctx.strokeStyle = '#ffcc00'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(lx, ly, 3, 0, Math.PI * 2); ctx.fillStyle = '#ffcc00'; ctx.fill();
   ctx.restore();
   ctx.beginPath(); ctx.arc(lx, ly, R, 0, Math.PI * 2); ctx.lineWidth = 3; ctx.strokeStyle = '#ffcc00'; ctx.stroke();
 }
+// Handtagens lägen (mm): mitt på varje rundat hörn, i ordningen ↖ ↗ ↘ ↙
+const SCAN_HANDLE_MM = (() => { const R = G.R_BIG, r = G.R_SMALL, c = Math.SQRT1_2; return [[R - R * c, R - R * c], [110 - r + r * c, r - r * c], [110 - r + r * c, 110 - r + r * c], [R - R * c, 110 - R + R * c]]; })();
+function scanHandles(it) { const Hm = scanHomography(SCAN_MM_CORNERS, it.corners); return SCAN_HANDLE_MM.map(([x, y]) => scanApply(Hm, x, y)); }
+function scanSetHandles(it, hs) { const Hm = scanHomography(SCAN_HANDLE_MM, hs); it.corners = SCAN_MM_CORNERS.map(([x, y]) => scanApply(Hm, x, y)); }
 function scanSelect(k) { SCAN.sel = k; SCAN.view = null; scanRenderList(); scanFit(); scanDraw(); const ok = !!SCAN.items[k]; ['#scanAuto', '#scanRot', '#scanDup', '#scanDel'].forEach(s => { $(s).disabled = !ok; }); }
 function scanMakeItem(name, src, disc) {
   const t = document.createElement('canvas'), k = 90 / Math.max(src.canvas.width, src.canvas.height); t.width = Math.round(src.canvas.width * k); t.height = Math.round(src.canvas.height * k);
   t.getContext('2d').drawImage(src.canvas, 0, 0, t.width, t.height);
   const it = { id: uid(), name, src, thumb: t.toDataURL('image/jpeg', 0.7), corners: null, result: null };
-  it.corners = disc ? scanDetect(it, disc) : scanAutoCorners(it);
+  if (disc && disc.corners) { it.corners = disc.corners; it.conf = disc.conf; it.spokes = disc.spokes; }
+  else it.corners = disc ? scanDetect(it, disc) : scanAutoCorners(it);
   return it;
 }
 // En bild (eller PDF-sida) kan innehålla flera kort, t.ex. en skanner- eller Drive-skanning. Ett objekt per kort.
 function scanItemsFrom(name, src) {
-  const probe = { src }, discs = scanFindDiscs(probe), out = [];
-  for (const d of discs) {
-    const it = scanMakeItem(name, src, d);
-    if (!(it.conf > 0.1)) continue;                                  // inget riktigt kort runt den cirkeln
-    if (out.some(o => Math.hypot(o.corners[0][0] - it.corners[0][0], o.corners[0][1] - it.corners[0][1]) < 20)) continue;
-    out.push(it);
+  const probe = { src }, found = [];
+  for (const c of scanFindCircles(probe).slice(0, 12)) {
+    const r = scanDetectFrom(probe, c);
+    if (!(r.conf > 0.1 && r.spokes > 0.045)) continue;               // inget riktigt kort runt den cirkeln (kanter + ekrar)
+    const H = scanHomography(SCAN_MM_CORNERS, r.corners), ctr = scanApply(H, 55, 55), size = Math.hypot(r.corners[0][0] - r.corners[2][0], r.corners[0][1] - r.corners[2][1]);
+    const same = found.find(f => Math.hypot(f.ctr[0] - ctr[0], f.ctr[1] - ctr[1]) < size * 0.25);
+    if (same) { if (r.score > same.score) Object.assign(same, r, { ctr }); continue; }
+    found.push(Object.assign(r, { ctr }));
   }
+  found.sort((a, b) => Math.abs(a.ctr[1] - b.ctr[1]) > 200 ? a.ctr[1] - b.ctr[1] : a.ctr[0] - b.ctr[0]);
+  const out = found.map(r => scanMakeItem(name, src, r));
   if (!out.length) { const it = scanMakeItem(name, src); it.noCard = true; out.push(it); }
   if (out.length > 1) out.forEach((it, i) => { it.name = `${name} · kort ${i + 1}`; });
   for (const it of out) {
@@ -4126,7 +4237,7 @@ function scanItemsFrom(name, src) {
       const img = scanWarp(it), c = document.createElement('canvas'); c.width = c.height = SCAN_W; c.getContext('2d').putImageData(img, 0, 0);
       if (!it.noCard) { const t = document.createElement('canvas'); t.width = t.height = 160; t.getContext('2d').drawImage(c, 0, 0, 160, 160); it.thumb = t.toDataURL('image/jpeg', 0.75); }
       it.quality = scanQuality(it, img);
-      if (it.noCard) it.quality.warn.unshift('Inget kort hittades – dra hörnen till kortet eller ta bort bilden');
+      if (it.noCard) it.quality.warn = ['Inget kort hittades – dra handtagen till kortet eller ta bort bilden'];
     } catch (e) { /* ingen kontroll */ }
   }
   return out;
@@ -4143,7 +4254,7 @@ async function scanAddFiles(files) {
     } catch (e) { scanStatus(`${f.name} kunde inte läsas${/pdf$/i.test(f.name) ? ' (PDF-läsaren kräver internet första gången)' : ' som bild'}.`); await new Promise(r => setTimeout(r, 1500)); }
   }
   scanSelect(SCAN.items.length ? (SCAN.sel >= 0 ? SCAN.sel : 0) : -1);
-  scanStatus(SCAN.items.length ? `${SCAN.items.length} ${SCAN.items.length === 1 ? 'bild' : 'bilder'}. Kontrollera att hörnen sitter rätt och tryck sedan på en av knapparna nedan.` : '');
+  scanStatus(SCAN.items.length ? `${SCAN.items.length} ${SCAN.items.length === 1 ? 'bild' : 'bilder'}. Kontrollera att ramen sitter rätt och tryck sedan på en av knapparna nedan.` : '');
 }
 async function scanReadAll() {
   const todo = SCAN.items.filter(it => !it.result && !it.noCard);
@@ -4254,20 +4365,21 @@ function bindScan() {
     const it = SCAN.items[SCAN.sel]; if (!it || !SCAN.view) return;
     const [x, y] = toImg(e), v = SCAN.view;
     // närmaste hörn – man behöver inte träffa det exakt. Mitt i kortet flyttas hela ramen.
+    const hs = scanHandles(it);
     let best = 0, bd = Infinity;
-    it.corners.forEach((c, i) => { const d = Math.hypot(c[0] - x, c[1] - y); if (d < bd) { bd = d; best = i; } });
+    hs.forEach((c, i) => { const d = Math.hypot(c[0] - x, c[1] - y); if (d < bd) { bd = d; best = i; } });
     const cx = it.corners.reduce((a, c) => a + c[0], 0) / 4, cy = it.corners.reduce((a, c) => a + c[1], 0) / 4;
     const diag = Math.hypot(it.corners[0][0] - it.corners[2][0], it.corners[0][1] - it.corners[2][1]);
     e.preventDefault(); cv.setPointerCapture(e.pointerId);
     if (Math.hypot(x - cx, y - cy) < diag * 0.22 && bd > diag * 0.3) SCAN.drag = { i: -1, x, y, start: it.corners.map(c => c.slice()) };
-    else SCAN.drag = { i: best, dx: it.corners[best][0] - x, dy: it.corners[best][1] - y };
+    else SCAN.drag = { i: best, dx: hs[best][0] - x, dy: hs[best][1] - y, hs };
     scanDraw();
   });
   cv.addEventListener('pointermove', e => {
     const d = SCAN.drag, it = SCAN.items[SCAN.sel]; if (!d || !it) return;
     const [x, y] = toImg(e);
     if (d.i < 0) it.corners = d.start.map(c => [c[0] + x - d.x, c[1] + y - d.y]);
-    else it.corners[d.i] = [x + d.dx, y + d.dy];
+    else { d.hs[d.i] = [x + d.dx, y + d.dy]; scanSetHandles(it, d.hs); }
     it.result = null; scanDraw();
   });
   const up = () => { if (SCAN.drag) { SCAN.drag = null; scanDraw(); const it = SCAN.items[SCAN.sel]; if (it) { it.conf = 1; if (it.noCard) { it.noCard = false; } try { it.quality = scanQuality(it); } catch (e) { /* – */ } it.viewCard = null; } scanRenderList(); } };
@@ -4716,8 +4828,9 @@ async function camOpen() {
   $('#camReview').hidden = true;
   camUpdateStack();
   camHint();
-  clearInterval(CAM.timer);
-  CAM.timer = setInterval(camTick, 220);
+  clearTimeout(CAM.timer);
+  const loop = () => { if (!CAM.stream) return; const t0 = performance.now(); try { camTick(); } catch (e) { /* nästa ruta */ } CAM.timer = setTimeout(loop, Math.max(120, 260 - (performance.now() - t0))); };
+  CAM.timer = setTimeout(loop, 300);
 }
 // Ficklampan: finns bara på telefoner/webbläsare som stöder den (t.ex. Chrome på Android)
 function camTrack() { return CAM.stream && CAM.stream.getVideoTracks()[0]; }
@@ -4735,7 +4848,7 @@ async function camTorchToggle() {
   $('#camTorch').setAttribute('aria-pressed', String(CAM.torch));
 }
 function camClose() {
-  clearInterval(CAM.timer); CAM.timer = 0;
+  clearTimeout(CAM.timer); CAM.timer = 0;
   CAM.torch = false;
   if (CAM.stream) CAM.stream.getTracks().forEach(t => t.stop());
   CAM.stream = null;
@@ -4782,9 +4895,9 @@ function camPlausible(c, W, H) {
 }
 function camTick() {
   if (CAM.busy || $('#scanCamUI').hidden || !$('#camReview').hidden || !$('#camView').hidden) return;
-  const fr = camGrab(960); if (!fr) return;
-  const item = { src: fr }, corners = scanDetect(item), W = fr.data.width, H = fr.data.height;
-  const ok = scanFindDisc(item) && item.conf > 0.22 && camPlausible(corners, W, H);
+  const fr = camGrab(720); if (!fr) return;
+  const item = { src: fr }, corners = scanDetect(item, null, true), W = fr.data.width, H = fr.data.height;
+  const ok = item.conf > 0.18 && item.spokes > 0.045 && camPlausible(corners, W, H);
   if (!ok) { CAM.last = null; CAM.stable = 0; CAM.armed = true; camDraw(null); camHint(false); $('#camShutter').classList.remove('ready'); return; }
   // stilla? jämför med förra rutan
   const size = Math.hypot(corners[0][0] - corners[2][0], corners[0][1] - corners[2][1]);
