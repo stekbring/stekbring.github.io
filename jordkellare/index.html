@@ -450,14 +450,14 @@ dialog.bred{width:min(560px,96vw)}
     <div class="form2">
       <label for="calR25">NTC-sonden</label>
       <div class="row" style="margin:0">
-        <select id="calR25Sel"><option value="10000">10 kΩ</option><option value="50000">50 kΩ</option><option value="other">annan…</option></select>
+        <select id="calR25Sel"><option value="10000">10 kΩ</option><option value="50000">50 kΩ</option><option value="100000">100 kΩ</option><option value="other">annan…</option></select>
         <input type="number" id="calR25" step="100" min="100" hidden aria-label="Resistans vid 25 °C i ohm">
       </div>
       <label for="calB">B-värde</label>
       <div class="row" style="margin:0"><input type="number" id="calB" step="1" min="2000" max="6000"><span class="help">3950 är vanligast</span></div>
       <label for="calSerieSel">Referensmotstånd</label>
       <div class="row" style="margin:0">
-        <select id="calSerieSel"><option value="55000">55 kΩ (4 × 220 kΩ)</option><option value="55900">55,9 kΩ (kretskortet med R4)</option><option value="110000">110 kΩ (2 × 220 kΩ)</option><option value="220000">220 kΩ</option><option value="other">annat…</option></select>
+        <select id="calSerieSel"><option value="68000">68 kΩ (kort v1.2, D3 · 10 kΩ-sond)</option><option value="330000">330 kΩ (kort v1.2, D6 · 50 kΩ-sond)</option><option value="680000">680 kΩ (kort v1.2, D10 · 100 kΩ-sond)</option><option value="55000">55 kΩ (4 × 220 kΩ)</option><option value="55900">55,9 kΩ (kretskortet med R4)</option><option value="110000">110 kΩ (2 × 220 kΩ)</option><option value="220000">220 kΩ</option><option value="other">annat…</option></select>
         <input type="number" id="calSerie" step="100" min="1000" hidden aria-label="Referensmotstånd i ohm">
       </div>
       <label for="calTu">Korrigering ute</label>
@@ -1920,7 +1920,8 @@ async function save(obj, msgEl, okText) {
     await D.update('installningar', { ...obj, andrad: D.ts() });
     msg(msgEl, 'ok', okText + (liveActive() ? '' : ` Tas emot ${nextUpText()}.`));
     renderSettings(); renderCal();
-  } catch (e) { msg(msgEl, 'bad', `Kunde inte spara (${e.code || e.message}).`); }
+    return true;
+  } catch (e) { msg(msgEl, 'bad', `Kunde inte spara (${e.code || e.message}).`); return false; }
 }
 $('btnSaveSet').addEventListener('click', async () => {
   const sc = formSchema();
@@ -1964,8 +1965,13 @@ function renderCal() {
     let g = '';
     if (ref != null && num(d.ntcT10) && num(d.ntcT50)) { const a = Math.abs(d.ntcT10 - ref), b = Math.abs(d.ntcT50 - ref); if (Math.abs(a - b) > 3) g = ` Troligen en <b>${a < b ? '10' : '50'} kΩ-sond</b>.`; }
     $('ntcHint').innerHTML = `Sonden: ${Math.round(d.ntcOhm).toLocaleString('sv')} Ω = ${dec(d.ntcT10)} °C (10 kΩ) eller ${dec(d.ntcT50)} °C (50 kΩ).${g}` +
-      (cfg('ntcR25') >= 40000 && cfg('ntcSerie') < 100000 ? ' 50 kΩ-sond: använd 220 kΩ som referens.' : '');
+      (d.ntcPinne ? ` Mäts via ${esc(d.ntcPinne)}.` : '') + refRad();
   } else $('ntcHint').textContent = '';
+}
+// Kretskort v1.2: vilken referens passar sonden?
+function refRad() {
+  const r25 = cfg('ntcR25'), bra = r25 >= 75000 ? 680000 : r25 >= 30000 ? 330000 : 68000;
+  return Math.abs(cfg('ntcSerie') - bra) > bra * 0.1 ? ` Kort v1.2: välj <b>${bra / 1000} kΩ</b> som referens för en ${Math.round(r25 / 1000)} kΩ-sond.` : '';
 }
 for (const id of ['calR25', 'calB', 'calSerie', 'calTu', 'calTi', 'calRh', 'calBat', 'calKap', 'calLadd']) $(id).addEventListener('input', () => { calDirty = true; });
 $('calR25Sel').addEventListener('change', () => { calDirty = true; const o = $('calR25Sel').value === 'other'; $('calR25').hidden = !o; if (!o) $('calR25').value = $('calR25Sel').value; });
@@ -1995,9 +2001,39 @@ $('btnSaveCal').addEventListener('click', async () => {
     ntcB: n('calB'), ntcOffset: n('calTu'), tiOffset: n('calTi'), rhOffset: n('calRh'), batFaktor: n('calBat'), batKapMah: Math.round(n('calKap')), laddMa: Math.round(n('calLadd')) };
   const lim = { ntcR25: [100, 2e6], ntcB: [2000, 6000], ntcSerie: [1000, 3e6], ntcOffset: [-20, 20], tiOffset: [-20, 20], rhOffset: [-30, 30], batFaktor: [1.5, 2.5], batKapMah: [200, 20000], laddMa: [20, 2000] };
   for (const [k, [a, b]] of Object.entries(lim)) if (!num(obj[k]) || obj[k] < a || obj[k] > b) return msg($('calMsg'), 'bad', `Orimligt värde för ${k} (tillåtet ${a}–${b}).`);
+  const andr = kalAndringar(obj);
   calDirty = false;
-  await save(obj, $('calMsg'), 'Kalibreringen sparad.');
+  if (await save(obj, $('calMsg'), 'Kalibreringen sparad.') && andr.length) {
+    // Händelse i loggen, så att ändringen syns i händelselistan och i CSV-exporten
+    const text = `Kalibreringen ändrad av ${myName()}: ` + andr.map(a => a.text).join(', ') + '. Gäller från nästa uppladdning.';
+    try { await D.push('logg', { at: D.ts(), text, niva: 'info', typ: 'kalibrering', av: myName(),
+      andringar: Object.fromEntries(andr.map(a => [a.k, { fran: a.fran ?? null, till: a.till }])) }); }
+    catch (e) { msg($('calMsg'), 'bad', `Sparad, men händelsen kunde inte loggas (${e.code || e.message}).`); }
+  }
 });
+// Vad som ändrats jämfört med det som gäller nu: [{ k, fran, till, text }]
+const KAL_TXT = {
+  ntcR25: ['utomhussonden', v => `${dec(v / 1000, v % 1000 ? 1 : 0)} kΩ`],
+  ntcSerie: ['referensmotståndet', v => `${dec(v / 1000, v % 1000 ? 1 : 0)} kΩ`],
+  ntcB: ['B-värdet', v => String(Math.round(v))],
+  ntcOffset: ['korrigering ute', v => `${v > 0 ? '+' : ''}${dec(v, 2)} °C`, 2],
+  tiOffset: ['korrigering jordkällaren', v => `${v > 0 ? '+' : ''}${dec(v, 2)} °C`, 2],
+  rhOffset: ['korrigering fukt', v => `${v > 0 ? '+' : ''}${dec(v, 1)} %`, 1],
+  batFaktor: ['batterifaktorn', v => dec(v, 4)],
+  batKapMah: ['batterikapaciteten', v => `${Math.round(v)} mAh`],
+  laddMa: ['laddströmmen', v => `${Math.round(v)} mA`],
+};
+function kalAndringar(obj) {
+  const ut = [];
+  for (const [k, [namn, f, d]] of Object.entries(KAL_TXT)) {
+    const till = obj[k], fran = cfg(k);
+    if (!num(till) || (num(fran) && Math.abs(till - fran) < 1e-6)) continue;
+    let text = `${namn} ${num(fran) ? f(fran) : '–'} → ${f(till)}`;
+    if (d != null && num(fran)) { const df = till - fran; text += ` (${df > 0 ? '+' : ''}${dec(df, d)})`; }
+    ut.push({ k, fran: num(fran) ? fran : null, till, text });
+  }
+  return ut;
+}
 
 /* =====================================================================
    Uppdatera sensorn via WiFi (OTA)
@@ -2176,7 +2212,7 @@ function renderDiag() {
     ['Vaken tid', `${num(d.vakenMsMatning) && d.vakenMsMatning ? `mätning ${dec(d.vakenMsMatning / 1000, 2)} s · ` : ''}${num(d.vakenMsUpp) && d.vakenMsUpp ? `förra uppladdningen ${dec(d.vakenMsUpp / 1000, 1)} s · ` : ''}${num(d.vakenMsNu) ? `den här ${dec(d.vakenMsNu / 1000, 1)} s fram till sändningen` : ''}`],
     ['Uppladdningar', `${num(d.uppladdningar) ? `${d.uppladdningar} sedan start · ` : ''}${num(d.buffrade) ? `${d.buffrade} mätningar i den senaste (plats för ${d.bufMax || '?'}) · ` : ''}${d.missade ? `${d.missade} misslyckades innan${d.sistaFel ? `: ${esc(d.sistaFel)}` : ''}` : 'alla gick fram'}`],
     ['SHT40', `${esc(d.sht || '–')}${d.shtSerie ? ` · serienr ${esc(d.shtSerie)}` : ''} · pullup ${d.pullup === 'extern' ? 'på kabeln (extern)' : 'ESP32:ans interna'}${num(d.shtRaT) ? ` · rått ${dec(d.shtRaT, 2)} °C, ${dec(d.shtRaRh, 1)} %` : ''}`],
-    ['Utomhussonden', `${esc(d.ntc || '–')}${num(d.ntcOhm) ? ` · ${Math.round(d.ntcOhm).toLocaleString('sv')} Ω` : ''} · ${d.ntcMv ?? '–'} mV på A1`],
+    ['Utomhussonden', `${esc(d.ntc || '–')}${num(d.ntcOhm) ? ` · ${Math.round(d.ntcOhm).toLocaleString('sv')} Ω` : ''} · ${d.ntcMv ?? '–'} mV på A1${d.ntcPinne ? ` · referens på ${esc(d.ntcPinne)}` : ''}`],
     ['Batteri', `${num(latest?.bv) ? dec(latest.bv, 3) + ' V' : '–'} · ${d.batMv ?? '–'} mV på A0 · faktor ${dec(d.kal?.batFaktor, 4)} · laddaren ${d.usb ? 'ansluten' : 'inte ansluten'}`],
     ['I lådan', num(d.chip) ? `${dec(d.chip)} °C (chippets temperatur)` : '–'],
     ['Värmaren', `${d.varmeAuto ? 'automatisk' : 'av'} · körts ${d.varmeAntal || 0} gånger${d.varmeAt ? `, senast ${when(d.varmeAt)}` : ''}`],
