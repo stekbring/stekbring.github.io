@@ -1,0 +1,21 @@
+{
+ "format": "egna10-palett",
+ "version": 1,
+ "name": "Godis",
+ "description": "Pastell i rosa, lila och mint.",
+ "style": {
+  "bg": "#f7c6d9",
+  "disc": "#fffafc",
+  "tab": "#b39ddb",
+  "tabDark": "#2d1a3a",
+  "tabLight": "#ffffff",
+  "text": "#3a2340",
+  "line": "#a0679f",
+  "check": "#43a047",
+  "cross": "#e53935"
+ },
+ "rings": {
+  "sant": "#ec407a",
+  "ovrigt": "#7e57c2"
+ }
+}

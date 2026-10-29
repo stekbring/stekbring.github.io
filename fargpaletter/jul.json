@@ -1,0 +1,21 @@
+{
+ "format": "egna10-palett",
+ "version": 1,
+ "name": "Jul",
+ "description": "Julrött och granris på ljus botten.",
+ "style": {
+  "bg": "#f3e3c8",
+  "disc": "#fffaf2",
+  "tab": "#b3262d",
+  "tabDark": "#fff3d6",
+  "tabLight": "#ffffff",
+  "text": "#3a1c14",
+  "line": "#9b2a2a",
+  "check": "#1f7a3a",
+  "cross": "#b3262d"
+ },
+ "rings": {
+  "sant": "#b3262d",
+  "ovrigt": "#1f5a3a"
+ }
+}

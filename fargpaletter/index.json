@@ -1,0 +1,206 @@
+{
+ "format": "egna10-paletter",
+ "version": 1,
+ "palettes": [
+  {
+   "file": "astrid-lindgren.json",
+   "name": "Astrid Lindgren",
+   "description": "Varmt och glatt som Villa Villekulla – rött, grönt och solgult på papper i sagobokston.",
+   "style": {
+    "bg": "#ecd9a8",
+    "disc": "#fffaf0",
+    "tab": "#c0392b",
+    "tabDark": "#fff3d6",
+    "tabLight": "#ffffff",
+    "text": "#2b1a12",
+    "line": "#7a4a2a",
+    "check": "#3f8f3a",
+    "cross": "#c0392b"
+   },
+   "rings": {
+    "sant": "#c0392b",
+    "ovrigt": "#2e6da4"
+   }
+  },
+  {
+   "file": "sagan-om-ringen.json",
+   "name": "Sagan om ringen",
+   "description": "Pergament, mörkt läder och guld – som en gammal karta över Midgård.",
+   "style": {
+    "bg": "#d6c29a",
+    "disc": "#f4ead2",
+    "tab": "#3d2b1f",
+    "tabDark": "#c9a24a",
+    "tabLight": "#f4ead2",
+    "text": "#2a1d12",
+    "line": "#6b4f2a",
+    "check": "#4f6b2e",
+    "cross": "#8b1e1e"
+   },
+   "rings": {
+    "sant": "#9a7420",
+    "ovrigt": "#3c5a3a"
+   }
+  },
+  {
+   "file": "jul.json",
+   "name": "Jul",
+   "description": "Julrött och granris på ljus botten.",
+   "style": {
+    "bg": "#f3e3c8",
+    "disc": "#fffaf2",
+    "tab": "#b3262d",
+    "tabDark": "#fff3d6",
+    "tabLight": "#ffffff",
+    "text": "#3a1c14",
+    "line": "#9b2a2a",
+    "check": "#1f7a3a",
+    "cross": "#b3262d"
+   },
+   "rings": {
+    "sant": "#b3262d",
+    "ovrigt": "#1f5a3a"
+   }
+  },
+  {
+   "file": "midsommar.json",
+   "name": "Midsommar",
+   "description": "Ängsgrönt, blågult och rosa blommor.",
+   "style": {
+    "bg": "#c1e0a5",
+    "disc": "#fffde8",
+    "tab": "#f2c94c",
+    "tabDark": "#2e4a1f",
+    "tabLight": "#ffffff",
+    "text": "#253318",
+    "line": "#4c6b2f",
+    "check": "#3d8b37",
+    "cross": "#d9534f"
+   },
+   "rings": {
+    "sant": "#e07aa8",
+    "ovrigt": "#3b7dd8"
+   }
+  },
+  {
+   "file": "havet.json",
+   "name": "Havet",
+   "description": "Havsblått och skum – lugnt och friskt.",
+   "style": {
+    "bg": "#a9d3e8",
+    "disc": "#f5fbff",
+    "tab": "#1f4e79",
+    "tabDark": "#bfe3f5",
+    "tabLight": "#ffffff",
+    "text": "#0f2a3d",
+    "line": "#2f5f80",
+    "check": "#2e8b57",
+    "cross": "#d64541"
+   },
+   "rings": {
+    "sant": "#e07a2e",
+    "ovrigt": "#1f4e79"
+   }
+  },
+  {
+   "file": "skogen.json",
+   "name": "Skogen",
+   "description": "Mossa, bark och lingon.",
+   "style": {
+    "bg": "#b7c49a",
+    "disc": "#f8f6ec",
+    "tab": "#4a3b2a",
+    "tabDark": "#d8e6b0",
+    "tabLight": "#ffffff",
+    "text": "#24291a",
+    "line": "#5a5038",
+    "check": "#3f7a2e",
+    "cross": "#b0302c"
+   },
+   "rings": {
+    "sant": "#a0302c",
+    "ovrigt": "#3f6a3a"
+   }
+  },
+  {
+   "file": "natt.json",
+   "name": "Natt",
+   "description": "Mörka kort med ljus text – stjärnhimmel och guld.",
+   "style": {
+    "bg": "#1f2430",
+    "disc": "#2d3444",
+    "tab": "#f4b63f",
+    "tabDark": "#1b1405",
+    "tabLight": "#ffffff",
+    "text": "#f2efe6",
+    "line": "#8d97a8",
+    "check": "#4caf50",
+    "cross": "#ef5350"
+   },
+   "rings": {
+    "sant": "#f4b63f",
+    "ovrigt": "#6d9eeb"
+   }
+  },
+  {
+   "file": "80-talet.json",
+   "name": "80-talet",
+   "description": "Neon på lila – kassettband och arkadhallar.",
+   "style": {
+    "bg": "#2b1055",
+    "disc": "#3d1a73",
+    "tab": "#ff2e88",
+    "tabDark": "#2b1055",
+    "tabLight": "#ffffff",
+    "text": "#ffffff",
+    "line": "#00e5ff",
+    "check": "#00e676",
+    "cross": "#ff1744"
+   },
+   "rings": {
+    "sant": "#ff2e88",
+    "ovrigt": "#00e5ff"
+   }
+  },
+  {
+   "file": "godis.json",
+   "name": "Godis",
+   "description": "Pastell i rosa, lila och mint.",
+   "style": {
+    "bg": "#f7c6d9",
+    "disc": "#fffafc",
+    "tab": "#b39ddb",
+    "tabDark": "#2d1a3a",
+    "tabLight": "#ffffff",
+    "text": "#3a2340",
+    "line": "#a0679f",
+    "check": "#43a047",
+    "cross": "#e53935"
+   },
+   "rings": {
+    "sant": "#ec407a",
+    "ovrigt": "#7e57c2"
+   }
+  },
+  {
+   "file": "klassisk-gra.json",
+   "name": "Klassisk grå",
+   "description": "Neutralt grått och svart – lugnt och tidlöst.",
+   "style": {
+    "bg": "#d4d4d0",
+    "disc": "#fbfbf8",
+    "tab": "#3a3a38",
+    "tabDark": "#d4d4d0",
+    "tabLight": "#ffffff",
+    "text": "#1f1f1d",
+    "line": "#4a4a47",
+    "check": "#3d8b37",
+    "cross": "#c0392b"
+   },
+   "rings": {
+    "sant": "#55554f",
+    "ovrigt": "#2b5d9c"
+   }
+  }
+ ]
+}

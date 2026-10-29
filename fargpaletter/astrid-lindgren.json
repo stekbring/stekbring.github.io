@@ -1,0 +1,21 @@
+{
+ "format": "egna10-palett",
+ "version": 1,
+ "name": "Astrid Lindgren",
+ "description": "Varmt och glatt som Villa Villekulla – rött, grönt och solgult på papper i sagobokston.",
+ "style": {
+  "bg": "#ecd9a8",
+  "disc": "#fffaf0",
+  "tab": "#c0392b",
+  "tabDark": "#fff3d6",
+  "tabLight": "#ffffff",
+  "text": "#2b1a12",
+  "line": "#7a4a2a",
+  "check": "#3f8f3a",
+  "cross": "#c0392b"
+ },
+ "rings": {
+  "sant": "#c0392b",
+  "ovrigt": "#2e6da4"
+ }
+}

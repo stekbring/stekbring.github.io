@@ -1,0 +1,21 @@
+{
+ "format": "egna10-palett",
+ "version": 1,
+ "name": "Natt",
+ "description": "Mörka kort med ljus text – stjärnhimmel och guld.",
+ "style": {
+  "bg": "#1f2430",
+  "disc": "#2d3444",
+  "tab": "#f4b63f",
+  "tabDark": "#1b1405",
+  "tabLight": "#ffffff",
+  "text": "#f2efe6",
+  "line": "#8d97a8",
+  "check": "#4caf50",
+  "cross": "#ef5350"
+ },
+ "rings": {
+  "sant": "#f4b63f",
+  "ovrigt": "#6d9eeb"
+ }
+}

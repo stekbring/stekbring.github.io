@@ -1,0 +1,21 @@
+{
+ "format": "egna10-palett",
+ "version": 1,
+ "name": "Midsommar",
+ "description": "Ängsgrönt, blågult och rosa blommor.",
+ "style": {
+  "bg": "#c1e0a5",
+  "disc": "#fffde8",
+  "tab": "#f2c94c",
+  "tabDark": "#2e4a1f",
+  "tabLight": "#ffffff",
+  "text": "#253318",
+  "line": "#4c6b2f",
+  "check": "#3d8b37",
+  "cross": "#d9534f"
+ },
+ "rings": {
+  "sant": "#e07aa8",
+  "ovrigt": "#3b7dd8"
+ }
+}

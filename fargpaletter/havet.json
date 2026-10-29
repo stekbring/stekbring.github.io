@@ -1,0 +1,21 @@
+{
+ "format": "egna10-palett",
+ "version": 1,
+ "name": "Havet",
+ "description": "Havsblått och skum – lugnt och friskt.",
+ "style": {
+  "bg": "#a9d3e8",
+  "disc": "#f5fbff",
+  "tab": "#1f4e79",
+  "tabDark": "#bfe3f5",
+  "tabLight": "#ffffff",
+  "text": "#0f2a3d",
+  "line": "#2f5f80",
+  "check": "#2e8b57",
+  "cross": "#d64541"
+ },
+ "rings": {
+  "sant": "#e07a2e",
+  "ovrigt": "#1f4e79"
+ }
+}

@@ -1,0 +1,21 @@
+{
+ "format": "egna10-palett",
+ "version": 1,
+ "name": "Sagan om ringen",
+ "description": "Pergament, mörkt läder och guld – som en gammal karta över Midgård.",
+ "style": {
+  "bg": "#d6c29a",
+  "disc": "#f4ead2",
+  "tab": "#3d2b1f",
+  "tabDark": "#c9a24a",
+  "tabLight": "#f4ead2",
+  "text": "#2a1d12",
+  "line": "#6b4f2a",
+  "check": "#4f6b2e",
+  "cross": "#8b1e1e"
+ },
+ "rings": {
+  "sant": "#9a7420",
+  "ovrigt": "#3c5a3a"
+ }
+}

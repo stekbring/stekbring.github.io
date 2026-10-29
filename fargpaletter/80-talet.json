@@ -1,0 +1,21 @@
+{
+ "format": "egna10-palett",
+ "version": 1,
+ "name": "80-talet",
+ "description": "Neon på lila – kassettband och arkadhallar.",
+ "style": {
+  "bg": "#2b1055",
+  "disc": "#3d1a73",
+  "tab": "#ff2e88",
+  "tabDark": "#2b1055",
+  "tabLight": "#ffffff",
+  "text": "#ffffff",
+  "line": "#00e5ff",
+  "check": "#00e676",
+  "cross": "#ff1744"
+ },
+ "rings": {
+  "sant": "#ff2e88",
+  "ovrigt": "#00e5ff"
+ }
+}

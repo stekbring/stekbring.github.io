@@ -1,0 +1,21 @@
+{
+ "format": "egna10-palett",
+ "version": 1,
+ "name": "Skogen",
+ "description": "Mossa, bark och lingon.",
+ "style": {
+  "bg": "#b7c49a",
+  "disc": "#f8f6ec",
+  "tab": "#4a3b2a",
+  "tabDark": "#d8e6b0",
+  "tabLight": "#ffffff",
+  "text": "#24291a",
+  "line": "#5a5038",
+  "check": "#3f7a2e",
+  "cross": "#b0302c"
+ },
+ "rings": {
+  "sant": "#a0302c",
+  "ovrigt": "#3f6a3a"
+ }
+}

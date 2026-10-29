@@ -1,0 +1,21 @@
+{
+ "format": "egna10-palett",
+ "version": 1,
+ "name": "Klassisk grå",
+ "description": "Neutralt grått och svart – lugnt och tidlöst.",
+ "style": {
+  "bg": "#d4d4d0",
+  "disc": "#fbfbf8",
+  "tab": "#3a3a38",
+  "tabDark": "#d4d4d0",
+  "tabLight": "#ffffff",
+  "text": "#1f1f1d",
+  "line": "#4a4a47",
+  "check": "#3d8b37",
+  "cross": "#c0392b"
+ },
+ "rings": {
+  "sant": "#55554f",
+  "ovrigt": "#2b5d9c"
+ }
+}

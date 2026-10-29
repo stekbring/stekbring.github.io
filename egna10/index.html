@@ -2,6 +2,44 @@
 <html lang="sv">
 <head>
 <meta charset="utf-8">
+<script>
+/* =====================================================================
+   ÄGARINSTÄLLNINGAR – det här är det enda du behöver ändra i filen.
+   Spara, och byt sedan versionen i sw.js i samma mapp (egna10pro-v11 → egna10pro-v12)
+   så att telefoner som har appen installerad hämtar den nya versionen.
+   ===================================================================== */
+window.EGNA_ADMIN = {
+  // Olle-loggan som svag vattenstämpel på korten
+  watermark: {
+    on: false,          // true = visas, false = av
+    opacity: 0.13,     // hur synlig: 0 = osynlig … 1 = helt täckande
+    size: 5.2,         // höjd i mm
+    x: 98.6,           // mitten, mm från kortets vänsterkant (kortet är 110 × 110 mm)
+    y: 93,             // mitten, mm från kortets överkant
+  },
+  // svart Olle-logga nere till höger på PDF:ens framsidor (utanför korten)
+  pdfLogo: true,
+  // etiketten uppe till höger på nya kortlekar: mörk + ljus del
+  label: { dark: 'EGNA', light: '10' },
+  // numrering på nya kortlekar
+  numbering: { show: true, prefix: 'nr.', start: 1 },
+  // originalfärgerna (”Original” och ”Återställ standard” går tillbaka hit)
+  colors: {
+    bg: '#cbc9aa',       // kortets bakgrund
+    disc: '#fbfaf5',     // mittcirkeln
+    tab: '#6f6d66',      // etikettens platta
+    tabDark: '#1b1b19',  // etikett, mörk text
+    tabLight: '#ffffff', // etikett, ljus text
+    text: '#262523',     // text
+    line: '#3b3a37',     // linjer
+    check: '#3d8b37',    // rätt (✓)
+    cross: '#d33a2c',    // fel (✗)
+  },
+  // frågeringens färg: sant eller falskt, och alla övriga frågetyper
+  rings: { sant: '#8b3a1a', ovrigt: '#1f6fae' },
+};
+</script>
+
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Egna10 Pro</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%22-67.6 -65.8 132 132%22%3E%3Cstyle%3Epath%7Bfill:#161614%7D%40media (prefers-color-scheme:dark)%7Bpath%7Bfill:#f2f0ea%7D%7D%3C/style%3E%3Cpath fill-rule=%22evenodd%22 d=%22M-57.5 -63H57.8A2.5 2.5 0 0 1 60.3 -60.5V-11.02A11.1 11.1 0 0 0 60.3 11.02V60.9A2.5 2.5 0 0 1 57.8 63.4H-57.5A6.0 6.0 0 0 1 -63.5 57.4V-57A6.0 6.0 0 0 1 -57.5 -63ZM-33 0a33 33 0 1 0 66 0a33 33 0 1 0 -66 0ZM-8 -45.2a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM18.57 -36.57a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM34.99 -13.97a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM34.99 13.97a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM18.57 36.57a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM-8 45.2a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM-34.57 36.57a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM-50.99 13.97a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM-50.99 -13.97a8 8 0 1 0 16 0a8 8 0 1 0 -16 0ZM-34.57 -36.57a8 8 0 1 0 16 0a8 8 0 1 0 -16 0Z%22/%3E%3C/svg%3E">
@@ -352,6 +390,25 @@ code{font-family:Consolas,"Courier New",monospace;font-size:.92em;background:#f4
 #btnPrefs .gear{font-size:16px;line-height:1}
 @media (min-width:721px){ #btnPrefs .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)} #btnPrefs{min-width:30px;padding-left:6px;padding-right:6px} }
 @media (max-width:720px){ #btnPrefs .gear{display:none} }
+/* ---------- Tydligare fram/bak-flikar (som menyn längst ner) ---------- */
+.sidetabs .tab{border:2px outset var(--face) !important;background:var(--face);font-weight:400;top:0 !important;padding-bottom:3px !important}
+.sidetabs .tab[aria-selected="true"]{border-style:inset !important;background:#cfccc4 !important;font-weight:700;box-shadow:inset 0 2px 3px rgba(0,0,0,.18)}
+.sidetabs{border-bottom:0;padding-bottom:4px}
+/* ---------- Färgpaletter ---------- */
+.pal-sw{display:inline-flex;gap:1px;flex:none}
+.pal-sw i{display:block;width:7px;height:16px;border:1px solid rgba(0,0,0,.25)}
+.pal-sw.big i{width:10px;height:22px}
+.pal-li{grid-template-columns:auto minmax(0,1fr) auto !important}
+.lib-title .pal-sw{margin-right:8px;vertical-align:middle}
+.pal-pv{display:flex;gap:10px;margin:8px 0;max-width:520px}
+.pal-pv .pal-pv-card{flex:1;min-width:0}
+.pal-pv .pal-pv-card svg{display:block;width:100%;height:auto}
+.pal-pv.small{max-width:300px}
+.pal-acts{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.pal-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:8px 0}
+.pal-row select{max-width:240px}
+.pal-rings{margin-top:4px}
+.pal-own{margin:4px 0}
 
 /* ---------- Startsida (välkomstruta) – klassisk stil ---------- */
 .wl{position:fixed;inset:0;z-index:900;overflow:auto;overscroll-behavior:contain;background:var(--bg);color:var(--ink);font-family:"KortSerif",Georgia,"Times New Roman",serif;font-size:17px;line-height:1.45}
@@ -838,7 +895,7 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
 
 <dialog id="dlgLib">
   <form method="dialog">
-    <div class="dhead">Bibliotek – frågepaket</div>
+    <div class="dhead">Bibliotek – frågepaket och färgpaletter</div>
     <div class="dbody libbody" id="libBody">
       <aside class="libside">
         <input type="search" id="libSearch" placeholder="Sök bland alla frågor…" aria-label="Sök bland alla frågor" autocomplete="off">
@@ -847,6 +904,8 @@ body.pro-design .pvwrap .pv{outline:1px dashed rgba(29,95,168,.35);outline-offse
         <p class="help libnote" id="libSiteNote" hidden></p>
         <div class="libgh">Mina paket</div>
         <ul class="libplist" id="libMine"></ul>
+        <div class="libgh">Färgpaletter</div>
+        <ul class="libplist pal-list" id="libPals"></ul>
         <div class="libside-btns">
           <button type="button" id="libSaveDeck" title="Spara hela din nuvarande kortlek som ett paket i biblioteket"><span>Spara kortleken här</span></button>
           <button type="button" id="libFileBtn" title="Lägg till en eller flera .egna10-filer"><span>Lägg till fil…</span></button>
@@ -1674,10 +1733,13 @@ function pdfScene(doc, prims, T, images) {
 }
 </script>
 <script>
-/* ===== Olle-märkning – ändra här =====
-   OLLE_PDF_LOGO = true → svart Olle-logga nere till höger på PDF:ens framsidor (false = av) */
-const OLLE_WATERMARK = false;
-const OLLE_PDF_LOGO = true;
+/* Olle-märkningen styrs av ÄGARINSTÄLLNINGAR överst i filen */
+const OLLE_WATERMARK = !!(window.EGNA_ADMIN && EGNA_ADMIN.watermark && EGNA_ADMIN.watermark.on);
+const OLLE_PDF_LOGO = !!(window.EGNA_ADMIN && EGNA_ADMIN.pdfLogo);
+if (window.EGNA_ADMIN) {            // originalfärger och ringfärger från ÄGARINSTÄLLNINGAR
+  if (EGNA_ADMIN.colors) Object.assign(DEFAULT_STYLE, EGNA_ADMIN.colors);
+  if (EGNA_ADMIN.rings) TYPES.forEach(t => { const r = t.id === 'sant' ? EGNA_ADMIN.rings.sant : EGNA_ADMIN.rings.ovrigt; if (r) t.ring = r; });
+}
 'use strict';
 /* =====================================================================
    Egna10 – bibliotek: färdiga frågepaket (mappen fragepaket bredvid sidan)
@@ -2516,8 +2578,9 @@ function patchSvgDoc() {
 
 /* ---------- Olle-vattenstämpel på korten (styrs av OLLE_WATERMARK) ---------- */
 function olleWatermarkPrims(st) {
-  const h = 5.2, w = h * OLLE_W / OLLE_H, cx = 98.6, cy = 93;
-  return [{ k: 'path', d: olleCmds(cx - w / 2, cy - h / 2, h), fill: st.text, op: 0.13 }];
+  const a = (window.EGNA_ADMIN && EGNA_ADMIN.watermark) || {};
+  const h = Number(a.size) || 5.2, w = h * OLLE_W / OLLE_H, cx = a.x != null ? Number(a.x) : 98.6, cy = a.y != null ? Number(a.y) : 93;
+  return [{ k: 'path', d: olleCmds(cx - w / 2, cy - h / 2, h), fill: st.text, op: a.opacity != null ? Number(a.opacity) : 0.13 }];
 }
 const _olleBaseBuildSide = buildSide;
 buildSide = function (q, deck, opt = {}) {
@@ -2742,6 +2805,252 @@ function bindExtras() {
   bindPdfPick();
   bindMove();
   bindPrefs();
+}
+
+/* =====================================================================
+   Färgpaletter: färdiga färgsättningar för korten (mappen fargpaletter
+   bredvid sidan, som fragepaket) och egna sparade paletter.
+   En palett = kortets färger + frågeringarnas färger.
+   ===================================================================== */
+const PAL_BASE = new URL('../fargpaletter/', location.href).href;
+const PAL_KEY = 'egna10.palettes';
+const PAL = { site: [], state: 'idle', cur: null };
+const PAL_ORIGINAL = { id: 'orig', src: 'orig', name: 'Original', description: 'Egna10:s vanliga färger, som originalkorten.', style: null, rings: null };
+let PAL_RINGS = null;                           // tillfälliga ringfärger när en palett förhandsvisas
+
+function palStyle(p) { return Object.assign({}, DEFAULT_STYLE, (p && p.style) || {}); }
+function palRings(p) { return Object.assign({ sant: TYPE_BY_ID.sant.ring, ovrigt: TYPE_BY_ID.ovrigt.ring }, (p && p.rings) || {}); }
+function palClean(o, src) {
+  if (!o || typeof o !== 'object') return null;
+  const st = {}; for (const k of Object.keys(DEFAULT_STYLE)) if (/^#[0-9a-f]{6}$/i.test((o.style || {})[k] || '')) st[k] = o.style[k].toLowerCase();
+  const rg = {}; for (const k of ['sant', 'ovrigt']) if (/^#[0-9a-f]{6}$/i.test((o.rings || {})[k] || '')) rg[k] = o.rings[k].toLowerCase();
+  return { id: o.id || (src + ':' + (o.file || o.name)), src, file: o.file || '', name: String(o.name || 'Palett').slice(0, 60), description: String(o.description || '').slice(0, 200), style: st, rings: rg };
+}
+function palMine() { try { return (JSON.parse(localStorage.getItem(PAL_KEY) || '[]') || []).map(o => palClean(o, 'mine')).filter(Boolean); } catch (e) { return []; } }
+function palSaveMine(list) { try { localStorage.setItem(PAL_KEY, JSON.stringify(list.map(p => ({ id: p.id, name: p.name, description: p.description, style: p.style, rings: p.rings })))); } catch (e) { alert('Paletten kunde inte sparas i webbläsaren.'); } }
+function palAll() { return [PAL_ORIGINAL, ...PAL.site, ...palMine()]; }
+function palById(id) { return palAll().find(p => p.id === id) || null; }
+
+async function palLoadSite() {
+  if (PAL.state === 'loading' || PAL.state === 'ok') return;
+  PAL.state = 'loading';
+  const found = new Map();
+  try {
+    const r = await fetch(PAL_BASE + 'index.json', { cache: 'no-cache' });
+    if (r.ok) { const j = JSON.parse(await r.text()); for (const o of j.palettes || []) { const p = palClean(o, 'site'); if (p) found.set(o.file || p.name, p); } }
+  } catch (e) { /* ingen index.json */ }
+  // filer som lagts i mappen men inte står i index.json
+  try {
+    const gh = location.hostname.match(/^([a-z0-9-]+)\.github\.io$/i);
+    if (gh) {
+      const path = new URL(PAL_BASE).pathname.replace(/^\/+|\/+$/g, '');
+      const r = await fetch(`https://api.github.com/repos/${gh[1]}/${gh[1]}.github.io/contents/${path}`);
+      if (r.ok) for (const it of await r.json()) {
+        if (!it || !/\.json$/i.test(it.name) || it.name === 'index.json' || found.has(it.name)) continue;
+        try { const j = JSON.parse(await (await fetch(PAL_BASE + it.name, { cache: 'no-cache' })).text()); const p = palClean(Object.assign({ file: it.name }, j), 'site'); if (p) found.set(it.name, p); } catch (e) { /* trasig fil */ }
+      }
+    }
+  } catch (e) { /* ingen listning */ }
+  PAL.site = [...found.values()];
+  PAL.state = PAL.site.length ? 'ok' : 'fail';
+  palRefreshUI();
+}
+
+/* ---------- Förhandsvisning: två små kort med palettens färger ---------- */
+function palSample(type) {
+  const q = newQuestion(type);
+  q.text = type === 'sant' ? 'Fråga' : 'Fråga';
+  for (let i = 0; i < 10; i++) { q.alts[i].text = 'Svar'; if (type === 'sant') q.ans[i].mark = i % 3 ? 'ja' : 'nej'; else q.ans[i].text = String(i + 1); }
+  return q;
+}
+function palPreviewHTML(style, rings, label) {
+  const deck = Object.assign(_xNewDeck ? _xNewDeck() : newDeck(), { style: Object.assign({}, DEFAULT_STYLE, style || {}), label: label || (state.deck && state.deck.label) || { dark: 'EGNA', light: '10' } });
+  deck.numbering = Object.assign({}, deck.numbering, { show: false });
+  PAL_RINGS = rings || null;
+  try {
+    return ['sant', 'ovrigt'].map(t => `<div class="pal-pv-card">${sceneToSVG(buildSide(palSample(t), deck, { si: t === 'sant' ? 0 : 1 }), { cssSize: '100%' })}</div>`).join('');
+  } catch (e) { return ''; } finally { PAL_RINGS = null; }
+}
+function palSwatches(p) {
+  const st = palStyle(p), rg = palRings(p);
+  return ['bg', 'disc', 'tab', 'text', 'check', 'cross'].map(k => `<i style="background:${st[k]}"></i>`).join('') + `<i style="background:${rg.sant}"></i><i style="background:${rg.ovrigt}"></i>`;
+}
+
+/* ---------- Använda en palett ---------- */
+function palApplyDeck(p, cardsToo) {
+  const d = state.deck, rg = palRings(p);
+  d.style = Object.assign({}, palStyle(p), { ringSant: rg.sant, ringOther: rg.ovrigt });
+  if (!p.rings || (!p.rings.sant && !p.rings.ovrigt)) { delete d.style.ringSant; delete d.style.ringOther; }
+  if (cardsToo) for (const c of d.cards) for (const q of c.sides) {
+    if (q.pro && q.pro.design && q.pro.design.style) { delete q.pro.design.style; if (!Object.keys(q.pro.design).length && !(q.pro.items || []).length && !q.pro.noWm && !q.pro.scan) delete q.pro; }
+    q.ring = '';
+  }
+  palAfterChange(`Paletten ”${p.name}” används nu på ${cardsToo ? 'alla kort' : 'kortleken'}.`);
+}
+function palApplyCard(p, sides) {
+  const st = palStyle(p), rg = palRings(p), deckSt = styleOf(state.deck);
+  for (const q of sides) {
+    const own = {}; for (const k of Object.keys(DEFAULT_STYLE)) if (st[k].toLowerCase() !== String(deckSt[k]).toLowerCase()) own[k] = st[k];
+    q.pro = q.pro || { design: {}, items: [] }; q.pro.design = q.pro.design || {}; q.pro.items = q.pro.items || [];
+    if (Object.keys(own).length) q.pro.design.style = own; else delete q.pro.design.style;
+    if (!Object.keys(q.pro.design).length && !q.pro.items.length && !q.pro.noWm && !q.pro.scan) delete q.pro;
+    if (p.rings && (p.rings.sant || p.rings.ovrigt)) q.ring = q.type === 'sant' ? rg.sant : rg.ovrigt;
+  }
+  palAfterChange(`Paletten ”${p.name}” används nu på kort ${state.cur + 1}.`);
+}
+function palAfterChange(msg) {
+  state.status.clear(); renderList(); renderEditor(); renderPreview(); scheduleSave();
+  if (typeof proRenderPane === 'function') try { proRenderPane(); } catch (e) { /* – */ }
+  setStatus(msg);
+}
+function palFromDeck() { const st = styleOf(state.deck), out = {}; for (const k of Object.keys(DEFAULT_STYLE)) out[k] = st[k]; return { style: out, rings: { sant: st.ringSant || TYPE_BY_ID.sant.ring, ovrigt: st.ringOther || TYPE_BY_ID.ovrigt.ring } }; }
+function palSaveAs(style, rings) {
+  const name = (prompt('Namn på paletten:', '') || '').trim(); if (!name) return null;
+  const list = palMine(), ex = list.find(p => p.name.toLowerCase() === name.toLowerCase());
+  if (ex && !confirm(`Det finns redan en palett som heter ”${ex.name}”. Ersätta den?`)) return null;
+  const p = palClean({ id: ex ? ex.id : 'mine:' + Date.now().toString(36), name, style, rings }, 'mine');
+  if (ex) list[list.indexOf(ex)] = p; else list.push(p);
+  palSaveMine(list); palRefreshUI();
+  setStatus(`Paletten ”${name}” är sparad under Mina paletter.`);
+  return p;
+}
+function palDownload(p) {
+  const json = JSON.stringify({ format: 'egna10-palett', version: 1, name: p.name, description: p.description || '', style: palStyle(p), rings: palRings(p) }, null, 1);
+  download(safeName(p.name, '.json'), json, 'application/json');
+}
+
+/* ---------- Väljare (Utseende, Inställningar, kortets Utseende-flik) ---------- */
+function palOptionsHTML(placeholder) {
+  const mine = palMine();
+  let h = `<option value="">${placeholder || 'Välj palett…'}</option><option value="orig">Original</option>`;
+  if (PAL.site.length) h += `<optgroup label="Egna10-paletter">${PAL.site.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</optgroup>`;
+  if (mine.length) h += `<optgroup label="Mina paletter">${mine.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('')}</optgroup>`;
+  if (PAL.state === 'loading') h += '<option disabled>Letar efter paletter…</option>';
+  return h;
+}
+function palRefreshUI() {
+  $$('select.pal-pick').forEach(s => { const v = s.value; s.innerHTML = palOptionsHTML(s.dataset.ph); s.value = v; });
+  if ($('#libPals')) palRenderLibList();
+}
+
+/* ---------- Biblioteket: Färgpaletter ---------- */
+function palRenderLibList() {
+  const ul = $('#libPals'); if (!ul) return;
+  const all = palAll();
+  ul.innerHTML = all.map(p => `<li class="libp pal-li${PAL.cur === p.id ? ' cur' : ''}" data-pal="${esc(p.id)}" tabindex="0"><span class="pal-sw">${palSwatches(p)}</span><span class="libp-name">${esc(p.name)}</span>${p.src === 'mine' ? '<span class="libp-n">min</span>' : ''}</li>`).join('')
+    + (PAL.state === 'loading' ? '<li class="libp-empty">Letar efter paletter…</li>' : PAL.state === 'fail' ? '<li class="libp-empty">Hittade ingen mapp ”fargpaletter” – bara Original och dina egna visas.</li>' : '');
+}
+function palShowInLib(id) {
+  const p = palById(id); if (!p) return;
+  PAL.cur = id; lib.cur = null; lib.search = '';
+  $('#libBody').classList.add('showq');
+  $$('#libPacks .libp, #libMine .libp').forEach(li => li.classList.remove('cur'));
+  palRenderLibList();
+  const pro = typeof bindPro === 'function', anyOwn = state.deck.cards.some(c => c.sides.some(q => (q.pro && q.pro.design && q.pro.design.style) || q.ring));
+  $('#libHead').innerHTML = `<h3 class="lib-title"><span class="pal-sw big">${palSwatches(p)}</span>${esc(p.name)}</h3>
+    <p class="lib-desc">${esc(p.description || (p.src === 'mine' ? 'Din egen palett.' : ''))}</p>
+    <div class="pal-pv">${palPreviewHTML(palStyle(p), palRings(p))}</div>
+    <div class="pal-acts">
+      <button type="button" class="default" data-palact="deck">Använd på alla kort</button>
+      ${pro ? '<button type="button" data-palact="card">Bara på valt kort</button>' : ''}
+      ${p.src === 'site' ? '<button type="button" data-palact="keep">Spara i Mina paletter</button>' : ''}
+      ${p.src !== 'orig' ? '<button type="button" data-palact="file">Spara som fil…</button>' : ''}
+      ${p.src === 'mine' ? '<button type="button" data-palact="del">Ta bort</button>' : ''}
+    </div>
+    ${anyOwn ? '<label class="opt pal-own"><input type="checkbox" id="palCardsToo" checked> Gäller även kort som har egna färger</label>' : ''}
+    <p class="help">Paletten ändrar kortets färger och frågeringarna. Du kan finjustera efteråt under Utseende.</p>`;
+  $('#libQs').innerHTML = '';
+}
+function bindPalLib() {
+  const ul = $('#libPals'); if (!ul) return;
+  ul.addEventListener('click', e => { const li = e.target.closest('[data-pal]'); if (li) palShowInLib(li.dataset.pal); });
+  ul.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset.pal) { e.preventDefault(); palShowInLib(e.target.dataset.pal); } });
+  $('#libHead').addEventListener('click', e => {
+    const b = e.target.closest('[data-palact]'); if (!b) return;
+    const p = palById(PAL.cur); if (!p) return;
+    const act = b.dataset.palact;
+    if (act === 'deck') { const ct = $('#palCardsToo'); palApplyDeck(p, ct ? ct.checked : true); $('#dlgLib').close(); }
+    else if (act === 'card') { palApplyCard(p, curCard().sides); $('#dlgLib').close(); }
+    else if (act === 'keep') { const list = palMine(); if (!list.some(x => x.name === p.name)) { list.push(palClean({ id: 'mine:' + Date.now().toString(36), name: p.name, description: p.description, style: palStyle(p), rings: palRings(p) }, 'mine')); palSaveMine(list); } palRefreshUI(); setStatus(`”${p.name}” finns nu under Mina paletter.`); b.disabled = true; b.textContent = 'Sparad'; }
+    else if (act === 'file') palDownload(p);
+    else if (act === 'del') { if (!confirm(`Ta bort paletten ”${p.name}”?`)) return; palSaveMine(palMine().filter(x => x.id !== p.id)); PAL.cur = null; palRefreshUI(); $('#libHead').innerHTML = '<h3 class="lib-title">Bibliotek</h3><p class="lib-desc">Välj ett paket eller en palett till vänster.</p>'; }
+  });
+  // när ett frågepaket väljs igen ska palettmarkeringen bort
+  ['#libPacks', '#libMine'].forEach(s => $(s).addEventListener('click', () => { PAL.cur = null; palRenderLibList(); }, true));
+  $$('.js-lib').forEach(b => b.addEventListener('click', () => { palRenderLibList(); palLoadSite(); }));
+}
+
+/* ---------- Utseende för hela kortleken: palett, ringfärger, förhandsvisning ---------- */
+function bindPalSettings() {
+  const dlg = $('#dlgSettings'); if (!dlg) return;
+  const f = dlg.querySelector('form'), cf = $('#colorFields');
+  cf.insertAdjacentHTML('afterend', `<div class="pal-row"><label>Färgpalett <select class="pal-pick" id="palDeck" data-ph="Välj palett…">${palOptionsHTML()}</select></label><button type="button" id="palDeckSave">Spara som palett…</button></div>
+    <div class="colors pal-rings"><label>Ring – sant eller falskt <input type="color" id="ringSant"></label><label>Ring – övriga frågor <input type="color" id="ringOther"></label></div>
+    <div class="pal-pv small" id="palDeckPv"></div>`);
+  const pv = () => { const st = styleOf(state.deck); $('#palDeckPv').innerHTML = palPreviewHTML(st, { sant: $('#ringSant').value, ovrigt: $('#ringOther').value }, state.deck.label); };
+  const fillRings = () => { const st = state.deck.style || {}; $('#ringSant').value = st.ringSant || TYPE_BY_ID.sant.ring; $('#ringOther').value = st.ringOther || TYPE_BY_ID.ovrigt.ring; };
+  $('#btnSettings').addEventListener('click', () => { palLoadSite(); $('#palDeck').value = ''; fillRings(); pv(); });
+  f.addEventListener('input', e => {
+    if (e.target.id === 'ringSant' || e.target.id === 'ringOther') {
+      const st = state.deck.style; st.ringSant = $('#ringSant').value; st.ringOther = $('#ringOther').value;
+      if (st.ringSant === TYPE_BY_ID.sant.ring) delete st.ringSant; if (st.ringOther === TYPE_BY_ID.ovrigt.ring) delete st.ringOther;
+      state.status.clear(); renderList(); renderPreview(); scheduleSave();
+    }
+    if (e.target.id !== 'palDeck') requestAnimationFrame(pv);
+  });
+  $('#palDeck').addEventListener('change', e => {
+    const p = palById(e.target.value); if (!p) return;
+    palApplyDeck(p, false);
+    Object.keys(DEFAULT_STYLE).forEach(k => { const i = f['c_' + k]; if (i) i.value = styleOf(state.deck)[k]; });
+    fillRings(); pv();
+  });
+  $('#palDeckSave').addEventListener('click', () => { const x = palFromDeck(); palSaveAs(x.style, x.rings); });
+  // Återställ standard i Utseende tar även bort ringfärgerna
+  $('#setReset').addEventListener('click', () => { fillRings(); pv(); });
+}
+// Frågeringens färg: kortets egen → paletten/kortleken → frågetypens
+let _palRingColor = null;
+function palRingColor(q) {
+  if (q.ring) return q.ring;
+  const src = PAL_RINGS || (state.deck && state.deck.style) || {}, own = PAL_RINGS ? (q.type === 'sant' ? PAL_RINGS.sant : PAL_RINGS.ovrigt) : (q.type === 'sant' ? src.ringSant : src.ringOther);
+  return own || _palRingColor(q);
+}
+
+/* ---------- Inställningar: förhandsvisning och paletter för nya kortlekar ---------- */
+function bindPalPrefs() {
+  const box = $('#prefColors'); if (!box) return;
+  box.insertAdjacentHTML('beforebegin', `<div class="pal-row"><label>Färgpalett <select class="pal-pick" id="palPref" data-ph="Välj palett…">${palOptionsHTML()}</select></label><button type="button" id="palPrefSave">Spara som palett…</button></div>`);
+  box.insertAdjacentHTML('afterend', '<div class="pal-pv small" id="palPrefPv"></div>');
+  const read = () => { const st = {}; $$('#prefColors input[type=color]').forEach(i => { st[i.dataset.k] = i.value; }); return st; };
+  const pv = () => { const s = appSettings(); $('#palPrefPv').innerHTML = palPreviewHTML(read(), s.rings || null, s.label || { dark: 'EGNA', light: '10' }); };
+  $('#btnPrefs').addEventListener('click', () => { palLoadSite(); $('#palPref').value = ''; setTimeout(pv, 0); });
+  $('#dlgPrefs').addEventListener('input', () => requestAnimationFrame(pv));
+  $('#palPref').addEventListener('change', e => {
+    const p = palById(e.target.value); if (!p) return;
+    const st = palStyle(p); $$('#prefColors input[type=color]').forEach(i => { i.value = st[i.dataset.k]; });
+    const s = appSettings(); s.rings = p.rings && (p.rings.sant || p.rings.ovrigt) ? palRings(p) : null; saveAppSettings(s);
+    xPrefsRead(); pv();
+  });
+  $('#palPrefSave').addEventListener('click', () => { const s = appSettings(); palSaveAs(read(), s.rings || palRings(null)); });
+  $('#prefColReset').addEventListener('click', () => { const s = appSettings(); s.rings = null; saveAppSettings(s); pv(); });
+}
+
+/* ---------- Pro: kortets Utseende-flik får en palettväljare ---------- */
+function palCardPickHTML() {
+  return `<div class="pal-row"><label>Färgpalett för kortet <select class="pal-pick" id="palCard" data-ph="Välj palett…">${palOptionsHTML()}</select></label></div>`;
+}
+
+function bindPalettes() {
+  _palRingColor = ringColor; ringColor = palRingColor;
+  bindPalLib(); bindPalSettings(); bindPalPrefs();
+  // nya kortlekar får även palettens ringfärger från inställningarna
+  const nd = newDeck;
+  newDeck = function () { const d = nd(); const s = appSettings(); if (s.rings) { d.style = Object.assign({}, d.style, { ringSant: s.rings.sant, ringOther: s.rings.ovrigt }); } return d; };
+  document.addEventListener('change', e => {
+    if (e.target.id !== 'palCard') return;
+    const p = palById(e.target.value); if (!p) return;
+    palApplyCard(p, typeof proLookSides === 'function' ? proLookSides() : curCard().sides);
+  });
 }
 
 
@@ -3512,6 +3821,7 @@ function proLookHTML() {
     <label><input type="radio" name="lookScope" value="card"${proUI.lookScope !== 'side' ? ' checked' : ''}> hela kort ${state.cur + 1} (fram och bak)</label>
     <label><input type="radio" name="lookScope" value="side"${proUI.lookScope === 'side' ? ' checked' : ''}> bara ${state.side ? 'baksidan' : 'framsidan'}</label>
   </div>
+  ${typeof palCardPickHTML === 'function' ? palCardPickHTML() : ''}
   <p class="help">Här ändrar du färgerna på bara det här kortet. Färgerna för hela kortleken ändrar du under Utseende i menyn. Färger som är ändrade här är märkta med •.</p>`;
   h += Object.keys(DEFAULT_STYLE).map(k => {
     const own = sides.some(sq => proLookOwn(sq, k));
@@ -5834,8 +6144,8 @@ function defaultExport() {
 function newDeck() {
   return {
     format: 'egna10', version: 1, name: 'Mina frågor',
-    label: { dark: 'EGNA', light: '10' },
-    numbering: { show: true, prefix: 'nr.', start: 1 },
+    label: Object.assign({}, EGNA_ADMIN.label),
+    numbering: Object.assign({}, EGNA_ADMIN.numbering),
     style: Object.assign({}, DEFAULT_STYLE),
     export: defaultExport(),
     cards: [],
@@ -6645,8 +6955,8 @@ function bindSettings() {
   f.addEventListener('input', read);
   $('#layoutReset').addEventListener('click', () => { resetLayout(); const d = $('#dlgSettings'); Object.assign(d.style, { width: '', height: '', margin: '', left: '', top: '', right: '', bottom: '' }); });
   $('#setReset').addEventListener('click', () => {
-    state.deck.style = Object.assign({}, DEFAULT_STYLE); state.deck.label = { dark: 'EGNA', light: '10' };
-    state.deck.numbering = { show: true, prefix: 'nr.', start: 1 }; fill(); read();
+    state.deck.style = Object.assign({}, DEFAULT_STYLE); state.deck.label = Object.assign({}, EGNA_ADMIN.label);
+    state.deck.numbering = Object.assign({}, EGNA_ADMIN.numbering); fill(); read();
   });
 }
 
@@ -7062,7 +7372,7 @@ async function init() {
   try { const fs = await DB.get('file'); if (fs) { fileState.handle = fs.handle || null; fileState.name = fs.name || ''; fileState.dirty = !!fs.dirty; } } catch (e) { /* ingen lagring */ }
   updateFileLabel();
   bindLayout(); bindMobile(); bindApp(); bindSync();
-  bindEditor(); bindPreview(); bindCards(); bindFiles(); bindImport(); bindSettings(); bindCropper(); bindPdf(); bindLibrary(); bindCardSelect(); bindWelcome(); patchSvgDoc(); bindCredit(); bindPro(); bindScan(); bindExtras();
+  bindEditor(); bindPreview(); bindCards(); bindFiles(); bindImport(); bindSettings(); bindCropper(); bindPdf(); bindLibrary(); bindCardSelect(); bindWelcome(); patchSvgDoc(); bindCredit(); bindPro(); bindScan(); bindExtras(); bindPalettes();
   selectCard(0, 0);
   setStatus(d ? 'Kortleken är hämtad från webbläsaren' : 'Exempelkort – skriv över det eller lägg till nya');
   window.addEventListener('beforeunload', () => { if (saveTimer) saveNow(); });
