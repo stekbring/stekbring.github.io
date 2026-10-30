@@ -235,6 +235,25 @@ dialog.bred{width:min(560px,96vw)}
   </form>
 </div>
 
+<!-- ---------- Inbjudan: skapa konto ---------- -->
+<div class="loginwrap" id="viewInvite" hidden>
+  <form class="window" id="inviteForm" autocomplete="on">
+    <div class="dhead"><svg aria-hidden="true" style="filter:invert(1)"><use href="#logo"/></svg><span id="invHead">Skapa konto</span></div>
+    <div class="dbody">
+      <div id="invOk">
+        <p id="invIntro"></p>
+        <label class="field"><span>Användarnamn</span><input type="text" id="invUser" autocomplete="username" readonly></label>
+        <label class="field"><span>Välj lösenord</span><input type="password" id="invPass" autocomplete="new-password" minlength="8" required></label>
+        <label class="field"><span>Upprepa lösenordet</span><input type="password" id="invPass2" autocomplete="new-password" minlength="8" required></label>
+        <p class="help" style="margin:0 0 8px">Minst 8 tecken. Nästa gång loggar du in med användarnamnet och lösenordet.</p>
+      </div>
+      <p id="invFel" hidden></p>
+      <p class="err" id="invErr" role="alert"></p>
+    </div>
+    <div class="dfoot"><button type="button" id="btnInvLogin" hidden>Till inloggningen</button><button type="submit" class="default" id="btnInvCreate">Skapa konto</button></div>
+  </form>
+</div>
+
 <!-- ---------- Ingen behörighet ---------- -->
 <div class="loginwrap" id="viewNoRole" hidden>
   <div class="window">
@@ -493,6 +512,21 @@ dialog.bred{width:min(560px,96vw)}
   <section class="panel only-admin" aria-labelledby="hUsers" hidden>
     <h2 class="panel-title" id="hUsers">Användare</h2>
     <div style="overflow:auto"><table class="rows lista"><thead><tr><th>Användare</th><th>Namn</th><th>Roll</th><th></th></tr></thead><tbody id="userBody"></tbody></table></div>
+    <fieldset>
+      <legend>Bjud in läsare</legend>
+      <div class="form2">
+        <label for="ivUser">Användarnamn</label><input type="text" id="ivUser" autocapitalize="none" spellcheck="false" placeholder="t.ex. anna">
+        <label for="ivName">Namn</label><input type="text" id="ivName" placeholder="t.ex. Anna">
+        <label for="ivEpost">E-post</label><input type="email" id="ivEpost" placeholder="valfritt, då mejlas inbjudan">
+      </div>
+      <div class="row"><button id="btnInvite" class="default">Skapa inbjudan</button><span class="msg" id="ivMsg"></span></div>
+      <div id="ivResult" hidden>
+        <input type="text" id="ivLink" readonly style="width:100%;font-family:monospace;font-size:13px">
+        <div class="row"><button id="btnIvCopy">Kopiera länk</button><button id="btnIvShare" hidden>Dela…</button><span class="msg" id="ivResMsg"></span></div>
+      </div>
+      <div style="overflow:auto"><table class="rows lista"><thead><tr><th>Användare</th><th>Namn</th><th>Status</th><th></th></tr></thead><tbody id="ivBody"></tbody></table></div>
+      <p class="help">Länken gäller i 7 dagar och fungerar en gång. Personen väljer själv lösenord och blir läsare. Fler som ska ha konto får en egen inbjudan var.</p>
+    </fieldset>
     <fieldset>
       <legend>Nytt konto</legend>
       <div class="form2">
@@ -1095,13 +1129,27 @@ function senasteLaddning() {
   }
   return null;
 }
+// Uppmätt batteritid: lutningen på batteriprocenten sedan senaste laddningen.
+// Hoppar över de första 12 timmarna efter laddningen (spänningen sjunker då fast nästan ingen
+// ström går åt) och timmar med live- eller snabbläge (många fler mätningar än vanligt).
+// Kräver minst 3 dygn och 36 vanliga timmar, annars räknas tiden ut från inställningarna.
 function batteryEstimate() {
-  let pts = hist14.filter(h => num(h.bv) && h.bv >= 2.5).map(h => [histTime(h) / 864e5, batPct(h.bv)]);
-  // Räkna bara från senaste laddningen (där procenten hoppar upp)
-  for (let i = pts.length - 1; i > 0; i--) if (pts[i][1] - pts[i - 1][1] > 3) { pts = pts.slice(i + 2); break; }
-  if (pts.length < 10) return null;
+  let rows = hist14.filter(h => num(h.bv) && h.bv >= 2.5);
+  // Senaste laddningen: där procenten hoppar upp, eller händelsen "Laddaren urkopplad"
+  let start = 0;
+  for (let i = rows.length - 1; i > 0; i--) if (batPct(rows[i].bv) - batPct(rows[i - 1].bv) > 3) { start = histTime(rows[i]); break; }
+  const sl = senasteLaddning();
+  if (sl?.at) start = Math.max(start, sl.at);
+  start += 12 * 3600e3;
+  rows = rows.filter(h => histTime(h) >= start);
+  // Timmar med live- eller snabbläge har många fler mätningar än en vanlig timme
+  const ns = rows.map(h => h.n).filter(num).sort((x, y) => x - y);
+  const median = ns.length ? ns[Math.floor(ns.length / 2)] : 0;
+  if (median) rows = rows.filter(h => !num(h.n) || h.n <= median * 1.6);
+  const pts = rows.map(h => [histTime(h) / 864e5, batPct(h.bv)]);
+  if (pts.length < 36) return null;
   const span = pts[pts.length - 1][0] - pts[0][0];
-  if (span < 2) return null;
+  if (span < 3) return null;
   const n = pts.length, mx = pts.reduce((s, p) => s + p[0], 0) / n, my = pts.reduce((s, p) => s + p[1], 0) / n;
   let sxy = 0, sxx = 0;
   for (const [x, y] of pts) { sxy += (x - mx) * (y - my); sxx += (x - mx) ** 2; }
@@ -2187,6 +2235,68 @@ $('btnCreateUser').addEventListener('click', async () => {
   }
 });
 
+/* ---------- Inbjudningar (admin) ---------- */
+const INBJUDAN_DAGAR = 7;
+let inbjudningar = {};
+const inbjudanLank = t => location.origin + location.pathname + '?inbjudan=' + t;
+function nyKod() {
+  const b = crypto.getRandomValues(new Uint8Array(24));
+  return btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function inbjudanStatus(v) {
+  if (v.anvand) return ['ok', `Använd ${when(v.anvand.at)}`];
+  if (!(v.giltigTill > nowServer())) return ['', 'Utgången'];
+  let s = `Väntar · gäller till ${when(v.giltigTill)}`;
+  if (v.epost) s += v.mejl?.skickat ? ' · mejlad' : v.mejl?.fel ? ' · mejlet gick inte fram' : ' · mejlas inom 5 min';
+  return ['warn', s];
+}
+function renderInvites() {
+  if (!isAdmin) return;
+  const rows = lista(inbjudningar).sort((a, b) => (b.skapad || 0) - (a.skapad || 0));
+  $('ivBody').innerHTML = rows.length ? rows.map(v => {
+    const [st, txt] = inbjudanStatus(v), vantar = st === 'warn';
+    return `<tr><td>${esc(v.anvandare)}</td><td>${esc(v.namn || '')}</td><td><span class="msg ${st}">${esc(txt)}</span></td>
+      <td>${vantar ? `<button data-ivkop="${esc(v.id)}">Kopiera länk</button> <button data-ivdel="${esc(v.id)}">Återkalla</button>` : `<button data-ivdel="${esc(v.id)}">Ta bort</button>`}</td></tr>`;
+  }).join('') : '<tr><td colspan="4" class="help">Inga inbjudningar.</td></tr>';
+}
+async function kopiera(text, el) {
+  try { await navigator.clipboard.writeText(text); msg(el, 'ok', 'Kopierad.'); }
+  catch (e) { $('ivLink').select(); msg(el, 'bad', 'Kunde inte kopiera, markera och kopiera själv.'); }
+}
+let senasteInbjudan = null;
+$('btnInvite').addEventListener('click', async () => {
+  const u = $('ivUser').value.trim().toLowerCase(), namn = $('ivName').value.trim(), epost = $('ivEpost').value.trim();
+  if (!/^[a-z0-9._-]{2,30}$/.test(u)) return msg($('ivMsg'), 'bad', 'Användarnamn: 2–30 tecken, bara a–z, siffror, punkt och bindestreck.');
+  if (u === 'olle' || u === 'larm' || lista(roller).some(x => x.anvandare === u)) return msg($('ivMsg'), 'bad', 'Det användarnamnet finns redan.');
+  if (lista(inbjudningar).some(x => x.anvandare === u && !x.anvand && x.giltigTill > nowServer())) return msg($('ivMsg'), 'bad', 'Det finns redan en inbjudan som väntar för det användarnamnet.');
+  if (epost && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(epost)) return msg($('ivMsg'), 'bad', 'Kolla e-postadressen.');
+  const kod = nyKod(), giltigTill = nowServer() + INBJUDAN_DAGAR * 864e5;
+  msg($('ivMsg'), '', 'Skapar…');
+  try {
+    await D.set(`inbjudningar/${kod}`, { anvandare: u, namn: namn || u, roll: 'lasare', skapad: D.ts(), giltigTill, av: myName(), epost: epost || null });
+    senasteInbjudan = { kod, u, giltigTill };
+    $('ivLink').value = inbjudanLank(kod); $('ivResult').hidden = false; $('btnIvShare').hidden = !navigator.share; msg($('ivResMsg'), '', '');
+    msg($('ivMsg'), 'ok', epost ? `Klar. Mejlet till ${epost} skickas inom 5 minuter.` : 'Klar. Kopiera eller dela länken.');
+    $('ivUser').value = $('ivName').value = $('ivEpost').value = '';
+  } catch (e) { msg($('ivMsg'), 'bad', `Kunde inte skapa (${e.code || e.message}). Är de nya reglerna inklistrade i Firebase?`); }
+});
+$('btnIvCopy').addEventListener('click', () => kopiera($('ivLink').value, $('ivResMsg')));
+$('btnIvShare').addEventListener('click', async () => {
+  if (!senasteInbjudan) return;
+  const { u, giltigTill } = senasteInbjudan;
+  try { await navigator.share({ title: 'Inbjudan till Jordkällaren', text: `Hej! Här är din inbjudan till Jordkällaren. Ditt användarnamn är ${u}. Länken fungerar en gång och gäller till ${when(giltigTill)}.`, url: $('ivLink').value }); }
+  catch (e) { /* avbruten */ }
+});
+$('ivBody').addEventListener('click', async e => {
+  const kop = e.target.dataset.ivkop, del = e.target.dataset.ivdel;
+  if (kop) return kopiera(inbjudanLank(kop), $('ivMsg'));
+  if (!del) return;
+  const v = inbjudningar[del];
+  if (v && !v.anvand && v.giltigTill > nowServer() && !await confirmDlg('Återkalla inbjudan?', `Länken för ${v.anvandare} slutar fungera direkt.`, 'Återkalla')) return;
+  try { await D.remove(`inbjudningar/${del}`); if (senasteInbjudan?.kod === del) $('ivResult').hidden = true; }
+  catch (er) { msg($('ivMsg'), 'bad', `Kunde inte ta bort (${er.code || er.message}).`); }
+});
+
 /* =====================================================================
    Felsökning (admin)
    ===================================================================== */
@@ -2236,7 +2346,7 @@ function renderDiag() {
     ['Vaken tid', `${num(d.vakenMsMatning) && d.vakenMsMatning ? `mätning ${dec(d.vakenMsMatning / 1000, 2)} s · ` : ''}${num(d.vakenMsUpp) && d.vakenMsUpp ? `förra uppladdningen ${dec(d.vakenMsUpp / 1000, 1)} s · ` : ''}${num(d.vakenMsNu) ? `den här ${dec(d.vakenMsNu / 1000, 1)} s fram till sändningen` : ''}`],
     ['Uppladdningar', `${num(d.uppladdningar) ? `${d.uppladdningar} sedan start · ` : ''}${num(d.buffrade) ? `${d.buffrade} mätningar i den senaste (plats för ${d.bufMax || '?'}) · ` : ''}${d.missade ? `${d.missade} misslyckades innan${d.sistaFel ? `: ${esc(d.sistaFel)}` : ''}` : 'alla gick fram'}`],
     ['SHT40', `${esc(d.sht || '–')}${d.shtSerie ? ` · serienr ${esc(d.shtSerie)}` : ''} · pullup ${d.pullup === 'extern' ? 'på kabeln (extern)' : 'ESP32:ans interna'}${num(d.shtRaT) ? ` · rått ${dec(d.shtRaT, 2)} °C, ${dec(d.shtRaRh, 1)} %` : ''}`],
-    ['Utomhussonden', `${esc(d.ntc || '–')}${num(d.ntcOhm) ? ` · ${Math.round(d.ntcOhm).toLocaleString('sv')} Ω` : ''} · ${d.ntcMv ?? '–'} mV på A1${d.ntcPinne ? ` · referens på ${esc(d.ntcPinne)}` : ''}`],
+    ['Utomhussonden', `${esc(d.ntc || '–')}${num(d.ntcOhm) ? ` · ${Math.round(d.ntcOhm).toLocaleString('sv')} Ω` : ''} · ${d.ntcMv ?? '–'} mV på A1${d.ntcPinne ? ` · referens på ${esc(d.ntcPinne)}` : ''}${num(d.ntcVantMs) ? ` · stabil efter ${d.ntcVantMs} ms` : ''}`],
     ['Batteri', `${num(latest?.bv) ? dec(latest.bv, 3) + ' V' : '–'} · ${d.batMv ?? '–'} mV på A0 · faktor ${dec(d.kal?.batFaktor, 4)} · laddaren ${d.usb ? 'ansluten' : 'inte ansluten'}`],
     ['I lådan', num(d.chip) ? `${dec(d.chip)} °C (chippets temperatur)` : '–'],
     ['Värmaren', `${d.varmeAuto ? 'automatisk' : 'av'} · körts ${d.varmeAntal || 0} gånger${d.varmeAt ? `, senast ${when(d.varmeAt)}` : ''}`],
@@ -2307,9 +2417,9 @@ function authError(code) {
 function stoppa() { unsubs.forEach(u => u()); unsubs = []; }
 function showLogin() {
   stoppa();
-  latest = diag = inst = plats = larmstatus = otaStatus = myRecip = null; logItems = []; notes = []; notices = []; roller = {}; mottagare = {}; today = []; hist14 = [];
+  latest = diag = inst = plats = larmstatus = otaStatus = myRecip = null; logItems = []; notes = []; notices = []; roller = {}; mottagare = {}; inbjudningar = {}; today = []; hist14 = [];
   raw.rows = []; raw.from = raw.to = 0; hour.rows = []; hour.from = hour.to = 0; ly.rows = []; ly.from = ly.to = 0;
-  $('viewMain').hidden = true; $('viewNoRole').hidden = true; $('viewLogin').hidden = false;
+  $('viewMain').hidden = true; $('viewNoRole').hidden = true; $('viewInvite').hidden = true; $('viewLogin').hidden = false;
   $('btnLogout').hidden = true; $('topStatus').textContent = '';
   setTimeout(() => $('inUser').focus(), 50);
 }
@@ -2322,7 +2432,7 @@ async function showMain(u) {
   role = agare ? 'admin' : r?.roll || null;
   if (DEMO && new URLSearchParams(location.search).has('lasare')) role = 'lasare';
   if (!role || role === 'skript') {
-    $('viewLogin').hidden = true; $('viewMain').hidden = true; $('viewNoRole').hidden = false;
+    $('viewLogin').hidden = true; $('viewMain').hidden = true; $('viewInvite').hidden = true; $('viewNoRole').hidden = false;
     $('noRoleUser').textContent = String(u.email || '').split('@')[0] + (role === 'skript' ? ' (larmskriptets konto)' : '');
     $('btnLogout').hidden = false;
     return;
@@ -2330,7 +2440,7 @@ async function showMain(u) {
   isAdmin = role === 'admin';
   if (r) roller[u.uid] = r;
   visaRoll();
-  $('viewLogin').hidden = true; $('viewNoRole').hidden = true; $('viewMain').hidden = false;
+  $('viewLogin').hidden = true; $('viewNoRole').hidden = true; $('viewInvite').hidden = true; $('viewMain').hidden = false;
   $('btnLogout').hidden = DEMO;
   $('btnLogout').title = `Inloggad som ${String(u.email || '').split('@')[0]} (${isAdmin ? 'admin' : 'läsare'})`;
   if (!view.t1) setRange(range); else setView(view.t0, view.t1, view.follow);
@@ -2350,6 +2460,7 @@ async function showMain(u) {
     on('installningar', null, v => { inst = v; renderSettings(); renderCal(); renderOta(); renderBanners(); if (inst?.gallringAr) underhall(); });
     on('ota/status', null, v => { otaStatus = v; renderOta(); renderBanners(); });
     on('roller', null, v => { roller = v || {}; renderUsers(); });
+    on('inbjudningar', null, v => { inbjudningar = v || {}; renderInvites(); });
     on('mottagare', null, v => { mottagare = v || {}; renderAlarm(); });
     underhall();
   }
@@ -2415,6 +2526,10 @@ function demoData() {
     },
     mottagare: { 'demo-olle': { namn: 'Olle', epost: 'olle@example.com', pushover: 'u'.repeat(30), typer: { temp: true, fukt: true, tystnat: true }, aktiv: true, uid: 'demo-olle' } },
     roller: { 'demo-anna': { roll: 'lasare', namn: 'Anna', anvandare: 'anna' } },
+    inbjudningar: {
+      'demoInbjudanAbcdefghijklmnop': { anvandare: 'bertil', namn: 'Bertil', roll: 'lasare', skapad: now - 3600e3, giltigTill: now + 6 * 864e5, av: 'Olle', epost: 'bertil@example.com', mejl: { skickat: now - 3300e3 } },
+      'demoAnvandAbcdefghijklmnopq': { anvandare: 'anna', namn: 'Anna', roll: 'lasare', skapad: now - 9 * 864e5, giltigTill: now - 2 * 864e5, av: 'Olle', anvand: { uid: 'demo-anna', at: now - 8 * 864e5 } },
+    },
     logg: {
       l1: { at: now - 41 * 864e5, text: 'Startade: ström på (nytt batteri eller USB)', niva: 'info' },
       l2: { at: now - 12 * 864e5, text: 'Kunde inte ladda upp 3 gånger (WiFi: tappade routerns signal). Skickade nu 3 sparade mätningar.', niva: 'varning' },
@@ -2426,6 +2541,81 @@ function demoData() {
     },
   };
 }
+
+/* ---------- Inbjudan: skapa eget konto ---------- */
+const inbjudanKod = (() => { const k = new URLSearchParams(location.search).get('inbjudan'); return k && /^[A-Za-z0-9_-]{20,64}$/.test(k) ? k : null; })();
+let inbjudan = null, skaparKonto = false;
+function glomInbjudan() {
+  const url = new URL(location.href); url.searchParams.delete('inbjudan');
+  history.replaceState(null, '', url.pathname + url.search + url.hash);
+}
+function visaInbjudanFel(text) {
+  $('invHead').textContent = 'Inbjudan';
+  $('invOk').hidden = true; $('invFel').hidden = false; $('invFel').textContent = text;
+  $('btnInvCreate').hidden = true; $('btnInvLogin').hidden = false;
+}
+async function visaInbjudan(inloggad) {
+  stoppa();
+  ['viewMain', 'viewLogin', 'viewNoRole'].forEach(id => { $(id).hidden = true; });
+  $('viewInvite').hidden = false; $('btnLogout').hidden = true;
+  try { inbjudan = await D.get(`inbjudningar/${inbjudanKod}`); }
+  catch (e) { inbjudan = null; }
+  if (!inbjudan) return visaInbjudanFel('Inbjudan finns inte. Den kan ha återkallats. Be om en ny länk.');
+  if (inbjudan.anvand) return visaInbjudanFel(`Inbjudan är redan använd. Logga in med användarnamnet ${inbjudan.anvandare}, eller be om en ny länk om den inte var till dig.`);
+  if (!(inbjudan.giltigTill > nowServer())) return visaInbjudanFel('Inbjudan har gått ut. Be om en ny länk.');
+  if (inloggad) return visaInbjudanFel(`Du är redan inloggad som ${String(inloggad.email || '').split('@')[0]}. Logga ut först, sedan kan du öppna länken igen.`);
+  $('invIntro').innerHTML = `Hej ${esc(inbjudan.namn || inbjudan.anvandare)}! ${esc(inbjudan.av || 'Olle')} har bjudit in dig att följa jordkällaren. Välj ett lösenord för att skapa ditt konto.`;
+  $('invUser').value = inbjudan.anvandare;
+  setTimeout(() => $('invPass').focus(), 50);
+}
+$('btnInvLogin').addEventListener('click', () => {
+  glomInbjudan(); $('viewInvite').hidden = true;
+  if (DEMO) { showMain({ uid: 'demo-olle', email: 'olle@jordkallare.se' }); return; }
+  if (fb.auth.currentUser) fb.signOut(fb.auth); else showLogin();
+});
+$('inviteForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const pw = $('invPass').value, u = inbjudan?.anvandare;
+  $('invErr').textContent = '';
+  if (!u) return;
+  if (pw.length < 8) return ($('invErr').textContent = 'Lösenordet måste vara minst 8 tecken.');
+  if (pw !== $('invPass2').value) return ($('invErr').textContent = 'Lösenorden är inte lika.');
+  $('btnInvCreate').disabled = true; skaparKonto = true;
+  try {
+    let uid;
+    if (DEMO) uid = 'demo-' + u;
+    else {
+      const email = `${u}@${fb.LOGIN_DOMAIN}`;
+      let cred;
+      try { cred = await fb.createUserWithEmailAndPassword(fb.auth, email, pw); }
+      catch (e) {
+        if (e.code !== 'auth/email-already-in-use') throw e;
+        // Kontot kan ha skapats vid ett tidigare försök som inte gick hela vägen
+        try { cred = await fb.signInWithEmailAndPassword(fb.auth, email, pw); }
+        catch (e2) { throw Object.assign(new Error(), { code: 'upptaget' }); }
+      }
+      uid = cred.user.uid;
+    }
+    // Rollen och "använd" sparas i samma skrivning. Reglerna i Firebase godkänner den bara med en giltig, oanvänd inbjudan.
+    const obj = {
+      [`roller/${uid}`]: { roll: 'lasare', namn: inbjudan.namn || u, anvandare: u, skapad: D.ts(), inbjudan: inbjudanKod },
+      [`inbjudningar/${inbjudanKod}/anvand`]: { uid, at: D.ts() },
+    };
+    if (DEMO) { for (const [k, v] of Object.entries(obj)) demoSet(k, v); demoNotify(); } else await fb.update(fb.ref(fb.db, ROOT), obj);
+    glomInbjudan(); inbjudan = null; skaparKonto = false;
+    $('viewInvite').hidden = true; $('invPass').value = $('invPass2').value = '';
+    showMain(DEMO ? { uid, email: `${u}@jordkallare.se` } : fb.auth.currentUser);
+  } catch (e) {
+    skaparKonto = false;
+    $('invErr').textContent = e.code === 'upptaget' ? 'Användarnamnet är redan taget. Be om en ny inbjudan.'
+      : e.code === 'PERMISSION_DENIED' || /permission/i.test(e.message || '') ? 'Inbjudan godkändes inte. Den kan ha gått ut eller redan använts. Be om en ny länk.'
+      : e.code === 'auth/weak-password' ? 'Lösenordet är för svagt.'
+      : e.code === 'auth/operation-not-allowed' || e.code === 'auth/admin-restricted-operation' ? 'Nya konton är avstängda i Firebase. Säg till den som bjöd in dig.'
+      : `Kunde inte skapa kontot (${e.code || e.message}).`;
+    if (!DEMO && fb.auth.currentUser) fb.signOut(fb.auth);
+  }
+  $('btnInvCreate').disabled = false;
+});
 
 /* ---------- Inloggning ---------- */
 $('loginForm').addEventListener('submit', async ev => {
@@ -2440,7 +2630,7 @@ $('btnLogout').addEventListener('click', () => fb.signOut(fb.auth));
 $('btnNoRoleOut').addEventListener('click', () => fb.signOut(fb.auth));
 
 async function start() {
-  if (DEMO) { demoData(); showMain({ uid: 'demo-olle', email: 'olle@jordkallare.se' }); return; }
+  if (DEMO) { demoData(); if (inbjudanKod) visaInbjudan(null); else showMain({ uid: 'demo-olle', email: 'olle@jordkallare.se' }); return; }
   try {
     const [cfgMod, appMod, authMod, dbMod] = await Promise.all([
       import('./firebase-config.js'),
@@ -2457,6 +2647,8 @@ async function start() {
     authMod.onAuthStateChanged(auth, u => {
       // Ett konto från en annan sida (fel domän) loggas ut direkt
       if (u && !String(u.email || '').endsWith('@' + cfgMod.LOGIN_DOMAIN)) { authMod.signOut(auth); return; }
+      if (skaparKonto) return;              // kontot skapas just nu via en inbjudan, vyn byts när rollen är sparad
+      if (inbjudanKod) { visaInbjudan(u); return; }
       u ? showMain(u) : showLogin();
     });
   } catch (e) {
