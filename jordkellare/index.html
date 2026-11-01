@@ -1260,7 +1260,8 @@ async function onNewData() {
     const v = await D.get('historik', { by: 'at', start: Math.floor(t0) });
     today = lista(v).filter(h => num(h.at)).sort((a, b) => histTime(a) - histTime(b));
     if (raw.rows.length && raw.to >= nowServer() - 2 * 3600e3) {
-      const ny = await D.get('historik', { by: 'at', start: Math.floor(raw.to - 120e3) });
+      const sistaMatt = histTime(raw.rows[raw.rows.length - 1]);
+      const ny = await D.get('historik', { by: 'at', start: Math.floor(sistaMatt - 120e3) });
       const m = new Map(raw.rows.map(h => [h.id, h]));
       for (const h of lista(ny)) if (num(h.at)) m.set(h.id, h);
       raw.rows = [...m.values()].sort((a, b) => histTime(a) - histTime(b)); raw.to = nowServer() + 60e3;
