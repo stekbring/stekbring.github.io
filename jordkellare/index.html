@@ -837,7 +837,7 @@ function renderBanners() {
       const start = Math.max(...LARM_TXT.filter(([bit]) => latest.larm & bit).map(([bit]) => larmStart(bit)), 0);
       const kv = larmstatus?.kvitterad;
       const kvitt = kv && kv.at > start ? ` Kvitterat av ${esc(kv.av || '?')} ${when(kv.at)}.` : ' <button id="btnAckBanner">Kvittera</button>';
-      b.push(['bad', `<b>Larm:</b> ${t.join(', ')}. Nu ${dec(latest.ti)} °C och ${dec(latest.rh, 0)} %.${kvitt}`]);
+      b.push(['bad', `<b>Larm:</b> ${t.join(', ')}. Nu ${dec(latest.ti)} °C och ${dec(latest.rh, 1)} %.${kvitt}`]);
     }
     if (snabbOn()) b.push(['info', `<b>Snabbläge</b> till ${hm(latest.snabbTill)}, mäter var ${fmtS(latest.matS)}.`]);
     if (liveActive()) {
@@ -1064,11 +1064,11 @@ function renderNow() {
   const L = latest;
   if (!L) { $('stTxt').textContent = 'Väntar på första mätningen…'; lamp($('stLamp'), 'wait'); $('topStatus').textContent = ''; return; }
   $('vTi').textContent = num(L.ti) ? `${dec(L.ti)} °C` : 'fel';
-  $('vRh').textContent = num(L.rh) ? `${dec(L.rh, 0)} %` : 'fel';
+  $('vRh').textContent = num(L.rh) ? `${dec(L.rh, 1)} %` : 'fel';
   $('vTu').textContent = num(L.tu) ? `${dec(L.tu)} °C` : 'fel';
   const sTi = dayStats('ti'), sRh = dayStats('rh'), sTu = dayStats('tu');
   $('vTiSub').innerHTML = num(L.ti) ? (sTi ? `idag ${dec(sTi.min)} – ${dec(sTi.max)} °C` : '') + trendText('ti', '°C', 1, 0.1) : esc(diag?.sht && diag.sht !== 'ok' ? `SHT40 ${diag.sht.replace(/\s*\(.*\)\s*$/, '')}` : 'SHT40 svarar inte');
-  $('vRhSub').innerHTML = (sRh ? `idag ${dec(sRh.min, 0)} – ${dec(sRh.max, 0)} %` : '') + trendText('rh', '%', 0, 1);
+  $('vRhSub').innerHTML = (sRh ? `idag ${dec(sRh.min, 1)} – ${dec(sRh.max, 1)} %` : '') + trendText('rh', '%', 1, 0.2);
   $('vTuSub').innerHTML = num(L.tu) ? (sTu ? `idag ${dec(sTu.min)} – ${dec(sTu.max)} °C` : '') + trendText('tu', '°C', 1, 0.3) : esc(diag?.ntc && diag.ntc !== 'ok' ? `sonden: ${diag.ntc.replace(/\s*\(.*\)\s*$/, '')}` : 'sonden svarar inte');
   const ingenMatning = num(L.bv) && L.bv < 0.05;
   const ladd = laddStatus();
@@ -1100,7 +1100,7 @@ function renderNow() {
     : live ? 'Uppdateras var 15:e sekund' + (num(L.chip) ? ` · i lådan ${dec(L.chip)} °C` : '')
     : `Nästa uppladdning ${od ? 'var väntad' : 'ca'} <b>${hm(nx)}</b>`
       + ` · mäter var ${fmtS(matS())}` + (num(L.chip) ? ` · i lådan ${dec(L.chip)} °C` : '');
-  $('topStatus').textContent = od ? `Ingen uppladdning sedan ${when(L.uppAt || L.at)}` : `Jordkällaren ${dec(L.ti)} °C, ${dec(L.rh, 0)} % · ute ${dec(L.tu)} °C`;
+  $('topStatus').textContent = od ? `Ingen uppladdning sedan ${when(L.uppAt || L.at)}` : `Jordkällaren ${dec(L.ti)} °C, ${dec(L.rh, 1)} % · ute ${dec(L.tu)} °C`;
 }
 
 /* ---------- Batteritid ---------- */
@@ -1534,7 +1534,7 @@ function renderHist() {
     tempSer.push({ name: 'Jordkällaren förra året', color: '#5f7fae', dash: true, pts: lr.filter(h => num(h.ti)).map(h => [h.t, h.ti]) });
   }
   drawChart($('chTemp'), tempSer, { ...base, unit: ' °C', label: 'Temperatur', minSpan: 2, h: 230, notes: nts, noteFlags: true });
-  drawChart($('chRh'), [{ name: 'Fukt', color: '#2d6b2d', pts: ser('rh') }], { ...base, unit: ' %', dec: 0, label: 'Luftfuktighet', minSpan: 5, clamp: [0, 100], h: 170, notes: nts });
+  drawChart($('chRh'), [{ name: 'Fukt', color: '#2d6b2d', pts: ser('rh') }], { ...base, unit: ' %', dec: 1, label: 'Luftfuktighet', minSpan: 2, clamp: [0, 100], h: 170, notes: nts });
   const gapUpp = Math.max(gap, 4 * 3600e3);
   const tid = h => (H ? h.at + 1800e3 : histTime(h)), cut = clearCutoff(), bpad = (t1 - t0) * 0.03;
   const batPts = batProcentSerie(H ? hour.rows : raw.rows, tid, laddHandelser()).filter(p => p[0] >= Math.max(t0 - bpad, cut) && p[0] <= t1 + bpad);
@@ -1563,7 +1563,7 @@ function renderHist() {
   if (H) { for (let i = 1; i < inV.length; i++) if (inV[i].t - inV[i - 1].t > 2.5 * 3600e3) gaps++; }
   else for (let i = 1; i < inV.length; i++) { const dt = inV[i].t - inV[i - 1].t; if (dt > medDt * 2.5 && dt > 10 * 60000 && dt > 3 * Math.min(medDt, intervalMs())) gaps++; }
   const missed = inV.length > 1 ? `<div class="tile"><span>Avbrott i mätningarna</span><b>${gaps}</b><small>${gaps ? 'längre uppehåll än väntat' : 'inga luckor'}</small></div>` : '';
-  $('statTiles').innerHTML = tile('Jordkällaren, medel', st('ti'), ' °C') + tile('Fukt, medel', st('rh'), ' %', 0) + tile('Ute, medel', st('tu'), ' °C') + batTile + missed;
+  $('statTiles').innerHTML = tile('Jordkällaren, medel', st('ti'), ' °C') + tile('Fukt, medel', st('rh'), ' %', 1) + tile('Ute, medel', st('tu'), ' °C') + batTile + missed;
   $('histNote').textContent = H ? 'Timmedelvärden, skuggat fält visar min–max.' : inV.length > 500 ? 'Skuggat fält visar min–max.' : '';
 
   const c = egenRensning();
@@ -1711,7 +1711,7 @@ function renderWeather() {
       const ahUt = absFukt(Tout, RHout);
       const rhEfter = Math.min(100, ahUt / mattnad(L.ti) * 100);
       tiles.push(`<div class="tile"><span>Vatten i luften ute</span><b>${dec(ahUt)} g/m³</b><small>${dec(Tout)} °C och ${dec(RHout, 0)} % (SMHI)</small></div>`);
-      const sub = `Uteluften ger ${dec(rhEfter, 0)} % fukt inne (nu ${dec(L.rh, 0)} %).`;
+      const sub = `Uteluften ger ${dec(rhEfter, 0)} % fukt inne (nu ${dec(L.rh, 1)} %).`;
       if (Tout < -2 && L.ti < 4) add('bad', 'Vädra inte: frostrisk', `${dec(Tout)} °C ute.`);
       else if (ahUt < ahIn - 0.3 && Tout < L.ti) add('ok', 'Bra att vädra nu', (Tout < 0 ? 'Vädra kort. ' : '') + sub);
       else if (ahUt < ahIn - 0.3) add('wait', 'Uteluften är torrare men varmare', sub);
@@ -1815,7 +1815,7 @@ $('btnMonths').addEventListener('click', async () => {
     const medel = a => a.length ? a.reduce((s, [v, w]) => s + v * w, 0) / a.reduce((s, [, w]) => s + w, 0) : null;
     const rad = [...m.values()].sort((a, b) => (a.k < b.k ? 1 : -1));
     $('monthsTable').innerHTML = '<thead><tr><th>Månad</th><th>Jordkällaren</th><th>min–max</th><th>Fukt</th><th>Ute</th><th>Ute min</th><th>Timmar &lt; 2 °C</th></tr></thead><tbody>' +
-      (rad.map(e => { const [y, mo] = e.k.split('-'); return `<tr><td>${MON[+mo - 1]} ${y}</td><td>${dec(medel(e.ti))} °C</td><td>${e.ti.length ? `${dec(e.tiMin)} – ${dec(e.tiMax)}` : '–'}</td><td>${dec(medel(e.rh), 0)} %</td><td>${dec(medel(e.tu))} °C</td><td>${e.tu.length ? dec(e.tuMin) : '–'}</td><td>${e.kall}</td></tr>`; }).join('') || '<tr><td colspan="7" class="help">Inga timvärden än.</td></tr>') + '</tbody>';
+      (rad.map(e => { const [y, mo] = e.k.split('-'); return `<tr><td>${MON[+mo - 1]} ${y}</td><td>${dec(medel(e.ti))} °C</td><td>${e.ti.length ? `${dec(e.tiMin)} – ${dec(e.tiMax)}` : '–'}</td><td>${dec(medel(e.rh), 1)} %</td><td>${dec(medel(e.tu))} °C</td><td>${e.tu.length ? dec(e.tuMin) : '–'}</td><td>${e.kall}</td></tr>`; }).join('') || '<tr><td colspan="7" class="help">Inga timvärden än.</td></tr>') + '</tbody>';
     $('monthsWrap').hidden = false; $('monthsHelp').textContent = 'Senaste 12 månaderna';
   } catch (e) { $('monthsHelp').textContent = 'Kunde inte hämta (' + (e.code || e.message) + ').'; }
 });
@@ -2312,7 +2312,7 @@ function health() {
   else if (num(d.rssi) && d.rssi < -78) add('warn', `Svag WiFi-signal (${d.rssi} dBm)`, 'Kostar batteri. Rikta om antennen.');
   if (d.wifiSokte) add('warn', 'Snabbanslutningen fungerade inte senast', d.wifiOrsak ? `Orsak: ${d.wifiOrsak}.` : 'Routern har troligen bytt kanal.');
   else if (num(d.wifiMs) && d.wifiMs > 3000) add('warn', `WiFi-anslutningen tog ${dec(d.wifiMs / 1000, 1)} s`, 'Normalt under 1,5 s.');
-  if (d.fastIp === false) add('', 'Ingen fast IP-adress', 'STATIC_IP i secrets.h sparar ca 0,5 s.');
+  if (d.fastIp === false) add('', 'Ingen fast IP-adress', `${d.natverk ? esc(d.natverk) + ' har ingen fast IP. ' : ''}STATIC_IP i secrets.h sparar ca 0,5 s.`);
   if (d.brownouts > 0) add('warn', `${d.brownouts} omstart${d.brownouts > 1 ? 'er' : ''} på grund av låg spänning (brownout)`, 'Sändningseffekten sänkt. Löd in 1000 µF (C3).');
   if (d.krascher > 0) add('warn', `${d.krascher} krasch${d.krascher > 1 ? 'er' : ''}`, 'Se Händelser.');
   if (d.missade > 0) add('warn', `${d.missade} uppladdning${d.missade > 1 ? 'ar' : ''} misslyckades före den senaste`, d.sistaFel ? `Senaste felet: ${d.sistaFel}.` : '');
@@ -2338,7 +2338,7 @@ function renderDiag() {
   $('diagWhen').textContent = d.at ? `från ${when(d.at)}` : '';
   const r = [
     ['Senaste uppladdningen', `${esc(d.vackt || '–')}${d.varfor ? ` · orsak: ${esc(d.varfor)}` : ''} · programversion ${esc(d.fw || '–')}`],
-    ['WiFi', num(d.rssi) ? `${bars(d.rssi)}${d.rssi} dBm (${signal(d.rssi)}) · kanal ${d.kanal} · router ${esc(d.bssid || '–')}` : '–'],
+    ['WiFi', num(d.rssi) ? `${d.natverk ? `<b>${esc(d.natverk)}</b>${d.natverkAntal > 1 ? ` (av ${d.natverkAntal} nät)` : ''} · ` : ''}${bars(d.rssi)}${d.rssi} dBm (${signal(d.rssi)}) · kanal ${d.kanal} · router ${esc(d.bssid || '–')}` : '–'],
     ['Anslutning', `${dec((d.wifiMs || 0) / 1000, 2)} s · ${d.wifiSnabb ? 'snabbanslutning' : d.wifiSokte ? 'fick söka' : 'vanlig'}${d.wifiOrsak ? ` · ${esc(d.wifiOrsak)}` : ''}`],
     ['IP-adress', `${esc(d.ip || '–')} (${d.fastIp ? 'fast' : 'DHCP'})`],
     ['Sändningseffekt', `${dec(d.txDbm, 1)} dBm${d.lagTx ? ' (sänkt efter brownout)' : ''}`],
