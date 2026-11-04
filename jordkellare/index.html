@@ -455,7 +455,7 @@ dialog.bred{width:min(560px,96vw)}
     <fieldset>
       <legend>Engångskommandon</legend>
       <div class="row">
-        <button id="btnHeatNow" title="SHT40:ans värmare (200 mW i 1 s) torkar bort kondens">Kör värmaren</button>
+        <button id="btnHeatNow" title="SHT40:ans värmare torkar bort kondens: 3 pulser à 200 mW i 1 s, sedan svalnar sensorn i 1 minut och mäter">Kör värmaren</button>
         <button id="btnRestart" title="Startar om sensorn efter nästa uppladdning">Starta om sensorn</button>
         <button id="btnWifiSearch" title="Glömmer sparad kanal och router och söker från början">Sök WiFi på nytt</button>
         <span class="msg" id="cmdMsg"></span>
@@ -2002,7 +2002,7 @@ $('btnSaveSet').addEventListener('click', async () => {
 $('btnSetDefault').addEventListener('click', () => { fillSettings(k => STD[k]); setDirty = true; renderSettings(); msg($('setMsg'), '', 'Standardvärden ifyllda.'); });
 $('btnSnStart').addEventListener('click', () => save({ snabbS: +$('selSnS').value, snabbMin: +$('selSnMin').value, snabbStopp: false }, $('snMsg'), 'Snabbläge beställt.'));
 $('btnSnStop').addEventListener('click', () => save({ snabbStopp: true, snabbMin: 0 }, $('snMsg'), 'Beställt.'));
-$('btnHeatNow').addEventListener('click', () => save({ varmeNu: true }, $('cmdMsg'), 'Värmaren beställd.'));
+$('btnHeatNow').addEventListener('click', () => save({ varmeNu: true }, $('cmdMsg'), 'Värmaren beställd. Den körs före mätningen efter nästa uppladdning.'));
 $('btnRestart').addEventListener('click', async () => { if (await confirmDlg('Starta om sensorn?', 'Sker efter nästa uppladdning.', 'Starta om')) save({ omstart: true }, $('cmdMsg'), 'Omstart beställd.'); });
 $('btnWifiSearch').addEventListener('click', () => save({ wifiSok: true }, $('cmdMsg'), 'Beställt.'));
 
