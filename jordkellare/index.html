@@ -9,6 +9,26 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#d4d0c8">
+<script>
+// Tema: "ljust", "morkt" eller "system" (följer datorns/mobilens inställning)
+(function () {
+  let val = 'system';
+  try { val = localStorage.getItem('jk-tema') || 'system'; } catch (e) {}
+  const mq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : null;
+  const satt = () => {
+    const morkt = val === 'morkt' || (val === 'system' && mq && mq.matches);
+    document.documentElement.dataset.tema = morkt ? 'morkt' : 'ljust';
+    const m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.content = morkt ? '#262522' : '#d4d0c8';
+  };
+  window.jkTema = {
+    get: () => val,
+    set: v => { val = v; try { localStorage.setItem('jk-tema', v); } catch (e) {} satt(); },
+  };
+  if (mq) (mq.addEventListener ? mq.addEventListener('change', satt) : mq.addListener(satt));
+  satt();
+})();
+</script>
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Jordkällaren">
@@ -18,11 +38,29 @@
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600&display=swap" rel="stylesheet">
 <style>
 :root{
+  color-scheme:light;
   --bg:#d4d0c8; --face:#e4e1da; --hi:#ffffff; --lo:#8a877f; --dk:#44423d;
   --ink:#1d1c1a; --muted:#5c5a55; --field:#ffffff; --sel:#27456f; --selink:#fff;
   --warn:#8a4b00; --bad:#a0231a; --ok:#2d6b2d;
-  --c-in:#27456f; --c-ut:#b0651a; --c-rh:#2d6b2d; --c-bat:#44423d; --c-rs:#7b4fa0;
+  --c-in:#27456f; --c-ut:#b0651a; --c-rh:#2d6b2d; --c-bat:#44423d; --c-rs:#7b4fa0; --c-ly:#5f7fae;
+  --grid:#ebe8e1; --grid2:#f1eee8; --axis:#b9b6ae; --note:#8a4b00; --flag:#c99a2e; --dot-ring:#fff;
+  --line:#e6e3dc; --line2:#d9d6cf; --line3:#e0ddd6; --pressed:#cfccc4; --logo:#161614;
+  --banner:#f3edd8; --banner-bad:#f4ddd8; --banner-info:#dde4ee;
+  --shadow:rgba(0,0,0,.18); --backdrop:rgba(40,38,34,.35); --lamp-hi:rgba(255,255,255,.6);
 }
+/* Mörkt: samma upphöjda stil, men grafitgrått. Väljs med knappen Tema (eller systemets inställning). */
+:root[data-tema="morkt"]{
+  color-scheme:dark;
+  --bg:#262522; --face:#302f2b; --hi:#4d4b45; --lo:#141412; --dk:#0e0e0d;
+  --ink:#ebe8e1; --muted:#a8a49b; --field:#1c1b19; --sel:#4f78b4; --selink:#fff;
+  --warn:#e3a54e; --bad:#ef7d6e; --ok:#7cc47c;
+  --c-in:#7aa3dc; --c-ut:#e69a52; --c-rh:#74c074; --c-bat:#d2cec5; --c-rs:#b993dc; --c-ly:#8ea9cf;
+  --grid:#2e2d29; --grid2:#262522; --axis:#5a5852; --note:#e3a54e; --flag:#d9ab45; --dot-ring:#1c1b19;
+  --line:#33322e; --line2:#3a3934; --line3:#36352f; --pressed:#3d3c37; --logo:#ebe8e1;
+  --banner:#3b3524; --banner-bad:#472a25; --banner-info:#283342;
+  --shadow:rgba(0,0,0,.5); --backdrop:rgba(0,0,0,.55); --lamp-hi:rgba(255,255,255,.25);
+}
+.temaknapp{min-width:0}
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%}
 body{background:var(--bg);color:var(--ink);font-family:"EB Garamond",Georgia,"Times New Roman",serif;font-size:17px;line-height:1.35;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
@@ -32,7 +70,7 @@ button:active{border-style:inset}
 button:disabled{color:GrayText;cursor:default}
 button:disabled:active{border-style:outset}
 button.default{outline:1px solid var(--dk);outline-offset:-5px}
-button[aria-pressed="true"]{border-style:inset;background:#cfccc4;font-weight:600}
+button[aria-pressed="true"]{border-style:inset;background:var(--pressed);font-weight:600}
 input[type=text],input[type=password],input[type=number]{background:var(--field);border:2px inset var(--face);padding:4px 6px;border-radius:0;width:100%}
 input[type=number]{width:110px}
 select{background:var(--field);border:2px inset var(--face);padding:3px 5px;border-radius:0}
@@ -54,7 +92,7 @@ main{flex:1 1 auto;padding:10px;display:grid;grid-template-columns:repeat(2,minm
 .help{color:var(--muted);font-size:15px;margin:4px 0}
 fieldset{border:2px groove var(--hi);margin:10px 0 0;padding:6px 10px 8px;min-width:0}
 legend{padding:0 4px;font-weight:600}
-.lamp{display:inline-block;width:12px;height:12px;border:1px solid var(--dk);background:#b9b6ae;box-shadow:inset 1px 1px 0 rgba(255,255,255,.6);vertical-align:-1px}
+.lamp{display:inline-block;width:12px;height:12px;border:1px solid var(--dk);background:var(--axis);box-shadow:inset 1px 1px 0 var(--lamp-hi);vertical-align:-1px}
 .lamp.ok{background:#3f8f3f} .lamp.bad{background:#b33a2b} .lamp.wait{background:#c99a2e}
 .msg{font-size:16px}
 .msg.ok{color:var(--ok)} .msg.bad{color:var(--bad)} .msg.warn{color:var(--warn)}
@@ -86,7 +124,7 @@ legend{padding:0 4px;font-weight:600}
 .charthead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin-top:10px;font-weight:600}
 .charthead .key{font-weight:400;font-size:15px;color:var(--muted)}
 .key i{display:inline-block;width:18px;height:3px;vertical-align:4px;margin-right:5px}
-.tip{position:absolute;pointer-events:none;background:var(--face);border:2px outset var(--hi);padding:3px 8px;font-size:14px;white-space:nowrap;z-index:5;box-shadow:2px 2px 0 rgba(0,0,0,.15)}
+.tip{position:absolute;pointer-events:none;background:var(--face);border:2px outset var(--hi);padding:3px 8px;font-size:14px;white-space:nowrap;z-index:5;box-shadow:2px 2px 0 var(--shadow)}
 .tip b{font-weight:600}
 .small2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px}
@@ -104,34 +142,34 @@ legend{padding:0 4px;font-weight:600}
 
 /* ---------- Tabeller ---------- */
 table.rows{width:100%;border-collapse:collapse;background:var(--field);border:2px inset var(--face)}
-table.rows th,table.rows td{text-align:left;padding:3px 8px;border-bottom:1px solid #e6e3dc;vertical-align:top;font-size:16px}
+table.rows th,table.rows td{text-align:left;padding:3px 8px;border-bottom:1px solid var(--line);vertical-align:top;font-size:16px}
 table.rows th{font-weight:600;width:34%;color:var(--muted)}
 table.log th{width:auto;color:var(--ink);border-bottom:1px solid var(--lo);position:sticky;top:0;background:var(--face)}
 table.log td.t{white-space:nowrap;color:var(--muted);width:1%}
 .logwrap{max-height:380px;overflow:auto;border:2px inset var(--face)}
 .logwrap table.rows{border:0}
 ul.health{list-style:none;margin:0 0 8px;padding:0}
-ul.health li{display:grid;grid-template-columns:18px 1fr;gap:6px;padding:4px 0;border-bottom:1px solid #d9d6cf}
+ul.health li{display:grid;grid-template-columns:18px 1fr;gap:6px;padding:4px 0;border-bottom:1px solid var(--line2)}
 ul.health li .lamp{margin-top:5px}
 ul.health li small{display:block;color:var(--muted);font-size:15px}
 
 /* ---------- Dialog och inloggning ---------- */
-dialog{background:var(--face);border:2px outset var(--hi);padding:0;color:var(--ink);width:min(440px,94vw);box-shadow:2px 3px 0 rgba(0,0,0,.18)}
-dialog::backdrop{background:rgba(40,38,34,.35)}
+dialog{background:var(--face);border:2px outset var(--hi);padding:0;color:var(--ink);width:min(440px,94vw);box-shadow:2px 3px 0 var(--shadow)}
+dialog::backdrop{background:var(--backdrop)}
 .dhead{background:var(--sel);color:#fff;padding:5px 10px;font-weight:600;display:flex;align-items:center;gap:8px}
 .dhead svg{width:18px;height:18px}
 .dbody{padding:12px 16px 4px}
 .dbody p{margin:0 0 8px}
 .dfoot{display:flex;gap:6px;justify-content:flex-end;padding:8px 16px 12px;border-top:2px groove var(--hi)}
 .loginwrap{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}
-.window{background:var(--face);border:2px outset var(--hi);width:min(400px,100%);box-shadow:2px 3px 0 rgba(0,0,0,.18)}
+.window{background:var(--face);border:2px outset var(--hi);width:min(400px,100%);box-shadow:2px 3px 0 var(--shadow)}
 .window .dfoot{border-top:0}
 .field{display:block;margin:0 0 10px}
 .field span{display:block;margin-bottom:3px}
 .err{color:var(--bad);font-size:15px;min-height:1.3em;margin:0}
-.banner{grid-column:1 / -1;background:#f3edd8;border:2px groove var(--hi);padding:8px 12px;font-size:16px}
-.banner.bad{background:#f4ddd8}
-.banner.info{background:#dde4ee}
+.banner{grid-column:1 / -1;background:var(--banner);border:2px groove var(--hi);padding:8px 12px;font-size:16px}
+.banner.bad{background:var(--banner-bad)}
+.banner.info{background:var(--banner-info)}
 .banner + .banner{margin-top:-4px}
 footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc(10px + env(safe-area-inset-bottom))}
 
@@ -161,9 +199,9 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
 .verktyg{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0 2px}
 .chart{cursor:grab;user-select:none;-webkit-user-select:none}
 .chart.drar{cursor:grabbing}
-.rensat{background:#f3edd8;border:2px groove var(--hi);padding:4px 10px;font-size:15px;margin:6px 0}
+.rensat{background:var(--banner);border:2px groove var(--hi);padding:4px 10px;font-size:15px;margin:6px 0}
 .notlista{list-style:none;margin:6px 0 0;padding:0;font-size:15px}
-.notlista li{display:grid;grid-template-columns:8.6em minmax(0,1fr) auto;gap:0 10px;align-items:baseline;padding:3px 0;border-bottom:1px solid #e0ddd6}
+.notlista li{display:grid;grid-template-columns:8.6em minmax(0,1fr) auto;gap:0 10px;align-items:baseline;padding:3px 0;border-bottom:1px solid var(--line3)}
 @media (max-width:600px){.notlista li{grid-template-columns:minmax(0,1fr) auto}.notlista li .t{grid-column:1/-1;font-size:14px}}
 .notlista li .t{color:var(--muted);white-space:nowrap;flex:none}
 .notlista li button{margin-left:auto;min-height:24px;padding:0 8px;font-size:14px}
@@ -176,7 +214,7 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
 .notlista li>span:not(.t){min-width:0;overflow-wrap:anywhere}
 .notlista li.fler,.notlista li.help{display:block;border-bottom:0;padding-top:6px}
 .notlista li.fler button{margin-left:0}
-.advice{display:grid;grid-template-columns:18px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid #d9d6cf}
+.advice{display:grid;grid-template-columns:18px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid var(--line2)}
 .advice .lamp{margin-top:5px}
 .advice small{display:block;color:var(--muted);font-size:15px}
 .progress{height:14px;border:2px inset var(--face);background:var(--field);position:relative}
@@ -205,7 +243,7 @@ dialog.bred{width:min(560px,96vw)}
       <path d="M38 82V60a12 12 0 0 1 24 0V82Z" fill="#000"/>
     </mask>
     <symbol id="logo" viewBox="0 0 100 100">
-      <g fill="#161614">
+      <g style="fill:var(--logo)">
         <path d="M8 82Q50 6 92 82Z" mask="url(#doormask)"/>
         <rect x="64" y="20" width="7" height="34"/>
         <rect x="60" y="15" width="15" height="6" rx="1"/>
@@ -218,6 +256,7 @@ dialog.bred{width:min(560px,96vw)}
 <header class="toolbar">
   <span class="brand"><svg aria-hidden="true"><use href="#logo"/></svg>Jordkällaren</span>
   <button id="btnInstall" hidden title="Installera sidan som en app på datorn eller mobilen">Installera som app</button>
+  <button id="btnTema" class="temaknapp" title="Ljust, mörkt eller som systemet">Tema: System</button>
   <button id="btnLogout" hidden>Logga ut</button>
   <span id="topStatus" class="status"></span>
 </header>
@@ -225,7 +264,7 @@ dialog.bred{width:min(560px,96vw)}
 <!-- ---------- Inloggning ---------- -->
 <div class="loginwrap" id="viewLogin" hidden>
   <form class="window" id="loginForm" autocomplete="on">
-    <div class="dhead"><svg aria-hidden="true" style="filter:invert(1)"><use href="#logo"/></svg>Logga in</div>
+    <div class="dhead"><svg aria-hidden="true" style="--logo:#fff"><use href="#logo"/></svg>Logga in</div>
     <div class="dbody">
             <label class="field"><span>Användarnamn</span><input type="text" id="inUser" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
       <label class="field"><span>Lösenord</span><input type="password" id="inPass" autocomplete="current-password" required></label>
@@ -707,7 +746,7 @@ function lamp(el, st) { el.className = 'lamp' + (st ? ' ' + st : ''); }
 function bars(rssi) {
   const n = rssi >= -55 ? 4 : rssi >= -67 ? 3 : rssi >= -75 ? 2 : rssi >= -85 ? 1 : 0;
   let h = '<svg class="bars" width="20" height="14" viewBox="0 0 20 14" aria-hidden="true">';
-  for (let i = 0; i < 4; i++) { const hh = 4 + i * 3; h += `<rect x="${i * 5}" y="${14 - hh}" width="3.4" height="${hh}" fill="${i < n ? '#1d1c1a' : '#b9b6ae'}"/>`; }
+  for (let i = 0; i < 4; i++) { const hh = 4 + i * 3; h += `<rect x="${i * 5}" y="${14 - hh}" width="3.4" height="${hh}" style="fill:var(${i < n ? '--ink' : '--axis'})"/>`; }
   return h + '</svg>';
 }
 const signal = r => r >= -55 ? 'utmärkt' : r >= -67 ? 'bra' : r >= -75 ? 'okej' : r >= -85 ? 'svag' : 'mycket svag';
@@ -750,6 +789,14 @@ const granse = (bit) => { const r = LARM_TXT.find(x => x[0] === bit); return lat
 const cfg = k => (inst && inst[k] != null ? inst[k] : diag?.schema && diag.schema[k] != null ? diag.schema[k] : (diag?.kal && diag.kal[k] != null ? diag.kal[k] : STD[k]));
 const myName = () => myRecip?.namn || roller[user?.uid]?.namn || (user?.email || 'olle').split('@')[0];
 const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const TEMA_TXT = { system: 'Tema: System', ljust: 'Tema: Ljust', morkt: 'Tema: Mörkt' };
+const TEMA_NASTA = { system: 'ljust', ljust: 'morkt', morkt: 'system' };
+$('btnTema').textContent = TEMA_TXT[window.jkTema.get()] || TEMA_TXT.system;
+$('btnTema').addEventListener('click', () => {
+  const v = TEMA_NASTA[window.jkTema.get()] || 'system';
+  window.jkTema.set(v);
+  $('btnTema').textContent = TEMA_TXT[v];
+});
 const lsSet = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} };
 
 /* ---------- Databasen (Firebase, eller en låtsasdatabas i demoläget) ----------
@@ -1363,10 +1410,10 @@ function drawChart(el, series, opt) {
   const sx = t => L + (t - t0) / (t1 - t0) * (W - L - R);
   const sy = v => T + (1 - (v - y0) / (y1 - y0 || 1)) * (H - T - B);
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt.label)}"><defs><clipPath id="clip-${el.id}"><rect x="${L}" y="${T - 2}" width="${W - L - R}" height="${H - T - B + 4}"/></clipPath></defs>`;
-  for (const v of yt) s += `<line x1="${L}" x2="${W - R}" y1="${sy(v)}" y2="${sy(v)}" stroke="${v === 0 && y0 < 0 ? '#b9b6ae' : '#ebe8e1'}"/><text x="${L - 6}" y="${sy(v) + 4}" font-size="12" text-anchor="end" fill="#5c5a55">${dec(v, opt.tickDec ?? tickDecimals(yt))}</text>`;
-  for (const [t, lab] of xTicks(t0, t1, Math.max(2, Math.floor(W / 80)))) s += `<line x1="${sx(t)}" x2="${sx(t)}" y1="${T}" y2="${H - B}" stroke="#f1eee8"/><text x="${sx(t)}" y="${H - 6}" font-size="12" text-anchor="middle" fill="#5c5a55">${lab}</text>`;
+  for (const v of yt) s += `<line x1="${L}" x2="${W - R}" y1="${sy(v)}" y2="${sy(v)}" style="stroke:var(${v === 0 && y0 < 0 ? '--axis' : '--grid'})"/><text x="${L - 6}" y="${sy(v) + 4}" font-size="12" text-anchor="end" style="fill:var(--muted)">${dec(v, opt.tickDec ?? tickDecimals(yt))}</text>`;
+  for (const [t, lab] of xTicks(t0, t1, Math.max(2, Math.floor(W / 80)))) s += `<line x1="${sx(t)}" x2="${sx(t)}" y1="${T}" y2="${H - B}" style="stroke:var(--grid2)"/><text x="${sx(t)}" y="${H - 6}" font-size="12" text-anchor="middle" style="fill:var(--muted)">${lab}</text>`;
   // Anteckningar
-  for (const n of opt.notes || []) if (n.at >= t0 && n.at <= t1) s += `<line x1="${sx(n.at)}" x2="${sx(n.at)}" y1="${T}" y2="${H - B}" stroke="#8a4b00" stroke-dasharray="2 3"/>${opt.noteFlags ? `<path d="M${sx(n.at)} ${T}h9l-3 4 3 4h-9z" fill="#c99a2e"/>` : ''}`;
+  for (const n of opt.notes || []) if (n.at >= t0 && n.at <= t1) s += `<line x1="${sx(n.at)}" x2="${sx(n.at)}" y1="${T}" y2="${H - B}" style="stroke:var(--note)" stroke-dasharray="2 3"/>${opt.noteFlags ? `<path d="M${sx(n.at)} ${T}h9l-3 4 3 4h-9z" style="fill:var(--flag)"/>` : ''}`;
   s += `<g clip-path="url(#clip-${el.id})">`;
   for (const se of series) {
     const vis = se.pts.filter(p => p[0] >= t0 - (t1 - t0) * 0.02 && p[0] <= t1 + (t1 - t0) * 0.02);
@@ -1380,17 +1427,17 @@ function drawChart(el, series, opt) {
       if (!seg.length) return;
       d += seg.map((p, i) => `${i ? 'L' : 'M'}${sx(p.t).toFixed(1)} ${sy(p.v).toFixed(1)}`).join('');
       if (seg.length === 1) d += `h0.1`;
-      if (band) bandSvg += `<path d="${seg.map((p, i) => `${i ? 'L' : 'M'}${sx(p.t).toFixed(1)} ${sy(p.mx).toFixed(1)}`).join('')}${seg.slice().reverse().map(p => `L${sx(p.t).toFixed(1)} ${sy(p.mn).toFixed(1)}`).join('')}Z" fill="${se.color}" opacity="0.16"/>`;
+      if (band) bandSvg += `<path d="${seg.map((p, i) => `${i ? 'L' : 'M'}${sx(p.t).toFixed(1)} ${sy(p.mx).toFixed(1)}`).join('')}${seg.slice().reverse().map(p => `L${sx(p.t).toFixed(1)} ${sy(p.mn).toFixed(1)}`).join('')}Z" style="fill:${se.color}" opacity="0.16"/>`;
       seg = [];
     };
     pts.forEach((p, i) => { if (i && p.t - pts[i - 1].t > gapLim) flush(); seg.push(p); });
     flush();
-    s += bandSvg + `<path d="${d}" fill="none" stroke="${se.color}" stroke-width="${se.dash ? 1.5 : 2}"${se.dash ? ' stroke-dasharray="5 4" opacity="0.8"' : ''} stroke-linejoin="round" stroke-linecap="round"/>`;
+    s += bandSvg + `<path d="${d}" fill="none" style="stroke:${se.color}" stroke-width="${se.dash ? 1.5 : 2}"${se.dash ? ' stroke-dasharray="5 4" opacity="0.8"' : ''} stroke-linejoin="round" stroke-linecap="round"/>`;
     // Prickar för varje mätning när man zoomat in
-    if (!many && !se.dash && !opt.noDots && pts.length <= 150) s += pts.map(p => `<circle cx="${sx(p.t).toFixed(1)}" cy="${sy(p.v).toFixed(1)}" r="2.4" fill="${se.color}"/>`).join('');
+    if (!many && !se.dash && !opt.noDots && pts.length <= 150) s += pts.map(p => `<circle cx="${sx(p.t).toFixed(1)}" cy="${sy(p.v).toFixed(1)}" r="2.4" style="fill:${se.color}"/>`).join('');
   }
-  s += `</g><line class="hl" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="#44423d" stroke-dasharray="3 3" visibility="hidden"/>`;
-  for (let i = 0; i < series.length; i++) s += `<circle class="hd${i}" r="4" fill="${series[i].color}" stroke="#fff" stroke-width="1.5" visibility="hidden"/>`;
+  s += `</g><line class="hl" x1="0" x2="0" y1="${T}" y2="${H - B}" style="stroke:var(--ink)" stroke-dasharray="3 3" visibility="hidden"/>`;
+  for (let i = 0; i < series.length; i++) s += `<circle class="hd${i}" r="4" style="fill:${series[i].color};stroke:var(--dot-ring)" stroke-width="1.5" visibility="hidden"/>`;
   s += `</svg><div class="tip" hidden></div>`;
   el.innerHTML = s;
   el._chart = { series, sx, sy, W, L, R, t0, t1, opt };
@@ -1415,7 +1462,7 @@ function chartHover(el, ev) {
     lines.push(`<span style="color:${se.color}">●</span> ${esc(se.name)} <b>${dec(q[1], c.opt.dec ?? 1)}${c.opt.unit}</b>${extra}`);
   });
   const note = (c.opt.notes || []).find(n => Math.abs(c.sx(n.at) - x) < 6);
-  if (note) lines.push(`<span style="color:#8a4b00">✎</span> ${esc(note.text)}`);
+  if (note) lines.push(`<span style="color:var(--note)">✎</span> ${esc(note.text)}`);
   const hl = svg.querySelector('.hl'), tip = el.querySelector('.tip');
   if (best == null && !note) { hl.setAttribute('visibility', 'hidden'); tip.hidden = true; return; }
   const bt = best ?? note.at;
@@ -1537,25 +1584,25 @@ function renderHist() {
   const gap = H ? 3 * 3600e3 : Math.max(3 * Math.max(Math.min(intervalMs(), medDt * 4), medDt), 2 * 60e3);
   const base = { t0, t1, gap };
   const nts = notes.filter(n => n.at >= clearCutoff());
-  const tempSer = [{ name: 'Jordkällaren', color: '#27456f', pts: ser('ti') }, { name: 'Ute', color: '#b0651a', pts: ser('tu') }];
+  const tempSer = [{ name: 'Jordkällaren', color: 'var(--c-in)', pts: ser('ti') }, { name: 'Ute', color: 'var(--c-ut)', pts: ser('tu') }];
   const lyOn = lastYearOn();
   $('lastYearWrap').hidden = t1 - t0 < 20 * 864e5;
   $('keyLastYear').hidden = !lyOn;
   if (lyOn) {
     const shift = 365 * 864e5;
     const lr = ly.rows.map(h => ({ ...h, t: h.at + 1800e3 + shift })).filter(h => h.t >= t0 - 864e5 && h.t <= t1 + 864e5);
-    tempSer.push({ name: 'Jordkällaren förra året', color: '#5f7fae', dash: true, pts: lr.filter(h => num(h.ti)).map(h => [h.t, h.ti]) });
+    tempSer.push({ name: 'Jordkällaren förra året', color: 'var(--c-ly)', dash: true, pts: lr.filter(h => num(h.ti)).map(h => [h.t, h.ti]) });
   }
   drawChart($('chTemp'), tempSer, { ...base, unit: ' °C', label: 'Temperatur', minSpan: 2, h: 230, notes: nts, noteFlags: true });
-  drawChart($('chRh'), [{ name: 'Fukt', color: '#2d6b2d', pts: ser('rh') }], { ...base, unit: ' %', dec: 1, label: 'Luftfuktighet', minSpan: 2, clamp: [0, 100], h: 170, notes: nts });
+  drawChart($('chRh'), [{ name: 'Fukt', color: 'var(--c-rh)', pts: ser('rh') }], { ...base, unit: ' %', dec: 1, label: 'Luftfuktighet', minSpan: 2, clamp: [0, 100], h: 170, notes: nts });
   const gapUpp = Math.max(gap, 8 * 3600e3);   // nattetid laddar den upp var 3:e timme, och en kan misslyckas
   const tid = h => (H ? h.at + 1800e3 : histTime(h)), cut = clearCutoff(), bpad = (t1 - t0) * 0.03;
   const batPts = batProcentSerie(H ? hour.rows : raw.rows, tid, laddHandelser()).filter(p => p[0] >= Math.max(t0 - bpad, cut) && p[0] <= t1 + bpad);
   // Batteri och WiFi mäts bara vid uppladdningarna och i hela steg (1 %, 1 dBm). Ett glidande medel
   // ger en lugn linje i stället för en sågtand mellan två steg.
   const glatt = Math.max(90 * 60e3, (t1 - t0) / 48);
-  drawChart($('chBat'), [{ name: 'Batteri', color: '#44423d', pts: jamna(batPts, glatt) }], { ...base, gap: gapUpp, unit: ' %', dec: 0, label: 'Batteri', minSpan: 6, clamp: [0, 100], h: 170, ticks: 4, noDots: true });
-  drawChart($('chRs'), [{ name: 'Signal', color: '#7b4fa0', pts: jamna(ser('rs'), glatt) }], { ...base, gap: gapUpp, unit: ' dBm', dec: 0, label: 'WiFi-signal', minSpan: 12, h: 170, ticks: 4, noDots: true });
+  drawChart($('chBat'), [{ name: 'Batteri', color: 'var(--c-bat)', pts: jamna(batPts, glatt) }], { ...base, gap: gapUpp, unit: ' %', dec: 0, label: 'Batteri', minSpan: 6, clamp: [0, 100], h: 170, ticks: 4, noDots: true });
+  drawChart($('chRs'), [{ name: 'Signal', color: 'var(--c-rs)', pts: jamna(ser('rs'), glatt) }], { ...base, gap: gapUpp, unit: ' dBm', dec: 0, label: 'WiFi-signal', minSpan: 12, h: 170, ticks: 4, noDots: true });
 
   const inV = rows.filter(h => h.t >= t0 && h.t <= t1);
   const antal = H ? inV.reduce((a, h) => a + (h.n || 0), 0) : inV.length;
