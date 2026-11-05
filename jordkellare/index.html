@@ -1336,6 +1336,18 @@ function bucketize(pts, t0, t1, n) {
   }
   return [...b.entries()].sort((a, c) => a[0] - c[0]).map(([i, e]) => ({ t: t0 + (i + 0.5) * w, v: e.s / e.c, mn: e.mn, mx: e.mx }));
 }
+// Glidande medel över win ms (centrerat): [t, medel] för varje punkt
+function jamna(pts, win) {
+  const ut = [];
+  let a = 0, b = 0, sum = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const t = pts[i][0];
+    while (b < pts.length && pts[b][0] <= t + win / 2) sum += pts[b++][1];
+    while (pts[a][0] < t - win / 2) sum -= pts[a++][1];
+    ut.push([t, sum / (b - a)]);
+  }
+  return ut;
+}
 function drawChart(el, series, opt) {
   const W = Math.max(280, Math.round((el.clientWidth || 800) - 12)), H = opt.h || 210, L = 44, R = 10, T = 10, B = 24;
   const { t0, t1 } = opt;
@@ -1375,7 +1387,7 @@ function drawChart(el, series, opt) {
     flush();
     s += bandSvg + `<path d="${d}" fill="none" stroke="${se.color}" stroke-width="${se.dash ? 1.5 : 2}"${se.dash ? ' stroke-dasharray="5 4" opacity="0.8"' : ''} stroke-linejoin="round" stroke-linecap="round"/>`;
     // Prickar för varje mätning när man zoomat in
-    if (!many && !se.dash && pts.length <= 150) s += pts.map(p => `<circle cx="${sx(p.t).toFixed(1)}" cy="${sy(p.v).toFixed(1)}" r="2.4" fill="${se.color}"/>`).join('');
+    if (!many && !se.dash && !opt.noDots && pts.length <= 150) s += pts.map(p => `<circle cx="${sx(p.t).toFixed(1)}" cy="${sy(p.v).toFixed(1)}" r="2.4" fill="${se.color}"/>`).join('');
   }
   s += `</g><line class="hl" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="#44423d" stroke-dasharray="3 3" visibility="hidden"/>`;
   for (let i = 0; i < series.length; i++) s += `<circle class="hd${i}" r="4" fill="${series[i].color}" stroke="#fff" stroke-width="1.5" visibility="hidden"/>`;
@@ -1536,11 +1548,14 @@ function renderHist() {
   }
   drawChart($('chTemp'), tempSer, { ...base, unit: ' °C', label: 'Temperatur', minSpan: 2, h: 230, notes: nts, noteFlags: true });
   drawChart($('chRh'), [{ name: 'Fukt', color: '#2d6b2d', pts: ser('rh') }], { ...base, unit: ' %', dec: 1, label: 'Luftfuktighet', minSpan: 2, clamp: [0, 100], h: 170, notes: nts });
-  const gapUpp = Math.max(gap, 4 * 3600e3);
+  const gapUpp = Math.max(gap, 8 * 3600e3);   // nattetid laddar den upp var 3:e timme, och en kan misslyckas
   const tid = h => (H ? h.at + 1800e3 : histTime(h)), cut = clearCutoff(), bpad = (t1 - t0) * 0.03;
   const batPts = batProcentSerie(H ? hour.rows : raw.rows, tid, laddHandelser()).filter(p => p[0] >= Math.max(t0 - bpad, cut) && p[0] <= t1 + bpad);
-  drawChart($('chBat'), [{ name: 'Batteri', color: '#44423d', pts: batPts }], { ...base, gap: gapUpp, unit: ' %', dec: 0, label: 'Batteri', minSpan: 5, clamp: [0, 100], h: 170, ticks: 4 });
-  drawChart($('chRs'), [{ name: 'Signal', color: '#7b4fa0', pts: ser('rs') }], { ...base, gap: gapUpp, unit: ' dBm', dec: 0, label: 'WiFi-signal', minSpan: 10, h: 170, ticks: 4 });
+  // Batteri och WiFi mäts bara vid uppladdningarna och i hela steg (1 %, 1 dBm). Ett glidande medel
+  // ger en lugn linje i stället för en sågtand mellan två steg.
+  const glatt = Math.max(90 * 60e3, (t1 - t0) / 48);
+  drawChart($('chBat'), [{ name: 'Batteri', color: '#44423d', pts: jamna(batPts, glatt) }], { ...base, gap: gapUpp, unit: ' %', dec: 0, label: 'Batteri', minSpan: 6, clamp: [0, 100], h: 170, ticks: 4, noDots: true });
+  drawChart($('chRs'), [{ name: 'Signal', color: '#7b4fa0', pts: jamna(ser('rs'), glatt) }], { ...base, gap: gapUpp, unit: ' dBm', dec: 0, label: 'WiFi-signal', minSpan: 12, h: 170, ticks: 4, noDots: true });
 
   const inV = rows.filter(h => h.t >= t0 && h.t <= t1);
   const antal = H ? inV.reduce((a, h) => a + (h.n || 0), 0) : inV.length;
