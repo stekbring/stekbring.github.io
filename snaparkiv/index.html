@@ -1,0 +1,1303 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Snaparkiv</title>
+<meta name="description" content="Visa din Snapchat-export: chattar, memories och bilagor. Allt läses lokalt i webbläsaren.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj4KICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0iI2Y0YjYzZiIvPgogIDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzFiMTQwNSIgc3Ryb2tlLXdpZHRoPSIzMCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIj4KICAgIDxyZWN0IHg9Ijk2IiB5PSIxMTIiIHdpZHRoPSIzMjAiIGhlaWdodD0iNzYiIHJ4PSIxOCIvPgogICAgPHBhdGggZD0iTTEyNCAxODh2MTcyYTI4IDI4IDAgMCAwIDI4IDI4aDIwOGEyOCAyOCAwIDAgMCAyOC0yOFYxODgiLz4KICA8L2c+CiAgPHBhdGggZD0iTTE2OCAzNTIgMjI2IDI2OGw0MCA1NCAyOC0zNCA1MCA2NHoiIGZpbGw9IiMxYjE0MDUiLz4KICA8Y2lyY2xlIGN4PSIzMjAiIGN5PSIyNDgiIHI9IjIwIiBmaWxsPSIjMWIxNDA1Ii8+Cjwvc3ZnPgo=">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#14171b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Snaparkiv">
+<meta property="og:title" content="Snaparkiv">
+<meta property="og:description" content="Bläddra i din Snapchat-export: chattar, memories, bilder och videor. Allt läses lokalt – inget laddas upp.">
+<meta property="og:image" content="https://stekbring.github.io/snaparkiv/icons/og.png">
+<meta property="og:url" content="https://stekbring.github.io/snaparkiv/">
+<meta name="twitter:card" content="summary_large_image">
+<script>try{if(localStorage.getItem('snaparkiv.theme')==='light')document.documentElement.dataset.theme='light'}catch(e){}</script>
+<style>/* ===== Snaparkiv – samma design som Egna10 (egna20) och Olles Hälsa: ”Kväll” = mörk yta med bärnstensgul accent, ljust läge som alternativ. ===== */
+:root{
+  color-scheme:dark;
+  --bg:#101216; --surface:#181b20; --surface-2:#1e2228; --sunken:#0e1013;
+  --border:#262b32; --border-strong:#353b44;
+  --text:#e8eaee; --muted:#96a0ac;
+  --accent:#f4b63f; --accent-hover:#ffc65c; --accent-ink:#1b1405; --accent-soft:rgba(244,182,63,.14); --accent-fg:#f4b63f;
+  --ok:#52c98d; --warn:#f2a25c; --danger:#f06a5f; --danger-soft:rgba(240,106,95,.14);
+  --blue:#5aa9e6; --blue-soft:rgba(90,169,230,.14); --gray:#7d8794;
+  --radius-sm:8px; --radius-btn:7px; --radius-card:12px;
+  --shadow-lg:0 30px 80px rgba(0,0,0,.6); --shadow-float:0 10px 30px rgba(0,0,0,.5);
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --topbar:#14171b; --topbar-ink:#e8eaee; --topbar-border:#23272e; --tb-btn-ink:#cfd4dc; --tb-btn-hover:#20242b;
+  --field:#12151a; --btn:#22262d; --btn-ink:#e3e6eb; --btn-border:#343a43; --btn-hover:#2a2f37;
+  --row-hover:#1f2329; --bubble-me:#3a2f17; --bubble-me-ink:#f6e7c8; --bubble:#22262d;
+  --focus:0 0 0 3px color-mix(in srgb,var(--accent) 28%,transparent);
+}
+html[data-theme="light"]{
+  color-scheme:light;
+  --bg:#eceef1; --surface:#ffffff; --surface-2:#f6f7f9; --sunken:#e8ebef;
+  --border:#dfe2e7; --border-strong:#cbd0d8;
+  --text:#1a1d22; --muted:#626b77;
+  --accent:#f4b63f; --accent-hover:#eaa928; --accent-ink:#1b1405; --accent-soft:rgba(244,182,63,.22); --accent-fg:#94600a;
+  --ok:#1d8a4b; --warn:#b45309; --danger:#cc3a2f; --danger-soft:#fbe7e5;
+  --blue:#2f7fc0; --blue-soft:#e3eff9; --gray:#8a93a0;
+  --shadow-lg:0 30px 80px rgba(20,24,32,.25); --shadow-float:0 8px 24px rgba(20,30,50,.18);
+  --topbar:#ffffff; --topbar-ink:#1a1d22; --topbar-border:#e1e4e9; --tb-btn-ink:#2b3038; --tb-btn-hover:#eef0f3;
+  --field:#ffffff; --btn:#ffffff; --btn-ink:#1f242b; --btn-border:#d2d7de; --btn-hover:#f1f3f6;
+  --row-hover:#f3f5f8; --bubble-me:#fbe8bf; --bubble-me-ink:#2a1e05; --bubble:#eef0f3;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14.5px;line-height:1.45;-webkit-font-smoothing:antialiased;overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+[hidden]{display:none !important}
+a{color:var(--accent-fg)}
+h1,h2,h3{margin:0}
+
+/* ---------- Knappar och fält ---------- */
+button{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--btn);color:var(--btn-ink);border:1px solid var(--btn-border);border-radius:var(--radius-btn);padding:5px 12px;min-height:34px;cursor:pointer;font-weight:500;line-height:1.2;transition:background .12s,border-color .12s,color .12s,transform .08s;white-space:nowrap}
+button:hover{background:var(--btn-hover)}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.45;cursor:default;transform:none}
+button.default{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+button.default:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+button.ghost{background:transparent;border-color:transparent;color:var(--muted)}
+button.ghost:hover{background:var(--row-hover);color:var(--text)}
+button.icon{padding:0;width:34px;flex:none}
+button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-fg);font-weight:600}
+.ic{width:17px;height:17px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=text],input[type=search],input[type=date],select{background:var(--field);color:var(--text);border:1px solid var(--border-strong);border-radius:var(--radius-sm);padding:5px 9px;min-height:34px;min-width:0;transition:border-color .12s,box-shadow .12s}
+input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:var(--focus)}
+input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;margin:0 6px 0 0;vertical-align:-3px}
+::placeholder{color:var(--muted);opacity:.75}
+.muted{color:var(--muted)}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ---------- Toppfält ---------- */
+.toolbar{position:relative;z-index:20;display:flex;align-items:center;gap:8px;padding:9px 14px;min-height:56px;background:var(--topbar);color:var(--topbar-ink);border-bottom:1px solid var(--topbar-border);flex:none}
+.brand{display:inline-flex;align-items:center;gap:9px;font-size:20px;font-weight:700;letter-spacing:.2px;white-space:nowrap;margin-right:10px}
+.brand .logo{width:30px;height:30px;flex:none;border-radius:8px}
+.brand b{color:var(--accent-fg);font-weight:700}
+.toolbar>button{background:transparent;color:var(--tb-btn-ink);border-color:transparent}
+.toolbar>button:hover{background:var(--tb-btn-hover)}
+.tb-space{flex:1;min-width:0}
+.seg{display:inline-flex;background:var(--sunken);border-radius:calc(var(--radius-btn) + 3px);padding:3px;gap:2px;max-width:100%;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{background:transparent;border-color:transparent;color:var(--muted);min-height:32px}
+.seg button:hover{background:transparent;color:var(--text)}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+html[data-theme="light"] .seg button[aria-selected="true"]{background:#fff}
+.seg.small button{min-height:26px;padding:2px 10px;font-size:12.5px}
+#btnTheme .ic-sun{display:none}
+html[data-theme="light"] #btnTheme .ic-sun{display:block}
+html[data-theme="light"] #btnTheme .ic-moon{display:none}
+.gsearch{position:relative;width:min(280px,30vw)}
+.gsearch input{width:100%;padding-left:32px}
+.gsearch .ic{position:absolute;left:9px;top:9px;color:var(--muted);pointer-events:none}
+
+/* ---------- Startsida ---------- */
+#start{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:24px 16px}
+.startcard{width:min(640px,100%);background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:28px 28px 24px;box-shadow:var(--shadow-float)}
+.startcard h1{font-size:26px;margin-bottom:6px}
+.startcard p{color:var(--muted);margin:6px 0}
+.drop{margin:18px 0 14px;border:2px dashed var(--border-strong);border-radius:14px;padding:26px 16px;text-align:center;transition:border-color .15s,background .15s}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop .big-ic{width:42px;height:42px;color:var(--accent);margin-bottom:6px}
+.drop .b{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.steps{font-size:13px;color:var(--muted);margin:14px 0 0;padding-left:18px}
+.steps li{margin:3px 0}
+.lock{display:flex;gap:8px;align-items:flex-start;font-size:13px;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;margin-top:14px}
+.lock .ic{color:var(--ok);margin-top:1px}
+.prog{margin-top:16px}
+.pbar{height:8px;border-radius:99px;background:var(--sunken);overflow:hidden;position:relative}
+.pbar>i{position:absolute;inset:0 auto 0 0;width:35%;background:linear-gradient(90deg,#e9a52a,var(--accent) 60%,#ffd37c);border-radius:inherit;animation:indet 1.3s ease-in-out infinite}
+@keyframes indet{0%{transform:translateX(-110%)}100%{transform:translateX(310%)}}
+.err{color:var(--danger);background:var(--danger-soft);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:13.5px}
+
+/* ---------- Vyer ---------- */
+#app{flex:1;min-height:0;display:flex;flex-direction:column}
+.view{flex:1;min-height:0;display:flex}
+.filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface);flex:none}
+.filters .cnt{margin-left:auto;font-size:13px;color:var(--muted)}
+.filters label{font-size:13px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.col{flex:1;min-width:0;display:flex;flex-direction:column}
+.scroll{flex:1;min-height:0;overflow:auto}
+
+/* ---------- Chattlista ---------- */
+.chatlist{width:330px;flex:none;display:flex;flex-direction:column;border-right:1px solid var(--border);background:var(--surface)}
+.chatlist .top{display:flex;gap:6px;padding:10px;border-bottom:1px solid var(--border)}
+.chatlist .top input{flex:1}
+.chatlist .top select{width:118px}
+.citem{display:flex;align-items:center;gap:10px;padding:9px 12px;cursor:pointer;border-left:3px solid transparent}
+.citem:hover{background:var(--row-hover)}
+.citem.sel{background:var(--accent-soft);border-left-color:var(--accent)}
+.av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;flex:none;color:#fff}
+.av .ic{width:18px;height:18px}
+.citem .cn{flex:1;min-width:0}
+.citem .cn b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.citem .cn small{display:block;color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.citem .cd{font-size:11.5px;color:var(--muted);text-align:right;white-space:nowrap}
+
+/* ---------- Chattvy ---------- */
+.chead{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface);flex-wrap:wrap;flex:none}
+.chead .ttl{min-width:0;flex:1}
+.chead .ttl b{font-size:17px;display:flex;align-items:center;gap:6px}
+.chead .ttl small{color:var(--muted);font-size:12.5px}
+.chead .ttl input{font-size:16px;font-weight:600;width:min(320px,100%)}
+.msgs{padding:10px 18px 24px}
+.daysep{display:flex;align-items:center;gap:10px;margin:18px 0 8px;color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.daysep:before,.daysep:after{content:"";flex:1;border-top:1px solid var(--border)}
+.m{display:flex;flex-direction:column;align-items:flex-start;margin:2px 0}
+.m.me{align-items:flex-end}
+.m .who{font-size:12px;font-weight:600;color:var(--accent-fg);margin:8px 10px 1px}
+.m.me .who{display:none}
+.bub{max-width:min(620px,78%);background:var(--bubble);border-radius:14px;padding:6px 11px 5px;position:relative;overflow-wrap:anywhere;white-space:pre-wrap}
+.m.me .bub{background:var(--bubble-me);color:var(--bubble-me-ink)}
+.bub .tm{font-size:10.5px;opacity:.6;margin-left:8px;float:right;margin-top:5px;white-space:nowrap}
+.bub .tag{font-size:12px;opacity:.75;font-style:italic}
+.bub.media{padding:4px;background:transparent;border:1px solid var(--border)}
+.m.me .bub.media{background:transparent}
+.bub.media .tm{float:none;display:block;text-align:right;margin:2px 4px 0}
+.mgrid{display:flex;flex-wrap:wrap;gap:4px}
+.mgrid .tile{width:170px;height:170px}
+.missing{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);font-style:italic}
+.sys{text-align:center;font-size:12px;color:var(--muted);margin:6px 0}
+.m.hl .bub{box-shadow:0 0 0 2px var(--accent)}
+mark{background:var(--accent);color:var(--accent-ink);border-radius:3px;padding:0 1px}
+.more{display:flex;justify-content:center;margin:10px 0}
+.note audio{width:240px;height:36px}
+.guess{font-size:11px;color:var(--warn);margin:2px 6px 0}
+
+/* ---------- Rutnät med media ---------- */
+.gridwrap{padding:6px 16px 30px}
+.ghead{position:sticky;top:0;z-index:2;background:var(--bg);padding:12px 2px 8px;font-weight:650;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);display:flex;gap:8px}
+.ghead span{font-weight:500;text-transform:none;letter-spacing:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--tile,150px),1fr));gap:4px}
+.tile{position:relative;aspect-ratio:1;background:var(--surface-2);border-radius:6px;overflow:hidden;cursor:pointer;border:0;padding:0;min-height:0;display:block;width:100%}
+.tile:hover{background:var(--surface-2);outline:2px solid var(--accent);outline-offset:-2px}
+.tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .25s}
+.tile img.on{opacity:1}
+.tile .badge{position:absolute;right:5px;bottom:5px;background:rgba(0,0,0,.6);color:#fff;border-radius:99px;padding:2px 6px;font-size:11px;display:flex;align-items:center;gap:3px}
+.tile .badge .ic{width:12px;height:12px;fill:#fff;stroke:none}
+.tile .tl{position:absolute;left:5px;top:5px;background:rgba(0,0,0,.55);color:#fff;border-radius:99px;padding:1px 6px;font-size:10.5px;opacity:0;transition:opacity .15s}
+.tile:hover .tl{opacity:1}
+.tile .gq{position:absolute;left:5px;bottom:5px;background:rgba(242,162,92,.9);color:#1b1405;border-radius:99px;padding:0 6px;font-size:10.5px;font-weight:600}
+.tile .ph{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted)}
+.tile .ph .ic{width:26px;height:26px;opacity:.5}
+.sentinel{height:40px}
+.empty{color:var(--muted);font-size:14px;padding:40px 16px;text-align:center}
+
+/* ---------- Ljuslåda ---------- */
+#lb{position:fixed;inset:0;z-index:100;background:rgba(5,6,8,.94);display:flex;color:#e8eaee}
+#lb .stage{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;position:relative;padding:50px 60px}
+#lb .wrap{position:relative;display:inline-block;max-width:100%;max-height:100%;line-height:0}
+#lb .wrap img.main,#lb .wrap video{max-width:calc(100vw - 460px);max-height:calc(100vh - 100px);display:block;border-radius:4px}
+#lb .wrap img.ov{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#lb .wrap.noov img.ov{display:none}
+#lb .nav{position:absolute;top:50%;transform:translateY(-50%);width:46px;height:64px;background:rgba(255,255,255,.08);border:0;color:#fff}
+#lb .nav:hover{background:rgba(255,255,255,.18)}
+#lb .nav .ic{width:26px;height:26px}
+#lb .prev{left:8px}#lb .next{right:8px}
+#lb .side{width:340px;flex:none;background:#14171b;border-left:1px solid #23272e;padding:16px 18px;overflow:auto;display:flex;flex-direction:column;gap:12px}
+#lb .side h3{font-size:18px}
+#lb .kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:13.5px}
+#lb .kv span:nth-child(odd){color:#96a0ac}
+#lb .side button{background:#22262d;border-color:#343a43;color:#e3e6eb}
+#lb .side button:hover{background:#2a2f37}
+#lb .side button.default{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+#lb .side .b{display:flex;flex-wrap:wrap;gap:6px}
+#lb .close{position:absolute;top:10px;right:10px;background:rgba(255,255,255,.08);border:0;color:#fff}
+#lb .pos{font-size:12.5px;color:#96a0ac}
+#lb .loading{color:#96a0ac;font-size:14px}
+#lb .warnline{font-size:12.5px;color:#f2a25c}
+
+/* ---------- Statistik ---------- */
+.statwrap{max-width:1180px;margin:0 auto;padding:16px 16px 48px}
+.sgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px;align-items:start}
+.card{grid-column:span 4;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-card);padding:14px 16px 16px;min-width:0}
+.card.w6{grid-column:span 6}.card.w8{grid-column:span 8}.card.w12{grid-column:1/-1}
+.card>h2{display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:12px;font-weight:650;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.card>h2 .ic{width:15px;height:15px;color:var(--accent-fg)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.stile{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.stile b{display:block;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15}
+.stile span{font-size:12px;color:var(--muted)}
+.bars{display:flex;align-items:flex-end;gap:6px;height:170px;padding-top:6px}
+.bars .bc{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;min-width:0}
+.bars i{display:block;width:100%;max-width:38px;background:var(--accent);border-radius:5px 5px 2px 2px;min-height:2px}
+.bars .bv{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bars .bl{font-size:11px;color:var(--muted)}
+.hbar{display:grid;grid-template-columns:minmax(0,170px) 1fr auto;gap:10px;align-items:center;margin:5px 0;font-size:13.5px;cursor:pointer}
+.hbar:hover b{color:var(--accent-fg)}
+.hbar b{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar .tr{height:10px;background:var(--sunken);border-radius:99px;overflow:hidden}
+.hbar .tr i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.hbar span{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.plist{font-size:13.5px}
+.plist div{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--border)}
+.plist div:last-child{border-bottom:0}
+
+/* ---------- Karta ---------- */
+#map{flex:1;min-height:0}
+html:not([data-theme="light"]) .osmtiles{filter:invert(1) hue-rotate(180deg) brightness(.92) contrast(.9)}
+.leaflet-container{background:var(--sunken) !important;font:inherit !important}
+.mappop{display:grid;grid-template-columns:repeat(3,64px);gap:3px;max-height:220px;overflow:auto}
+.mappop img{width:64px;height:64px;object-fit:cover;border-radius:4px;cursor:pointer;background:#ddd}
+
+/* ---------- Global sökning ---------- */
+#sres{position:absolute;top:52px;right:14px;width:min(520px,calc(100vw - 28px));max-height:70vh;overflow:auto;background:var(--surface);border:1px solid var(--border-strong);border-radius:12px;box-shadow:var(--shadow-float);z-index:50;padding:6px}
+.sr{padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13.5px}
+.sr:hover{background:var(--row-hover)}
+.sr .sh{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);margin-bottom:2px}
+.sr .sh b{color:var(--text);font-weight:600}
+.sr .st{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+
+@media (max-width:900px){
+  .chatlist{width:100%}
+  .view.chat-open .chatlist{display:none}
+  .view:not(.chat-open) .chatpane{display:none}
+  .gsearch{display:none}
+  #lb{flex-direction:column}
+  #lb .side{width:100%;max-height:36vh;border-left:0;border-top:1px solid #23272e}
+  #lb .wrap img.main,#lb .wrap video{max-width:calc(100vw - 20px);max-height:calc(64vh - 70px)}
+  #lb .stage{padding:44px 6px 10px}
+  .card,.card.w6,.card.w8{grid-column:1/-1}
+  .brand span{display:none}
+}
+.backbtn{display:none}
+@media (max-width:900px){.backbtn{display:inline-flex}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-logo" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#f4b63f"/><g fill="none" stroke="#1b1405" stroke-width="30" stroke-linejoin="round" stroke-linecap="round"><rect x="96" y="112" width="320" height="76" rx="18"/><path d="M124 188v172a28 28 0 0 0 28 28h208a28 28 0 0 0 28-28V188"/></g><path d="M168 352 226 268l40 54 28-34 50 64z" fill="#1b1405"/><circle cx="320" cy="248" r="20" fill="#1b1405"/></symbol>
+<symbol id="i-install" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></symbol>
+<symbol id="i-box" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9"/><path d="M10 13h4"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></symbol>
+<symbol id="i-film" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 4v16M17 4v16M2 9h5M2 15h5M17 9h5M17 15h5"/></symbol>
+<symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16v-5M12 16V7M17 16v-8"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+<symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+<symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+<symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M5 21h14"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/></symbol>
+<symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></symbol>
+<symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+<symbol id="i-ghostq" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/></symbol>
+</defs></svg>
+
+<header class="toolbar">
+  <div class="brand"><svg class="logo" viewBox="0 0 512 512" aria-hidden="true"><use href="#i-logo"/></svg><span>Snap<b>arkiv</b></span></div>
+  <div class="seg tabs" id="tabs" role="tablist" hidden>
+    <button data-v="chats" role="tab"><svg class="ic"><use href="#i-chat"/></svg>Chattar</button>
+    <button data-v="mem" role="tab"><svg class="ic"><use href="#i-star"/></svg>Memories</button>
+    <button data-v="media" role="tab"><svg class="ic"><use href="#i-image"/></svg>Alla media</button>
+    <button data-v="map" role="tab"><svg class="ic"><use href="#i-map"/></svg>Karta</button>
+    <button data-v="stats" role="tab"><svg class="ic"><use href="#i-chart"/></svg>Statistik</button>
+  </div>
+  <div class="tb-space"></div>
+  <div class="gsearch" id="gsWrap" hidden><svg class="ic"><use href="#i-search"/></svg><input type="search" id="gs" placeholder="Sök i alla chattar…" autocomplete="off"></div>
+  <button id="btnInstall" hidden title="Installera Snaparkiv som en app på datorn eller mobilen"><svg class="ic"><use href="#i-install"/></svg><span>Installera</span></button>
+  <button id="btnClose" title="Öppna en annan export" hidden><svg class="ic"><use href="#i-folder"/></svg></button>
+  <button id="btnTheme" class="icon" title="Byt mellan mörkt och ljust läge"><svg class="ic ic-moon"><use href="#i-moon"/></svg><svg class="ic ic-sun"><use href="#i-sun"/></svg></button>
+  <div id="sres" hidden></div>
+</header>
+
+<section id="start">
+  <div class="startcard">
+    <h1>Öppna din Snapchat-export</h1>
+    <p>Se alla chattar, memories, bilder och videor sorterade efter datum – med tid, plats och vem som skickade vad.</p>
+    <div class="drop" id="drop">
+      <svg class="ic big-ic"><use href="#i-upload"/></svg>
+      <div><b>Släpp zip-filerna här</b></div>
+      <div class="muted" style="font-size:13px">eller hela mappen där de ligger</div>
+      <div class="b">
+        <button class="default" id="pickZip"><svg class="ic"><use href="#i-box"/></svg>Välj zip-filer</button>
+        <button id="pickDir"><svg class="ic"><use href="#i-folder"/></svg>Välj mapp</button>
+        <button id="reopen" hidden><svg class="ic"><use href="#i-refresh"/></svg><span>Öppna senaste igen</span></button>
+      </div>
+      <input type="file" id="fZip" accept=".zip,application/zip" multiple hidden>
+      <input type="file" id="fDir" webkitdirectory multiple hidden>
+    </div>
+    <ol class="steps">
+      <li>Begär din data i Snapchat: <i>Inställningar → Mina data</i>. Kryssa i <i>Exportera JSON-filer</i> och gärna <i>Inkludera dina memories</i> och chattmedia.</li>
+      <li>Ladda ner alla zip-filerna (mydata~….zip, mydata~…-2.zip och så vidare).</li>
+      <li>Välj alla zip-filerna samtidigt här. Du behöver inte packa upp dem, och med zip-filerna blir klockslag och platser exakta.</li>
+    </ol>
+    <div class="lock"><svg class="ic"><use href="#i-lock"/></svg><div>Allt läses direkt från din dator i webbläsaren. Ingenting laddas upp, och sidan fungerar även utan internet. Bara kartan behöver internet.</div></div>
+    <div class="prog" id="prog" hidden><div class="pbar"><i></i></div><div class="muted" id="progT" style="font-size:13px;margin-top:6px"></div></div>
+    <div class="err" id="err" hidden></div>
+  </div>
+</section>
+
+<div id="app" hidden>
+  <section class="view" id="v-chats" hidden>
+    <aside class="chatlist">
+      <div class="top"><input type="search" id="cf" placeholder="Filtrera chattar…">
+        <select id="cs" title="Sortering"><option value="last">Senaste</option><option value="msgs">Flest medd.</option><option value="media">Mest media</option><option value="name">Namn A–Ö</option></select></div>
+      <div class="scroll" id="clist"></div>
+    </aside>
+    <div class="col chatpane" id="cpane"><div class="empty">Välj en chatt till vänster.</div></div>
+  </section>
+  <section class="view" id="v-mem" hidden><div class="col">
+    <div class="filters">
+      <div class="seg small" id="memType"><button data-k="all" aria-selected="true">Alla</button><button data-k="image">Bilder</button><button data-k="video">Videor</button></div>
+      <select id="memYear"></select>
+      <select id="memSort"><option value="desc">Nyast först</option><option value="asc">Äldst först</option></select>
+      <label><input type="checkbox" id="memLoc">Bara med plats</label>
+      <select id="memSize" title="Storlek på rutorna"><option value="110">Små rutor</option><option value="150" selected>Mellan</option><option value="220">Stora rutor</option></select>
+      <span class="cnt" id="memCnt"></span>
+    </div>
+    <div class="scroll" id="memGrid"></div>
+  </div></section>
+  <section class="view" id="v-media" hidden><div class="col">
+    <div class="filters">
+      <select id="mdSrc"></select>
+      <div class="seg small" id="mdType"><button data-k="all" aria-selected="true">Alla</button><button data-k="image">Bilder</button><button data-k="video">Videor</button><button data-k="audio">Röst</button></div>
+      <div class="seg small" id="mdWho"><button data-k="all" aria-selected="true">Alla</button><button data-k="me">Från mig</button><button data-k="other">Från andra</button></div>
+      <select id="mdYear"></select>
+      <select id="mdSort"><option value="desc">Nyast först</option><option value="asc">Äldst först</option></select>
+      <label><input type="checkbox" id="mdGuess" checked>Visa gissade</label>
+      <select id="mdSize" title="Storlek på rutorna"><option value="110">Små rutor</option><option value="150" selected>Mellan</option><option value="220">Stora rutor</option></select>
+      <span class="cnt" id="mdCnt"></span>
+    </div>
+    <div class="scroll" id="mdGrid"></div>
+  </div></section>
+  <section class="view" id="v-map" hidden><div class="col">
+    <div class="filters"><select id="mapYear"></select><select id="mapStyle" title="Kartbakgrund"><option value="auto">Karta: automatisk</option><option value="street">Gatukarta</option><option value="dark">Mörk karta</option><option value="sat">Satellit</option><option value="osm">OpenStreetMap</option></select><span class="cnt" id="mapCnt"></span></div>
+    <div id="map"></div>
+  </div></section>
+  <section class="view" id="v-stats" hidden><div class="scroll"><div class="statwrap" id="stats"></div></div></section>
+</div>
+
+<div id="lb" hidden>
+  <div class="stage">
+    <button class="nav prev" id="lbPrev" title="Föregående (←)"><svg class="ic"><use href="#i-left"/></svg></button>
+    <div class="wrap" id="lbWrap"></div>
+    <button class="nav next" id="lbNext" title="Nästa (→)"><svg class="ic"><use href="#i-right"/></svg></button>
+    <button class="close icon" id="lbClose" title="Stäng (Esc)"><svg class="ic"><use href="#i-x"/></svg></button>
+  </div>
+  <aside class="side" id="lbSide"></aside>
+</div>
+
+<script>/* ===== Snaparkiv – kärna: läser zip-filer/mappar och bygger en modell av exporten. Ingen DOM här. ===== */
+const SnapCore = (() => {
+  const MIME = {jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',heic:'image/heic',
+    mp4:'video/mp4',webm:'video/webm',mov:'video/quicktime',m4a:'audio/mp4',mp3:'audio/mpeg',json:'application/json',html:'text/html'};
+  const IMG = new Set(['jpg','jpeg','png','webp','gif','heic']);
+  const VID = new Set(['mp4','mov','webm','m4a','mp3']);
+  const utf8 = new TextDecoder('utf-8');
+  const u64 = (dv, o) => dv.getUint32(o, true) + dv.getUint32(o + 4, true) * 4294967296;
+  const dosToUTC = (d, t) => Date.UTC(((d >> 9) & 127) + 1980, ((d >> 5) & 15) - 1, d & 31, t >> 11, (t >> 5) & 63, (t & 31) * 2);
+
+  function relPath(p) {
+    p = String(p).replace(/\\/g, '/');
+    const m = p.match(/(?:^|\/)((?:json|chat_media|memories|html)\/.+)$/);
+    return m ? m[1] : null;
+  }
+  const extOf = n => { const i = n.lastIndexOf('.'); return i < 0 ? '' : n.slice(i + 1).toLowerCase(); };
+  const baseOf = n => n.slice(n.lastIndexOf('/') + 1);
+
+  /* ---- Zip-läsare: läser bara centralkatalogen; varje fil packas upp först när den behövs ---- */
+  async function readZip(file) {
+    const tailLen = Math.min(file.size, 65557 + 20);
+    const tail = new DataView(await file.slice(file.size - tailLen).arrayBuffer());
+    let e = -1;
+    for (let i = tail.byteLength - 22; i >= 0; i--) if (tail.getUint32(i, true) === 0x06054b50) { e = i; break; }
+    if (e < 0) throw new Error(file.name + ' ser inte ut att vara en hel zip-fil');
+    let count = tail.getUint16(e + 10, true), cdSize = tail.getUint32(e + 12, true), cdOff = tail.getUint32(e + 16, true);
+    if (count === 0xffff || cdSize === 0xffffffff || cdOff === 0xffffffff) {
+      const l = e - 20;
+      if (l >= 0 && tail.getUint32(l, true) === 0x07064b50) {
+        const off64 = u64(tail, l + 8);
+        const z = new DataView(await file.slice(off64, off64 + 56).arrayBuffer());
+        count = u64(z, 32); cdSize = u64(z, 40); cdOff = u64(z, 48);
+      }
+    }
+    const cd = new DataView(await file.slice(cdOff, cdOff + cdSize).arrayBuffer());
+    const out = [];
+    let p = 0;
+    while (p + 46 <= cd.byteLength && cd.getUint32(p, true) === 0x02014b50) {
+      const method = cd.getUint16(p + 10, true), tm = cd.getUint16(p + 12, true), dt = cd.getUint16(p + 14, true);
+      let csize = cd.getUint32(p + 20, true), usize = cd.getUint32(p + 24, true);
+      const nl = cd.getUint16(p + 28, true), xl = cd.getUint16(p + 30, true), cl = cd.getUint16(p + 32, true);
+      let lho = cd.getUint32(p + 42, true);
+      const name = utf8.decode(new Uint8Array(cd.buffer, cd.byteOffset + p + 46, nl));
+      let x = p + 46 + nl; const xe = x + xl;
+      while (x + 4 <= xe) {
+        const id = cd.getUint16(x, true), sz = cd.getUint16(x + 2, true);
+        if (id === 1) { let q = x + 4;
+          if (usize === 0xffffffff) { usize = u64(cd, q); q += 8; }
+          if (csize === 0xffffffff) { csize = u64(cd, q); q += 8; }
+          if (lho === 0xffffffff) { lho = u64(cd, q); q += 8; } }
+        x += 4 + sz;
+      }
+      p = xe + cl;
+      if (name.endsWith('/')) continue;
+      const ext = extOf(name);
+      out.push({ path: name, size: usize, time: dosToUTC(dt, tm), ext, from: file.name,
+        key: file.name + '|' + name + '|' + usize,
+        async blob() {
+          const h = new DataView(await file.slice(lho, lho + 30).arrayBuffer());
+          if (h.getUint32(0, true) !== 0x04034b50) throw new Error('Trasig zip-post: ' + name);
+          const start = lho + 30 + h.getUint16(26, true) + h.getUint16(28, true);
+          const raw = file.slice(start, start + csize);
+          let b;
+          if (method === 0) b = raw;
+          else if (method === 8) b = await new Response(raw.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob();
+          else throw new Error('Komprimeringen stöds inte (' + method + '): ' + name);
+          return new Blob([b], { type: MIME[ext] || '' });
+        } });
+    }
+    return out;
+  }
+
+  /* ---- Samla källor: zip-filer och/eller lösa filer (uppackad mapp). Zip-poster vinner (de har tidsstämplar). ---- */
+  async function collect(files, progress = () => {}) {
+    const map = new Map(); const zips = [], loose = [];
+    for (const f of files) {
+      const path = f.relPath || f.webkitRelativePath || f.name;
+      if (/\.zip$/i.test(f.name)) zips.push(f); else loose.push([f, path]);
+    }
+    for (let i = 0; i < zips.length; i++) if (zips[i].getFile) zips[i] = await zips[i].getFile();
+    let n = 0;
+    for (const z of zips) {
+      progress('Läser ' + z.name + ' (' + (++n) + ' av ' + zips.length + ')');
+      const entries = await readZip(z);
+      for (const en of entries) { const r = relPath(en.path); if (r && !map.has(r)) { en.rel = r; map.set(r, en); } }
+    }
+    for (let [f, path] of loose) {
+      const r = relPath(path); if (!r || map.has(r)) continue;
+      if (f.getFile) { if (++n % 500 === 0) progress('Läser mappen… ' + n + ' filer'); f = await f.getFile(); }
+      const ext = extOf(f.name);
+      map.set(r, { rel: r, path, size: f.size, time: null, ext, from: 'mapp', key: 'f|' + r + '|' + f.size,
+        async blob() { return new Blob([f], { type: MIME[ext] || '' }); } });
+    }
+    return { map, zips: zips.length, loose: loose.length };
+  }
+
+  const parseT = s => { if (!s) return null; const m = String(s).match(/(\d{4})-(\d\d)-(\d\d)[ T](\d\d):(\d\d):(\d\d)/);
+    return m ? Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +m[6]) : null; };
+  const isoSec = t => new Date(t).toISOString().slice(0, 19).replace('T', ' ');
+  const dayMs = d => Date.UTC(+d.slice(0, 4), d.slice(5, 7) - 1, +d.slice(8, 10), 12);
+
+  async function readJSON(src) { return JSON.parse(await (await src.blob()).text()); }
+
+  /* ---- Bygg modellen ---- */
+  async function build(map, progress = () => {}) {
+    const get = n => map.get('json/' + n);
+    const warn = [];
+    if (!get('chat_history.json') && !get('memories_history.json'))
+      throw new Error('Hittade varken chat_history.json eller memories_history.json. Välj alla zip-filer från exporten (även den första, som innehåller mappen json). Om exporten bara gjordes som HTML behöver du begära en ny med JSON ikryssat.');
+
+    progress('Läser chattar…');
+    const ch = get('chat_history.json') ? await readJSON(get('chat_history.json')) : {};
+    const memJ = get('memories_history.json') ? await readJSON(get('memories_history.json')) : {};
+    const opt = async n => { try { return get(n) ? await readJSON(get(n)) : null; } catch { return null; } };
+    const ranking = await opt('ranking.json'), friendsJ = await opt('friends.json'), places = await opt('snap_map_places_history.json');
+    const account = await opt('account.json');
+
+    const disp = {};
+    if (friendsJ) for (const k of Object.keys(friendsJ)) if (Array.isArray(friendsJ[k]))
+      for (const f of friendsJ[k]) if (f && f.Username && f['Display Name']) disp[f.Username] = f['Display Name'];
+
+    // vem är "jag"
+    const meC = {};
+    for (const k in ch) for (const m of ch[k]) if (m.IsSender && m.From) meC[m.From] = (meC[m.From] || 0) + 1;
+    const me = Object.keys(meC).sort((a, b) => meC[b] - meC[a])[0] || '';
+
+    /* -- chattbilagor: filnamn -> objekt -- */
+    progress('Sorterar bilagor…');
+    const cm = new Map(); const overlays = [], thumbs = [];
+    for (const [rel, s] of map) {
+      if (!rel.startsWith('chat_media/')) continue;
+      const fn = baseOf(rel); const m = fn.match(/^(\d{4}-\d\d-\d\d)_(.+)\.([A-Za-z0-9]+)$/);
+      if (!m) continue;
+      const ext = m[3].toLowerCase(), key = m[2];
+      const kind = IMG.has(ext) ? 'image' : VID.has(ext) ? 'video' : null;
+      const it = { src: s, ov: null, kind, day: m[1], t: s.time ?? dayMs(m[1]), exact: s.time != null, source: 'chat', chat: -1, msg: null, from: '', me: false, guess: false, key };
+      if (/^overlay~/.test(key)) { overlays.push(it); continue; }
+      if (/^thumbnail~/.test(key)) { thumbs.push(it); continue; }
+      if (/^metadata~/.test(key) || !kind) continue;
+      cm.set(key, it);
+    }
+    const loose = [...cm.values()].filter(x => !x.key.startsWith('b~'));
+    const nearSame = (a, list) => list.find(b => b.day === a.day && a.exact && b.exact && Math.abs(a.t - b.t) <= 2000);
+    for (const o of overlays) { const t = nearSame(o, loose.filter(x => !x.ov)); if (t) t.ov = o.src; }
+    for (const th of thumbs) if (!nearSame(th, loose)) { th.kind = 'image'; cm.set(th.key, th); }
+
+    /* -- chattar -- */
+    progress('Bygger chattar…');
+    const chats = []; const linked = new Set(); let missingMedia = 0;
+    for (const id of Object.keys(ch)) {
+      const arr = ch[id]; if (!Array.isArray(arr)) continue;
+      const ci = chats.length;
+      const parts = new Set(); let title = null;
+      const msgs = arr.map(m => {
+        const t = typeof m['Created(microseconds)'] === 'number' ? m['Created(microseconds)'] : parseT(m.Created);
+        if (m['Conversation Title']) title = m['Conversation Title'];
+        if (m.From && m.From !== me) parts.add(m.From);
+        const msg = { t, from: m.From || '', type: m['Media Type'] || 'TEXT', text: m.Content || '', me: !!m.IsSender, saved: !!m.IsSaved, media: [], ids: 0 };
+        const ids = m['Media IDs'] ? String(m['Media IDs']).split(' | ').filter(Boolean) : [];
+        msg.ids = ids.length;
+        for (const k of ids) { const it = cm.get(k);
+          if (it && !linked.has(k)) { linked.add(k); it.chat = ci; it.msg = msg; it.from = msg.from; it.me = msg.me; if (msg.type === 'NOTE') it.kind = 'audio'; msg.media.push(it); } }
+        if ((msg.type === 'MEDIA' || msg.type === 'NOTE') && msg.media.length < Math.max(1, ids.length)) missingMedia += Math.max(1, ids.length) - msg.media.length;
+        return msg;
+      }).sort((a, b) => a.t - b.t);
+      const isGroup = !!title || parts.size > 1;
+      const name = title || (disp[id] || (id.length > 30 ? [...parts].map(p => disp[p] || p).slice(0, 3).join(', ') || 'Okänd grupp' : id));
+      chats.push({ id, name, user: title ? '' : (id.length > 30 ? '' : id), isGroup, parts: [...parts], msgs });
+    }
+
+    /* -- okopplade bilagor: koppla via tidpunkt, annars "Okopplade" -- */
+    const all = [];
+    chats.forEach((c, ci) => c.msgs.forEach(m => { if (!m.type.startsWith('STATUS')) all.push([m.t, ci]); }));
+    all.sort((a, b) => a[0] - b[0]);
+    const nearest = t => { let lo = 0, hi = all.length; while (lo < hi) { const mid = (lo + hi) >> 1; if (all[mid][0] < t) lo = mid + 1; else hi = mid; }
+      let best = null; for (const j of [lo - 1, lo]) if (all[j] && (!best || Math.abs(all[j][0] - t) < Math.abs(best[0] - t))) best = all[j]; return best; };
+    const orphan = [];
+    let guessed = 0;
+    for (const [k, it] of cm) {
+      if (linked.has(k)) continue;
+      const n = it.exact ? nearest(it.t) : null;
+      if (n && Math.abs(n[0] - it.t) <= 15 * 60000) {
+        it.chat = n[1]; it.guess = true; guessed++;
+        const msg = { t: it.t, from: '', type: 'MEDIA', text: '', me: false, saved: true, media: [it], ids: 1, syn: true };
+        it.msg = msg; chats[n[1]].msgs.push(msg); chats[n[1]].dirty = true;
+      } else orphan.push(it);
+    }
+    if (orphan.length) {
+      const ci = chats.length; orphan.sort((a, b) => a.t - b.t);
+      const msgs = orphan.map(it => { const msg = { t: it.t, from: '', type: 'MEDIA', text: '', me: false, saved: true, media: [it], ids: 1, syn: true, dateOnly: !it.exact }; it.chat = ci; it.msg = msg; return msg; });
+      chats.push({ id: '__orphan', name: 'Okopplade bilagor', user: '', isGroup: false, parts: [], msgs, special: true });
+    }
+    for (const c of chats) {
+      if (c.dirty) { c.msgs.sort((a, b) => a.t - b.t); delete c.dirty; }
+      c.nMsg = c.msgs.filter(m => !m.syn).length;
+      c.media = c.msgs.flatMap(m => m.media);
+      c.first = c.msgs.length ? c.msgs[0].t : 0; c.last = c.msgs.length ? c.msgs[c.msgs.length - 1].t : 0;
+    }
+
+    /* -- memories -- */
+    progress('Matchar memories…');
+    const memList = (memJ && (memJ['Saved Media'] || Object.values(memJ).find(Array.isArray))) || [];
+    const mj = memList.map(m => { const loc = String(m.Location || '').match(/(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/);
+      let lat = loc ? +loc[1] : null, lon = loc ? +loc[2] : null; if (!lat && !lon) lat = lon = null;
+      return { t: parseT(m.Date), kind: /video/i.test(m['Media Type']) ? 'video' : 'image', lat, lon, used: false }; });
+    const byT = new Map(); for (const j of mj) { const k = isoSec(j.t) + j.kind; (byT.get(k) || byT.set(k, []).get(k)).push(j); }
+    const groups = new Map();
+    for (const [rel, s] of map) {
+      if (!rel.startsWith('memories/')) continue;
+      const m = baseOf(rel).match(/^(\d{4}-\d\d-\d\d)_(.+)-(main|overlay)\.([A-Za-z0-9]+)$/); if (!m) continue;
+      const gk = m[1] + '_' + m[2];
+      const g = groups.get(gk) || groups.set(gk, { day: m[1], mains: [] }).get(gk);
+      if (m[3] === 'main') g.mains.push([s, m[4].toLowerCase()]); else g.overlay = s;
+    }
+    const memories = []; const pend = [];
+    const findJ = (t, kind) => { for (const d of [0, -1000, 1000, -2000, 2000, -3000, 3000]) {
+      const l = byT.get(isoSec(t + d) + kind); const j = l && l.find(x => !x.used); if (j) return j; } return null; };
+    for (const [uid, g] of groups) for (const [main, ext] of g.mains) {
+      const kind = VID.has(ext) ? 'video' : 'image';
+      const it = { src: main, ov: g.overlay || null, kind, day: g.day, t: main.time ?? dayMs(g.day), exact: main.time != null, source: 'mem', chat: -1, lat: null, lon: null, key: uid + ext };
+      if (it.exact) { const j = findJ(it.t, kind); if (j) { j.used = true; it.t = j.t; it.lat = j.lat; it.lon = j.lon; } }
+      else pend.push(it);
+      memories.push(it);
+    }
+    if (pend.length) { // uppackad mapp utan tidsstämplar: matcha per dag och typ
+      const byDay = new Map(); for (const j of mj) if (!j.used) { const k = new Date(j.t).toISOString().slice(0, 10) + j.kind; (byDay.get(k) || byDay.set(k, []).get(k)).push(j); }
+      const pd = new Map(); for (const it of pend) { const k = it.day + it.kind; (pd.get(k) || pd.set(k, []).get(k)).push(it); }
+      for (const [k, its] of pd) { const js = (byDay.get(k) || []).sort((a, b) => a.t - b.t);
+        its.forEach((it, i) => { const j = js[i]; if (!j) return; j.used = true; it.t = j.t;
+          if (its.length === 1 && js.length === 1) { it.exact = true; it.lat = j.lat; it.lon = j.lon; } else it.approx = true; }); }
+    }
+    memories.sort((a, b) => a.t - b.t);
+    const memMissing = Math.max(0, mj.length - memories.length);
+
+    const media = [...memories, ...chats.flatMap(c => c.media)].sort((a, b) => a.t - b.t);
+    media.forEach((m, i) => m.i = i);
+
+    const snapscore = ranking && ranking.Statistics ? ranking.Statistics.Snapscore : null;
+    const friends = ranking && ranking.Statistics ? ranking.Statistics['Your Total Friends'] : null;
+    return { me, meName: disp[me] || (account && account['Basic Information'] && account['Basic Information']['Display Name']) || me,
+      chats, memories, media, disp,
+      info: { missingMedia, memMissing, memTotal: mj.length, guessed, orphan: orphan.length, snapscore, friends,
+        places: places ? (places['Snap Map Places History'] || []) : [], files: map.size } };
+  }
+
+  return { readZip, collect, build, relPath, MIME };
+})();
+if (typeof module !== 'undefined') module.exports = SnapCore;
+</script>
+<script>/* ===== Snaparkiv – gränssnitt ===== */
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf = new Intl.NumberFormat('sv-SE');
+const n = x => nf.format(x);
+const DF = {
+  day: new Intl.DateTimeFormat('sv-SE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+  short: new Intl.DateTimeFormat('sv-SE', { day: 'numeric', month: 'short', year: 'numeric' }),
+  month: new Intl.DateTimeFormat('sv-SE', { month: 'long', year: 'numeric' }),
+  time: new Intl.DateTimeFormat('sv-SE', { hour: '2-digit', minute: '2-digit' }),
+};
+const fDay = t => DF.day.format(t), fShort = t => DF.short.format(t), fMonth = t => DF.month.format(t), fTime = t => DF.time.format(t);
+const ymd = t => { const d = new Date(t); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const yearOf = t => new Date(t).getFullYear();
+const icon = (id, cls = '') => `<svg class="ic ${cls}"><use href="#i-${id}"/></svg>`;
+const ls = { get(k, d) { try { const v = localStorage.getItem('snaparkiv.' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+             set(k, v) { try { localStorage.setItem('snaparkiv.' + k, JSON.stringify(v)); } catch {} } };
+
+/* ---------- Tema ---------- */
+$('#btnTheme').onclick = () => {
+  const light = document.documentElement.dataset.theme !== 'light';
+  if (light) document.documentElement.dataset.theme = 'light'; else delete document.documentElement.dataset.theme;
+  try { localStorage.setItem('snaparkiv.theme', light ? 'light' : 'dark'); } catch {}
+  if (typeof setTiles === 'function') setTiles();
+};
+
+/* ---------- IndexedDB: miniatyrer + senast öppnade filer ---------- */
+let dbP = null;
+function db() {
+  if (!dbP) dbP = new Promise(res => {
+    try { const r = indexedDB.open('snaparkiv', 1);
+      r.onupgradeneeded = () => { r.result.createObjectStore('thumbs'); r.result.createObjectStore('handles'); };
+      r.onsuccess = () => res(r.result); r.onerror = () => res(null);
+    } catch { res(null); }
+  });
+  return dbP;
+}
+async function idb(store, mode, fn) {
+  const d = await db(); if (!d) return null;
+  return new Promise(res => { try { const tx = d.transaction(store, mode); const r = fn(tx.objectStore(store));
+    tx.oncomplete = () => res(r && r.result); tx.onerror = tx.onabort = () => res(null); } catch { res(null); } });
+}
+const idbGet = (s, k) => idb(s, 'readonly', st => st.get(k));
+const idbPut = (s, k, v) => idb(s, 'readwrite', st => st.put(v, k));
+
+/* ---------- Öppna filer ---------- */
+const FS = 'showOpenFilePicker' in window && 'showDirectoryPicker' in window;
+const prog = (t) => { $('#prog').hidden = false; $('#progT').textContent = t; };
+const fail = (e) => { $('#prog').hidden = true; const el = $('#err'); el.hidden = false; el.textContent = e.message || String(e); console.error(e); };
+
+async function walkDir(dir, path, out) {
+  for await (const [name, h] of dir.entries()) {
+    const p = path + '/' + name;
+    if (h.kind === 'directory') { if (!/^(html|\.)/.test(name)) await walkDir(h, p, out); }
+    else if (/\.zip$/i.test(name) || SnapCore.relPath(p)) out.push({ name, relPath: p, getFile: () => h.getFile() });
+  }
+  return out;
+}
+async function fromHandles(hs) {
+  const out = [];
+  for (const h of hs) {
+    if (h.kind === 'directory') await walkDir(h, h.name, out);
+    else { const f = await h.getFile(); out.push(f); }
+  }
+  return out;
+}
+async function entryFiles(entry, path, out) {
+  if (entry.isFile) { const f = await new Promise((res, rej) => entry.file(res, rej)); f.relPath = path; out.push(f); }
+  else if (entry.isDirectory) { const rd = entry.createReader(); let batch;
+    do { batch = await new Promise((res, rej) => rd.readEntries(res, rej)); for (const e of batch) await entryFiles(e, path + '/' + e.name, out); } while (batch.length); }
+}
+
+$('#pickZip').onclick = async () => {
+  if (!FS) return $('#fZip').click();
+  try { const hs = await showOpenFilePicker({ multiple: true, types: [{ description: 'Snapchat-export (zip)', accept: { 'application/zip': ['.zip'] } }] });
+    idbPut('handles', 'last', hs); load(await fromHandles(hs)); } catch (e) { if (e.name !== 'AbortError') fail(e); }
+};
+$('#pickDir').onclick = async () => {
+  if (!FS) return $('#fDir').click();
+  try { const h = await showDirectoryPicker(); idbPut('handles', 'last', [h]); prog('Letar efter filer i mappen…'); load(await fromHandles([h])); }
+  catch (e) { if (e.name !== 'AbortError') fail(e); }
+};
+$('#fZip').onchange = e => load([...e.target.files]);
+$('#fDir').onchange = e => load([...e.target.files]);
+(async () => {
+  if (!FS) return;
+  const hs = await idbGet('handles', 'last'); if (!hs || !hs.length) return;
+  const b = $('#reopen'); b.hidden = false;
+  b.querySelector('span').textContent = 'Öppna senaste igen (' + (hs.length === 1 ? hs[0].name : hs.length + ' filer') + ')';
+  b.onclick = async () => {
+    try { for (const h of hs) if ((await h.queryPermission({ mode: 'read' })) !== 'granted' && (await h.requestPermission({ mode: 'read' })) !== 'granted') throw new Error('Webbläsaren gav inte åtkomst till filerna.');
+      prog('Öppnar…'); load(await fromHandles(hs)); } catch (e) { fail(e); }
+  };
+})();
+const drop = $('#drop');
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => e.preventDefault());
+drop.addEventListener('drop', async e => {
+  try {
+    const items = [...e.dataTransfer.items].filter(i => i.kind === 'file');
+    if (items.length && items[0].getAsFileSystemHandle) {
+      const hs = (await Promise.all(items.map(i => i.getAsFileSystemHandle()))).filter(Boolean);
+      idbPut('handles', 'last', hs); prog('Letar efter filer…'); return load(await fromHandles(hs));
+    }
+    const out = []; const ents = items.map(i => i.webkitGetAsEntry && i.webkitGetAsEntry());
+    if (ents.every(Boolean)) { prog('Letar efter filer…'); for (const en of ents) await entryFiles(en, en.name, out); return load(out); }
+    load([...e.dataTransfer.files]);
+  } catch (err) { fail(err); }
+});
+
+/* ---------- App: installera, offline, öppna zip-filer direkt ---------- */
+if (/^https?:$/.test(location.protocol)) {
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {});
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  let deferred = null; const ib = $('#btnInstall');
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; if (!standalone) ib.hidden = false; });
+  window.addEventListener('appinstalled', () => { ib.hidden = true; deferred = null; });
+  ib.onclick = async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; ib.hidden = true; };
+}
+if ('launchQueue' in window) launchQueue.setConsumer(async p => {
+  if (!p.files || !p.files.length) return; idbPut('handles', 'last', p.files); prog('Öppnar…');
+  try { load(await fromHandles(p.files)); } catch (e) { fail(e); }
+});
+
+/* ---------- Ladda exporten ---------- */
+let M = null;
+async function load(files) {
+  $('#err').hidden = true;
+  try {
+    if (!files.length) throw new Error('Inga filer valdes.');
+    if (!('DecompressionStream' in window)) throw new Error('Den här webbläsaren är för gammal. Använd en aktuell version av Chrome, Edge, Firefox eller Safari.');
+    prog('Läser filer…');
+    const { map } = await SnapCore.collect(files, prog);
+    M = await SnapCore.build(map, prog);
+    M.chats.forEach((c, i) => { c.i = i; c.media.sort((a, b) => a.t - b.t); });
+    $('#start').hidden = true; $('#app').hidden = false; $('#tabs').hidden = false; $('#gsWrap').hidden = false; $('#btnClose').hidden = false;
+    document.title = 'Snaparkiv – ' + (M.meName || 'export');
+    setupFilters();
+    show(ls.get('view', 'chats'));
+  } catch (e) { fail(e); }
+}
+$('#btnClose').onclick = () => location.reload();
+
+/* ---------- Namn och alias ---------- */
+const alias = ls.get('alias', {});
+const cname = c => alias[c.id] || c.name;
+const who = u => !u ? '' : u === M.me ? 'Jag' : (M.disp[u] || u);
+const COLORS = ['#c0713b', '#5a8fd0', '#4fa47a', '#b45e9e', '#c9a03b', '#6c7bd6', '#cc5c5c', '#3f9fa8', '#8d7bc4', '#7f9a3d'];
+const colorOf = s => { let h = 0; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) | 0; return COLORS[Math.abs(h) % COLORS.length]; };
+const initials = s => (s.replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2) || '?').toUpperCase();
+const avatar = c => c.special ? `<div class="av" style="background:var(--gray)">${icon('ghostq')}</div>`
+  : `<div class="av" style="background:${colorOf(c.id)}">${c.isGroup ? icon('users') : esc(initials(cname(c)))}</div>`;
+
+/* ---------- Vyer ---------- */
+let view = null;
+function show(v) {
+  if (!['chats', 'mem', 'media', 'map', 'stats'].includes(v)) v = 'chats';
+  view = v; ls.set('view', v);
+  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.v === v));
+  document.querySelectorAll('#app .view').forEach(s => s.hidden = s.id !== 'v-' + v);
+  if (v === 'chats') renderChatList();
+  if (v === 'mem') renderMem();
+  if (v === 'media') renderMedia();
+  if (v === 'map') renderMap();
+  if (v === 'stats') renderStats();
+}
+$('#tabs').onclick = e => { const b = e.target.closest('button'); if (b) show(b.dataset.v); };
+function segVal(id) { return document.querySelector(id + ' button[aria-selected="true"]').dataset.k; }
+function segInit(id, fn) { $(id).onclick = e => { const b = e.target.closest('button'); if (!b) return;
+  $(id).querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', x === b)); fn(); }; }
+
+/* ---------- Miniatyrer och fullstora filer ---------- */
+const full = new Map(); let fullBytes = 0; const inflight = new Map();
+async function getBlob(src) {
+  const k = src.key;
+  if (full.has(k)) { const v = full.get(k); full.delete(k); full.set(k, v); return v; }
+  if (inflight.has(k)) return inflight.get(k);
+  const p = src.blob().then(b => { inflight.delete(k); full.set(k, b); fullBytes += b.size;
+    for (const [kk, bb] of full) { if (fullBytes < 500e6 || full.size < 3) break; full.delete(kk); fullBytes -= bb.size; }
+    return b; }, e => { inflight.delete(k); throw e; });
+  inflight.set(k, p); return p;
+}
+const thumbs = new Map();
+async function loadBitmap(blob) { try { return await createImageBitmap(blob); } catch {
+  const u = URL.createObjectURL(blob); try { const im = new Image(); im.src = u; await im.decode(); return im; } finally { setTimeout(() => URL.revokeObjectURL(u), 1000); } } }
+function videoFrame(blob) {
+  return new Promise((res, rej) => {
+    const v = document.createElement('video'); const u = URL.createObjectURL(blob);
+    const done = (x, err) => { clearTimeout(to); v.removeAttribute('src'); v.load(); URL.revokeObjectURL(u); err ? rej(err) : res(x); };
+    const to = setTimeout(() => done(null, new Error('timeout')), 15000);
+    v.muted = true; v.playsInline = true; v.preload = 'auto';
+    v.onloadedmetadata = () => { v.currentTime = Math.min(0.4, (v.duration || 1) / 3); };
+    v.onseeked = () => { try { const c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight;
+      c.getContext('2d').drawImage(v, 0, 0); done({ c, dur: v.duration }); } catch (e) { done(null, e); } };
+    v.onerror = () => done(null, new Error('video'));
+    v.src = u;
+  });
+}
+async function makeThumb(it) {
+  const k = 't2|' + it.src.key + (it.ov ? '|ov' : '');
+  if (thumbs.has(k)) return thumbs.get(k);
+  let rec = await idbGet('thumbs', k);
+  if (!rec) {
+    if (it.kind === 'audio') return null;
+    const blob = await getBlob(it.src);
+    let srcImg, dur = 0;
+    if (it.kind === 'video') { const r = await videoFrame(blob); srcImg = r.c; dur = r.dur; } else srcImg = await loadBitmap(blob);
+    const W = srcImg.width, H = srcImg.height, s = Math.min(1, 360 / Math.min(W, H));
+    const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(W * s)); c.height = Math.max(1, Math.round(H * s));
+    const g = c.getContext('2d'); g.fillStyle = '#1e2228'; g.fillRect(0, 0, c.width, c.height); g.drawImage(srcImg, 0, 0, c.width, c.height);
+    if (it.ov) { try { const o = await loadBitmap(await getBlob(it.ov)); g.drawImage(o, 0, 0, c.width, c.height); } catch {} }
+    const tb = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.78));
+    rec = { b: tb, dur, w: W, h: H };
+    if (it.kind === 'video') { full.delete(it.src.key); fullBytes -= blob.size; }
+    idbPut('thumbs', k, rec);
+  }
+  const v = { url: URL.createObjectURL(rec.b), dur: rec.dur };
+  thumbs.set(k, v); return v;
+}
+const queue = []; let active = 0;
+const io = new IntersectionObserver(ents => {
+  for (const e of ents) { const t = e.target;
+    if (e.isIntersecting) { if (!t._q) { t._q = true; queue.push(t); } } else if (t._q && !t._busy) { t._q = false; const i = queue.indexOf(t); if (i >= 0) queue.splice(i, 1); } }
+  pump();
+}, { rootMargin: '600px 0px' });
+function pump() {
+  while (active < 3 && queue.length) {
+    const t = queue.pop(); t._busy = true; active++;
+    const it = M.media[+t.dataset.mi];
+    makeThumb(it).then(v => { if (!v) return; const im = t.querySelector('img'); im.onload = () => im.classList.add('on'); im.src = v.url;
+      if (v.dur && it.kind === 'video') { const d = t.querySelector('.badge span'); if (d) d.textContent = fmtDur(v.dur); } })
+      .catch(() => { const ph = t.querySelector('.ph'); if (ph) ph.title = 'Kunde inte visa förhandsbild'; })
+      .finally(() => { io.unobserve(t); active--; pump(); });
+  }
+}
+const fmtDur = d => !isFinite(d) ? '' : Math.floor(d / 60) + ':' + String(Math.round(d % 60)).padStart(2, '0');
+function tileHTML(it, label = true) {
+  const ic = it.kind === 'video' ? 'film' : it.kind === 'audio' ? 'mic' : 'image';
+  return `<button class="tile" data-mi="${it.i}" title="${esc(fShort(it.t))}"><span class="ph">${icon(ic)}</span><img alt="">`
+    + (it.kind === 'video' ? `<span class="badge">${icon('play')}<span></span></span>` : it.kind === 'audio' ? `<span class="badge">${icon('play')}<span>röst</span></span>` : '')
+    + (it.guess ? '<span class="gq" title="Chatten är gissad utifrån tidpunkten">?</span>' : '')
+    + (label ? `<span class="tl">${esc(fShort(it.t))}</span>` : '') + '</button>';
+}
+const observeTiles = root => root.querySelectorAll('.tile[data-mi]:not(.obs)').forEach(t => { t.classList.add('obs'); io.observe(t); });
+document.addEventListener('click', e => {
+  const t = e.target.closest('.tile[data-mi]'); if (!t) return;
+  const it = M.media[+t.dataset.mi]; let el = t, list = null;
+  while (el && !list) { list = el._list; el = el.parentElement; }
+  list = list || [it];
+  openLB(list, Math.max(0, list.indexOf(it)));
+});
+
+/* ---------- Rutnät grupperat per månad ---------- */
+function renderGrid(el, items, size) {
+  el.innerHTML = ''; el._list = items; el.style.setProperty('--tile', size + 'px');
+  if (!items.length) { el.innerHTML = '<div class="empty">Inget att visa med de här filtren.</div>'; return; }
+  const wrap = document.createElement('div'); wrap.className = 'gridwrap'; el.appendChild(wrap);
+  let pos = 0, grid = null, lastM = '';
+  const sent = document.createElement('div'); sent.className = 'sentinel';
+  const more = () => {
+    const end = Math.min(items.length, pos + 300); let html = '';
+    const frag = document.createDocumentFragment();
+    for (; pos < end; pos++) {
+      const it = items[pos]; const mk = fMonth(it.t);
+      if (mk !== lastM) {
+        if (html) { grid.insertAdjacentHTML('beforeend', html); html = ''; }
+        lastM = mk; const cnt = countMonth(items, pos);
+        const h = document.createElement('div'); h.className = 'ghead'; h.innerHTML = esc(mk) + ` <span>${n(cnt)} st</span>`;
+        grid = document.createElement('div'); grid.className = 'grid';
+        wrap.insertBefore(h, sent); wrap.insertBefore(grid, sent);
+      }
+      html += tileHTML(it);
+    }
+    if (html) grid.insertAdjacentHTML('beforeend', html);
+    observeTiles(wrap);
+    if (pos >= items.length) sio.disconnect();
+  };
+  wrap.appendChild(sent);
+  const sio = new IntersectionObserver(e => { if (e[0].isIntersecting) more(); }, { root: el, rootMargin: '1200px' });
+  more(); sio.observe(sent);
+}
+function countMonth(items, i) { const d = new Date(items[i].t), y = d.getFullYear(), m = d.getMonth(); let c = 0;
+  for (let j = i; j < items.length; j++) { const e = new Date(items[j].t); if (e.getFullYear() !== y || e.getMonth() !== m) break; c++; } return c; }
+
+/* ---------- Filter (år, källor) ---------- */
+function yearOptions(sel, items) {
+  const c = {}; for (const it of items) { const y = yearOf(it.t); c[y] = (c[y] || 0) + 1; }
+  sel.innerHTML = '<option value="">Alla år</option>' + Object.keys(c).sort((a, b) => b - a).map(y => `<option value="${y}">${y} (${n(c[y])})</option>`).join('');
+}
+function setupFilters() {
+  yearOptions($('#memYear'), M.memories); yearOptions($('#mdYear'), M.media); yearOptions($('#mapYear'), M.memories.filter(m => m.lat != null));
+  const withMedia = M.chats.filter(c => c.media.length).sort((a, b) => b.media.length - a.media.length);
+  $('#mdSrc').innerHTML = `<option value="all">Alla källor (${n(M.media.length)})</option><option value="mem">Memories (${n(M.memories.length)})</option><option value="chats">Alla chattar (${n(M.media.length - M.memories.length)})</option><optgroup label="Chatt">`
+    + withMedia.map(c => `<option value="c${c.i}">${esc(cname(c))} (${n(c.media.length)})</option>`).join('') + '</optgroup>';
+  for (const id of ['#memYear', '#memSort', '#memLoc', '#memSize']) $(id).onchange = renderMem;
+  segInit('#memType', renderMem);
+  for (const id of ['#mdSrc', '#mdYear', '#mdSort', '#mdGuess', '#mdSize']) $(id).onchange = renderMedia;
+  segInit('#mdType', renderMedia); segInit('#mdWho', renderMedia);
+  $('#mapYear').onchange = drawMap;
+  $('#cf').oninput = renderChatList; $('#cs').value = ls.get('csort', 'last');
+  $('#cs').onchange = () => { ls.set('csort', $('#cs').value); renderChatList(); };
+}
+function renderMem() {
+  const ty = segVal('#memType'), y = $('#memYear').value, loc = $('#memLoc').checked;
+  let list = M.memories.filter(m => (ty === 'all' || m.kind === ty) && (!y || yearOf(m.t) == y) && (!loc || m.lat != null));
+  if ($('#memSort').value === 'desc') list = list.slice().reverse();
+  $('#memCnt').textContent = n(list.length) + ' memories' + (M.info.memMissing ? ` · ${n(M.info.memMissing)} saknas i exporten` : '');
+  renderGrid($('#memGrid'), list, +$('#memSize').value);
+}
+function renderMedia() {
+  const src = $('#mdSrc').value, ty = segVal('#mdType'), wh = segVal('#mdWho'), y = $('#mdYear').value, g = $('#mdGuess').checked;
+  let list = M.media.filter(m => (src === 'all' || (src === 'mem' ? m.source === 'mem' : src === 'chats' ? m.source === 'chat' : m.chat === +src.slice(1)))
+    && (ty === 'all' || m.kind === ty) && (!y || yearOf(m.t) == y) && (g || !m.guess)
+    && (wh === 'all' || (wh === 'me' ? (m.source === 'mem' || m.me) : (m.source === 'chat' && !m.me && m.from))));
+  if ($('#mdSort').value === 'desc') list = list.slice().reverse();
+  $('#mdCnt').textContent = n(list.length) + ' filer';
+  renderGrid($('#mdGrid'), list, +$('#mdSize').value);
+}
+
+/* ---------- Chattlista ---------- */
+let curChat = -1;
+function renderChatList() {
+  const q = $('#cf').value.trim().toLowerCase(), s = $('#cs').value;
+  let list = M.chats.filter(c => !q || cname(c).toLowerCase().includes(q) || c.id.toLowerCase().includes(q) || c.parts.some(p => p.toLowerCase().includes(q)));
+  const cmp = { last: (a, b) => b.last - a.last, msgs: (a, b) => b.nMsg - a.nMsg, media: (a, b) => b.media.length - a.media.length, name: (a, b) => cname(a).localeCompare(cname(b), 'sv') }[s];
+  list.sort((a, b) => (!!a.special - !!b.special) || cmp(a, b));
+  $('#clist').innerHTML = list.map(c => `<div class="citem${c.i === curChat ? ' sel' : ''}" data-ci="${c.i}">${avatar(c)}<div class="cn"><b>${esc(cname(c))}</b><small>${
+    c.special ? n(c.media.length) + ' bilagor utan meddelande' : (c.user && cname(c) !== c.user ? '@' + esc(c.user) + ' · ' : '') + n(c.nMsg) + ' medd' + (c.media.length ? ' · ' + n(c.media.length) + ' media' : '')
+  }</small></div><div class="cd">${c.last ? esc(fShort(c.last)) : ''}</div></div>`).join('') || '<div class="empty">Inga chattar matchar.</div>';
+  if (curChat < 0 && list.length && innerWidth > 900) openChat(list[0].i);
+}
+$('#clist').onclick = e => { const c = e.target.closest('.citem'); if (c) openChat(+c.dataset.ci); };
+
+/* ---------- En chatt ---------- */
+const CS = { ci: -1, mode: 'msgs', q: '', type: 'all', L: [], a: 0, b: 0, hl: -1, mty: 'all', mwho: 'all' };
+const TYPES = { all: () => true, text: m => m.type === 'TEXT', media: m => m.media.length || m.type === 'MEDIA' || m.type === 'NOTE',
+  other: m => !(m.type === 'TEXT' || m.media.length || m.type === 'MEDIA') };
+function openChat(ci, msgIdx = -1, q = '') {
+  curChat = ci; const c = M.chats[ci];
+  document.querySelectorAll('.citem').forEach(el => el.classList.toggle('sel', +el.dataset.ci === ci));
+  $('#v-chats').classList.add('chat-open');
+  Object.assign(CS, { ci, mode: 'msgs', q: '', type: 'all', hl: msgIdx });
+  const guessed = c.media.filter(m => m.guess).length;
+  const span = c.first ? fShort(c.first) + ' – ' + fShort(c.last) : '';
+  $('#cpane').innerHTML = `<div class="chead">
+    <button class="icon ghost backbtn" id="cBack" title="Tillbaka">${icon('left')}</button>${avatar(c)}
+    <div class="ttl"><b><span id="cTitle">${esc(cname(c))}</span>${c.special ? '' : `<button class="icon ghost" id="cRen" title="Byt visningsnamn">${icon('edit')}</button>`}</b>
+      <small>${c.user ? '@' + esc(c.user) + ' · ' : ''}${c.isGroup && c.parts.length ? esc(c.parts.map(who).slice(0, 6).join(', ')) + (c.parts.length > 6 ? ' m.fl.' : '') + ' · ' : ''}${esc(span)} · ${n(c.nMsg)} meddelanden · ${n(c.media.length)} bilagor${guessed ? ` (${n(guessed)} gissade)` : ''}</small></div>
+    <div class="seg small" id="cMode"><button data-k="msgs" aria-selected="true">Meddelanden</button><button data-k="media">Media (${n(c.media.length)})</button></div>
+  </div>
+  <div class="filters" id="cFil"></div>
+  <div class="scroll" id="cBody"></div>`;
+  $('#cBack').onclick = () => $('#v-chats').classList.remove('chat-open');
+  if ($('#cRen')) $('#cRen').onclick = renameChat;
+  segInit('#cMode', () => { CS.mode = segVal('#cMode'); chatFilters(); });
+  if (c.special) { CS.mode = 'media'; $('#cMode').hidden = true; }
+  chatFilters(q);
+}
+function renameChat() {
+  const c = M.chats[CS.ci]; const t = $('#cTitle');
+  t.innerHTML = `<input type="text" value="${esc(cname(c))}" placeholder="${esc(c.name)}">`; const inp = t.querySelector('input'); inp.focus(); inp.select();
+  const save = () => { const v = inp.value.trim(); if (v && v !== c.name) alias[c.id] = v; else delete alias[c.id]; ls.set('alias', alias); t.textContent = cname(c); renderChatList(); };
+  inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.value = cname(c); inp.blur(); } };
+  inp.onblur = save;
+}
+function chatFilters(q = '') {
+  const f = $('#cFil'), c = M.chats[CS.ci];
+  if (CS.mode === 'msgs') {
+    f.innerHTML = `<input type="search" id="cq" placeholder="Sök i chatten…" style="width:220px" value="${esc(q)}">
+      <select id="cty"><option value="all">Alla meddelanden</option><option value="text">Bara text</option><option value="media">Bara media</option><option value="other">Stickers, delningar m.m.</option></select>
+      <label>Gå till datum <input type="date" id="cdate" min="${ymd(c.first)}" max="${ymd(c.last)}"></label>
+      <button id="cFirst" title="Första meddelandet">Första</button><button id="cLast" title="Senaste meddelandet">Senaste</button>
+      <span class="cnt" id="cCnt"></span>`;
+    let deb; $('#cq').oninput = () => { clearTimeout(deb); deb = setTimeout(() => { CS.q = $('#cq').value.trim(); CS.hl = -1; buildL(); }, 200); };
+    $('#cty').onchange = () => { CS.type = $('#cty').value; CS.hl = -1; buildL(); };
+    $('#cdate').onchange = () => { const v = $('#cdate').value; if (!v) return; const t = new Date(v + 'T00:00').getTime();
+      let i = CS.L.findIndex(m => m.t >= t); if (i < 0) i = CS.L.length - 1; windowAt(i, true); };
+    $('#cFirst').onclick = () => windowAt(0, true); $('#cLast').onclick = () => windowAt(CS.L.length - 1, true);
+    CS.q = q; buildL();
+  } else {
+    f.innerHTML = `<div class="seg small" id="cmt"><button data-k="all" aria-selected="true">Alla</button><button data-k="image">Bilder</button><button data-k="video">Videor</button><button data-k="audio">Röst</button></div>
+      ${c.special ? '' : `<div class="seg small" id="cmw"><button data-k="all" aria-selected="true">Alla</button><button data-k="me">Från mig</button><button data-k="other">Från andra</button></div>`}
+      <select id="cms"><option value="desc">Nyast först</option><option value="asc">Äldst först</option></select>
+      <span class="cnt" id="cCnt"></span>`;
+    const r = () => { const ty = segVal('#cmt'), wh = $('#cmw') ? segVal('#cmw') : 'all';
+      let l = c.media.filter(m => (ty === 'all' || m.kind === ty) && (wh === 'all' || (wh === 'me' ? m.me : !m.me && m.from)));
+      if ($('#cms').value === 'desc') l = l.slice().reverse();
+      $('#cCnt').textContent = n(l.length) + ' filer'; renderGrid($('#cBody'), l, 150); };
+    segInit('#cmt', r); if ($('#cmw')) segInit('#cmw', r); $('#cms').onchange = r; r();
+  }
+}
+function buildL() {
+  const c = M.chats[CS.ci], q = CS.q.toLowerCase(), tf = TYPES[CS.type];
+  CS.L = c.msgs.filter(m => tf(m) && (!q || (m.text && m.text.toLowerCase().includes(q))));
+  $('#cCnt').textContent = (q || CS.type !== 'all') ? n(CS.L.length) + ' träffar' : '';
+  const hi = CS.hl >= 0 ? CS.L.indexOf(c.msgs[CS.hl]) : -1;
+  windowAt(hi >= 0 ? hi : CS.L.length - 1, hi >= 0);
+}
+function windowAt(i, center) {
+  CS.a = Math.max(0, i - 150); CS.b = Math.min(CS.L.length, i + 150);
+  if (!center) { CS.b = CS.L.length; CS.a = Math.max(0, CS.b - 250); }
+  renderMsgs();
+  const body = $('#cBody');
+  const el = body.querySelector(`[data-li="${i}"]`);
+  if (el && center) { el.scrollIntoView({ block: 'center' }); el.classList.add('hl'); setTimeout(() => el.classList.remove('hl'), 2500); }
+  else if (!center) body.scrollTop = body.scrollHeight;
+}
+const STATUS = { STATUSSAVETOCAMERAROLL: 'sparade något i kamerarullen', STATUSERASEDMESSAGE: 'raderade ett meddelande', STATUSERASEDSNAPMESSAGE: 'raderade en snap',
+  STATUSCONVERSATIONCAPTURESCREENSHOT: 'tog en skärmdump av chatten', STATUSCONVERSATIONCAPTURERECORD: 'spelade in skärmen i chatten', STATUSPARTICIPANTADDED: 'lade till någon i gruppen',
+  STATUSSNAPREMIXCAPTURE: 'remixade en snap', STATUS: 'statusuppdatering' };
+function hlText(t, q) { const e = esc(t); if (!q) return e; const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'), 'gi'); return e.replace(re, x => `<mark>${x}</mark>`); }
+function renderMsgs() {
+  const c = M.chats[CS.ci], body = $('#cBody'), L = CS.L, q = CS.q;
+  if (!L.length) { body.innerHTML = `<div class="empty">${CS.q || CS.type !== 'all' ? 'Inga meddelanden matchar.' : 'Chatten är tom.'}</div>`; return; }
+  let h = '<div class="msgs">';
+  if (CS.a > 0) h += `<div class="more"><button id="mOld">Visa äldre (${n(CS.a)} kvar)</button></div>`;
+  let pd = '', pf = null;
+  for (let i = CS.a; i < CS.b; i++) {
+    const m = L[i], d = m.dateOnly ? ymd(m.t) : ymd(m.t);
+    if (d !== pd) { h += `<div class="daysep">${esc(fDay(m.t))}</div>`; pd = d; pf = null; }
+    const time = m.dateOnly ? '' : fTime(m.t);
+    if (m.type.startsWith('STATUS')) { h += `<div class="sys" data-li="${i}">${esc(who(m.from))} ${esc(STATUS[m.type] || m.type.toLowerCase())} · ${time}</div>`; pf = null; continue; }
+    const showWho = (c.isGroup || m.syn) && !m.me && m.from && m.from !== pf;
+    pf = m.from;
+    h += `<div class="m${m.me ? ' me' : ''}" data-li="${i}">${showWho ? `<div class="who">${esc(who(m.from))}</div>` : ''}`;
+    if (m.media.length) {
+      h += `<div class="bub media"><div class="mgrid">${m.media.map(it => tileHTML(it, false)).join('')}</div>${m.text ? `<div style="padding:4px 6px">${hlText(m.text, q)}</div>` : ''}<span class="tm">${time}${m.saved && !m.syn ? '' : ''}</span></div>`;
+      if (m.syn && m.media[0].guess) h += `<div class="guess">Kopplad via tidpunkt – kan höra till en annan chatt</div>`;
+    } else {
+      let body2;
+      if (m.type === 'TEXT') body2 = hlText(m.text, q);
+      else if (m.type === 'MEDIA') body2 = `<span class="missing">${icon('image')}Snap/media – sparades inte i exporten</span>`;
+      else if (m.type === 'NOTE') body2 = `<span class="missing">${icon('mic')}Röstmeddelande – finns inte i exporten</span>`;
+      else if (m.type === 'STICKER') body2 = `<span class="tag">Sticker</span>`;
+      else if (m.type === 'SHARE') body2 = `<span class="tag">Delade innehåll</span>${m.text ? ' ' + hlText(m.text, q) : ''}`;
+      else if (m.type === 'LOCATION') body2 = `<span class="tag">Delade en plats</span>${m.text ? ' ' + hlText(m.text, q) : ''}`;
+      else body2 = `<span class="tag">${esc(m.type.toLowerCase())}</span>${m.text ? ' ' + hlText(m.text, q) : ''}`;
+      h += `<div class="bub">${body2}<span class="tm">${time}</span></div>`;
+    }
+    h += '</div>';
+  }
+  if (CS.b < L.length) h += `<div class="more"><button id="mNew">Visa nyare (${n(L.length - CS.b)} kvar)</button></div>`;
+  body.innerHTML = h + '</div>';
+  body._list = c.media;
+  if (CS.q || CS.type !== 'all') body.querySelectorAll('.m,.sys').forEach(el => { el.style.cursor = 'pointer'; el.title = 'Klicka för att se meddelandet i sitt sammanhang'; });
+  observeTiles(body);
+  const old = $('#mOld'), nw = $('#mNew');
+  if (old) { old.onclick = () => { const before = body.scrollHeight - body.scrollTop; CS.a = Math.max(0, CS.a - 300); renderMsgs(); body.scrollTop = body.scrollHeight - before; };
+    new IntersectionObserver((e, o) => { if (e[0].isIntersecting) { o.disconnect(); old.click(); } }, { root: body, rootMargin: '300px' }).observe(old); }
+  if (nw) { nw.onclick = () => { const st = body.scrollTop; CS.b = Math.min(L.length, CS.b + 300); renderMsgs(); body.scrollTop = st; };
+    new IntersectionObserver((e, o) => { if (e[0].isIntersecting) { o.disconnect(); nw.click(); } }, { root: body, rootMargin: '300px' }).observe(nw); }
+}
+document.addEventListener('click', e => {
+  if (!(CS.q || CS.type !== 'all')) return;
+  const el = e.target.closest('#cBody [data-li]'); if (!el || e.target.closest('.tile')) return;
+  const m = CS.L[+el.dataset.li]; const c = M.chats[CS.ci];
+  CS.hl = c.msgs.indexOf(m); CS.q = ''; CS.type = 'all'; $('#cq').value = ''; $('#cty').value = 'all'; buildL();
+});
+
+/* ---------- Global sökning ---------- */
+let gdeb;
+$('#gs').oninput = () => { clearTimeout(gdeb); gdeb = setTimeout(gsearch, 220); };
+$('#gs').onkeydown = e => { if (e.key === 'Escape') { $('#gs').value = ''; $('#sres').hidden = true; } };
+document.addEventListener('mousedown', e => { if (!e.target.closest('#sres,#gsWrap')) $('#sres').hidden = true; });
+$('#gs').onfocus = () => { if ($('#gs').value.trim().length >= 2) $('#sres').hidden = false; };
+function gsearch() {
+  const q = $('#gs').value.trim().toLowerCase(), box = $('#sres');
+  if (q.length < 2) { box.hidden = true; return; }
+  const res = []; let total = 0;
+  for (const c of M.chats) for (let i = 0; i < c.msgs.length; i++) { const m = c.msgs[i];
+    if (m.text && m.text.toLowerCase().includes(q)) { total++; res.push([c, i, m]); } }
+  res.sort((a, b) => b[2].t - a[2].t);
+  box.innerHTML = `<div class="sr muted" style="cursor:default">${n(total)} träffar${total > 200 ? ' – visar de 200 senaste' : ''}</div>` + res.slice(0, 200).map(([c, i, m]) =>
+    `<div class="sr" data-ci="${c.i}" data-k="${i}"><div class="sh"><b>${esc(cname(c))}</b><span>${esc(who(m.from))} · ${esc(fShort(m.t))} ${fTime(m.t)}</span></div><div class="st">${hlText(m.text, $('#gs').value.trim())}</div></div>`).join('');
+  box.hidden = false;
+}
+$('#sres').onclick = e => { const r = e.target.closest('.sr[data-ci]'); if (!r) return; $('#sres').hidden = true;
+  show('chats'); openChat(+r.dataset.ci, +r.dataset.k); };
+
+/* ---------- Ljuslåda ---------- */
+const LB = { list: [], i: 0, url: null, ovUrl: null, ov: ls.get('ov', true) };
+function openLB(list, i) { LB.list = list; LB.i = i; $('#lb').hidden = false; drawLB(); }
+function closeLB() { $('#lb').hidden = true; $('#lbWrap').innerHTML = ''; freeLB(); }
+function freeLB() { if (LB.url) URL.revokeObjectURL(LB.url); if (LB.ovUrl) URL.revokeObjectURL(LB.ovUrl); LB.url = LB.ovUrl = null; }
+async function drawLB() {
+  const it = LB.list[LB.i], wrap = $('#lbWrap'), tok = {}; LB.tok = tok;
+  freeLB(); wrap.innerHTML = '<div class="loading">Packar upp…</div>';
+  $('#lbPrev').hidden = LB.i <= 0; $('#lbNext').hidden = LB.i >= LB.list.length - 1;
+  sideLB(it);
+  try {
+    const b = await getBlob(it.src); if (LB.tok !== tok) return;
+    LB.url = URL.createObjectURL(b);
+    let h = it.kind === 'video' ? `<video src="${LB.url}" controls autoplay playsinline></video>`
+      : it.kind === 'audio' ? `<audio src="${LB.url}" controls autoplay style="width:min(420px,80vw)"></audio>`
+      : `<img class="main" src="${LB.url}" alt="">`;
+    if (it.ov) { const ob = await getBlob(it.ov); if (LB.tok !== tok) return; LB.ovUrl = URL.createObjectURL(ob); h += `<img class="ov" src="${LB.ovUrl}" alt="">`; }
+    wrap.innerHTML = h; wrap.classList.toggle('noov', !LB.ov);
+    const md = wrap.querySelector('video,audio');
+    if (md) md.onerror = () => { wrap.innerHTML = '<div class="loading" style="line-height:1.5;max-width:360px;text-align:center">Webbläsaren kan inte spela upp den här videon (troligen HEVC-format).<br>Klicka på Ladda ner och öppna den i en vanlig videospelare.</div>'; };
+    const nx = LB.list[LB.i + 1]; if (nx && nx.kind === 'image') getBlob(nx.src).catch(() => {});
+  } catch (e) { if (LB.tok === tok) wrap.innerHTML = `<div class="loading">Kunde inte öppna filen (${esc(e.message)})</div>`; }
+}
+function sideLB(it) {
+  const c = it.chat >= 0 ? M.chats[it.chat] : null;
+  const title = it.source === 'mem' ? 'Memory' : it.kind === 'audio' ? 'Röstmeddelande' : 'Chattbilaga';
+  const kv = [['Datum', fDay(it.t)]];
+  kv.push(['Tid', it.exact ? fTime(it.t) + (it.approx ? ' (ungefär)' : '') : it.approx ? 'ungefär ' + fTime(it.t) : 'okänd – öppna zip-filerna för exakt tid']);
+  if (c) kv.push(['Chatt', cname(c)]);
+  if (it.source === 'chat' && it.from) kv.push(['Skickad av', who(it.from)]);
+  if (it.lat != null) kv.push(['Plats', it.lat.toFixed(5) + ', ' + it.lon.toFixed(5)]);
+  kv.push(['Typ', it.kind === 'video' ? 'Video' : it.kind === 'audio' ? 'Ljud' : 'Bild']);
+  kv.push(['Storlek', (it.src.size / 1048576).toFixed(it.src.size > 10485760 ? 0 : 1) + ' MB']);
+  kv.push(['Fil', it.src.rel.split('/').pop()]);
+  $('#lbSide').innerHTML = `<h3>${title}</h3><div class="pos">${n(LB.i + 1)} av ${n(LB.list.length)}</div>
+    <div class="kv">${kv.map(([k, v]) => `<span>${k}</span><span style="overflow-wrap:anywhere">${esc(v)}</span>`).join('')}</div>
+    ${it.guess ? '<div class="warnline">Den här bilagan saknar koppling till ett meddelande i exporten. Chatten är gissad utifrån det närmaste meddelandet i tid.</div>' : ''}
+    <div class="b">
+      <button class="default" id="lbDl">${icon('down')}Ladda ner</button>
+      ${it.ov ? `<button id="lbOv" aria-pressed="${LB.ov}">${icon('layers')}Text/filter</button>` : ''}
+      ${c && !c.special ? `<button id="lbGo">${icon('chat')}Visa i chatten</button>` : ''}
+      ${it.lat != null ? `<button id="lbMap">${icon('pin')}Öppna karta</button>` : ''}
+    </div>`;
+  $('#lbDl').onclick = async () => { const b = await getBlob(it.src); const u = URL.createObjectURL(b); const a = document.createElement('a');
+    const d = new Date(it.t); const stamp = ymd(it.t) + (it.exact ? '_' + String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0') + String(d.getSeconds()).padStart(2, '0') : '');
+    a.href = u; a.download = stamp + '_' + (it.source === 'mem' ? 'memory' : (c ? cname(c) : 'chatt').replace(/[^\p{L}\p{N}_-]+/gu, '_')) + '.' + it.src.rel.split('.').pop();
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 5000); };
+  if ($('#lbOv')) $('#lbOv').onclick = () => { LB.ov = !LB.ov; ls.set('ov', LB.ov); $('#lbOv').setAttribute('aria-pressed', LB.ov); $('#lbWrap').classList.toggle('noov', !LB.ov); };
+  if ($('#lbGo')) $('#lbGo').onclick = () => { closeLB(); show('chats'); openChat(it.chat, c.msgs.indexOf(it.msg)); };
+  if ($('#lbMap')) $('#lbMap').onclick = () => window.open(`https://www.openstreetmap.org/?mlat=${it.lat}&mlon=${it.lon}#map=16/${it.lat}/${it.lon}`, '_blank', 'noopener');
+}
+const step = d => { const j = LB.i + d; if (j < 0 || j >= LB.list.length) return; LB.i = j; drawLB(); };
+$('#lbPrev').onclick = () => step(-1); $('#lbNext').onclick = () => step(1); $('#lbClose').onclick = closeLB;
+$('#lb').addEventListener('click', e => { if (e.target.classList.contains('stage')) closeLB(); });
+document.addEventListener('keydown', e => {
+  if ($('#lb').hidden || e.target.matches('input,select,textarea')) return;
+  if (e.key === 'Escape') closeLB(); else if (e.key === 'ArrowLeft') step(-1); else if (e.key === 'ArrowRight') step(1);
+});
+let tx0 = null;
+$('#lb').addEventListener('touchstart', e => { tx0 = e.touches[0].clientX; }, { passive: true });
+$('#lb').addEventListener('touchend', e => { if (tx0 == null) return; const dx = e.changedTouches[0].clientX - tx0; if (Math.abs(dx) > 60) step(dx < 0 ? 1 : -1); tx0 = null; });
+
+/* ---------- Karta ---------- */
+let map = null, mapLayer = null, leafletP = null;
+function loadLeaflet() {
+  if (leafletP) return leafletP;
+  leafletP = new Promise((res, rej) => {
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css'; document.head.appendChild(l);
+    const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'; s.onload = res; s.onerror = () => { leafletP = null; rej(); }; document.head.appendChild(s);
+  });
+  return leafletP;
+}
+async function renderMap() {
+  if (map) { map.invalidateSize(); return; }
+  $('#map').innerHTML = '<div class="empty">Laddar kartan…</div>';
+  try { await loadLeaflet(); } catch { $('#map').innerHTML = '<div class="empty">Kartan kräver internetanslutning. Allt annat fungerar offline.</div>'; return; }
+  $('#map').innerHTML = '';
+  map = L.map('map', { preferCanvas: true, worldCopyJump: true });
+  setTiles();
+  const sel = $('#mapStyle'); sel.value = ls.get('mapstyle', 'auto');
+  sel.onchange = () => { ls.set('mapstyle', sel.value); setTiles(); };
+  drawMap();
+}
+let tiles = null, tileErr = 0;
+const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+const TILES = {
+  dark: { url: ESRI + 'Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', nz: 16, attr: 'Esri, HERE, Garmin, &copy; OpenStreetMap' },
+  street: { url: ESRI + 'World_Street_Map/MapServer/tile/{z}/{y}/{x}', nz: 19, attr: 'Esri, HERE, Garmin, &copy; OpenStreetMap' },
+  sat: { url: ESRI + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', nz: 19, attr: 'Esri, Maxar, Earthstar Geographics' },
+  osm: { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', nz: 19, attr: '&copy; OpenStreetMap' },
+};
+const ORDER = ['dark', 'street', 'sat', 'osm'];
+const HOSTED = /^https?:$/.test(location.protocol);
+function mapStyle() { const v = ls.get('mapstyle', 'auto'); return v === 'auto' ? (HOSTED ? 'osm' : document.documentElement.dataset.theme === 'light' ? 'street' : 'dark') : v; }
+function setTiles(key) {
+  if (!map) return;
+  key = key || mapStyle();
+  if (tiles) tiles.remove();
+  const t = TILES[key]; tileErr = 0;
+  tiles = L.tileLayer(t.url, { maxNativeZoom: t.nz, maxZoom: 20, attribution: t.attr, className: key === 'osm' ? 'osmtiles' : '' }).addTo(map);
+  tiles.on('tileerror', () => { if (++tileErr === 6 && (setTiles.hops = (setTiles.hops || 0) + 1) < ORDER.length) setTiles(ORDER[(ORDER.indexOf(key) + 1) % ORDER.length]); });
+}
+function drawMap() {
+  if (!map) return;
+  if (mapLayer) mapLayer.remove();
+  const y = $('#mapYear').value;
+  const pts = M.memories.filter(m => m.lat != null && (!y || yearOf(m.t) == y));
+  const groups = new Map();
+  for (const m of pts) { const k = m.lat.toFixed(3) + ',' + m.lon.toFixed(3); (groups.get(k) || groups.set(k, []).get(k)).push(m); }
+  $('#mapCnt').textContent = n(pts.length) + ' memories med plats på ' + n(groups.size) + ' platser';
+  mapLayer = L.layerGroup().addTo(map);
+  const acc = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#f4b63f';
+  for (const g of groups.values()) {
+    const mk = L.circleMarker([g[0].lat, g[0].lon], { radius: Math.min(22, 5 + Math.sqrt(g.length) * 2.2), color: '#1b1405', weight: 1, fillColor: acc, fillOpacity: .85 });
+    mk.bindTooltip(`${g.length} st · ${fShort(g[0].t)}${g.length > 1 ? ' – ' + fShort(g[g.length - 1].t) : ''}`);
+    mk.on('click', () => {
+      const div = document.createElement('div'); div.className = 'mappop';
+      div.innerHTML = g.slice(0, 60).map(m => `<img data-mi="${m.i}" alt="" title="${esc(fShort(m.t))}">`).join('');
+      div.onclick = e => { const im = e.target.closest('img'); if (im) openLB(g, g.indexOf(M.media[+im.dataset.mi])); };
+      div.querySelectorAll('img').forEach(im => makeThumb(M.media[+im.dataset.mi]).then(v => { if (v) im.src = v.url; }).catch(() => {}));
+      L.popup({ maxWidth: 240 }).setLatLng(mk.getLatLng()).setContent(div).openOn(map);
+    });
+    mk.addTo(mapLayer);
+  }
+  if (pts.length) map.fitBounds(L.latLngBounds(pts.map(p => [p.lat, p.lon])).pad(0.1)); else map.setView([59.3, 18], 4);
+}
+
+/* ---------- Statistik ---------- */
+function bars(data, fmt = x => x) {
+  const max = Math.max(1, ...data.map(d => d[1]));
+  return `<div class="bars">${data.map(([l, v]) => `<div class="bc" title="${esc(l)}: ${n(v)}"><span class="bv">${v ? fmt(v) : ''}</span><i style="height:${(v / max * 100).toFixed(1)}%"></i><span class="bl">${esc(l)}</span></div>`).join('')}</div>`;
+}
+const kfmt = v => v >= 10000 ? Math.round(v / 1000) + 'k' : n(v);
+function renderStats() {
+  const chats = M.chats.filter(c => !c.special);
+  const msgs = chats.flatMap(c => c.msgs.filter(m => !m.syn));
+  const mine = msgs.filter(m => m.me).length;
+  const y0 = msgs.length ? yearOf(Math.min(...chats.filter(c => c.first).map(c => c.first))) : new Date().getFullYear(), y1 = new Date().getFullYear();
+  const years = []; for (let y = y0; y <= y1; y++) years.push(y);
+  const perY = {}, perH = new Array(24).fill(0), perW = new Array(7).fill(0);
+  for (const m of msgs) { const d = new Date(m.t); perY[d.getFullYear()] = (perY[d.getFullYear()] || 0) + 1; perH[d.getHours()]++; perW[(d.getDay() + 6) % 7]++; }
+  const memY = {}; for (const m of M.memories) memY[yearOf(m.t)] = (memY[yearOf(m.t)] || 0) + 1;
+  const top = chats.slice().sort((a, b) => b.nMsg - a.nMsg).slice(0, 12); const tmax = top[0] ? top[0].nMsg : 1;
+  const tile = (v, l) => `<div class="stile"><b>${v}</b><span>${l}</span></div>`;
+  const I = M.info;
+  $('#stats').innerHTML = `<div class="sgrid">
+    <div class="card w12"><h2>${icon('chart')}Översikt${M.meName ? ' · ' + esc(M.meName) : ''}</h2><div class="tiles">
+      ${tile(n(msgs.length), 'meddelanden')}${tile(n(mine), 'skickade av mig')}${tile(n(msgs.length - mine), 'mottagna')}${tile(n(chats.length), 'chattar')}
+      ${tile(n(M.memories.length), 'memories')}${tile(n(M.media.length - M.memories.length), 'chattbilagor')}
+      ${msgs.length ? tile(esc(fShort(Math.min(...msgs.map(m => m.t)))), 'första meddelandet') : ''}
+      ${I.snapscore ? tile(n(Math.round(+I.snapscore)), 'Snapscore') : ''}${I.friends ? tile(n(+I.friends), 'vänner') : ''}
+    </div></div>
+    <div class="card w8"><h2>${icon('chat')}Meddelanden per år</h2>${bars(years.map(y => ["'" + String(y).slice(2), perY[y] || 0]), kfmt)}</div>
+    <div class="card"><h2>${icon('star')}Memories per år</h2>${bars(years.map(y => ["'" + String(y).slice(2), memY[y] || 0]), kfmt)}</div>
+    <div class="card w6"><h2>${icon('users')}Flest meddelanden</h2>${top.map(c => `<div class="hbar" data-ci="${c.i}"><b>${esc(cname(c))}</b><div class="tr"><i style="width:${(c.nMsg / tmax * 100).toFixed(1)}%"></i></div><span>${n(c.nMsg)}</span></div>`).join('')}</div>
+    <div class="card w6"><h2>${icon('chart')}Tid på dygnet</h2>${bars(perH.map((v, h) => [h % 3 ? '' : String(h), v]), kfmt)}
+      <h2 style="margin-top:16px">${icon('chart')}Veckodag</h2>${bars(['mån', 'tis', 'ons', 'tor', 'fre', 'lör', 'sön'].map((d, i) => [d, perW[i]]), kfmt)}</div>
+    <div class="card w6"><h2>${icon('box')}Om exporten</h2><div class="plist">
+      <div><span>Filer i exporten</span><b>${n(I.files)}</b></div>
+      <div><span>Memories i Snapchats lista</span><b>${n(I.memTotal)}</b></div>
+      <div><span>Memories som saknas i zip-filerna</span><b>${n(I.memMissing)}</b></div>
+      <div><span>Media i chattar som inte sparades</span><b>${n(I.missingMedia)}</b></div>
+      <div><span>Bilagor kopplade via tidpunkt (gissade)</span><b>${n(I.guessed)}</b></div>
+      <div><span>Bilagor utan någon koppling</span><b>${n(I.orphan)}</b></div>
+    </div><p class="muted" style="font-size:12.5px;margin:10px 0 0">Snapchat tar bara med media som sparats i chatten. Bilagor som saknar meddelande i chat_history.json kopplas till den chatt som hade ett meddelande närmast i tid (inom 15 minuter). Övriga hamnar under "Okopplade bilagor".</p></div>
+    ${I.places.length ? `<div class="card w6"><h2>${icon('pin')}Platser du delat (Snap Map)</h2><div class="plist">${I.places.slice(0, 15).map(p => `<div><span>${esc(p.Place || p['Place Location'] || '')}</span><span class="muted">${esc(fShort(SnapT(p.Date)))}</span></div>`).join('')}</div></div>` : ''}
+  </div>`;
+  $('#stats').onclick = e => { const h = e.target.closest('.hbar'); if (h) { show('chats'); openChat(+h.dataset.ci); } };
+}
+const SnapT = s => { const m = String(s).match(/(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)/); return m ? Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5], +m[6]) : Date.now(); };
+})();
+</script>
+</body>
+</html>

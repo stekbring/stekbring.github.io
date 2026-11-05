@@ -1,0 +1,26 @@
+{
+  "name": "Snaparkiv",
+  "short_name": "Snaparkiv",
+  "description": "Bläddra i din Snapchat-export: chattar, memories, bilder och videor. Allt läses lokalt – inget laddas upp.",
+  "lang": "sv",
+  "id": "/snaparkiv/",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#101216",
+  "theme_color": "#14171b",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "file_handlers": [
+    {
+      "action": "./",
+      "accept": { "application/zip": [".zip"] },
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "launch_handler": { "client_mode": "focus-existing" }
+}
