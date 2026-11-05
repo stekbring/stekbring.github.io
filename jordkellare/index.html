@@ -45,7 +45,7 @@
   --c-in:#27456f; --c-ut:#b0651a; --c-rh:#2d6b2d; --c-bat:#44423d; --c-rs:#7b4fa0; --c-ly:#5f7fae;
   --grid:#ebe8e1; --grid2:#f1eee8; --axis:#b9b6ae; --note:#8a4b00; --flag:#c99a2e; --dot-ring:#fff;
   --line:#e6e3dc; --line2:#d9d6cf; --line3:#e0ddd6; --pressed:#cfccc4; --logo:#161614;
-  --banner:#f3edd8; --banner-bad:#f4ddd8; --banner-info:#dde4ee;
+  --banner:#f3edd8; --banner-bad:#f4ddd8; --banner-info:#dde4ee; --heat:#c0392b;
   --shadow:rgba(0,0,0,.18); --backdrop:rgba(40,38,34,.35); --lamp-hi:rgba(255,255,255,.6);
 }
 /* Mörkt: samma upphöjda stil, men grafitgrått. Väljs med knappen Tema (eller systemets inställning). */
@@ -57,7 +57,7 @@
   --c-in:#7aa3dc; --c-ut:#e69a52; --c-rh:#74c074; --c-bat:#d2cec5; --c-rs:#b993dc; --c-ly:#8ea9cf;
   --grid:#2e2d29; --grid2:#262522; --axis:#5a5852; --note:#e3a54e; --flag:#d9ab45; --dot-ring:#1c1b19;
   --line:#33322e; --line2:#3a3934; --line3:#36352f; --pressed:#3d3c37; --logo:#ebe8e1;
-  --banner:#3b3524; --banner-bad:#472a25; --banner-info:#283342;
+  --banner:#3b3524; --banner-bad:#472a25; --banner-info:#283342; --heat:#f07a5a;
   --shadow:rgba(0,0,0,.5); --backdrop:rgba(0,0,0,.55); --lamp-hi:rgba(255,255,255,.25);
 }
 .temaknapp{min-width:0}
@@ -205,6 +205,8 @@ footer{color:var(--muted);font-size:14px;text-align:center;padding:6px 10px calc
 @media (max-width:600px){.notlista li{grid-template-columns:minmax(0,1fr) auto}.notlista li .t{grid-column:1/-1;font-size:14px}}
 .notlista li .t{color:var(--muted);white-space:nowrap;flex:none}
 .notlista li button{margin-left:auto;min-height:24px;padding:0 8px;font-size:14px}
+.notlista li.varme>span:not(.t){color:var(--muted)}
+.notlista li.varme>span:not(.t)::before{content:'';display:inline-block;width:7px;height:9px;background:var(--heat);clip-path:polygon(50% 0,100% 100%,0 100%);margin-right:6px;vertical-align:0}
 .chips{display:flex;flex-wrap:wrap;gap:4px 14px}
 .chips label{display:inline-flex;gap:5px;align-items:center}
 .radio{display:flex;flex-wrap:wrap;gap:4px 14px}
@@ -232,6 +234,62 @@ dialog.bred{width:min(560px,96vw)}
   .rad3,.rad2{grid-template-columns:1fr}
   .histbar{gap:6px}
   .zoomknappar{width:100%}
+}
+/* ---------- PDF-rapport ---------- */
+dialog.rapportdlg{width:min(1180px,98vw);max-width:98vw;height:94vh;max-height:94vh}
+.rp-ram{display:flex;flex-direction:column;height:100%}
+.rp-dhjalp{font-weight:400;font-size:14px;opacity:.85}
+.rp-kropp{flex:1;min-height:0;display:grid;grid-template-columns:270px minmax(0,1fr)}
+.rp-val{padding:10px 12px;overflow:auto;border-right:2px groove var(--hi)}
+.rp-val textarea{width:100%;font:inherit;background:var(--field);color:var(--ink);border:2px inset var(--face);padding:4px 6px;resize:vertical}
+.rp-etikett{display:block;font-weight:600;margin:8px 0 3px}
+.rp-kol{display:flex;flex-direction:column;gap:3px}
+.rp-kol label{display:inline-flex;gap:6px;align-items:center}
+.rp-forhand{overflow:auto;background:var(--lo);padding:16px}
+@media (max-width:760px){.rp-kropp{grid-template-columns:1fr;overflow:auto}.rp-val{border-right:0;border-bottom:2px groove var(--hi);overflow:visible}.rp-forhand{overflow:visible;padding:8px}}
+/* Själva rapporten är alltid ljus, också i mörkt läge */
+.rp-sida{
+  color-scheme:light;
+  --bg:#d4d0c8; --face:#e4e1da; --hi:#ffffff; --lo:#8a877f; --dk:#44423d; --ink:#1d1c1a; --muted:#5c5a55; --field:#ffffff;
+  --sel:#27456f; --warn:#8a4b00; --bad:#a0231a; --ok:#2d6b2d;
+  --c-in:#27456f; --c-ut:#b0651a; --c-rh:#2d6b2d; --c-bat:#44423d; --c-rs:#7b4fa0; --c-ly:#5f7fae;
+  --grid:#ebe8e1; --grid2:#f1eee8; --axis:#b9b6ae; --note:#8a4b00; --flag:#c99a2e; --dot-ring:#fff; --heat:#c0392b;
+  --line:#e6e3dc; --line2:#d9d6cf; --logo:#161614;
+  background:#fff;color:var(--ink);max-width:794px;margin:0 auto;padding:44px 48px 36px;box-shadow:0 2px 10px rgba(0,0,0,.35);
+  font-size:13.5px;line-height:1.4;-webkit-print-color-adjust:exact;print-color-adjust:exact
+}
+.rp-sida .rp-head{display:flex;align-items:flex-end;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:14px}
+.rp-sida .rp-head svg{width:34px;height:34px}
+.rp-sida h1{font-size:24px;margin:0;line-height:1.1;font-weight:600}
+.rp-sida .rp-under{color:var(--muted);font-size:13px;margin-top:2px}
+.rp-sida .rp-skapad{margin-left:auto;text-align:right;color:var(--muted);font-size:12px}
+.rp-sida h2{font-size:16px;font-weight:600;margin:16px 0 6px;padding-bottom:2px;border-bottom:1px solid var(--line2)}
+.rp-sida .rp-del{break-inside:avoid;page-break-inside:avoid}
+.rp-sida .rp-text{margin:0 0 6px}
+.rp-sida .rp-kommentar{background:#f6f4ef;border-left:3px solid var(--sel);padding:6px 10px;margin:8px 0;white-space:pre-wrap}
+.rp-sida .rp-nyckel{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.rp-sida .rp-nyckel div{border:1px solid var(--line2);padding:5px 8px}
+.rp-sida .rp-nyckel span{display:block;color:var(--muted);font-size:11.5px}
+.rp-sida .rp-nyckel b{display:block;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+.rp-sida .rp-nyckel small{display:block;color:var(--muted);font-size:11.5px}
+.rp-sida .chart{border:1px solid var(--line2);padding:4px 4px 0;margin:2px 0 0;cursor:default;background:#fff}
+.rp-sida .rp-nyckelrad{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:12px;color:var(--muted);margin:2px 0 0}
+.rp-sida .rp-nyckelrad i{display:inline-block;width:16px;height:3px;vertical-align:3px;margin-right:4px}
+.rp-sida .rp-tva{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rp-sida table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+.rp-sida th{text-align:left;font-weight:600;border-bottom:1.5px solid var(--ink);padding:3px 5px;vertical-align:bottom}
+.rp-sida td{border-bottom:1px solid var(--line);padding:2px 5px;vertical-align:top}
+.rp-sida td.n,.rp-sida th.n{text-align:right}
+.rp-sida tr{break-inside:avoid}
+.rp-sida .rp-tom{color:var(--muted);font-style:italic}
+.rp-sida .rp-fot{margin-top:18px;border-top:1px solid var(--line2);padding-top:5px;color:var(--muted);font-size:11px;display:flex;justify-content:space-between}
+#printArea{display:none}
+@media print{
+  @page{size:A4;margin:12mm 12mm 14mm}
+  body.printar{background:#fff !important;display:block}
+  body.printar>*:not(#printArea){display:none !important}
+  body.printar #printArea{display:block}
+  body.printar .rp-sida{box-shadow:none;max-width:none;margin:0;padding:0}
 }
 </style>
 </head>
@@ -336,9 +394,9 @@ dialog.bred{width:min(560px,96vw)}
       </div>
     </div>
     <div class="verktyg">
-      <button id="btnClear" title="Döljer tidigare mätningar i den här webbläsaren">Rensa graferna</button>
-      <button id="btnUnclear" hidden>Visa allt igen</button>
-      <button id="btnExport">Exportera CSV…</button>
+      <button id="btnClear" title="Dölj mätningar i graferna på den här enheten">Rensa…</button>
+      <button id="btnExport">Exportera</button>
+      <button id="btnRapport" title="Snygg rapport med grafer och tabeller, att spara som PDF eller skriva ut">PDF-rapport…</button>
       <button id="btnNote" class="only-admin" hidden>Ny anteckning…</button>
       <label id="lastYearWrap" hidden><input type="checkbox" id="chkLastYear"> Visa förra året</label>
     </div>
@@ -627,7 +685,7 @@ dialog.bred{width:min(560px,96vw)}
 
 <dialog id="dlgExport" class="bred">
   <form method="dialog">
-    <div class="dhead">Exportera till CSV (Excel)</div>
+    <div class="dhead">Exportera</div>
     <div class="dbody">
       <div class="form2">
         <span>Period</span>
@@ -638,18 +696,99 @@ dialog.bred{width:min(560px,96vw)}
         </div>
         <span></span>
         <div class="row" style="margin:0"><input type="datetime-local" id="exFrom"> – <input type="datetime-local" id="exTo"></div>
+        <span>Innehåll</span>
+        <div class="chips">
+          <label><input type="checkbox" id="exMat" checked> mätningar</label>
+          <label><input type="checkbox" id="exHand"> händelser</label>
+          <label><input type="checkbox" id="exAnt"> anteckningar</label>
+          <label><input type="checkbox" id="exDygn"> dygnsrapport</label>
+          <label><input type="checkbox" id="exLarm"> larmhistorik</label>
+          <label><input type="checkbox" id="exKal"> kalibreringshistorik</label>
+          <label class="only-admin" hidden><input type="checkbox" id="exBackup"> säkerhetskopia</label>
+        </div>
         <label for="exRes">Upplösning</label>
         <select id="exRes">
           <option value="0">varje mätning</option><option value="60">1 minut (medel, min, max)</option><option value="300">5 minuter</option>
           <option value="900">15 minuter</option><option value="3600" selected>1 timme</option><option value="86400">1 dygn</option>
         </select>
-        <span>Även</span>
-        <label><input type="checkbox" id="exLog"> händelseloggen (egen fil)</label>
+        <span>Mätningar med</span>
+        <div class="chips">
+          <label><input type="checkbox" id="exKolHand" checked> händelser och anteckningar</label>
+          <label><input type="checkbox" id="exKolDagg" checked> daggpunkt och absolut fukt</label>
+        </div>
+        <span>Format</span>
+        <div class="radio">
+          <label><input type="radio" name="exF" value="xlsx" checked> en Excel-fil med flikar</label>
+          <label><input type="radio" name="exF" value="zip"> zip med CSV-filer</label>
+          <label><input type="radio" name="exF" value="csv"> separata CSV-filer</label>
+        </div>
       </div>
-      <p class="help">Semikolon och decimalkomma, öppnas direkt i Excel.</p>
+      <p class="help" id="exHelp">Excel-filen har en flik per del. CSV-filerna har semikolon och decimalkomma och öppnas direkt i Excel. Säkerhetskopian är en JSON-fil.</p>
       <p class="msg" id="exMsg"></p>
     </div>
-    <div class="dfoot"><button value="cancel">Stäng</button><button value="ok" class="default" id="btnDoExport">Exportera</button></div>
+    <div class="dfoot"><button type="button" id="btnImport" class="only-admin" hidden title="Läs in inställningar, plats, anteckningar och larmmottagare från en säkerhetskopia">Läs in säkerhetskopia…</button><span style="flex:1"></span><button value="cancel">Stäng</button><button value="ok" class="default" id="btnDoExport">Exportera</button></div>
+    <input type="file" id="fileImport" accept=".json,application/json" hidden>
+  </form>
+</dialog>
+
+<dialog id="dlgRapport" class="rapportdlg">
+  <form method="dialog" class="rp-ram">
+    <div class="dhead">PDF-rapport<span style="flex:1"></span><span class="rp-dhjalp">Förhandsvisning</span></div>
+    <div class="rp-kropp">
+      <aside class="rp-val">
+        <label class="field"><span>Rubrik</span><input type="text" id="rpTitel" maxlength="80"></label>
+        <span class="rp-etikett">Period</span>
+        <div class="radio rp-kol">
+          <label><input type="radio" name="rpP" value="view" checked> det som visas</label>
+          <label><input type="radio" name="rpP" value="d1"> senaste dygnet</label>
+          <label><input type="radio" name="rpP" value="d7"> senaste veckan</label>
+          <label><input type="radio" name="rpP" value="d30"> senaste 30 dagarna</label>
+          <label><input type="radio" name="rpP" value="custom"> egen:</label>
+        </div>
+        <div class="rp-kol" style="margin:2px 0 8px 22px"><input type="datetime-local" id="rpFran"><input type="datetime-local" id="rpTill"></div>
+        <span class="rp-etikett">Innehåll</span>
+        <div class="rp-kol" id="rpDelar"></div>
+        <label class="field" style="margin-top:8px"><span>Kommentar (valfri)</span><textarea id="rpKommentar" rows="3" maxlength="600" placeholder="t.ex. vad som gjorts i källaren under perioden"></textarea></label>
+        <p class="msg" id="rpMsg"></p>
+      </aside>
+      <div class="rp-forhand" id="rpForhand"><div class="rp-sida" id="rpSida"></div></div>
+    </div>
+    <div class="dfoot"><span class="help" style="margin:0 auto 0 0">Välj <b>Spara som PDF</b> som skrivare i utskriftsrutan.</span><button value="cancel">Stäng</button><button type="button" class="default" id="btnRpSkriv">Skriv ut / spara som PDF</button></div>
+  </form>
+</dialog>
+<div id="printArea"></div>
+
+<dialog id="dlgRensa" class="bred">
+  <form method="dialog">
+    <div class="dhead">Rensa graferna</div>
+    <div class="dbody">
+      <p class="help" style="margin-top:0">Döljer mätningar, händelser och anteckningar i graferna, bara på den här enheten. Inget tas bort.</p>
+      <div class="form2">
+        <span>Dölj</span>
+        <div class="radio">
+          <label><input type="radio" name="rnTyp" value="fore" checked> allt före</label>
+          <label><input type="radio" name="rnTyp" value="mellan"> mellan</label>
+        </div>
+        <span></span>
+        <div class="row" style="margin:0"><input type="datetime-local" id="rnFran"><span id="rnTillWrap" hidden>– <input type="datetime-local" id="rnTill"></span></div>
+      </div>
+      <div class="row"><button type="button" id="btnRnDolj">Dölj</button><button type="button" id="btnRnNu" title="Dölj allt som mätts hittills">Dölj allt till nu</button></div>
+      <div class="charthead">Dolt på den här enheten</div>
+      <ul class="notlista" id="rnLista"></ul>
+      <fieldset class="only-admin" hidden>
+        <legend>Radera permanent från databasen</legend>
+        <p class="help" style="margin-top:0">Tas bort för alla och går <b>inte</b> att ångra. Exportera först om du vill spara något.</p>
+        <div class="row" style="margin:0"><input type="datetime-local" id="rdFran"> – <input type="datetime-local" id="rdTill"></div>
+        <div class="chips" style="margin:6px 0">
+          <label><input type="checkbox" id="rdMat" checked> mätningar och timvärden</label>
+          <label><input type="checkbox" id="rdHand"> händelser</label>
+          <label><input type="checkbox" id="rdAnt"> anteckningar</label>
+        </div>
+        <button type="button" id="btnRadera">Radera…</button>
+      </fieldset>
+      <p class="msg" id="rnMsg"></p>
+    </div>
+    <div class="dfoot"><button value="cancel">Stäng</button></div>
   </form>
 </dialog>
 
@@ -907,7 +1046,7 @@ async function kvittera() {
 function dayStats(key) {
   const t0 = new Date(); t0.setHours(0, 0, 0, 0);
   const c = clearCutoff();
-  const v = today.filter(h => histTime(h) >= Math.max(t0.getTime(), c) && num(h[key]));
+  const v = today.filter(h => histTime(h) >= t0.getTime() && !dold(histTime(h)) && num(h[key]));
   if (!v.length) return null;
   return { min: Math.min(...v.map(h => h[key])), max: Math.max(...v.map(h => h[key])) };
 }
@@ -1242,6 +1381,16 @@ let showLastYear = lsGet('jk-forraaret') === '1';
 const lasareGrans = () => !isAdmin && num(plats?.lasareFran) ? plats.lasareFran : 0;
 const egenRensning = () => Number(lsGet('jk-rensad')) || 0;
 const clearCutoff = () => Math.max(egenRensning(), lasareGrans());
+// Dolda intervall på den här enheten: [[från, till], ...] (ms)
+let doldaCache = null;
+function doldaIntervall() {
+  if (doldaCache) return doldaCache;
+  try { doldaCache = (JSON.parse(lsGet('jk-dolda') || '[]') || []).filter(x => Array.isArray(x) && x[1] > x[0]); } catch (e) { doldaCache = []; }
+  return doldaCache;
+}
+function sparaDolda(v) { lsSet('jk-dolda', v.length ? JSON.stringify(v) : null); doldaCache = null; }
+// Ska tidpunkten t döljas i graferna och statistiken?
+const dold = t => t < clearCutoff() || doldaIntervall().some(([a, b]) => t >= a && t <= b);
 const useHourly = () => view.t1 - view.t0 > RAW_MAX_SPAN;
 
 function setView(t0, t1, follow) {
@@ -1332,9 +1481,16 @@ function viewRows(pad = 0) {
   const H = useHourly(), c = clearCutoff();
   const src = H ? hour.rows : raw.rows;
   const t0 = view.t0 - pad, t1 = view.t1 + pad;
-  return src.map(h => ({ ...h, t: H ? h.at + 1800e3 : histTime(h) })).filter(h => h.t >= t0 && h.t <= t1 && h.t >= c);
+  return src.map(h => ({ ...h, t: H ? h.at + 1800e3 : histTime(h) })).filter(h => h.t >= t0 && h.t <= t1 && !dold(h.t));
 }
 const lastYearOn = () => showLastYear && view.t1 - view.t0 >= 20 * 864e5;
+// Värmarens körningar ur händelserna, som markeringar i graferna
+const VARME_RE = /^Värmaren i SHT40 kördes/;
+function varmeHandelser() {
+  const m = new Map();
+  for (const l of [...lg.rows, ...logItems]) if (VARME_RE.test(l.text || '')) m.set(l.id, l);
+  return [...m.values()].map(l => ({ id: l.id, at: histTime(l), kind: 'varme', text: String(l.text).replace(VARME_RE, 'Värmaren kördes').replace(/\(beställd från hemsidan\)/, '(beställd)') }));
+}
 function laddHandelser() {
   const m = new Map();
   for (const l of [...lg.rows, ...logItems]) if (/^Laddaren /.test(l.text || '')) m.set(l.id, l);
@@ -1413,7 +1569,12 @@ function drawChart(el, series, opt) {
   for (const v of yt) s += `<line x1="${L}" x2="${W - R}" y1="${sy(v)}" y2="${sy(v)}" style="stroke:var(${v === 0 && y0 < 0 ? '--axis' : '--grid'})"/><text x="${L - 6}" y="${sy(v) + 4}" font-size="12" text-anchor="end" style="fill:var(--muted)">${dec(v, opt.tickDec ?? tickDecimals(yt))}</text>`;
   for (const [t, lab] of xTicks(t0, t1, Math.max(2, Math.floor(W / 80)))) s += `<line x1="${sx(t)}" x2="${sx(t)}" y1="${T}" y2="${H - B}" style="stroke:var(--grid2)"/><text x="${sx(t)}" y="${H - 6}" font-size="12" text-anchor="middle" style="fill:var(--muted)">${lab}</text>`;
   // Anteckningar
-  for (const n of opt.notes || []) if (n.at >= t0 && n.at <= t1) s += `<line x1="${sx(n.at)}" x2="${sx(n.at)}" y1="${T}" y2="${H - B}" style="stroke:var(--note)" stroke-dasharray="2 3"/>${opt.noteFlags ? `<path d="M${sx(n.at)} ${T}h9l-3 4 3 4h-9z" style="fill:var(--flag)"/>` : ''}`;
+  for (const n of opt.notes || []) {
+    if (n.at < t0 || n.at > t1) continue;
+    const x = sx(n.at);
+    if (n.kind === 'varme') s += `<line x1="${x}" x2="${x}" y1="${T}" y2="${H - B}" style="stroke:var(--heat)" stroke-dasharray="1 3" opacity="0.8"/><path d="M${x} ${T}l4 8h-8z" style="fill:var(--heat)"/>`;
+    else s += `<line x1="${x}" x2="${x}" y1="${T}" y2="${H - B}" style="stroke:var(--note)" stroke-dasharray="2 3"/>${opt.noteFlags ? `<path d="M${x} ${T}h9l-3 4 3 4h-9z" style="fill:var(--flag)"/>` : ''}`;
+  }
   s += `<g clip-path="url(#clip-${el.id})">`;
   for (const se of series) {
     const vis = se.pts.filter(p => p[0] >= t0 - (t1 - t0) * 0.02 && p[0] <= t1 + (t1 - t0) * 0.02);
@@ -1462,7 +1623,7 @@ function chartHover(el, ev) {
     lines.push(`<span style="color:${se.color}">●</span> ${esc(se.name)} <b>${dec(q[1], c.opt.dec ?? 1)}${c.opt.unit}</b>${extra}`);
   });
   const note = (c.opt.notes || []).find(n => Math.abs(c.sx(n.at) - x) < 6);
-  if (note) lines.push(`<span style="color:var(--note)">✎</span> ${esc(note.text)}`);
+  if (note) lines.push(note.kind === 'varme' ? `<span style="color:var(--heat)">▲</span> ${esc(note.text)}` : `<span style="color:var(--note)">✎</span> ${esc(note.text)}`);
   const hl = svg.querySelector('.hl'), tip = el.querySelector('.tip');
   if (best == null && !note) { hl.setAttribute('visibility', 'hidden'); tip.hidden = true; return; }
   const bt = best ?? note.at;
@@ -1566,12 +1727,90 @@ $('chkLastYear').checked = showLastYear;
 $('chkLastYear').addEventListener('change', () => { showLastYear = $('chkLastYear').checked; lsSet('jk-forraaret', showLastYear ? '1' : '0'); renderHist(); scheduleLoad(); });
 
 /* ---------- Rensa (bara den här enheten) ---------- */
-$('btnClear').addEventListener('click', async () => {
-  if (!await confirmDlg('Rensa graferna?', 'Döljer allt som mätts hittills, bara i den här webbläsaren. Inget tas bort.', 'Rensa')) return;
-  lsSet('jk-rensad', String(nowServer()));
-  renderAll();
+$('btnClear').addEventListener('click', () => {
+  const nu = nowServer();
+  $('rnFran').value = isoLocal(view.t0); $('rnTill').value = isoLocal(Math.min(view.t1, nu));
+  $('rdFran').value = isoLocal(view.t0); $('rdTill').value = isoLocal(Math.min(view.t1, nu));
+  msg($('rnMsg'), '', '');
+  renderRensa();
+  $('dlgRensa').showModal();
 });
-$('btnUnclear').addEventListener('click', () => { lsSet('jk-rensad', null); renderAll(); });
+document.querySelectorAll('input[name=rnTyp]').forEach(el => el.addEventListener('change', () => {
+  $('rnTillWrap').hidden = document.querySelector('input[name=rnTyp]:checked').value !== 'mellan';
+}));
+function renderRensa() {
+  const c = egenRensning(), li = [];
+  if (c) li.push(`<li><span class="t">före</span><span>${esc(when(c))}</span><button type="button" data-visa="fore">Visa igen</button></li>`);
+  doldaIntervall().forEach(([a, b], i) => li.push(`<li><span class="t">mellan</span><span>${esc(when(a))} – ${esc(when(b))}</span><button type="button" data-visa="${i}">Visa igen</button></li>`));
+  $('rnLista').innerHTML = li.join('') || '<li class="help">Inget är dolt.</li>';
+}
+$('rnLista').addEventListener('click', e => {
+  const v = e.target?.dataset?.visa; if (v == null) return;
+  if (v === 'fore') lsSet('jk-rensad', null);
+  else { const d = doldaIntervall().slice(); d.splice(+v, 1); sparaDolda(d); }
+  renderRensa(); renderAll();
+});
+$('btnRnNu').addEventListener('click', () => {
+  lsSet('jk-rensad', String(nowServer()));
+  renderRensa(); renderAll(); msg($('rnMsg'), 'ok', 'Allt som mätts hittills är dolt.');
+});
+$('btnRnDolj').addEventListener('click', () => {
+  const typ = document.querySelector('input[name=rnTyp]:checked').value;
+  const a = fromIsoLocal($('rnFran').value);
+  if (a == null) return msg($('rnMsg'), 'bad', 'Fyll i en tid.');
+  if (typ === 'fore') {
+    lsSet('jk-rensad', String(Math.max(a, egenRensning())));
+  } else {
+    const b = fromIsoLocal($('rnTill').value);
+    if (b == null || b <= a) return msg($('rnMsg'), 'bad', 'Fyll i en giltig period (till efter från).');
+    // slå ihop med intervall som överlappar
+    let d = doldaIntervall().slice(), ny = [a, b];
+    d = d.filter(([x, y]) => { if (y < ny[0] || x > ny[1]) return true; ny = [Math.min(x, ny[0]), Math.max(y, ny[1])]; return false; });
+    d.push(ny); d.sort((x, y) => x[0] - y[0]);
+    sparaDolda(d);
+  }
+  renderRensa(); renderAll(); msg($('rnMsg'), 'ok', 'Dolt på den här enheten.');
+});
+// Radera permanent (admin): mätningar, timvärden, händelser och anteckningar i perioden
+async function nycklarI(path, by, a, b, tidFn) {
+  const v = await D.get(path, { by, start: Math.floor(a) - (path === 'historik' ? 3600e3 : 0), end: Math.ceil(b) + (path === 'historik' ? 3600e3 : 0) });
+  return lista(v).filter(x => { const t = tidFn(x); return t >= a && t <= b; }).map(x => x.id);
+}
+$('btnRadera').addEventListener('click', async () => {
+  if (!isAdmin) return;
+  const a = fromIsoLocal($('rdFran').value), b = fromIsoLocal($('rdTill').value);
+  if (a == null || b == null || b <= a) return msg($('rnMsg'), 'bad', 'Fyll i en giltig period att radera.');
+  const vad = { historik: $('rdMat').checked, timmar: $('rdMat').checked, logg: $('rdHand').checked, anteckningar: $('rdAnt').checked };
+  if (!Object.values(vad).some(Boolean)) return msg($('rnMsg'), 'bad', 'Välj vad som ska raderas.');
+  msg($('rnMsg'), '', 'Räknar…');
+  try {
+    const k = {};
+    if (vad.historik) k.historik = await nycklarI('historik', 'at', a, b, histTime);
+    // Bara timmar som ligger helt inom perioden (timvärdet täcker hela timmen)
+    if (vad.timmar) k.timmar = await nycklarI('timmar', 'at', a, b - 3600e3, h => h.at);
+    if (vad.logg) k.logg = await nycklarI('logg', 'at', a, b, histTime);
+    if (vad.anteckningar) k.anteckningar = notes.filter(n => n.at >= a && n.at <= b).map(n => n.id);
+    const n = x => (k[x] || []).length, tot = n('historik') + n('timmar') + n('logg') + n('anteckningar');
+    if (!tot) return msg($('rnMsg'), 'warn', 'Det finns inget att radera i perioden.');
+    const del = [n('historik') && `${n('historik').toLocaleString('sv')} mätningar`, n('timmar') && `${n('timmar')} timvärden`,
+                 n('logg') && `${n('logg')} händelser`, n('anteckningar') && `${n('anteckningar')} anteckningar`].filter(Boolean).join(', ');
+    msg($('rnMsg'), '', '');
+    if (!await confirmDlg('Radera permanent?', `${del} mellan ${when(a)} och ${when(b)} tas bort ur databasen för alla. Det går inte att ångra.`, 'Radera permanent')) return;
+    let klart = 0;
+    for (const path of Object.keys(k)) {
+      const ids = k[path];
+      for (let i = 0; i < ids.length; i += 400) {
+        await D.update(path, Object.fromEntries(ids.slice(i, i + 400).map(id => [id, null])));
+        klart += Math.min(400, ids.length - i);
+        msg($('rnMsg'), '', `Raderar… ${klart} av ${tot}`);
+      }
+    }
+    // Rensa det som redan hämtats, så att graferna laddas om
+    for (const c of [raw, hour, lg]) { c.from = 0; c.to = 0; c.rows = []; }
+    msg($('rnMsg'), 'ok', `Raderat: ${del}.`);
+    scheduleLoad(); renderAll();
+  } catch (e) { msg($('rnMsg'), 'bad', `Kunde inte radera (${e.code || e.message}).`); }
+});
 
 /* ---------- Rita historiken ---------- */
 function renderHist() {
@@ -1583,7 +1822,9 @@ function renderHist() {
   const medDt = dts.length ? dts[Math.floor(dts.length / 2)] : intervalMs();
   const gap = H ? 3 * 3600e3 : Math.max(3 * Math.max(Math.min(intervalMs(), medDt * 4), medDt), 2 * 60e3);
   const base = { t0, t1, gap };
-  const nts = notes.filter(n => n.at >= clearCutoff());
+  const nts = notes.filter(n => !dold(n.at));
+  const vrm = varmeHandelser().filter(n => !dold(n.at));
+  const ntsAlla = [...nts, ...vrm].sort((a, b) => a.at - b.at);
   const tempSer = [{ name: 'Jordkällaren', color: 'var(--c-in)', pts: ser('ti') }, { name: 'Ute', color: 'var(--c-ut)', pts: ser('tu') }];
   const lyOn = lastYearOn();
   $('lastYearWrap').hidden = t1 - t0 < 20 * 864e5;
@@ -1593,11 +1834,11 @@ function renderHist() {
     const lr = ly.rows.map(h => ({ ...h, t: h.at + 1800e3 + shift })).filter(h => h.t >= t0 - 864e5 && h.t <= t1 + 864e5);
     tempSer.push({ name: 'Jordkällaren förra året', color: 'var(--c-ly)', dash: true, pts: lr.filter(h => num(h.ti)).map(h => [h.t, h.ti]) });
   }
-  drawChart($('chTemp'), tempSer, { ...base, unit: ' °C', label: 'Temperatur', minSpan: 2, h: 230, notes: nts, noteFlags: true });
-  drawChart($('chRh'), [{ name: 'Fukt', color: 'var(--c-rh)', pts: ser('rh') }], { ...base, unit: ' %', dec: 1, label: 'Luftfuktighet', minSpan: 2, clamp: [0, 100], h: 170, notes: nts });
+  drawChart($('chTemp'), tempSer, { ...base, unit: ' °C', label: 'Temperatur', minSpan: 2, h: 230, notes: ntsAlla, noteFlags: true });
+  drawChart($('chRh'), [{ name: 'Fukt', color: 'var(--c-rh)', pts: ser('rh') }], { ...base, unit: ' %', dec: 1, label: 'Luftfuktighet', minSpan: 2, clamp: [0, 100], h: 170, notes: ntsAlla });
   const gapUpp = Math.max(gap, 8 * 3600e3);   // nattetid laddar den upp var 3:e timme, och en kan misslyckas
   const tid = h => (H ? h.at + 1800e3 : histTime(h)), cut = clearCutoff(), bpad = (t1 - t0) * 0.03;
-  const batPts = batProcentSerie(H ? hour.rows : raw.rows, tid, laddHandelser()).filter(p => p[0] >= Math.max(t0 - bpad, cut) && p[0] <= t1 + bpad);
+  const batPts = batProcentSerie(H ? hour.rows : raw.rows, tid, laddHandelser()).filter(p => p[0] >= t0 - bpad && p[0] <= t1 + bpad && !dold(p[0]));
   // Batteri och WiFi mäts bara vid uppladdningarna och i hela steg (1 %, 1 dBm). Ett glidande medel
   // ger en lugn linje i stället för en sågtand mellan två steg.
   const glatt = Math.max(90 * 60e3, (t1 - t0) / 48);
@@ -1630,13 +1871,15 @@ function renderHist() {
   $('histNote').textContent = H ? 'Timmedelvärden, skuggat fält visar min–max.' : inV.length > 500 ? 'Skuggat fält visar min–max.' : '';
 
   const c = egenRensning();
-  $('btnUnclear').hidden = !c; $('btnClear').hidden = !!c;
+  $('btnClear').textContent = c || doldaIntervall().length ? 'Rensa… (dolt)' : 'Rensa…';
 
   renderStats();
   // Anteckningar i perioden
-  const nv = nts.filter(n => n.at >= t0 && n.at <= t1).sort((a, b) => a.at - b.at);
+  const nv = ntsAlla.filter(n => n.at >= t0 && n.at <= t1);
   $('notesWrap').hidden = !nv.length;
-  $('notesList').innerHTML = nv.map(n => `<li><span class="t">${when(n.at)}</span><span>${esc(n.text)}${n.av ? ` <small class="help">(${esc(n.av)})</small>` : ''}</span>${isAdmin ? `<button data-note="${esc(n.id)}" title="Ta bort">Ta bort</button>` : ''}</li>`).join('');
+  $('notesList').innerHTML = nv.map(n => n.kind === 'varme'
+    ? `<li class="varme"><span class="t">${when(n.at)}</span><span>${esc(n.text)}</span></li>`
+    : `<li><span class="t">${when(n.at)}</span><span>${esc(n.text)}${n.av ? ` <small class="help">(${esc(n.av)})</small>` : ''}</span>${isAdmin ? `<button data-note="${esc(n.id)}" title="Ta bort">Ta bort</button>` : ''}</li>`).join('');
 }
 $('notesList').addEventListener('click', async e => {
   const id = e.target?.dataset?.note; if (!id) return;
@@ -1681,49 +1924,532 @@ function aggregera(rows, stegMs) {
   }
   return [...b.values()].sort((a, c) => a.t - c.t);
 }
-$('btnExport').addEventListener('click', async () => {
+/* ---------- Exportera ---------- */
+// Tabeller som både kan bli CSV och Excel-flikar.
+// kol: [rubrik, typ, decimaler] där typ är 'tid', 'tal' eller 'text'
+const EX_VAL = ['exMat', 'exHand', 'exAnt', 'exDygn', 'exLarm', 'exKal', 'exKolHand', 'exKolDagg'];
+function exSpara() {
+  const v = Object.fromEntries(EX_VAL.map(id => [id, $(id).checked]));
+  v.res = $('exRes').value; v.f = document.querySelector('input[name=exF]:checked').value;
+  lsSet('jk-export', JSON.stringify(v));
+}
+(function exLas() {
+  try {
+    const v = JSON.parse(lsGet('jk-export') || 'null'); if (!v) return;
+    for (const id of EX_VAL) if (typeof v[id] === 'boolean') $(id).checked = v[id];
+    if (v.res != null && [...$('exRes').options].some(o => o.value === v.res)) $('exRes').value = v.res;
+    const f = document.querySelector(`input[name=exF][value="${v.f}"]`); if (f) f.checked = true;
+  } catch (e) {}
+})();
+$('btnExport').addEventListener('click', () => {
   $('exFrom').value = isoLocal(view.t0); $('exTo').value = isoLocal(Math.min(view.t1, nowServer()));
+  if (document.querySelector('input[name=exP]:checked').value === 'custom') document.querySelector('input[name=exP][value=view]').checked = true;
   msg($('exMsg'), '', '');
   $('dlgExport').showModal();
 });
+// Ändrar man tiden blir perioden "egen" av sig själv
+for (const id of ['exFrom', 'exTo']) for (const ev of ['input', 'change']) $(id).addEventListener(ev, () => { document.querySelector('input[name=exP][value=custom]').checked = true; });
+
+const csvCell = (v, typ, d) => {
+  if (v == null || v === '' || (typeof v === 'number' && !Number.isFinite(v))) return '';
+  if (typ === 'tid') return csvTid(v);
+  if (typ === 'tal') return csvNum(v, d ?? 1);
+  const t = String(v);
+  return /[;"\r\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+};
+const tabellCsv = tb => [tb.kol.map(k => csvCell(k[0], 'text')).join(';'), ...tb.rader.map(r => r.map((v, i) => csvCell(v, tb.kol[i][1], tb.kol[i][2])).join(';'))].join('\r\n');
+
+// Laddar ett bibliotek från cdnjs första gången det behövs
+const libLaddade = {};
+function laddaLib(url, glob) {
+  if (window[glob]) return Promise.resolve(window[glob]);
+  return libLaddade[url] || (libLaddade[url] = new Promise((ok, fel) => {
+    const sc = document.createElement('script'); sc.src = url; sc.async = true;
+    sc.onload = () => window[glob] ? ok(window[glob]) : fel(new Error('kunde inte ladda ' + glob));
+    sc.onerror = () => { delete libLaddade[url]; fel(new Error('kunde inte ladda ' + glob + ' (internet?)')); };
+    document.head.appendChild(sc);
+  }));
+}
+const XLSX_URL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+const JSZIP_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+function laddaNerBlob(namn, blob) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = namn;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+}
+// Excel: tider som riktiga datum (svensk tid), tal som tal
+function tabellBlad(X, tb) {
+  const ws = {}, enc = X.utils.encode_cell;
+  tb.kol.forEach((k, c) => { ws[enc({ r: 0, c })] = { t: 's', v: k[0] }; });
+  tb.rader.forEach((rad, i) => rad.forEach((v, c) => {
+    if (v == null || v === '' || (typeof v === 'number' && !Number.isFinite(v))) return;
+    const [, typ, d] = tb.kol[c], ref = enc({ r: i + 1, c });
+    if (typ === 'tid') ws[ref] = { t: 'n', v: (v - new Date(v).getTimezoneOffset() * 60e3) / 864e5 + 25569, z: 'yyyy-mm-dd hh:mm:ss' };
+    else if (typ === 'tal') ws[ref] = { t: 'n', v: +Number(v).toFixed(d ?? 1), z: d ? '0.' + '0'.repeat(d) : '0' };
+    else ws[ref] = { t: 's', v: String(v) };
+  }));
+  ws['!ref'] = X.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: Math.max(1, tb.rader.length), c: tb.kol.length - 1 } });
+  ws['!cols'] = tb.kol.map(k => ({ wch: k[1] === 'tid' ? 19 : k[1] === 'text' ? Math.min(80, Math.max(12, k[0].length + 2, ...tb.rader.slice(0, 300).map((r, i) => String(r[tb.kol.indexOf(k)] ?? '').length + 1))) : Math.max(9, k[0].length + 1) }));
+  ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+  return ws;
+}
+
+// Händelser och anteckningar till raden (intervallet) de hör till
+function kopplaText(rader, tid, steg, poster) {
+  const ut = new Map();
+  if (!rader.length) return ut;
+  for (const p of poster) {
+    let a = 0, b = rader.length - 1;
+    while (b - a > 1) { const m = (a + b) >> 1; if (tid(rader[m]) <= p.t) a = m; else b = m; }
+    let i = tid(rader[b]) <= p.t ? b : a;
+    if (!steg && i < rader.length - 1 && Math.abs(tid(rader[i + 1]) - p.t) < Math.abs(tid(rader[i]) - p.t)) i++;   // närmaste mätning
+    if (p.t < tid(rader[0]) - (steg || 30 * 60e3) || p.t > tid(rader[rader.length - 1]) + (steg || 30 * 60e3)) continue;
+    ut.set(i, (ut.has(i) ? ut.get(i) + ' | ' : '') + p.text);
+  }
+  return ut;
+}
+
+const larmNamn = bit => ({ 1: 'Jordkällaren för kallt', 2: 'Jordkällaren för varmt', 4: 'För fuktigt' })[bit] || 'Larm ' + bit;
+const KAL_NAMN = { ntcR25: 'Utesonden (R25)', ntcSerie: 'Referensmotstånd', ntcB: 'B-värde', ntcOffset: 'Korrigering ute', tiOffset: 'Korrigering jordkällaren', rhOffset: 'Korrigering fukt', batFaktor: 'Batterifaktor', batKapMah: 'Batterikapacitet', laddMa: 'Laddström' };
+
 $('btnDoExport').addEventListener('click', async ev => {
   ev.preventDefault();
+  exSpara();
   const per = document.querySelector('input[name=exP]:checked').value;
-  const res = +$('exRes').value;
+  const res = +$('exRes').value, fmt = document.querySelector('input[name=exF]:checked').value;
+  const vill = { mat: $('exMat').checked, hand: $('exHand').checked, ant: $('exAnt').checked, dygn: $('exDygn').checked, larm: $('exLarm').checked, kal: $('exKal').checked, backup: isAdmin && $('exBackup').checked };
+  if (!Object.values(vill).some(Boolean)) return msg($('exMsg'), 'bad', 'Välj vad som ska exporteras.');
   let t0 = view.t0, t1 = Math.min(view.t1, nowServer());
   if (per === 'all') { t0 = 0; t1 = nowServer() + 60e3; }
   if (per === 'custom') { t0 = fromIsoLocal($('exFrom').value); t1 = fromIsoLocal($('exTo').value); if (t0 == null || t1 == null || t1 <= t0) return msg($('exMsg'), 'bad', 'Fyll i en giltig period.'); }
   t0 = Math.max(t0, lasareGrans());
-  if (t1 <= t0) return msg($('exMsg'), 'bad', 'Inga mätningar i perioden.');
+  if (t1 <= t0) return msg($('exMsg'), 'bad', 'Inget i perioden.');
   msg($('exMsg'), '', 'Hämtar…');
   try {
-    // Timmar och dygn räknas från timsammanfattningarna, kortare från varje mätning
-    const fromHour = res >= 3600;
-    let rows = lista(await D.get(fromHour ? 'timmar' : 'historik', { by: 'at', start: Math.floor(t0 - (fromHour ? 3600e3 : 0)), end: Math.ceil(t1) }))
-      .map(h => ({ ...h, t: fromHour ? h.at : histTime(h) })).filter(h => h.t >= (fromHour ? t0 - 3600e3 : t0) && h.t <= t1).sort((a, b) => a.t - b.t);
-    if (fromHour && !rows.length) {   // äldre data utan timsammanfattningar
-      rows = lista(await D.get('historik', { by: 'at', start: Math.floor(t0), end: Math.ceil(t1) })).map(h => ({ ...h, t: histTime(h) })).sort((a, b) => a.t - b.t);
+    const tabeller = [];   // { namn, fil, kol, rader }
+    const byLogg = vill.hand || vill.larm || vill.kal || vill.dygn || (vill.mat && $('exKolHand').checked);
+    const logg = byLogg ? lista(await D.get('logg', { by: 'at', start: Math.floor(t0) - 3600e3, end: Math.ceil(t1) + 3600e3 })).map(l => ({ ...l, t: histTime(l) })).filter(l => l.t >= t0 && l.t <= t1).sort((a, b) => a.t - b.t) : [];
+    const ant = notes.filter(n => n.at >= t0 && n.at <= t1).sort((a, b) => a.at - b.at);
+    let timRader = null;
+    const hamtaTimmar = async () => {
+      if (timRader) return timRader;
+      timRader = lista(await D.get('timmar', { by: 'at', start: Math.floor(t0 - 3600e3), end: Math.ceil(t1) })).map(h => ({ ...h, t: h.at })).filter(h => h.t + 3600e3 > t0 && h.t <= t1).sort((a, b) => a.t - b.t);
+      if (!timRader.length) {   // äldre data utan timsammanfattningar
+        const r = lista(await D.get('historik', { by: 'at', start: Math.floor(t0), end: Math.ceil(t1) })).map(h => ({ ...h, t: histTime(h) })).filter(h => h.t >= t0 && h.t <= t1).sort((a, b) => a.t - b.t);
+        timRader = aggregera(r, 3600e3).map(e => {
+          const h = { t: e.t, n: e.n, bv: e.bv, rs: e.rs };
+          for (const f of ['ti', 'rh', 'tu']) if (e.f[f]) { h[f] = e.f[f].s / e.f[f].w; h[f + 'Min'] = e.f[f].mn; h[f + 'Max'] = e.f[f].mx; }
+          return h;
+        });
+      }
+      return timRader;
+    };
+    let forsta = t0, sista = t1;
+
+    // ---- Mätningar ----
+    if (vill.mat) {
+      const fromHour = res >= 3600;
+      let rows = fromHour ? await hamtaTimmar()
+        : lista(await D.get('historik', { by: 'at', start: Math.floor(t0) - 3600e3, end: Math.ceil(t1) + 3600e3 })).map(h => ({ ...h, t: histTime(h) })).filter(h => h.t >= t0 && h.t <= t1).sort((a, b) => a.t - b.t);
+      if (rows.length) { forsta = rows[0].t; sista = rows[rows.length - 1].t; }
+      const dagg = $('exKolDagg').checked, medText = $('exKolHand').checked;
+      const poster = medText ? [...logg.filter(l => !/^Ny kalibrering mottagen/.test(l.text || '')).map(l => ({ t: l.t, text: l.text || '' })), ...ant.map(n => ({ t: n.at, text: '✎ ' + n.text + (n.av ? ` (${n.av})` : '') }))].sort((a, b) => a.t - b.t) : [];
+      let kol, rader;
+      if (!res) {
+        kol = [['Tid', 'tid'], ['Jordkällaren °C', 'tal', 2], ['Luftfuktighet %', 'tal', 1], ['Ute °C', 'tal', 2], ['Batteri V', 'tal', 3], ['WiFi dBm', 'tal', 0]];
+        rader = rows.map(h => [h.t, h.ti, h.rh, h.tu, num(h.bv) && h.bv >= 2.5 ? h.bv : null, num(h.rs) ? h.rs : null]);
+        if (dagg) { kol.push(['Daggpunkt °C', 'tal', 1], ['Absolut fukt g/m³', 'tal', 2]); rows.forEach((h, i) => rader[i].push(num(h.ti) && num(h.rh) ? daggpunkt(h.ti, h.rh) : null, num(h.ti) && num(h.rh) ? absFukt(h.ti, h.rh) : null)); }
+        if (medText) { const m = kopplaText(rows, h => h.t, 0, poster); kol.push(['Händelse / anteckning', 'text']); rader.forEach((r, i) => r.push(m.get(i) || '')); }
+      } else {
+        const g = aggregera(rows, res * 1000);
+        const f3 = (e, f) => e.f[f] ? [e.f[f].s / e.f[f].w, e.f[f].mn, e.f[f].mx] : [null, null, null];
+        kol = [['Tid (början)', 'tid'], ['Antal mätningar', 'tal', 0], ['Jordkällaren medel °C', 'tal', 2], ['Jordkällaren min', 'tal', 2], ['Jordkällaren max', 'tal', 2],
+          ['Fukt medel %', 'tal', 1], ['Fukt min', 'tal', 1], ['Fukt max', 'tal', 1], ['Ute medel °C', 'tal', 2], ['Ute min', 'tal', 2], ['Ute max', 'tal', 2], ['Batteri V', 'tal', 3], ['WiFi dBm', 'tal', 0]];
+        rader = g.map(e => [e.t, e.n, ...f3(e, 'ti'), ...f3(e, 'rh'), ...f3(e, 'tu'), num(e.bv) ? e.bv : null, num(e.rs) ? e.rs : null]);
+        if (dagg) {
+          kol.push(['Daggpunkt °C', 'tal', 1], ['Absolut fukt g/m³', 'tal', 2]);
+          g.forEach((e, i) => { const T = e.f.ti && e.f.ti.s / e.f.ti.w, RH = e.f.rh && e.f.rh.s / e.f.rh.w; rader[i].push(num(T) && num(RH) ? daggpunkt(T, RH) : null, num(T) && num(RH) ? absFukt(T, RH) : null); });
+        }
+        if (medText) { const m = kopplaText(g, e => e.t, res * 1000, poster); kol.push(['Händelser / anteckningar', 'text']); rader.forEach((r, i) => r.push(m.get(i) || '')); }
+      }
+      const upp = { 0: 'varje-matning', 60: 'minut', 300: '5min', 900: '15min', 3600: 'timme', 86400: 'dygn' }[res];
+      tabeller.push({ namn: 'Mätningar', fil: 'matningar_' + upp, kol, rader });
     }
-    if (!rows.length) return msg($('exMsg'), 'bad', 'Inga mätningar i perioden.');
-    let csv;
-    if (!res) {
-      csv = 'Tid;Jordkällaren °C;Luftfuktighet %;Ute °C;Batteri V;WiFi dBm\r\n' +
-        rows.map(h => [csvTid(h.t), csvNum(h.ti, 2), csvNum(h.rh, 1), csvNum(h.tu, 2), num(h.bv) && h.bv >= 2.5 ? csvNum(h.bv, 3) : '', num(h.rs) ? h.rs : ''].join(';')).join('\r\n');
+
+    // ---- Händelser ----
+    if (vill.hand) tabeller.push({ namn: 'Händelser', fil: 'handelser', kol: [['Tid', 'tid'], ['Nivå', 'text'], ['Typ', 'text'], ['Händelse', 'text']],
+      rader: logg.map(l => [l.t, l.niva || '', l.typ || '', l.text || '']) });
+
+    // ---- Anteckningar ----
+    if (vill.ant) tabeller.push({ namn: 'Anteckningar', fil: 'anteckningar', kol: [['Tid', 'tid'], ['Anteckning', 'text'], ['Av', 'text']],
+      rader: ant.map(n => [n.at, n.text || '', n.av || '']) });
+
+    // ---- Dygnsrapport ----
+    if (vill.dygn) {
+      const tim = await hamtaTimmar(), dagar = new Map();
+      const dagKey = t => dateStr(t);
+      for (const h of tim) {
+        const k = dagKey(h.t); let d = dagar.get(k);
+        if (!d) { d = { k, t: new Date(new Date(h.t).setHours(0, 0, 0, 0)).getTime(), f: {}, kallt: 0, fuktigt: 0, frost: 0, timmar: 0, bv: null }; dagar.set(k, d); }
+        d.timmar++;
+        for (const f of ['ti', 'rh', 'tu']) {
+          if (!num(h[f])) continue;
+          const q = d.f[f] || (d.f[f] = { s: 0, n: 0, mn: Infinity, mx: -Infinity });
+          q.s += h[f]; q.n++; q.mn = Math.min(q.mn, h[f + 'Min'] ?? h[f]); q.mx = Math.max(q.mx, h[f + 'Max'] ?? h[f]);
+        }
+        if (num(h.ti) && h.ti < 2) d.kallt++;
+        if (num(h.rh) && h.rh > 95) d.fuktigt++;
+        if (num(h.tu) && h.tu < 0) d.frost++;
+        if (num(h.bv) && h.bv >= 2.5) d.bv = h.bv;
+      }
+      for (const l of logg) {
+        const d = dagar.get(dagKey(l.t)); if (!d) continue;
+        if (l.typ === 'larm' && l.pa) d.larm = (d.larm || 0) + 1;
+        if (VARME_RE.test(l.text || '')) d.varme = (d.varme || 0) + 1;
+      }
+      const s3 = (d, f) => d.f[f] ? [d.f[f].s / d.f[f].n, d.f[f].mn, d.f[f].mx] : [null, null, null];
+      tabeller.push({ namn: 'Dygn', fil: 'dygnsrapport', kol: [['Dag', 'text'], ['Timmar med data', 'tal', 0],
+        ['Jordkällaren medel °C', 'tal', 2], ['Jordkällaren min', 'tal', 2], ['Jordkällaren max', 'tal', 2],
+        ['Fukt medel %', 'tal', 1], ['Fukt min', 'tal', 1], ['Fukt max', 'tal', 1],
+        ['Ute medel °C', 'tal', 2], ['Ute min', 'tal', 2], ['Ute max', 'tal', 2],
+        ['Timmar under 2 °C i källaren', 'tal', 0], ['Timmar fukt över 95 %', 'tal', 0], ['Timmar minusgrader ute', 'tal', 0],
+        ['Larm', 'tal', 0], ['Värmaren kördes', 'tal', 0], ['Batteri V (sist)', 'tal', 3]],
+        rader: [...dagar.values()].sort((a, b) => a.t - b.t).map(d => [d.k, d.timmar, ...s3(d, 'ti'), ...s3(d, 'rh'), ...s3(d, 'tu'), d.kallt, d.fuktigt, d.frost, d.larm || 0, d.varme || 0, d.bv]) });
+    }
+
+    // ---- Larmhistorik ----
+    if (vill.larm) {
+      const tim = await hamtaTimmar();
+      const oppna = {}, ut = [];
+      const kv = larmstatus?.kvitterad;
+      const extrem = (bit, a, b) => {
+        const f = bit === 4 ? 'rh' : 'ti', v = tim.filter(h => h.t + 3600e3 > a && h.t <= b);
+        if (!v.length) return null;
+        return bit === 1 ? Math.min(...v.map(h => h[f + 'Min'] ?? h[f]).filter(num)) : Math.max(...v.map(h => h[f + 'Max'] ?? h[f]).filter(num));
+      };
+      const avsluta = (bit, slut, varde) => {
+        const o = oppna[bit]; if (!o) return;
+        const kvit = kv && kv.at >= o.t && (slut == null || kv.at <= slut) ? `${kv.av || '?'} ${csvTid(kv.at)}` : '';
+        const x = extrem(bit, o.t, slut ?? t1);
+        ut.push([larmNamn(bit), o.t, slut, slut != null ? (slut - o.t) / 3600e3 : null, o.varde, slut != null ? varde : null, Number.isFinite(x) ? x : null, kvit || (slut == null ? 'pågår' : '')]);
+        delete oppna[bit];
+      };
+      for (const l of logg) {
+        if (l.typ !== 'larm' || !num(l.larmBit)) continue;
+        if (l.pa) { avsluta(l.larmBit, l.t, null); oppna[l.larmBit] = { t: l.t, varde: l.varde }; }
+        else if (oppna[l.larmBit]) avsluta(l.larmBit, l.t, l.varde);
+        else ut.push([larmNamn(l.larmBit), null, l.t, null, null, l.varde, null, 'startade före perioden']);
+      }
+      for (const bit of Object.keys(oppna)) avsluta(+bit, null, null);
+      ut.sort((a, b) => (a[1] ?? a[2]) - (b[1] ?? b[2]));
+      tabeller.push({ namn: 'Larm', fil: 'larmhistorik', kol: [['Larm', 'text'], ['Start', 'tid'], ['Slut', 'tid'], ['Timmar', 'tal', 1],
+        ['Värde vid start', 'tal', 1], ['Värde vid slut', 'tal', 1], ['Värsta värde', 'tal', 1], ['Kvitterat / status', 'text']], rader: ut });
+    }
+
+    // ---- Kalibreringshistorik ----
+    if (vill.kal) {
+      const ut = [];
+      for (const l of logg) {
+        if (l.typ === 'kalibrering' && l.andringar) {
+          for (const [k, v] of Object.entries(l.andringar)) {
+            const fran = num(v?.fran) ? v.fran : null, till = num(v?.till) ? v.till : null;
+            ut.push([l.t, l.av || '', KAL_NAMN[k] || k, fran, till, fran != null && till != null ? till - fran : null, '']);
+          }
+        } else if (/kalibrering/i.test(l.text || '')) ut.push([l.t, l.av || '', '', null, null, null, l.text]);
+      }
+      tabeller.push({ namn: 'Kalibrering', fil: 'kalibrering', kol: [['Tid', 'tid'], ['Av', 'text'], ['Vad', 'text'], ['Från', 'tal', 4], ['Till', 'tal', 4], ['Ändring', 'tal', 4], ['Händelse', 'text']], rader: ut });
+    }
+
+    // ---- Säkerhetskopia (admin) ----
+    let backup = null;
+    if (vill.backup) {
+      const [i2, p2, a2, m2] = await Promise.all(['installningar', 'plats', 'anteckningar', 'mottagare'].map(x => D.get(x).catch(() => null)));
+      backup = JSON.stringify({ typ: 'jordkallaren-sakerhetskopia', version: 1, exporterad: new Date().toISOString(), installningar: i2, plats: p2, anteckningar: a2, mottagare: m2 }, null, 2);
+    }
+
+    if (!tabeller.length && !backup) return msg($('exMsg'), 'bad', 'Inget att exportera.');
+    const namn = `jordkallare_${dateStr(forsta)}_${dateStr(sista)}`;
+    msg($('exMsg'), '', 'Skapar filer…');
+    if (fmt === 'xlsx' && tabeller.length) {
+      const X = await laddaLib(XLSX_URL, 'XLSX');
+      const wb = X.utils.book_new();
+      for (const tb of tabeller) X.utils.book_append_sheet(wb, tabellBlad(X, tb), tb.namn);
+      laddaNerBlob(namn + '.xlsx', new Blob([X.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+      if (backup) laddaNerBlob(namn + '_sakerhetskopia.json', new Blob([backup], { type: 'application/json' }));
+    } else if (fmt === 'zip' || (fmt === 'xlsx' && !tabeller.length)) {
+      const Z = await laddaLib(JSZIP_URL, 'JSZip'), zip = new Z();
+      for (const tb of tabeller) zip.file(`${namn}_${tb.fil}.csv`, '﻿' + tabellCsv(tb));
+      if (backup) zip.file(`${namn}_sakerhetskopia.json`, backup);
+      laddaNerBlob(namn + '.zip', await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' }));
     } else {
-      const g = aggregera(rows, res * 1000);
-      const f3 = (e, f, d) => e.f[f] ? [csvNum(e.f[f].s / e.f[f].w, d), csvNum(e.f[f].mn, d), csvNum(e.f[f].mx, d)] : ['', '', ''];
-      csv = 'Tid (början);Antal mätningar;Jordkällaren medel °C;Jordkällaren min;Jordkällaren max;Fukt medel %;Fukt min;Fukt max;Ute medel °C;Ute min;Ute max;Batteri V;WiFi dBm\r\n' +
-        g.map(e => [csvTid(e.t), e.n, ...f3(e, 'ti', 2), ...f3(e, 'rh', 1), ...f3(e, 'tu', 2), num(e.bv) ? csvNum(e.bv, 3) : '', num(e.rs) ? e.rs : ''].join(';')).join('\r\n');
+      for (const tb of tabeller) { laddaNer(`${namn}_${tb.fil}.csv`, tabellCsv(tb)); await new Promise(r => setTimeout(r, 400)); }
+      if (backup) laddaNerBlob(namn + '_sakerhetskopia.json', new Blob([backup], { type: 'application/json' }));
     }
-    const upp = { 0: 'varje-matning', 60: 'minut', 300: '5min', 900: '15min', 3600: 'timme', 86400: 'dygn' }[res];
-    const namn = `jordkallare_${dateStr(rows[0].t)}_${dateStr(rows[rows.length - 1].t)}_${upp}`;
-    laddaNer(namn + '.csv', csv);
-    if ($('exLog').checked) {
-      const lg = lista(await D.get('logg', { by: 'at', start: Math.floor(t0), end: Math.ceil(t1) })).sort((a, b) => histTime(a) - histTime(b));
-      laddaNer(namn + '_handelser.csv', 'Tid;Nivå;Händelse\r\n' + lg.map(l => [csvTid(histTime(l)), l.niva || '', '"' + String(l.text || '').replace(/"/g, '""') + '"'].join(';')).join('\r\n'));
-    }
-    msg($('exMsg'), 'ok', `Klart: ${rows.length.toLocaleString('sv')} rader hämtade.`);
+    msg($('exMsg'), 'ok', 'Klart: ' + tabeller.map(tb => `${tb.namn.toLowerCase()} ${tb.rader.length.toLocaleString('sv')} rader`).join(', ') + (backup ? ', säkerhetskopia' : '') + '.');
   } catch (e) { msg($('exMsg'), 'bad', `Kunde inte exportera (${e.code || e.message}).`); }
+});
+
+// ---- Läs in säkerhetskopia (admin) ----
+$('btnImport').addEventListener('click', () => { $('fileImport').value = ''; $('fileImport').click(); });
+$('fileImport').addEventListener('change', async () => {
+  const f = $('fileImport').files?.[0]; if (!f || !isAdmin) return;
+  try {
+    const b = JSON.parse(await f.text());
+    if (b?.typ !== 'jordkallaren-sakerhetskopia') return msg($('exMsg'), 'bad', 'Filen är ingen säkerhetskopia från Jordkällaren.');
+    const delar = [b.installningar && 'inställningar och kalibrering', b.plats && 'plats', b.anteckningar && `${Object.keys(b.anteckningar).length} anteckningar`, b.mottagare && 'larmmottagare'].filter(Boolean);
+    if (!await confirmDlg('Läs in säkerhetskopian?', `Från ${b.exporterad ? when(Date.parse(b.exporterad)) : 'okänt datum'}: ${delar.join(', ')}. Nuvarande inställningar skrivs över, anteckningar och mottagare läggs till.`, 'Läs in')) return;
+    if (b.installningar) { const i = { ...b.installningar }; delete i.ota; i.andrad = D.ts(); await D.update('installningar', i); }
+    if (b.plats) await D.update('plats', b.plats);
+    if (b.anteckningar) await D.update('anteckningar', b.anteckningar);
+    if (b.mottagare) await D.update('mottagare', b.mottagare);
+    msg($('exMsg'), 'ok', 'Säkerhetskopian är inläst.');
+  } catch (e) { msg($('exMsg'), 'bad', `Kunde inte läsa in (${e.code || e.message}).`); }
+});
+
+/* =====================================================================
+   PDF-rapport: förhandsvisning i en ruta, sedan webbläsarens utskrift
+   (välj "Spara som PDF"). Graferna är vektorer och blir skarpa i PDF:en.
+   ===================================================================== */
+const RP_DELAR = [
+  ['samm', 'Sammanfattning och nyckeltal', true], ['temp', 'Temperaturgraf', true], ['rh', 'Fuktgraf', true],
+  ['batrs', 'Batteri och WiFi', false], ['dygn', 'Tabell per dygn', true], ['larm', 'Larm', true],
+  ['varme', 'Värmarens körningar', true], ['ant', 'Anteckningar', true], ['kal', 'Kalibreringsändringar', false], ['hand', 'Alla händelser', false],
+];
+const MANAD = ['januari', 'februari', 'mars', 'april', 'maj', 'juni', 'juli', 'augusti', 'september', 'oktober', 'november', 'december'];
+const rpTid = (ms, utanTid) => { const d = new Date(ms); return `${d.getDate()} ${MON[d.getMonth()]} ${d.getFullYear()}${utanTid ? '' : ' ' + hm(ms)}`; };
+$('rpDelar').innerHTML = RP_DELAR.map(([k, txt, std]) => `<label><input type="checkbox" data-rp="${k}"${std ? ' checked' : ''}> ${txt}</label>`).join('');
+(function rpLas() {
+  try {
+    const v = JSON.parse(lsGet('jk-rapport') || 'null'); if (!v) return;
+    document.querySelectorAll('#rpDelar input').forEach(el => { if (typeof v[el.dataset.rp] === 'boolean') el.checked = v[el.dataset.rp]; });
+    const p = document.querySelector(`input[name=rpP][value="${v.p}"]`); if (p && v.p !== 'custom') p.checked = true;
+  } catch (e) {}
+})();
+function rpVal() {
+  const o = {};
+  document.querySelectorAll('#rpDelar input').forEach(el => { o[el.dataset.rp] = el.checked; });
+  o.p = document.querySelector('input[name=rpP]:checked').value;
+  return o;
+}
+function rpPeriod() {
+  const nu = nowServer(), p = document.querySelector('input[name=rpP]:checked').value;
+  let a = view.t0, b = Math.min(view.t1, nu);
+  if (p === 'd1') { a = nu - 864e5; b = nu; }
+  if (p === 'd7') { a = nu - 7 * 864e5; b = nu; }
+  if (p === 'd30') { a = nu - 30 * 864e5; b = nu; }
+  if (p === 'custom') { a = fromIsoLocal($('rpFran').value); b = fromIsoLocal($('rpTill').value); }
+  if (a == null || b == null || b <= a) return null;
+  return [Math.max(a, lasareGrans()), b];
+}
+
+let rpData = null, rpNyckel = '', rpTimer = null;
+async function rpHamta(t0, t1) {
+  const nyckel = `${Math.round(t0 / 60e3)}:${Math.round(t1 / 60e3)}`;
+  if (rpData && rpNyckel === nyckel) return rpData;
+  const tim = t1 - t0 > RAW_MAX_SPAN;
+  const sort = (a, b) => a.t - b.t;
+  let raw = null;
+  if (!tim) raw = lista(await D.get('historik', { by: 'at', start: Math.floor(t0) - 3600e3, end: Math.ceil(t1) + 3600e3 })).map(h => ({ ...h, t: histTime(h) })).filter(h => h.t >= t0 && h.t <= t1 && !dold(h.t)).sort(sort);
+  let timmar = lista(await D.get('timmar', { by: 'at', start: Math.floor(t0 - 3600e3), end: Math.ceil(t1) })).map(h => ({ ...h, t: h.at })).filter(h => h.t + 3600e3 > t0 && h.t <= t1 && !dold(h.t + 1800e3)).sort(sort);
+  if (!timmar.length) {   // äldre data utan timsammanfattningar
+    if (!raw) raw = lista(await D.get('historik', { by: 'at', start: Math.floor(t0), end: Math.ceil(t1) })).map(h => ({ ...h, t: histTime(h) })).filter(h => h.t >= t0 && h.t <= t1 && !dold(h.t)).sort(sort);
+    timmar = aggregera(raw, 3600e3).map(e => {
+      const h = { t: e.t, at: e.t, n: e.n, bv: e.bv, rs: e.rs };
+      for (const f of ['ti', 'rh', 'tu']) if (e.f[f]) { h[f] = e.f[f].s / e.f[f].w; h[f + 'Min'] = e.f[f].mn; h[f + 'Max'] = e.f[f].mx; }
+      return h;
+    });
+  }
+  const logg = lista(await D.get('logg', { by: 'at', start: Math.floor(t0) - 3600e3, end: Math.ceil(t1) + 3600e3 })).map(l => ({ ...l, t: histTime(l) })).filter(l => l.t >= t0 && l.t <= t1 && !dold(l.t)).sort(sort);
+  const ant = notes.filter(n => n.at >= t0 && n.at <= t1 && !dold(n.at)).sort((a, b) => a.at - b.at);
+  // Graferna: varje mätning för korta perioder, annars timmens mitt
+  const graf = tim || !raw.length ? timmar.map(h => ({ ...h, t: h.t + 1800e3 })) : raw;
+  rpData = { t0, t1, tim: tim || !raw?.length, raw, timmar, graf, logg, ant };
+  rpNyckel = nyckel;
+  return rpData;
+}
+
+// Statistik för ett fält: medel (viktat), min, max och när
+function rpStat(rows, f) {
+  let s = 0, w = 0, mn = Infinity, mx = -Infinity, tmn = 0, tmx = 0;
+  for (const h of rows) {
+    if (!num(h[f])) continue;
+    const n = h.n || 1; s += h[f] * n; w += n;
+    const a = h[f + 'Min'] ?? h[f], b = h[f + 'Max'] ?? h[f];
+    if (a < mn) { mn = a; tmn = h.t; }
+    if (b > mx) { mx = b; tmx = h.t; }
+  }
+  return w ? { medel: s / w, min: mn, max: mx, tmin: tmn, tmax: tmx } : null;
+}
+function rpLarmLista(d) {
+  const oppna = {}, ut = [], kv = larmstatus?.kvitterad;
+  const extrem = (bit, a, b) => {
+    const f = bit === 4 ? 'rh' : 'ti', v = d.timmar.filter(h => h.t + 3600e3 > a && h.t <= b).map(h => bit === 1 ? h[f + 'Min'] ?? h[f] : h[f + 'Max'] ?? h[f]).filter(num);
+    return v.length ? (bit === 1 ? Math.min(...v) : Math.max(...v)) : null;
+  };
+  const stang = (bit, slut) => {
+    const o = oppna[bit]; if (!o) return;
+    const kvit = kv && kv.at >= o.t && (slut == null || kv.at <= slut) ? `${kv.av || '?'}, ${rpTid(kv.at)}` : '';
+    ut.push({ bit, start: o.t, slut, varde: o.varde, varst: extrem(bit, o.t, slut ?? d.t1), kvit });
+    delete oppna[bit];
+  };
+  for (const l of d.logg) {
+    if (l.typ !== 'larm' || !num(l.larmBit)) continue;
+    if (l.pa) { stang(l.larmBit, l.t); oppna[l.larmBit] = { t: l.t, varde: l.varde }; }
+    else if (oppna[l.larmBit]) stang(l.larmBit, l.t);
+    else ut.push({ bit: l.larmBit, start: null, slut: l.t, varde: null, varst: null, kvit: '' });
+  }
+  for (const b of Object.keys(oppna)) stang(+b, null);
+  return ut.sort((a, b) => (a.start ?? a.slut) - (b.start ?? b.slut));
+}
+
+function rpRender() {
+  const d = rpData, o = rpVal(), sida = $('rpSida');
+  if (!d) return;
+  const { t0, t1 } = d, span = t1 - t0;
+  const titel = $('rpTitel').value.trim() || 'Jordkällaren';
+  const ti = rpStat(d.timmar, 'ti'), rh = rpStat(d.timmar, 'rh'), tu = rpStat(d.timmar, 'tu');
+  const timmar = (fn) => d.timmar.filter(fn).length;
+  const larm = rpLarmLista(d), varme = d.logg.filter(l => VARME_RE.test(l.text || ''));
+  const vrmNotes = varme.map(l => ({ at: l.t, kind: 'varme', text: String(l.text).replace(VARME_RE, 'Värmaren kördes') }));
+  const antNotes = d.ant.map(n => ({ at: n.at, text: n.text }));
+  const h = [];
+  h.push(`<header class="rp-head"><svg aria-hidden="true"><use href="#logo"/></svg><div><h1>${esc(titel)}</h1>
+    <div class="rp-under">${esc(rpTid(t0))} – ${esc(rpTid(t1))} · ${span >= 2 * 864e5 ? Math.round(span / 864e5) + ' dygn' : Math.round(span / 3600e3) + ' timmar'}</div></div>
+    <div class="rp-skapad">Skapad ${esc(rpTid(Date.now()))}<br>${esc(myName())}</div></header>`);
+  const kom = $('rpKommentar').value.trim();
+  if (kom) h.push(`<div class="rp-kommentar">${esc(kom)}</div>`);
+  if (!d.timmar.length && !d.raw?.length) h.push('<p class="rp-tom">Inga mätningar i perioden.</p>');
+
+  if (o.samm && ti) {
+    const txt = [];
+    txt.push(`Jordkällaren höll i genomsnitt <b>${dec(ti.medel)} °C</b> (lägst ${dec(ti.min)} °C ${esc(rpTid(ti.tmin))}, högst ${dec(ti.max)} °C ${esc(rpTid(ti.tmax))}).`);
+    if (rh) txt.push(`Luftfuktigheten var i genomsnitt <b>${dec(rh.medel, 1)} %</b> (${dec(rh.min, 1)}–${dec(rh.max, 1)} %).`);
+    if (tu) txt.push(`Ute var det i genomsnitt ${dec(tu.medel)} °C, mellan ${dec(tu.min)} och ${dec(tu.max)} °C.`);
+    txt.push(larm.length ? `${larm.length} larm under perioden.` : 'Inga larm under perioden.');
+    const ruta = (lab, v, sm) => `<div><span>${lab}</span><b>${v}</b>${sm ? `<small>${sm}</small>` : ''}</div>`;
+    const bvs = d.timmar.filter(x => num(x.bv) && x.bv >= 2.5);
+    const bat = bvs.length ? `${dec(batPct(bvs[0].bv), 0)} → ${dec(batPct(bvs[bvs.length - 1].bv), 0)} %` : '–';
+    h.push(`<section class="rp-del"><h2>Sammanfattning</h2><p class="rp-text">${txt.join(' ')}</p><div class="rp-nyckel">
+      ${ruta('Jordkällaren, medel', dec(ti.medel) + ' °C', `min ${dec(ti.min)} · max ${dec(ti.max)}`)}
+      ${ruta('Fukt, medel', rh ? dec(rh.medel, 1) + ' %' : '–', rh ? `min ${dec(rh.min, 1)} · max ${dec(rh.max, 1)}` : '')}
+      ${ruta('Ute, medel', tu ? dec(tu.medel) + ' °C' : '–', tu ? `min ${dec(tu.min)} · max ${dec(tu.max)}` : '')}
+      ${ruta('Daggpunkt i källaren', ti && rh ? dec(daggpunkt(ti.medel, rh.medel)) + ' °C' : '–', ti && rh ? `${dec(absFukt(ti.medel, rh.medel))} g/m³ vatten` : '')}
+      ${ruta('Timmar under 2 °C', timmar(x => num(x.ti) && x.ti < 2), 'frostrisk för potatis')}
+      ${ruta('Timmar fukt över 95 %', timmar(x => num(x.rh) && x.rh > 95), 'risk för kondens')}
+      ${ruta('Timmar minusgrader ute', timmar(x => num(x.tu) && x.tu < 0), '')}
+      ${ruta('Batteri', bat, `${larm.length} larm · värmaren ${varme.length} gånger`)}
+    </div></section>`);
+  }
+  const graf = (id, rubrik, nyckel) => `<section class="rp-del"><h2>${rubrik}</h2>${nyckel ? `<div class="rp-nyckelrad">${nyckel}</div>` : ''}<div class="chart" id="${id}"></div></section>`;
+  const nk = (farg, txt) => `<span><i style="background:${farg}"></i>${txt}</span>`;
+  const merk = (o.varme && varme.length ? nk('var(--heat)', 'värmaren') : '') + (o.ant && d.ant.length ? nk('var(--note)', 'anteckning') : '');
+  if (o.temp) h.push(graf('rpgTemp', 'Temperatur', nk('var(--c-in)', 'jordkällaren') + nk('var(--c-ut)', 'ute') + merk));
+  if (o.rh) h.push(graf('rpgRh', 'Luftfuktighet i jordkällaren', nk('var(--c-rh)', 'fukt') + merk));
+  if (o.batrs) h.push(`<section class="rp-del"><div class="rp-tva"><div><h2>Batteri</h2><div class="chart" id="rpgBat"></div></div><div><h2>WiFi-signal</h2><div class="chart" id="rpgRs"></div></div></div></section>`);
+
+  // Tabell per dygn (per månad för långa perioder)
+  if (o.dygn && d.timmar.length) {
+    const perManad = span > 62 * 864e5;
+    const grupp = new Map();
+    for (const x of d.timmar) {
+      const dt = new Date(x.t), k = perManad ? `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}` : dateStr(x.t);
+      let g = grupp.get(k); if (!g) { g = { k, t: x.t, rows: [], larm: 0, varme: 0 }; grupp.set(k, g); }
+      g.rows.push(x);
+    }
+    const nyck = t => { const dt = new Date(t); return perManad ? `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}` : dateStr(t); };
+    for (const l of d.logg) { const g = grupp.get(nyck(l.t)); if (!g) continue; if (l.typ === 'larm' && l.pa) g.larm++; if (VARME_RE.test(l.text || '')) g.varme++; }
+    const tre = (s, n) => s ? `<td class="n">${dec(s.medel, n)}</td><td class="n">${dec(s.min, n)}</td><td class="n">${dec(s.max, n)}</td>` : '<td></td><td></td><td></td>';
+    const rader = [...grupp.values()].map(g => {
+      const dt = new Date(g.t);
+      const namn = perManad ? `${MANAD[dt.getMonth()]} ${dt.getFullYear()}` : `${WD[dt.getDay()]} ${dt.getDate()} ${MON[dt.getMonth()]}`;
+      return `<tr><td>${namn}</td>${tre(rpStat(g.rows, 'ti'), 1)}${tre(rpStat(g.rows, 'rh'), 1)}${tre(rpStat(g.rows, 'tu'), 1)}<td class="n">${g.larm || ''}</td><td class="n">${g.varme || ''}</td></tr>`;
+    }).join('');
+    h.push(`<section><h2>Per ${perManad ? 'månad' : 'dygn'}</h2><table><thead><tr><th rowspan="2">${perManad ? 'Månad' : 'Dag'}</th><th colspan="3" class="n">Jordkällaren °C</th><th colspan="3" class="n">Fukt %</th><th colspan="3" class="n">Ute °C</th><th rowspan="2" class="n">Larm</th><th rowspan="2" class="n">Värmare</th></tr>
+      <tr><th class="n">medel</th><th class="n">min</th><th class="n">max</th><th class="n">medel</th><th class="n">min</th><th class="n">max</th><th class="n">medel</th><th class="n">min</th><th class="n">max</th></tr></thead><tbody>${rader}</tbody></table></section>`);
+  }
+  if (o.larm) {
+    h.push(`<section><h2>Larm</h2>${larm.length ? `<table><thead><tr><th>Larm</th><th>Start</th><th>Slut</th><th class="n">Timmar</th><th class="n">Värsta</th><th>Kvitterat</th></tr></thead><tbody>${larm.map(l => {
+      const enh = l.bit === 4 ? ' %' : ' °C';
+      return `<tr><td>${esc(({ 1: 'För kallt i jordkällaren', 2: 'För varmt i jordkällaren', 4: 'För fuktigt' })[l.bit] || 'Larm')}</td><td>${l.start ? esc(rpTid(l.start)) : 'före perioden'}</td><td>${l.slut ? esc(rpTid(l.slut)) : 'pågår'}</td><td class="n">${l.start && l.slut ? dec((l.slut - l.start) / 3600e3, 1) : ''}</td><td class="n">${num(l.varst) ? dec(l.varst, 1) + enh : ''}</td><td>${esc(l.kvit)}</td></tr>`;
+    }).join('')}</tbody></table>` : '<p class="rp-tom">Inga larm under perioden.</p>'}</section>`);
+  }
+  if (o.varme) h.push(`<section><h2>Värmarens körningar</h2>${varme.length ? `<table><thead><tr><th style="width:24%">Tid</th><th>Händelse</th></tr></thead><tbody>${varme.map(l => `<tr><td>${esc(rpTid(l.t))}</td><td>${esc(String(l.text).replace(VARME_RE, 'Värmaren kördes'))}</td></tr>`).join('')}</tbody></table>` : '<p class="rp-tom">Värmaren har inte körts under perioden.</p>'}</section>`);
+  if (o.ant) h.push(`<section><h2>Anteckningar</h2>${d.ant.length ? `<table><thead><tr><th style="width:24%">Tid</th><th>Anteckning</th><th>Av</th></tr></thead><tbody>${d.ant.map(n => `<tr><td>${esc(rpTid(n.at))}</td><td>${esc(n.text)}</td><td>${esc(n.av || '')}</td></tr>`).join('')}</tbody></table>` : '<p class="rp-tom">Inga anteckningar under perioden.</p>'}</section>`);
+  if (o.kal) {
+    const rad = [];
+    for (const l of d.logg) {
+      if (l.typ === 'kalibrering' && l.andringar) for (const [k, v] of Object.entries(l.andringar)) rad.push(`<tr><td>${esc(rpTid(l.t))}</td><td>${esc(KAL_NAMN[k] || k)}</td><td class="n">${num(v?.fran) ? dec(v.fran, 2) : '–'}</td><td class="n">${num(v?.till) ? dec(v.till, 2) : '–'}</td><td>${esc(l.av || '')}</td></tr>`);
+    }
+    h.push(`<section><h2>Kalibreringsändringar</h2>${rad.length ? `<table><thead><tr><th style="width:24%">Tid</th><th>Vad</th><th class="n">Från</th><th class="n">Till</th><th>Av</th></tr></thead><tbody>${rad.join('')}</tbody></table>` : '<p class="rp-tom">Kalibreringen ändrades inte under perioden.</p>'}</section>`);
+  }
+  if (o.hand) {
+    const max = 400, lg2 = d.logg.slice(-max);
+    h.push(`<section><h2>Händelser</h2>${lg2.length ? `${d.logg.length > max ? `<p class="rp-tom">Visar de senaste ${max} av ${d.logg.length}.</p>` : ''}<table><thead><tr><th style="width:24%">Tid</th><th style="width:10%">Nivå</th><th>Händelse</th></tr></thead><tbody>${lg2.map(l => `<tr><td>${esc(rpTid(l.t))}</td><td>${esc(l.niva || '')}</td><td>${esc(l.text || '')}</td></tr>`).join('')}</tbody></table>` : '<p class="rp-tom">Inga händelser under perioden.</p>'}</section>`);
+  }
+  h.push(`<footer class="rp-fot"><span>Jordkällaren · XIAO ESP32-C3, SHT40 och NTC</span><span>${d.tim ? 'Graferna visar timmedelvärden med min–max som skuggat fält.' : 'Graferna visar varje mätning.'}</span></footer>`);
+  sida.innerHTML = h.join('');
+
+  // Graferna (ritas när sidan finns, så att bredden stämmer)
+  const ser = k => d.graf.filter(x => num(x[k])).map(x => num(x[k + 'Min']) ? [x.t, x[k], x[k + 'Min'], x[k + 'Max']] : [x.t, x[k]]);
+  const dts = d.graf.slice(1).map((r, i) => r.t - d.graf[i].t).filter(x => x > 0).sort((a, b) => a - b);
+  const medDt = dts.length ? dts[Math.floor(dts.length / 2)] : intervalMs();
+  const gap = d.tim ? 3 * 3600e3 : Math.max(3 * medDt, 2 * 60e3);
+  const base = { t0, t1, gap, noDots: true };
+  const merkn = [...(o.ant ? antNotes : []), ...(o.varme ? vrmNotes : [])];
+  if (o.temp && $('rpgTemp')) drawChart($('rpgTemp'), [{ name: 'Jordkällaren', color: 'var(--c-in)', pts: ser('ti') }, { name: 'Ute', color: 'var(--c-ut)', pts: ser('tu') }], { ...base, unit: ' °C', label: 'Temperatur', minSpan: 2, h: 250, notes: merkn, noteFlags: true });
+  if (o.rh && $('rpgRh')) drawChart($('rpgRh'), [{ name: 'Fukt', color: 'var(--c-rh)', pts: ser('rh') }], { ...base, unit: ' %', dec: 1, label: 'Luftfuktighet', minSpan: 2, clamp: [0, 100], h: 200, notes: merkn, noteFlags: true });
+  if (o.batrs && $('rpgBat')) {
+    const glatt = Math.max(90 * 60e3, span / 48);
+    const rows = d.tim ? d.graf : d.raw;
+    const batPts = batProcentSerie(rows, x => x.t, d.logg.filter(l => /^Laddaren /.test(l.text || '')).map(l => ({ ...l, at: l.t })));
+    drawChart($('rpgBat'), [{ name: 'Batteri', color: 'var(--c-bat)', pts: jamna(batPts, glatt) }], { ...base, gap: Math.max(gap, 8 * 3600e3), unit: ' %', dec: 0, label: 'Batteri', minSpan: 6, clamp: [0, 100], h: 170, ticks: 4 });
+    drawChart($('rpgRs'), [{ name: 'Signal', color: 'var(--c-rs)', pts: jamna(ser('rs'), glatt) }], { ...base, gap: Math.max(gap, 8 * 3600e3), unit: ' dBm', dec: 0, label: 'WiFi-signal', minSpan: 12, h: 170, ticks: 4 });
+  }
+}
+async function rpUppdatera() {
+  const per = rpPeriod();
+  if (!per) return msg($('rpMsg'), 'bad', 'Fyll i en giltig period.');
+  lsSet('jk-rapport', JSON.stringify(rpVal()));
+  msg($('rpMsg'), '', 'Hämtar…');
+  try {
+    await rpHamta(per[0], per[1]);
+    rpRender();
+    msg($('rpMsg'), '', '');
+  } catch (e) { msg($('rpMsg'), 'bad', `Kunde inte hämta (${e.code || e.message}).`); }
+}
+const rpSnart = () => { clearTimeout(rpTimer); rpTimer = setTimeout(rpUppdatera, 250); };
+$('btnRapport').addEventListener('click', () => {
+  if (!$('rpTitel').value) $('rpTitel').value = 'Jordkällaren – rapport';
+  $('rpFran').value = isoLocal(view.t0); $('rpTill').value = isoLocal(Math.min(view.t1, nowServer()));
+  if (document.querySelector('input[name=rpP]:checked').value === 'custom') document.querySelector('input[name=rpP][value=view]').checked = true;
+  rpData = null;
+  $('dlgRapport').showModal();
+  rpUppdatera();
+});
+document.querySelectorAll('input[name=rpP]').forEach(el => el.addEventListener('change', rpSnart));
+for (const id of ['rpFran', 'rpTill']) $(id).addEventListener('change', () => { document.querySelector('input[name=rpP][value=custom]').checked = true; rpSnart(); });
+$('rpDelar').addEventListener('change', () => { lsSet('jk-rapport', JSON.stringify(rpVal())); rpRender(); });
+for (const id of ['rpTitel', 'rpKommentar']) $(id).addEventListener('input', () => { clearTimeout(rpTimer); rpTimer = setTimeout(rpRender, 300); });
+// Utskrift: rapporten flyttas till en egen yta utanför rutan medan den skrivs ut
+$('btnRpSkriv').addEventListener('click', () => {
+  const sida = $('rpSida');
+  if (!sida.innerHTML) return;
+  $('dlgRapport').close();
+  $('printArea').appendChild(sida);
+  document.body.classList.add('printar');
+  const forr = document.title;
+  const per = rpPeriod();
+  document.title = `${($('rpTitel').value.trim() || 'Jordkällaren').replace(/[\\/:*?"<>|]/g, '')} ${per ? dateStr(per[0]) + ' – ' + dateStr(per[1]) : ''}`;   // blir PDF:ens filnamn
+  const klar = () => {
+    window.removeEventListener('afterprint', klar);
+    document.body.classList.remove('printar');
+    document.title = forr;
+    $('rpForhand').appendChild(sida);
+    $('dlgRapport').showModal();
+  };
+  window.addEventListener('afterprint', klar);
+  setTimeout(() => window.print(), 50);
 });
 
 /* =====================================================================
@@ -1866,7 +2592,7 @@ function renderStats() {
 $('btnMonths').addEventListener('click', async () => {
   $('monthsHelp').textContent = 'Hämtar…';
   try {
-    const rows = lista(await D.get('timmar', { by: 'at', start: nowServer() - 366 * 864e5 })).filter(h => num(h.at) && h.at >= clearCutoff());
+    const rows = lista(await D.get('timmar', { by: 'at', start: nowServer() - 366 * 864e5 })).filter(h => num(h.at) && !dold(h.at + 1800e3));
     const m = new Map();
     for (const h of rows) {
       const d = new Date(h.at), k = `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
@@ -1970,7 +2696,7 @@ const kortLogg = t => String(t || '').replace(/\. Sensorn laddar upp varje mätn
   .replace(/ Ladda det snart\.$/, '').replace(/ \(kraschade eller kunde inte ladda upp\)\. Sensorn gick tillbaka till den förra versionen\./, '. Gick tillbaka till den förra.');
 function renderLog() {
   const c = clearCutoff();
-  const items = logItems.filter(l => histTime(l) >= c);
+  const items = logItems.filter(l => !dold(histTime(l)));
   if (!items.length) { $('logBody').innerHTML = '<tr><td colspan="3" class="help">Inga händelser än.</td></tr>'; return; }
   $('logBody').innerHTML = items.slice().reverse().map(l => {
     const st = l.niva === 'fel' ? 'bad' : l.niva === 'varning' ? 'wait' : 'ok';
