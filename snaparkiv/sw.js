@@ -1,6 +1,6 @@
 /* Snaparkiv – service worker: gör appen installerbar, användbar utan nät och uppdaterar den automatiskt.
    Den rör aldrig dina Snapchat-filer – de läses direkt från datorn i sidan och skickas aldrig någonstans. */
-const VERSION = 'snaparkiv-v1';
+const VERSION = 'snaparkiv-v2';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png', './icons/logo.svg'];
 const LIBS = /^https:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/leaflet\//;
 
