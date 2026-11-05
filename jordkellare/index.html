@@ -1875,13 +1875,18 @@ function renderHist() {
 
   renderStats();
   // Anteckningar i perioden
-  const nv = ntsAlla.filter(n => n.at >= t0 && n.at <= t1);
-  $('notesWrap').hidden = !nv.length;
+  // Senaste först; bara de 3 senaste tills man klickar "Visa fler" (som notiserna)
+  const nvAlla = ntsAlla.filter(n => n.at >= t0 && n.at <= t1).sort((a, b) => b.at - a.at);
+  const nv = visaAllaAnt ? nvAlla : nvAlla.slice(0, 3);
+  $('notesWrap').hidden = !nvAlla.length;
   $('notesList').innerHTML = nv.map(n => n.kind === 'varme'
     ? `<li class="varme"><span class="t">${when(n.at)}</span><span>${esc(n.text)}</span></li>`
-    : `<li><span class="t">${when(n.at)}</span><span>${esc(n.text)}${n.av ? ` <small class="help">(${esc(n.av)})</small>` : ''}</span>${isAdmin ? `<button data-note="${esc(n.id)}" title="Ta bort">Ta bort</button>` : ''}</li>`).join('');
+    : `<li><span class="t">${when(n.at)}</span><span>${esc(n.text)}${n.av ? ` <small class="help">(${esc(n.av)})</small>` : ''}</span>${isAdmin ? `<button data-note="${esc(n.id)}" title="Ta bort">Ta bort</button>` : ''}</li>`).join('')
+    + (nvAlla.length > 3 ? `<li class="fler"><button type="button" id="btnAntFler">${visaAllaAnt ? 'Visa färre' : `Visa fler (${nvAlla.length - 3})`}</button></li>` : '');
 }
+let visaAllaAnt = false;
 $('notesList').addEventListener('click', async e => {
+  if (e.target?.id === 'btnAntFler') { visaAllaAnt = !visaAllaAnt; renderHist(); return; }
   const id = e.target?.dataset?.note; if (!id) return;
   if (!await confirmDlg('Ta bort anteckningen?', notes.find(n => n.id === id)?.text || '', 'Ta bort')) return;
   await D.remove(`anteckningar/${id}`);
