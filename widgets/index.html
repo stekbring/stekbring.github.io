@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Widgets</title>
+<meta name="theme-color" content="#14171b">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  // tema före första ritningen
+  (function () { try { var t = localStorage.getItem('wv-tema') || 'morkt'; if (t === 'ljust' || (t === 'system' && matchMedia('(prefers-color-scheme: light)').matches)) document.documentElement.dataset.tema = 'ljust' } catch (e) {} })()
+</script>
+<link rel="stylesheet" href="stil.css">
+</head>
+<body>
+<header class="toolbar">
+  <div class="brand"><span class="logo-ruta"><svg viewBox="0 0 24 24" fill="none" stroke="#1b1405" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2.2"/><rect x="13" y="3" width="8" height="8" rx="2.2"/><rect x="3" y="13" width="18" height="8" rx="2.2"/></svg></span><span>Widgets</span></div>
+  <nav class="flikrad" role="tablist" aria-label="Lägen">
+    <button role="tab" id="flik-bygg" aria-selected="true" aria-controls="vy-bygg">Bygg</button>
+    <button role="tab" id="flik-jk" aria-selected="false" aria-controls="vy-jk">Jordkällaren</button>
+    <button role="tab" id="flik-projekt" aria-selected="false" aria-controls="vy-projekt">Projekt</button>
+  </nav>
+  <div class="tb-hoger">
+    <button class="ghost" id="btnLogin" title="Logga in för riktiga värden och synk"><span class="lamp" id="loginLampa"></span><span id="loginText">Logga in</span></button>
+    <button class="ghost" id="btnTema" title="Byt tema" aria-label="Byt tema"><svg class="ic" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+  </div>
+</header>
+
+<main>
+  <!-- ================= BYGG ================= -->
+  <section id="vy-bygg" class="vy" role="tabpanel" aria-labelledby="flik-bygg">
+    <div class="bygg">
+      <aside class="panel kol-vanster">
+        <div class="panel-title">Widget <small><select id="mallVal" aria-label="Börja från mall"><option value="">Ny från mall …</option></select></small></div>
+        <label class="falt"><span>Namn</span><input type="text" id="specNamn" placeholder="t.ex. Jordkällaren liten"></label>
+        <label class="falt"><span>Storlek</span><select id="specFamilj"></select></label>
+        <div class="panel-title mt">Delar</div>
+        <div id="trad" class="trad" role="tree" aria-label="Widgetens delar"></div>
+        <div class="laggtill">
+          <span class="help">Lägg till i vald stack:</span>
+          <div class="knapprad" id="laggTill"></div>
+        </div>
+      </aside>
+
+      <section class="panel kol-mitt">
+        <div class="forh-rad">
+          <label class="falt rad"><span>iPhone</span><select id="enhetVal"></select></label>
+          <div class="seg" id="dataVal" role="group" aria-label="Data">
+            <button data-v="exempel" aria-pressed="true">Exempeldata</button>
+            <button data-v="riktig" aria-pressed="false">Riktiga värden</button>
+          </div>
+          <div class="seg" id="zoomVal" role="group" aria-label="Zoom">
+            <button data-v="1" aria-pressed="false">1×</button>
+            <button data-v="2" aria-pressed="true">2×</button>
+            <button data-v="3" aria-pressed="false">3×</button>
+          </div>
+        </div>
+        <div class="scen" id="scen">
+          <div class="telefon" id="telefon"></div>
+        </div>
+        <div class="matt help" id="mattInfo"></div>
+        <details class="exdata" id="exData">
+          <summary>Ändra exempeldata (testa larm, tyst sensor, långa värden)</summary>
+          <div class="exgrid" id="exGrid"></div>
+        </details>
+      </section>
+
+      <aside class="panel kol-hoger">
+        <div class="panel-title" id="egTitel">Egenskaper</div>
+        <div id="egenskaper"></div>
+        <div class="panel-title mt">Värden att använda <small><button class="liten" id="btnVarden">Visa alla</button></small></div>
+        <p class="help">Skriv <code>{ti:1}</code> i en text för källarens temperatur med en decimal. Klicka på ett värde för att lägga in det i vald text.</p>
+        <div id="vardeLista" class="vardelista"></div>
+      </aside>
+    </div>
+
+    <div class="panel exportpanel">
+      <div class="panel-title">Till telefonen</div>
+      <div class="knapprad wrap">
+        <button class="default" id="btnKopiera"><svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Kopiera kod</button>
+        <button id="btnLadda"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Ladda ner .js</button>
+        <button id="btnSpara"><svg class="ic" viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5zM8 3v6h8V3M8 21v-7h8v7"/></svg>Spara projekt</button>
+        <span class="sep"></span>
+        <label class="kryss"><input type="checkbox" id="synkPa"> Synk via länk</label>
+        <button id="btnPublicera" disabled><svg class="ic" viewBox="0 0 24 24"><path d="M7 18H6a5 5 0 0 1-.6-9.96A7 7 0 0 1 19 7.5a4.5 4.5 0 0 1 .5 8.97M12 21v-9M9 15l3-3 3 3"/></svg>Publicera ändringar</button>
+        <span class="msg" id="exportMsg"></span>
+      </div>
+      <p class="help" id="synkHjalp">Med synk hämtar skriptet i Scriptable widgetens utseende härifrån. Ändrar du något och trycker <b>Publicera ändringar</b> uppdateras widgeten på telefonen utan att du klistrar in ny kod. Kräver att du är inloggad som admin.</p>
+    </div>
+  </section>
+
+  <!-- ================= JORDKÄLLAREN ================= -->
+  <section id="vy-jk" class="vy" role="tabpanel" aria-labelledby="flik-jk" hidden>
+    <div class="jkgrid">
+      <section class="panel">
+        <div class="panel-title">Låsskärmens hela rad · 8 + 9</div>
+        <div class="forh-rad">
+          <label class="falt rad"><span>iPhone</span><select id="jkEnhet"></select></label>
+          <div class="seg" id="jkLage" role="group" aria-label="Variant">
+            <button data-v="vanlig" aria-pressed="true">8 + 9</button>
+            <button data-v="S" aria-pressed="false">8S + 9S</button>
+          </div>
+          <label class="kryss"><input type="checkbox" id="jkRuta"> Ruta (R)</label>
+          <label class="kryss"><input type="checkbox" id="jkByt"> Jordkällaren till vänster</label>
+        </div>
+        <div class="scen las" id="jkScen"><div class="jkrad" id="jkRad"></div></div>
+        <p class="help" id="jkInfo"></p>
+        <p class="help">Förhandsvisningen räknar textstorleken exakt som skriptet. Den grå streckade rutan är hela widgetens yta, och texten får plats i ungefär 77 % av den, som vi mätte upp på din iPhone. Ser du "…" här kortas raden av på telefonen också.</p>
+      </section>
+      <section class="panel">
+        <div class="panel-title">Finjustering <small><button class="liten" id="jkAterstall">Återställ</button></small></div>
+        <div class="jkreglage" id="jkReglage"></div>
+        <div class="panel-title mt">Textstorlek</div>
+        <div class="jkreglage" id="jkStorlek"></div>
+        <div class="panel-title mt">Till telefonen</div>
+        <div class="knapprad wrap">
+          <button class="default" id="jkKopiera">Kopiera inställningarna</button>
+          <button id="jkPublicera">Publicera (synk)</button>
+          <span class="msg" id="jkMsg"></span>
+        </div>
+        <p class="help"><b>Kopiera</b> ger raderna att klistra in överst i Jordkallaren.js, i stället för de som står där. <b>Publicera</b> skickar dem till databasen, så att telefonen hämtar dem själv inom 5 minuter (kräver den nya Jordkallaren.js och att du är inloggad som admin).</p>
+      </section>
+    </div>
+  </section>
+
+  <!-- ================= PROJEKT ================= -->
+  <section id="vy-projekt" class="vy" role="tabpanel" aria-labelledby="flik-projekt" hidden>
+    <section class="panel">
+      <div class="panel-title">Sparade widgets <small><button class="liten" id="btnNytt">Ny tom</button><button class="liten" id="btnImport">Öppna fil …</button><button class="liten" id="btnExportAlla">Spara alla som fil</button></small></div>
+      <input type="file" id="importFil" accept=".json,application/json" hidden>
+      <div id="projektLista" class="projektlista"></div>
+      <p class="help">Projekten sparas i den här webbläsaren. Spara som fil för att ha en kopia eller flytta till en annan dator.</p>
+    </section>
+  </section>
+</main>
+
+<dialog id="dlgLogin" class="dlg">
+  <form method="dialog" id="loginForm">
+    <h2>Logga in</h2>
+    <p class="help">Samma konto som på Jordkällarens webbsida. Ett läsarkonto (t.ex. widget) räcker för riktiga värden; för att publicera behövs admin.</p>
+    <label class="falt"><span>Användarnamn</span><input type="text" id="lgAnv" autocomplete="username" required></label>
+    <label class="falt"><span>Lösenord</span><input type="password" id="lgLos" autocomplete="current-password" required></label>
+    <p class="msg" id="lgMsg"></p>
+    <div class="knapprad"><button type="button" id="lgAvbryt">Avbryt</button><button type="button" id="lgUt" hidden>Logga ut</button><button class="default" id="lgOk" type="submit">Logga in</button></div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="delad.js"></script>
+<script src="enheter.js"></script>
+<script src="ikoner.js"></script>
+<script src="forhand.js"></script>
+<script src="jk.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
