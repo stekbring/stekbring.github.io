@@ -8,7 +8,7 @@ Ett webbverktyg för att bygga widgets till Scriptable på iPhone och se dem på
   - Till vänster väljer du storlek (liten, mellan, stor, extra stor och låsskärmens rund, rektangel och rad). Där finns också trädet med widgetens delar: rad, kolumn, text, ikon, vindpil, luft, mätare, graf och bild.
   - I mitten ser du widgeten på vald iPhone-modell, i rätt storlek i punkter. Låsskärmens widgets visas under klockan. Klicka på en del i telefonen för att välja den.
   - Till höger ändrar du den valda delen. Det finns också en lista över värden att skriva in i texter, till exempel `{ti:1}` för källarens temperatur med en decimal.
-- **Jordkällaren** – finjustering av låsskärmens hela rad (8 + 9). Skjutreglagen ändrar samma `FIN`-siffror som står överst i `Jordkallaren.js`. Textstorleken räknas ut exakt som i skriptet.
+- **Jordkällaren** – finjustering av låsskärmens hela rad (8 + 9). Klicka på en rad för att ändra bara den raden (storlek, ikoner, punkter, varje mellanrum för sig), eller välj *Alla rader* för det som gäller alla. Det motsvarar `RADER` och `FIN` överst i `Jordkallaren.js`. Textstorleken räknas ut exakt som i skriptet.
 - **Projekt** – widgets som sparats i webbläsaren. Du kan också spara dem som fil eller öppna en fil.
 
 ## Till telefonen
@@ -47,4 +47,4 @@ Publicering skriver till `jordkallare/widgetconf/<namn>`. Lägg in följande und
 - Ikonerna i webbläsaren är ritade ungefär som Apples SF Symbols. På telefonen visas Apples riktiga ikoner, och vilket SF Symbol-namn som helst fungerar där.
 - Låsskärmens widgets färgar iOS själv. Förhandsvisningen härmar det genom att visa allt i vitt med olika genomskinlighet.
 - Utan Apples typsnitt (till exempel på Windows) kan texten bli något bredare här än på telefonen.
-- Filer: `delad.js` (värden och textmallar, används både här och på telefonen), `motor-scriptable.js` (ritar widgeten i Scriptable), `forhand.js` (ritar den i webbläsaren), `jk.js` (Jordkällaren-fliken), `enheter.js` (iPhone-mått), `ikoner.js`, `app.js` och `stil.css`.
+- Filer: `delad.js` (värden och textmallar, används både här och på telefonen), `motor-scriptable.js` (ritar widgeten i Scriptable), `forhand.js` (ritar den i webbläsaren), `radmotor.js` (raderna 8 + 9, samma kod som i Jordkallaren.js), `jk.js` (Jordkällaren-fliken), `enheter.js` (iPhone-mått), `ikoner.js`, `app.js` och `stil.css`.

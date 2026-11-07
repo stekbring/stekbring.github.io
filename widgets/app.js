@@ -495,45 +495,86 @@ function ritaAllt() {
 // ---------------------------------------------------------------------
 var jkInst = lsGet('wv-jk', null) || { FIN: klon(FIN_STD), STORLEK_RAD: null, STORLEK_RAD_S: null, kompakt: false, rundad: false, byt: false, enhet: 'i15' }
 jkInst.FIN = Object.assign(klon(FIN_STD), jkInst.FIN || {})
+jkInst.RADER = jkInst.RADER || {}
+var jkVald = null      // null = alla rader, annars sol/termo/vind/hus/bat/moln
 function jkSpara() { lsSet('wv-jk', jkInst) }
 function jkRita() {
   var e = ENHETER.find(function (x) { return x.id === jkInst.enhet }) || ENHETER[4]
   var V = varden(), rad = $('jkRad')
   rad.innerHTML = ''
   var vad = jkInst.byt ? ['kallare', 'vader'] : ['vader', 'kallare']
-  var a = jkHalva(V, jkInst, e, vad[0], 'v'), b = jkHalva(V, jkInst, e, vad[1], 'h')
+  var a = jkHalva(V, jkInst, e, vad[0], 'v', jkVald), b = jkHalva(V, jkInst, e, vad[1], 'h', jkVald)
   rad.appendChild(a); rad.appendChild(b)
   jkAnpassa(a); jkAnpassa(b)
   rad.style.transform = 'scale(2)'
   $('jkScen').style.minHeight = (72 * 2 + 60) + 'px'
   var par = jkInst.byt ? '9' + (jkInst.rundad ? 'RV' : '') + (jkInst.kompakt ? 'S' : '') + ' + 8' + (jkInst.rundad ? 'RH' : '') + (jkInst.kompakt ? 'S' : '') : '8' + (jkInst.rundad ? 'R' : '') + (jkInst.kompakt ? 'S' : '') + ' + 9' + (jkInst.rundad ? 'R' : '') + (jkInst.kompakt ? 'S' : '')
-  $('jkInfo').innerHTML = 'Parametrar på telefonen: <b>' + par + '</b> · textstorlek <b>' + a.dataset.fs + ' pt</b>' + (num(jkInst.kompakt ? jkInst.STORLEK_RAD_S : jkInst.STORLEK_RAD) ? ' (egen)' : ' (automatisk)') + ' · ' + e.namn
+  $('jkInfo').innerHTML = 'Parametrar på telefonen: <b>' + par + '</b> · textstorlek <b>' + a.dataset.fs + ' pt</b>' + (num(jkInst.kompakt ? jkInst.STORLEK_RAD_S : jkInst.STORLEK_RAD) ? ' (egen)' : ' (automatisk)') + ' · ' + e.namn + ' · <b>Klicka på en rad</b> för att ändra bara den.'
+}
+function jkVal(id) { jkVald = id; jkReglage(); jkRita() }
+function reglageRad(attr, k, i, v, andrad) {
+  var ar = attr + '="' + k + '"'
+  return '<label class="' + (andrad ? 'andrad' : '') + '"><span>' + i[0] + '<small>' + i[1] + '</small></span><input type="range" ' + ar + ' min="' + i[2] + '" max="' + i[3] + '" step="' + i[4] + '" value="' + v + '"><span class="jkvarde"><input type="number" ' + ar + ' min="' + i[2] + '" max="' + i[3] + '" step="' + i[4] + '" value="' + (Math.round(v * 1000) / 1000) + '">' +
+    (andrad ? '<button type="button" class="liten jknoll" data-noll="' + k + '" title="Tillbaka till det som gäller alla rader">↺</button>' : '') + '</span></label>'
 }
 function jkReglage() {
-  $('jkReglage').innerHTML = Object.keys(FIN_STD).map(function (k) {
-    var i = FIN_INFO[k], v = jkInst.FIN[k]
-    return '<label><span>' + i[0] + '<small>' + i[1] + '</small></span><input type="range" data-fin="' + k + '" min="' + i[2] + '" max="' + i[3] + '" step="' + i[4] + '" value="' + v + '"><input type="number" data-fin="' + k + '" min="' + i[2] + '" max="' + i[3] + '" step="' + i[4] + '" value="' + v + '"></label>'
-  }).join('')
+  var flikar = '<div class="jkradval"><button type="button" data-radval=""' + (jkVald ? '' : ' aria-pressed="true"') + '>Alla rader</button>' +
+    ['sol', 'termo', 'vind', 'hus', 'bat', 'moln'].map(function (id) {
+      var andrad = jkInst.RADER[id] && Object.keys(jkInst.RADER[id]).length
+      return '<button type="button" data-radval="' + id + '"' + (jkVald === id ? ' aria-pressed="true"' : '') + '>' + RM_NAMN[id] + (andrad ? ' •' : '') + '</button>'
+    }).join('') + '</div>'
+  var h
+  if (!jkVald) {
+    h = '<p class="help">Gäller alla rader som inte har ändrats för sig. Klicka på en rad i förhandsvisningen eller ovan för att ändra bara den.</p>' +
+      Object.keys(FIN_STD).map(function (k) { return reglageRad('data-fin', k, FIN_INFO[k], jkInst.FIN[k], false) }).join('')
+  } else {
+    var R = jkInst.RADER[jkVald] || {}
+    h = '<p class="help">Bara raden <b>' + RM_NAMN[jkVald] + '</b>. Ändrade värden är markerade; ↺ tar tillbaka det som gäller alla rader.</p>' +
+      rmNycklar(jkVald, jkInst.kompakt).map(function (k) {
+        var andrad = R[k] !== undefined && R[k] !== null, v = andrad ? R[k] : jkRadStd(jkVald, k, jkInst)
+        if (k === 'fyll') return '<label class="kryss jkkryss' + (andrad ? ' andrad' : '') + '"><input type="checkbox" data-rad="fyll"' + (v ? ' checked' : '') + '> ' + RAD_INFO.fyll[0] + ' <small class="help">(' + RAD_INFO.fyll[1] + ')</small></label>'
+        return reglageRad('data-rad', k, jkInfo(k), v, andrad)
+      }).join('')
+  }
+  $('jkReglage').innerHTML = flikar + h
   $('jkStorlek').innerHTML = [['STORLEK_RAD', '8 + 9'], ['STORLEK_RAD_S', '8S + 9S']].map(function (x) {
     var v = jkInst[x[0]]
     return '<label><span>' + x[1] + '<small>tom = automatisk</small></span><input type="range" data-st="' + x[0] + '" min="9" max="22" step="0.5" value="' + (num(v) ? v : 14) + '"' + (num(v) ? '' : ' disabled') + '><input type="number" data-st="' + x[0] + '" min="9" max="22" step="0.5" value="' + (num(v) ? v : '') + '" placeholder="auto"></label>'
   }).join('')
-  $('jkReglage').querySelectorAll('[data-fin]').forEach(function (inp) {
-    inp.addEventListener('input', function () {
-      var k = inp.dataset.fin, v = parseFloat(inp.value); if (!num(v)) return
+  $('jkAterstall').textContent = jkVald ? 'Återställ raden' : 'Återställ allt'
+}
+function jkKoppla() {
+  var R = $('jkReglage')
+  R.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-radval]'); if (b) { jkVal(b.dataset.radval || null); return }
+    var n = ev.target.closest('[data-noll]')
+    if (n && jkVald) { delete (jkInst.RADER[jkVald] || {})[n.dataset.noll]; if (jkInst.RADER[jkVald] && !Object.keys(jkInst.RADER[jkVald]).length) delete jkInst.RADER[jkVald]; jkSpara(); jkReglage(); jkRita() }
+  })
+  R.addEventListener('input', function (ev) {
+    var inp = ev.target, k
+    if ((k = inp.dataset.fin)) {
+      var v = parseFloat(inp.value); if (!num(v)) return
       jkInst.FIN[k] = v
-      $('jkReglage').querySelectorAll('[data-fin="' + k + '"]').forEach(function (o) { if (o !== inp) o.value = v })
-      jkSpara(); jkRita()
-    })
+      R.querySelectorAll('[data-fin="' + k + '"]').forEach(function (o) { if (o !== inp) o.value = v })
+    } else if ((k = inp.dataset.rad)) {
+      var w = inp.type === 'checkbox' ? inp.checked : parseFloat(inp.value); if (inp.type !== 'checkbox' && !num(w)) return
+      jkInst.RADER[jkVald] = jkInst.RADER[jkVald] || {}
+      jkInst.RADER[jkVald][k] = w
+      R.querySelectorAll('[data-rad="' + k + '"]').forEach(function (o) { if (o !== inp && o.type !== 'checkbox') o.value = w })
+      var lab = inp.closest('label')
+      if (lab && !lab.classList.contains('andrad')) { lab.classList.add('andrad'); var sp = lab.querySelector('.jkvarde'); if (sp) sp.insertAdjacentHTML('beforeend', '<button type="button" class="liten jknoll" data-noll="' + k + '" title="Tillbaka till det som gäller alla rader">↺</button>') }
+      var fl = R.querySelector('[data-radval="' + jkVald + '"]'); if (fl && fl.textContent.indexOf('•') < 0) fl.textContent += ' •'
+    } else return
+    jkSpara(); jkRita()
   })
-  $('jkStorlek').querySelectorAll('[data-st]').forEach(function (inp) {
-    inp.addEventListener('input', function () {
-      var k = inp.dataset.st, v = inp.value === '' ? null : parseFloat(inp.value)
-      jkInst[k] = num(v) ? v : null
-      $('jkStorlek').querySelectorAll('[data-st="' + k + '"]').forEach(function (o) { if (o !== inp) { if (o.type === 'range') { o.disabled = !num(v); if (num(v)) o.value = v } else o.value = num(v) ? v : '' } })
-      jkSpara(); jkRita()
-    })
+  $('jkStorlek').addEventListener('input', function (ev) {
+    var inp = ev.target, k = inp.dataset.st; if (!k) return
+    var v = inp.value === '' ? null : parseFloat(inp.value)
+    jkInst[k] = num(v) ? v : null
+    $('jkStorlek').querySelectorAll('[data-st="' + k + '"]').forEach(function (o) { if (o !== inp) { if (o.type === 'range') { o.disabled = !num(v); if (num(v)) o.value = v } else o.value = num(v) ? v : '' } })
+    jkSpara(); jkRita()
   })
+  $('jkRad').addEventListener('click', function (ev) { var r = ev.target.closest('[data-rad]'); if (r) jkVal(jkVald === r.dataset.rad ? null : r.dataset.rad) })
 }
 
 // ---------------------------------------------------------------------
@@ -670,19 +711,23 @@ function init() {
   })
   // jordkällaren
   $('jkEnhet').addEventListener('change', function () { jkInst.enhet = this.value; jkSpara(); jkRita() })
-  $('jkLage').addEventListener('click', function (ev) { var b = ev.target.closest('button'); if (!b) return; jkInst.kompakt = b.dataset.v === 'S'; this.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)) }); jkSpara(); jkRita() })
+  $('jkLage').addEventListener('click', function (ev) { var b = ev.target.closest('button'); if (!b) return; jkInst.kompakt = b.dataset.v === 'S'; this.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)) }); jkSpara(); jkReglage(); jkRita() })
   $('jkRuta').checked = !!jkInst.rundad; $('jkByt').checked = !!jkInst.byt
   document.querySelectorAll('#jkLage button').forEach(function (x) { x.setAttribute('aria-pressed', String((x.dataset.v === 'S') === !!jkInst.kompakt)) })
   $('jkRuta').addEventListener('change', function () { jkInst.rundad = this.checked; jkSpara(); jkRita() })
   $('jkByt').addEventListener('change', function () { jkInst.byt = this.checked; jkSpara(); jkRita() })
-  $('jkAterstall').addEventListener('click', function () { jkInst.FIN = klon(FIN_STD); jkInst.STORLEK_RAD = null; jkInst.STORLEK_RAD_S = null; jkSpara(); jkReglage(); jkRita() })
+  $('jkAterstall').addEventListener('click', function () {
+    if (jkVald) delete jkInst.RADER[jkVald]
+    else if (confirm('Återställa alla rader och textstorleken?')) { jkInst.FIN = klon(FIN_STD); jkInst.RADER = {}; jkInst.STORLEK_RAD = null; jkInst.STORLEK_RAD_S = null }
+    jkSpara(); jkReglage(); jkRita()
+  })
   $('jkKopiera').addEventListener('click', async function () {
     try { await navigator.clipboard.writeText(jkFinText(jkInst)); $('jkMsg').className = 'msg ok'; $('jkMsg').textContent = 'Kopierat. Ersätt raderna från STORLEK_RAD till slutet av FIN i skriptet.' }
     catch (e) { $('jkMsg').className = 'msg bad'; $('jkMsg').textContent = e.message }
   })
   $('jkPublicera').addEventListener('click', async function () {
     if (!auth) { $('dlgLogin').showModal(); return }
-    try { await db('PUT', 'widgetconf/jordkallaren', { FIN: jkInst.FIN, STORLEK_RAD: jkInst.STORLEK_RAD, STORLEK_RAD_S: jkInst.STORLEK_RAD_S, at: Date.now() }); $('jkMsg').className = 'msg ok'; $('jkMsg').textContent = 'Publicerat. Telefonen använder det inom 5 minuter.' }
+    try { await db('PUT', 'widgetconf/jordkallaren', { FIN: jkInst.FIN, RADER: jkInst.RADER, STORLEK_RAD: jkInst.STORLEK_RAD, STORLEK_RAD_S: jkInst.STORLEK_RAD_S, at: Date.now() }); $('jkMsg').className = 'msg ok'; $('jkMsg').textContent = 'Publicerat. Telefonen använder det inom 5 minuter.' }
     catch (e) { $('jkMsg').className = 'msg bad'; $('jkMsg').textContent = e.message + '. Kräver admin och en regel för widgetconf i Firebase (se README).' }
   })
   // projekt
@@ -726,7 +771,7 @@ function init() {
     toast('Tema: ' + { morkt: 'mörkt', ljust: 'ljust', system: 'som systemet' }[ny])
   })
 
-  visaLogin(); jkReglage(); ritaAllt()
+  visaLogin(); jkReglage(); jkKoppla(); ritaAllt()
   var flik = lsGet('wv-flik', 'flik-bygg'); if ($(flik)) $(flik).click()
   // uppdatera tiden i förhandsvisningen varje minut
   setInterval(function () { ritaTelefon() }, 60e3)

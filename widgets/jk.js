@@ -18,12 +18,29 @@ var FIN_INFO = {
   punkt: ['Luft runt punkterna', 'textbredder (6,6°·93,9%·0,7°)', 0, 0.6, 0.02],
 }
 
-// ---- samma tabell och regler som i Jordkallaren.js ----
-var JK_EM = { ' ': 0.17, ' ': 0.27, ',': 0.27, '.': 0.27, ':': 0.29, '·': 0.29, '°': 0.42, '%': 0.9, '(': 0.36, ')': 0.36, '/': 0.4, '–': 0.6, '−': 0.62, '-': 0.4 }
-function jkEm(s) { return Array.from(String(s)).reduce(function (a, c) { return a + (JK_EM[c] !== undefined ? JK_EM[c] : (/\d/.test(c) ? 0.63 : /[A-ZÅÄÖ]/.test(c) ? 0.7 : /[mw]/.test(c) ? 0.9 : /[iljtf]/.test(c) ? 0.33 : 0.58)) }, 0) * 0.95 }
-var TS = ' '
-
-function jkBatSymbol(v) { return v.usb ? 'battery.100.bolt' : !num(v.bp) ? 'battery.0' : v.bp >= 88 ? 'battery.100' : v.bp >= 63 ? 'battery.75' : v.bp >= 38 ? 'battery.50' : v.bp >= 13 ? 'battery.25' : 'battery.0' }
+// Inställningar som bara finns per rad
+var RAD_INFO = {
+  storlek: ['Radens storlek', '× textstorleken (1 = som de andra)', 0.6, 1.6, 0.05],
+  fyll: ['Bredda till den bredaste raden', 'mellanrummen får växa'],
+}
+function jkInfo(k) {
+  if (FIN_INFO[k]) return FIN_INFO[k]
+  if (RAD_INFO[k]) return RAD_INFO[k]
+  if (k.indexOf('luft_') === 0) return [RM_LUFT[k.slice(5)] || 'Luft', 'textbredder (minst)', 0, 2, 0.02]
+  return [k, '', 0, 1, 0.05]
+}
+// Standardvärdet för en inställning på en rad (det som gäller om raden inte ändrats)
+function jkRadStd(id, k, inst) {
+  if (k === 'storlek') return 1
+  if (k === 'fyll') return true
+  if (k.indexOf('luft_') === 0) {
+    var alla = rmRader({ vader: { harData: true, wd: 0, ws: 1 }, bp: 50, rs: -60 }, inst.kompakt), namn = k.slice(5)
+    var rad = alla.v.concat(alla.h).filter(function (x) { return x.id === id })[0]
+    var p = rad.s.filter(function (x) { return (x[0] === 'luft' || x[0] === 'fluft') && x[x.length - 1] === namn })[0]
+    return p ? p[1] : 0
+  }
+  return inst.FIN[k]
+}
 
 // V (från harledVarden) → det format Jordkallaren.js använder
 function jkV(V) {
@@ -32,72 +49,18 @@ function jkV(V) {
     vader: { upp: V.solUpp, ned: V.solNed, T: V.T, hi: V.H, lo: V.L, harData: num(V.T), riktn: V.riktn, wd: V.wd, ws: V.ws },
   }
 }
-
-function jkPunktRad(delar, F) {
-  var P = Math.max(0, (F && F.punkt) || 0), ut = []
-  delar.forEach(function (d, i) { if (i) { if (P) ut.push(['luft', P]); ut.push(['t', '·']); if (P) ut.push(['luft', P]) } ut.push(['t', d]) })
-  return ut
-}
-function jkRadText(v, k, F) {
-  var x = v.vader || {}
-  return {
-    v: [
-      k ? [['ikon', 'sunrise.fill'], ['t', klocka(x.upp) + '–' + klocka(x.ned)]]
-        : [['ikon', 'sunrise.fill'], ['t', klocka(x.upp)], ['fluft', 0.4, 1.2], ['sym', 'sunset.fill'], ['t', klocka(x.ned)]],
-      x.harData ? [['ikon', 'thermometer.medium'], ['stor', komma(x.T, 0) + '°'], ['fluft', 0.4, 1.0], ['ljus', 'H:'], ['fluft', 0.17, 0.3], ['t', komma(x.hi, 0) + '°'], ['fluft', 0.3, 0.8], ['ljus', 'L:'], ['fluft', 0.17, 0.3], ['t', komma(x.lo, 0) + '°']]
-        : [['ikon', 'thermometer.medium'], ['t', 'SMHI –']],
-      [['ikon', 'wind'], ['t', x.riktn || ''], ['pil', x.wd], ['t', num(x.ws) ? komma(x.ws, 0) + ' m/s' : '–']],
-    ],
-    h: [
-      k ? [['ikon', v.larmOppet ? 'exclamationmark.triangle.fill' : 'house.fill'], ['t', komma(v.ti) + '°'], ['luft', 0.45], ['t', komma(v.rh) + '%'], ['luft', 0.45], ['t', komma(v.tu) + '°']]
-        : [['ikon', v.larmOppet ? 'exclamationmark.triangle.fill' : 'house.fill']].concat(jkPunktRad([komma(v.ti) + '°', komma(v.rh) + '%', komma(v.tu) + '°'], F)),
-      [['ikon', jkBatSymbol(v)], ['t', v.usb ? 'Laddar' : (num(v.bp) ? Math.round(v.bp) : '–') + '%'], ['fluft', 0.3, 1.0], ['sym', 'wifi'], ['t', num(v.rs) ? komma(v.rs, 0) + (k ? '' : TS + 'dBm') : '–']],
-      v.tyst ? [['ikon', 'exclamationmark.icloud'], ['t', 'tyst ' + klocka(v.upp)]]
-        : [['ikon', 'icloud.and.arrow.up'], ['t', klocka(v.upp)], ['fluft', 0.2, 0.6], ['sym', 'arrow.right'], ['fluft', 0, 0.45], ['t', klocka(v.nasta)]],
-    ],
-  }
-}
-function jkRadEm(rad, F) {
-  return rad.reduce(function (a, p) {
-    var typ = p[0], x = p[1]
-    return a + (typ === 't' ? jkEm(x) : typ === 'stor' ? jkEm(x) * F.ute : typ === 'ljus' ? jkEm(x) * F.hl : typ === 'sym' ? 1 + F.symLuft : typ === 'pil' ? (x === undefined || x === null ? 0 : 1 + 2 * F.pilLuft) : typ === 'luft' || typ === 'fluft' ? x : 0)
-  }, 0)
-}
-function jkValj(r, mal, F) {
-  var flex = r.filter(function (p) { return p[0] === 'fluft' })
-  if (!flex.length) return r
-  var extra = Math.max(0, mal - jkRadEm(r, F))
-  var ut = r.map(function (p) { return p[0] === 'fluft' ? ['luft', p[1]] : p })
-  for (var varv = 0; varv < 4 && extra > 0.01; varv++) {
-    var kvar = ut.map(function (p, i) { return r[i][0] === 'fluft' && p[1] < r[i][2] - 0.001 ? i : -1 }).filter(function (i) { return i >= 0 })
-    if (!kvar.length) break
-    var del = extra / kvar.length
-    kvar.forEach(function (i) { var ok = Math.min(del, r[i][2] - ut[i][1]); ut[i] = ['luft', ut[i][1] + ok]; extra -= ok })
-  }
-  return ut
-}
 // Scriptets uppskattade rektangelbredd (samma som matFor i Jordkallaren.js)
 function jkMatW(enhet) { return Math.round(Math.min(enhet.w, enhet.h) * 0.405) }
-function jkPassa(radEm, inst, enhet) {
-  var F = inst.FIN, egen = inst.kompakt ? inst.STORLEK_RAD_S : inst.STORLEK_RAD
-  if (num(egen)) return egen
-  var plats = jkMatW(enhet) * 0.77 - (inst.rundad ? 18 : 0)
-  var fs = Math.floor(plats / (Math.max.apply(null, radEm) + F.ikonKolumn + F.ikonLuft) * 2) / 2
-  return Math.max(9, Math.min(inst.rundad ? 17 : 19, fs))
-}
 
 function jkPilSvg(wd, s) {
   var vrid = (wd + 180) % 360
   return '<svg width="' + s + '" height="' + s + '" viewBox="-10 -10 20 20" style="flex:none" aria-hidden="true"><g transform="rotate(' + vrid + ')"><path d="M0 -9.5 L5.9 0.5 L1.9 0.5 L1.9 9.5 L-1.9 9.5 L-1.9 0.5 L-5.9 0.5 Z" fill="#fff"/></g></svg>'
 }
 
-// Ritar en halva (8 eller 9). sida = 'v'/'h' (hörnen), vad = 'vader'/'kallare'
-function jkHalva(V, inst, enhet, vad, sida) {
-  var F = inst.FIN, v = jkV(V), alla = jkRadText(v, inst.kompakt, F)
-  var tata = alla.v.concat(alla.h)
-  var em = tata.map(function (r) { return jkRadEm(r, F) })
-  var fs = jkPassa(em, inst, enhet), mal = Math.max.apply(null, em)
+// Ritar en halva (8 eller 9). sida = 'v'/'h' (hörnen), vad = 'vader'/'kallare', vald = vald rad
+function jkHalva(V, inst, enhet, vad, sida, vald) {
   var W = jkMatW(enhet), H = 72, plats = Math.round(W * 0.77)
+  var L = rmLayout(jkV(V), inst.kompakt, inst.FIN, inst.RADER || {}, inst.kompakt ? inst.STORLEK_RAD_S : inst.STORLEK_RAD, W * 0.77 - (inst.rundad ? 18 : 0), inst.rundad)
   var box = document.createElement('div')
   box.className = 'jk-halva'
   box.style.cssText = 'position:relative;width:' + W + 'px;height:' + H + 'px;flex:none'
@@ -107,32 +70,25 @@ function jkHalva(V, inst, enhet, vad, sida) {
   if (inst.rundad) st += 'background:rgba(255,255,255,.18);border-radius:' + (sida === 'v' ? '16px 0 0 16px' : '0 16px 16px 0') + ';'
   yta.style.cssText = st
   box.appendChild(yta)
-  ;(vad === 'vader' ? alla.v : alla.h).forEach(function (r1) {
-    var r0 = jkValj(r1, mal, F)
+  ;(vad === 'vader' ? L.v : L.h).forEach(function (rr) {
     var rad = document.createElement('div')
-    rad.className = 'jk-text-rad'
-    rad.style.cssText = 'display:flex;align-items:center;white-space:nowrap;overflow:hidden;min-width:0;font-family:' + TYPSNITT.rundad + ';font-weight:600;color:#fff;line-height:1.2'
-    r0.forEach(function (p) {
-      var typ = p[0], x = p[1], el
-      if (typ === 'ikon') {
-        el = document.createElement('span'); el.style.cssText = 'flex:none;display:flex;justify-content:center;width:' + Math.round(fs * F.ikonKolumn) + 'px;margin-right:' + Math.round(fs * F.ikonLuft) + 'px'
-        el.innerHTML = sfSvg(x, fs + F.ikon, '#fff')
-      } else if (typ === 't' || typ === 'stor' || typ === 'ljus') {
-        el = document.createElement('span'); el.textContent = x
-        el.style.cssText = 'font-size:' + (fs * (typ === 'stor' ? F.ute : typ === 'ljus' ? F.hl : 1)) + 'px;' + (typ === 'ljus' ? 'color:rgba(255,255,255,' + F.hlSynlig + ');' : '') + 'overflow:hidden;text-overflow:ellipsis;min-width:0'
-      } else if (typ === 'luft') {
-        el = document.createElement('span'); el.style.cssText = 'flex:none;width:' + (fs * x) + 'px'
-      } else if (typ === 'sym') {
-        el = document.createElement('span'); el.style.cssText = 'flex:none;display:flex;margin-right:' + (fs * F.symLuft) + 'px'; el.innerHTML = sfSvg(x, fs + F.sym, '#fff')
-      } else if (typ === 'pil' && num(x)) {
-        el = document.createElement('span'); el.style.cssText = 'flex:none;display:flex;margin:0 ' + (fs * F.pilLuft) + 'px'; el.innerHTML = jkPilSvg(x, fs + F.pil)
-      }
-      if (el) rad.appendChild(el)
+    rad.className = 'jk-text-rad' + (vald === rr.id ? ' vald' : '') + (inst.RADER && inst.RADER[rr.id] && Object.keys(inst.RADER[rr.id]).length ? ' andrad' : '')
+    rad.dataset.rad = rr.id
+    rad.title = RM_NAMN[rr.id] + ' – klicka för att ändra bara den här raden'
+    rad.style.cssText = 'display:flex;align-items:center;white-space:nowrap;overflow:hidden;min-width:0;font-family:' + TYPSNITT.rundad + ';font-weight:600;color:#fff;line-height:1.2;cursor:pointer'
+    rr.d.forEach(function (d) {
+      var el = document.createElement('span')
+      if (d[0] === 'ikon') { el.style.cssText = 'flex:none;display:flex;justify-content:center;width:' + d[3] + 'px;margin-right:' + d[4] + 'px'; el.innerHTML = sfSvg(d[1], d[2], '#fff') }
+      else if (d[0] === 'text') { el.textContent = d[1]; el.style.cssText = 'font-size:' + d[2] + 'px;' + (d[3] < 1 ? 'color:rgba(255,255,255,' + d[3] + ');' : '') + 'overflow:hidden;text-overflow:ellipsis;min-width:0' }
+      else if (d[0] === 'luft') el.style.cssText = 'flex:none;width:' + Math.max(0, d[1]) + 'px'
+      else if (d[0] === 'sym') { el.style.cssText = 'flex:none;display:flex'; el.innerHTML = sfSvg(d[1], d[2], '#fff') }
+      else if (d[0] === 'pil') { el.style.cssText = 'flex:none;display:flex'; el.innerHTML = jkPilSvg(d[1], d[2]) }
+      rad.appendChild(el)
     })
     yta.appendChild(rad)
   })
-  box.dataset.fs = fs
-  box.dataset.passar = (mal + F.ikonKolumn + F.ikonLuft) * fs <= plats - pad[1] - pad[3] + 0.5 ? '1' : ''
+  box.dataset.fs = L.fs
+  box.dataset.passar = L.passar ? '1' : ''
   return box
 }
 
@@ -152,10 +108,14 @@ function jkAnpassa(box) {
   })
 }
 
-// FIN-blocket att klistra in i Jordkallaren.js
+// Raderna att klistra in i Jordkallaren.js (ersätter STORLEK_RAD … RADER)
 function jkFinText(inst) {
-  var F = inst.FIN, c = function (k) { return String(F[k]) }
-  return 'const STORLEK_RAD = ' + (num(inst.STORLEK_RAD) ? inst.STORLEK_RAD : 'null') + '          // 8 och 9\n' +
-    'const STORLEK_RAD_S = ' + (num(inst.STORLEK_RAD_S) ? inst.STORLEK_RAD_S : 'null') + '        // 8S och 9S (kortare rader)\n\n' +
-    'const FIN = {\n' + Object.keys(FIN_STD).map(function (k) { return '  ' + k + ': ' + c(k) + ',' + ' '.repeat(Math.max(1, 14 - k.length - c(k).length)) + '// ' + FIN_INFO[k][0] }).join('\n') + '\n}\n'
+  var F = inst.FIN, c = function (k) { return String(F[k]) }, R = inst.RADER || {}
+  var rader = Object.keys(R).filter(function (id) { return Object.keys(R[id]).length }).map(function (id) {
+    return '  ' + id + ': { ' + Object.keys(R[id]).map(function (k) { return k + ': ' + JSON.stringify(R[id][k]) }).join(', ') + ' },   // ' + RM_NAMN[id]
+  })
+  return 'let STORLEK_RAD = ' + (num(inst.STORLEK_RAD) ? inst.STORLEK_RAD : 'null') + '            // 8 och 9\n' +
+    'let STORLEK_RAD_S = ' + (num(inst.STORLEK_RAD_S) ? inst.STORLEK_RAD_S : 'null') + '          // 8S och 9S (kortare rader)\n\n' +
+    'const FIN = {\n' + Object.keys(FIN_STD).map(function (k) { return '  ' + k + ': ' + c(k) + ',' + ' '.repeat(Math.max(1, 14 - k.length - c(k).length)) + '// ' + FIN_INFO[k][0] }).join('\n') + '\n}\n' +
+    'let RADER = {' + (rader.length ? '\n' + rader.join('\n') + '\n' : '') + '}\n'
 }
