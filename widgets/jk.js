@@ -3,7 +3,7 @@
 //  hela rad (8 + 9) med exakt samma uträkning som Jordkallaren.js.
 // =====================================================================
 
-var FIN_STD = { ikon: 0, ikonKolumn: 1.2, ikonLuft: 0.2, sym: -1, symLuft: 0.15, pil: -2, pilLuft: 0.15, ute: 1.2, hl: 0.85, hlSynlig: 0.55 }
+var FIN_STD = { ikon: 0, ikonKolumn: 1.2, ikonLuft: 0.2, sym: -1, symLuft: 0.15, pil: -2, pilLuft: 0.15, ute: 1.2, hl: 0.85, hlSynlig: 0.55, punkt: 0 }
 var FIN_INFO = {
   ikon: ['Ikoner först på raden', 'pt större/mindre än texten', -4, 6, 0.5],
   ikonKolumn: ['Ikonkolumnens bredd', '× textstorleken', 0.8, 2, 0.05],
@@ -15,6 +15,7 @@ var FIN_INFO = {
   ute: ['Ute-temperaturen (vänster)', '× textstorleken', 0.8, 1.6, 0.05],
   hl: ['H: och L:', '× textstorleken', 0.5, 1.2, 0.05],
   hlSynlig: ['H: och L: synlighet', '0–1', 0.1, 1, 0.05],
+  punkt: ['Luft runt punkterna', 'textbredder (6,6°·93,9%·0,7°)', 0, 0.6, 0.02],
 }
 
 // ---- samma tabell och regler som i Jordkallaren.js ----
@@ -32,7 +33,12 @@ function jkV(V) {
   }
 }
 
-function jkRadText(v, k) {
+function jkPunktRad(delar, F) {
+  var P = Math.max(0, (F && F.punkt) || 0), ut = []
+  delar.forEach(function (d, i) { if (i) { if (P) ut.push(['luft', P]); ut.push(['t', '·']); if (P) ut.push(['luft', P]) } ut.push(['t', d]) })
+  return ut
+}
+function jkRadText(v, k, F) {
   var x = v.vader || {}
   return {
     v: [
@@ -44,7 +50,7 @@ function jkRadText(v, k) {
     ],
     h: [
       k ? [['ikon', v.larmOppet ? 'exclamationmark.triangle.fill' : 'house.fill'], ['t', komma(v.ti) + '°'], ['luft', 0.45], ['t', komma(v.rh) + '%'], ['luft', 0.45], ['t', komma(v.tu) + '°']]
-        : [['ikon', v.larmOppet ? 'exclamationmark.triangle.fill' : 'house.fill'], ['t', komma(v.ti) + '°·' + komma(v.rh) + '%·' + komma(v.tu) + '°']],
+        : [['ikon', v.larmOppet ? 'exclamationmark.triangle.fill' : 'house.fill']].concat(jkPunktRad([komma(v.ti) + '°', komma(v.rh) + '%', komma(v.tu) + '°'], F)),
       [['ikon', jkBatSymbol(v)], ['t', v.usb ? 'Laddar' : (num(v.bp) ? Math.round(v.bp) : '–') + '%'], ['fluft', 0.3, 1.0], ['sym', 'wifi'], ['t', num(v.rs) ? komma(v.rs, 0) + (k ? '' : TS + 'dBm') : '–']],
       v.tyst ? [['ikon', 'exclamationmark.icloud'], ['t', 'tyst ' + klocka(v.upp)]]
         : [['ikon', 'icloud.and.arrow.up'], ['t', klocka(v.upp)], ['fluft', 0.2, 0.6], ['sym', 'arrow.right'], ['fluft', 0, 0.45], ['t', klocka(v.nasta)]],
@@ -87,7 +93,7 @@ function jkPilSvg(wd, s) {
 
 // Ritar en halva (8 eller 9). sida = 'v'/'h' (hörnen), vad = 'vader'/'kallare'
 function jkHalva(V, inst, enhet, vad, sida) {
-  var F = inst.FIN, v = jkV(V), alla = jkRadText(v, inst.kompakt)
+  var F = inst.FIN, v = jkV(V), alla = jkRadText(v, inst.kompakt, F)
   var tata = alla.v.concat(alla.h)
   var em = tata.map(function (r) { return jkRadEm(r, F) })
   var fs = jkPassa(em, inst, enhet), mal = Math.max.apply(null, em)

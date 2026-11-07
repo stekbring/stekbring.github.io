@@ -220,6 +220,16 @@ async function ritaEl(st, el, V) {
     var im = st.addImage(sym.image); im.imageSize = new Size(el.storlek || 14, el.storlek || 14); im.tintColor = farg(elFarg(el, V), el.alfa)
     return
   }
+  if (el.typ === 'pil') {
+    var gr = pilVinkel(el, V); if (gr === null) return
+    var ps = el.storlek || 14, dc = nyDC(ps, ps), c = ps / 2, a = gr * Math.PI / 180, r = ps / 2 - 0.5
+    var pt = function (x, y) { return new Point(c + x * Math.cos(a) - y * Math.sin(a), c + x * Math.sin(a) + y * Math.cos(a)) }
+    var p = new Path(); p.move(pt(0, -r)); p.addLine(pt(r * 0.62, r * 0.05)); p.addLine(pt(r * 0.2, r * 0.05)); p.addLine(pt(r * 0.2, r))
+    p.addLine(pt(-r * 0.2, r)); p.addLine(pt(-r * 0.2, r * 0.05)); p.addLine(pt(-r * 0.62, r * 0.05)); p.closeSubpath()
+    dc.addPath(p); dc.setFillColor(farg(elFarg(el, V), el.alfa)); dc.fillPath()
+    var pi = st.addImage(dc.getImage()); pi.imageSize = new Size(ps, ps)
+    return
+  }
   if (el.typ === 'luft') { if (num(el.langd)) st.addSpacer(el.langd); else st.addSpacer(); return }
   if (el.typ === 'graf') { var g = st.addImage(grafBild(el, V)); g.imageSize = new Size(el.bredd || 140, el.hojd || 40); return }
   if (el.typ === 'bild' && el.url) {

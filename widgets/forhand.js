@@ -122,6 +122,12 @@ function domEl(el, V, ctx) {
     d.innerHTML = sfSvg(fyllText(el.namn, V), is, cssFarg(elFarg(el, V), el.alfa, las))
     return d
   }
+  if (el.typ === 'pil') {
+    var ps = el.storlek || 14, gr = pilVinkel(el, V)
+    d.style.cssText = 'flex:none;display:flex;width:' + ps + 'px;height:' + ps + 'px'
+    d.innerHTML = gr === null ? '' : '<svg width="' + ps + '" height="' + ps + '" viewBox="-10 -10 20 20" aria-hidden="true"><g transform="rotate(' + gr + ')"><path d="M0 -9.5 L5.9 0.5 L1.9 0.5 L1.9 9.5 L-1.9 9.5 L-1.9 0.5 L-5.9 0.5 Z" fill="' + cssFarg(elFarg(el, V), el.alfa, las) + '"/></g></svg>'
+    return d
+  }
   if (el.typ === 'luft') {
     if (num(el.langd)) d.style.cssText = 'flex:none;' + (ctx.riktning === 'h' ? 'width:' : 'height:') + el.langd + 'px'
     else d.style.cssText = 'flex:1 1 0;min-width:0;min-height:0'

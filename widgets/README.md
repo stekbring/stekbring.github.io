@@ -5,7 +5,7 @@ Ett webbverktyg för att bygga widgets till Scriptable på iPhone och se dem på
 ## Flikar
 
 - **Bygg** – fri byggare.
-  - Till vänster väljer du storlek (liten, mellan, stor, extra stor och låsskärmens rund, rektangel och rad). Där finns också trädet med widgetens delar: rad, kolumn, text, ikon, luft, mätare, graf och bild.
+  - Till vänster väljer du storlek (liten, mellan, stor, extra stor och låsskärmens rund, rektangel och rad). Där finns också trädet med widgetens delar: rad, kolumn, text, ikon, vindpil, luft, mätare, graf och bild.
   - I mitten ser du widgeten på vald iPhone-modell, i rätt storlek i punkter. Låsskärmens widgets visas under klockan. Klicka på en del i telefonen för att välja den.
   - Till höger ändrar du den valda delen. Det finns också en lista över värden att skriva in i texter, till exempel `{ti:1}` för källarens temperatur med en decimal.
 - **Jordkällaren** – finjustering av låsskärmens hela rad (8 + 9). Skjutreglagen ändrar samma `FIN`-siffror som står överst i `Jordkallaren.js`. Textstorleken räknas ut exakt som i skriptet.

@@ -17,6 +17,7 @@ function toast(t) { var el = $('toast'); el.textContent = t; el.classList.add('s
 function T(text, o) { return Object.assign({ id: uid(), typ: 'text', text: text, storlek: 14, vikt: 'semibold', typsnitt: 'rundad', farg: '#ffffff', rader: 1, minSkala: 1 }, o || {}) }
 function I(namn, o) { return Object.assign({ id: uid(), typ: 'ikon', namn: namn, storlek: 14, farg: '#ffffff' }, o || {}) }
 function S(riktning, barn, o) { return Object.assign({ id: uid(), typ: 'stack', riktning: riktning, mellan: 0, padding: [0, 0, 0, 0], justera: riktning === 'h' ? 'center' : 'start', barn: barn || [] }, o || {}) }
+function P(o) { return Object.assign({ id: uid(), typ: 'pil', vinkel: '{wd}', vand: true, storlek: 14, farg: '#ffffff' }, o || {}) }
 function L(langd) { return { id: uid(), typ: 'luft', langd: langd === undefined ? null : langd } }
 function M(varde, o, barn) { return Object.assign({ id: uid(), typ: 'matare', varde: varde, min: 0, max: 100, storlek: 64, bredd: 5, stil: 'bage', farg: '#ffffff', spar: 0.25, barn: barn || [] }, o || {}) }
 function G(serie, o) { return Object.assign({ id: uid(), typ: 'graf', serie: serie, timmar: 24, bredd: 130, hojd: 40, farg: '#f5a742', linje: 2, minSpann: 0.5 }, o || {}) }
@@ -65,8 +66,22 @@ var MALLAR = [
     return spec('Väder', 'accessoryRectangular', [
       S('h', [I('sunrise.fill', { storlek: 14 }), L(5), T('{solUpp:tid}', { storlek: 15 }), L(10), I('sunset.fill', { storlek: 13 }), L(3), T('{solNed:tid}', { storlek: 15 })]),
       S('h', [I('thermometer.medium', { storlek: 14 }), L(5), T('{T:0}°', { storlek: 18 }), L(8), T('H:', { storlek: 13, alfa: 0.55 }), L(2), T('{H:0}°', { storlek: 15 }), L(6), T('L:', { storlek: 13, alfa: 0.55 }), L(2), T('{L:0}°', { storlek: 15 })]),
-      S('h', [I('wind', { storlek: 14 }), L(5), T('{riktn} {ws:0} m/s', { storlek: 15 })]),
+      S('h', [I('wind', { storlek: 14 }), L(5), T('{riktn}', { storlek: 15 }), L(4), P({ storlek: 12 }), L(4), T('{ws:0} m/s', { storlek: 15 })]),
     ], { bakgrund: { typ: 'ingen' }, kallor: { jk: false, smhi: true } })
+  } },
+  { namn: 'Jordkällaren + väder (mellan)', ny: function () {
+    var rad = function (ikon, barn) { return S('h', [I(ikon, { storlek: 15, farg: '#a3acb6' }), L(6)].concat(barn)) }
+    return spec('Jordkällaren och väder', 'medium', [S('h', [
+      S('v', [T('JORDKÄLLAREN', { storlek: 11, farg: '#a3acb6' }), L(),
+        rad('house.fill', [T('{ti:1}°', { storlek: 22, farg: '#f5a742', fargLarm: '#ff8a7f' })]),
+        rad('drop.fill', [T('{rh:1} %', { storlek: 17, farg: '#7cb8ff' })]),
+        rad('icloud.and.arrow.up', [T('{upp:tid}', { storlek: 13, vikt: 'medium', farg: '#a3acb6' })])], { mellan: 4 }),
+      L(),
+      S('v', [T('VÄDER', { storlek: 11, farg: '#a3acb6' }), L(),
+        rad('thermometer.medium', [T('{T:0}°', { storlek: 22 }), L(6), T('H:{H:0}° L:{L:0}°', { storlek: 12, vikt: 'medium', farg: '#a3acb6' })]),
+        rad('wind', [T('{riktn}', { storlek: 15 }), L(4), P({ storlek: 13 }), L(4), T('{ws:0} m/s', { storlek: 15 })]),
+        rad('sunrise.fill', [T('{solUpp:tid} – {solNed:tid}', { storlek: 13, vikt: 'medium', farg: '#a3acb6' })])], { mellan: 4 }),
+    ])], { kallor: { jk: true, smhi: true } })
   } },
   { namn: 'Låsskärm rad ovanför klockan', ny: function () { return spec('Raden', 'accessoryInline', [T('{ti:1}° · {rh:1} % · {tu:1}°')]) } },
   { namn: 'Egen data från en JSON-adress', ny: function () {
@@ -191,11 +206,12 @@ function hitta(id, nod, foralder) {
   for (var i = 0; i < barn.length; i++) { var x = hitta(id, barn[i], nod); if (x) return x }
   return null
 }
-var TYPNAMN = { stack: 'Stack', text: 'Text', ikon: 'Ikon', luft: 'Luft', matare: 'Mätare', graf: 'Graf', bild: 'Bild' }
+var TYPNAMN = { stack: 'Stack', text: 'Text', ikon: 'Ikon', pil: 'Vindpil', luft: 'Luft', matare: 'Mätare', graf: 'Graf', bild: 'Bild' }
 function sammanfatta(el) {
   if (el.typ === 'stack') return (el.riktning === 'h' ? 'Rad ↔' : 'Kolumn ↕') + ' · ' + (el.barn || []).length + ' delar'
   if (el.typ === 'text') return el.text
   if (el.typ === 'ikon') return el.namn
+  if (el.typ === 'pil') return (el.vinkel === undefined ? '{wd}' : el.vinkel) + (el.vand === false ? '' : ' (dit det blåser)')
   if (el.typ === 'luft') return num(el.langd) ? el.langd + ' pt' : 'växer'
   if (el.typ === 'matare') return el.varde + ' (' + el.stil + ')'
   if (el.typ === 'graf') return el.serie + ' · ' + el.timmar + ' h'
@@ -227,7 +243,7 @@ function gor(handling, id) {
   andrat()
 }
 function laggTill(typ) {
-  var nytt = typ === 'stackH' ? S('h', []) : typ === 'stackV' ? S('v', []) : typ === 'text' ? T('Text') : typ === 'ikon' ? I('star.fill') : typ === 'luft' ? L() : typ === 'matare' ? M('{bp}', {}, [T('{bp:0}', { storlek: 16 })]) : typ === 'graf' ? G('ti') : { id: uid(), typ: 'bild', url: '', bredd: 40, hojd: 40, radie: 8 }
+  var nytt = typ === 'stackH' ? S('h', []) : typ === 'stackV' ? S('v', []) : typ === 'text' ? T('Text') : typ === 'ikon' ? I('star.fill') : typ === 'pil' ? P() : typ === 'luft' ? L() : typ === 'matare' ? M('{bp}', {}, [T('{bp:0}', { storlek: 16 })]) : typ === 'graf' ? G('ti') : { id: uid(), typ: 'bild', url: '', bredd: 40, hojd: 40, radie: 8 }
   var x = hitta(valtId) || { el: S0.rot }
   if (x.el.barn) x.el.barn.push(nytt)
   else { var lst = x.foralder.barn; lst.splice(lst.indexOf(x.el) + 1, 0, nytt) }
@@ -249,6 +265,8 @@ var FALT = {
     falt('mellan', 'Mellanrum (pt)', 'tal', { min: 0, max: 40, steg: 0.5 }), falt('padding', 'Inre luft (upp, vänster, ned, höger)', 'padding', { hel: 1 }),
     falt('bredd', 'Fast bredd (pt, tom = automatisk)', 'tal', { min: 0, max: 400, tom: 1 }), falt('hojd', 'Fast höjd', 'tal', { min: 0, max: 400, tom: 1 }),
     falt('bg', 'Bakgrund', 'fargval'), falt('radie', 'Rundade hörn', 'tal', { min: 0, max: 60 }), falt('kant', 'Kantlinje (pt)', 'tal', { min: 0, max: 6, steg: 0.5 }), falt('kantFarg', 'Kantfärg', 'farg'), falt('visa', 'Visas', 'val', { val: VILLKOR })],
+  pil: [falt('vinkel', 'Riktning i grader ({wd} = vinden från SMHI)', 'mall', { hel: 1 }), falt('vand', 'Peka dit vinden blåser (av = varifrån den kommer)', 'bool', { hel: 1 }),
+    falt('storlek', 'Storlek (pt)', 'tal', { min: 4, max: 120, steg: 0.5 }), falt('farg', 'Färg', 'farg'), falt('visa', 'Visas', 'val', { val: VILLKOR })],
   luft: [falt('langd', 'Längd i pt (tom = växer och fyller ut)', 'tal', { min: 0, max: 200, steg: 0.5, tom: 1, hel: 1 }), falt('visa', 'Visas', 'val', { val: VILLKOR })],
   matare: [falt('varde', 'Värde (t.ex. {bp} eller {ti})', 'mall', { hel: 1 }), falt('min', 'Min', 'tal', {}), falt('max', 'Max', 'tal', {}), falt('stil', 'Stil', 'val', { val: [['bage', 'Båge (som Apple)'], ['ring', 'Hel ring'], ['prick', 'Båge med prick']] }),
     falt('storlek', 'Storlek (pt)', 'tal', { min: 20, max: 200 }), falt('bredd', 'Linjebredd', 'tal', { min: 1, max: 20, steg: 0.5 }), falt('inset', 'Avstånd till kanten', 'tal', { min: 0, max: 20, steg: 0.5 }),
@@ -476,6 +494,7 @@ function ritaAllt() {
 //  Jordkällaren-läget
 // ---------------------------------------------------------------------
 var jkInst = lsGet('wv-jk', null) || { FIN: klon(FIN_STD), STORLEK_RAD: null, STORLEK_RAD_S: null, kompakt: false, rundad: false, byt: false, enhet: 'i15' }
+jkInst.FIN = Object.assign(klon(FIN_STD), jkInst.FIN || {})
 function jkSpara() { lsSet('wv-jk', jkInst) }
 function jkRita() {
   var e = ENHETER.find(function (x) { return x.id === jkInst.enhet }) || ENHETER[4]
@@ -551,7 +570,7 @@ function init() {
   $('enhetVal').innerHTML = enh; $('enhetVal').value = enhetId
   $('jkEnhet').innerHTML = enh; $('jkEnhet').value = jkInst.enhet
   $('mallVal').innerHTML += MALLAR.map(function (m, i) { return '<option value="' + i + '">' + esc(m.namn) + '</option>' }).join('')
-  $('laggTill').innerHTML = [['stackH', 'Rad ↔'], ['stackV', 'Kolumn ↕'], ['text', 'Text'], ['ikon', 'Ikon'], ['luft', 'Luft'], ['matare', 'Mätare'], ['graf', 'Graf'], ['bild', 'Bild']].map(function (x) { return '<button type="button" data-ny="' + x[0] + '">+ ' + x[1] + '</button>' }).join('')
+  $('laggTill').innerHTML = [['stackH', 'Rad ↔'], ['stackV', 'Kolumn ↕'], ['text', 'Text'], ['ikon', 'Ikon'], ['pil', 'Vindpil'], ['luft', 'Luft'], ['matare', 'Mätare'], ['graf', 'Graf'], ['bild', 'Bild']].map(function (x) { return '<button type="button" data-ny="' + x[0] + '">+ ' + x[1] + '</button>' }).join('')
   var dl = document.createElement('datalist'); dl.id = 'sfLista'; dl.innerHTML = SF_NAMN.map(function (n) { return '<option value="' + n + '">' }).join(''); document.body.appendChild(dl)
   document.querySelectorAll('#zoomVal button').forEach(function (b) { b.setAttribute('aria-pressed', String(+b.dataset.v === zoom)); b.textContent = { 1: 'Hel', 2: '1:1', 3: 'Nära' }[b.dataset.v] })
   // exempeldata

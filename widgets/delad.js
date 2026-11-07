@@ -213,3 +213,11 @@ function elFarg(el, V) { return (V.larm && el.fargLarm) ? el.fargLarm : (el.farg
 // Geometri för bågar (delas mellan SVG och DrawContext)
 // Mätarstilar: 'bage' = 270° öppen nedåt (Apples), 'ring' = hel ring, 'prick' = båge med prick
 function matareGeo(stil) { return stil === 'ring' ? { a0: -90, span: 360 } : { a0: 135, span: 270 } }
+
+// Pilens vinkel i grader medurs från norr, eller null om värdet saknas.
+// Vind anges som varifrån den blåser; vand = true vänder pilen så att den pekar dit vinden blåser.
+function pilVinkel(el, V) {
+  var g = talFran(el.vinkel === undefined ? '{wd}' : el.vinkel, V)
+  if (!num(g)) return null
+  return ((g + (el.vand === false ? 0 : 180)) % 360 + 360) % 360
+}
